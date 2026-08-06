@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    Submission,
+    SubmissionView,
     sea_orm::ActiveValue::{Set, Unchanged},
     submission::ActiveModel,
 };
@@ -44,7 +44,7 @@ pub struct UpdateSubmissionStatusRequest {
     ),
     request_body = UpdateSubmissionStatusRequest,
     responses(
-        (status = 200, description = "Updated submission", body = Submission),
+        (status = 200, description = "Updated submission", body = SubmissionView),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -55,7 +55,7 @@ pub async fn update_submission_status(
 
     Path(submission_id): Path<i64>,
     ReqJson(body): ReqJson<UpdateSubmissionStatusRequest>,
-) -> Result<Json<Submission>, WebError> {
+) -> Result<Json<SubmissionView>, WebError> {
     let _submission = cds_db::submission::find_by_id(&s.db.conn, submission_id)
         .await?
         .ok_or_else(|| WebError::NotFound(json!("")))?;

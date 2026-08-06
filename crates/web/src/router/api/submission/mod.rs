@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    Submission, Team,
+    SubmissionSummary, TeamView,
     sea_orm::{ActiveValue::NotSet, Set},
     submission::{FindSubmissionsOptions, Status},
     team::{FindTeamOptions, State as TState},
@@ -58,7 +58,7 @@ pub struct ListSubmissionsRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct ListSubmissionsResponse {
-    pub submissions: Vec<Submission>,
+    pub submissions: Vec<SubmissionSummary>,
     pub total: u64,
 }
 
@@ -103,9 +103,9 @@ pub async fn list_submissions(
     .await?;
 
     let submissions = submissions
-        .into_iter()
-        .map(|submission: Submission| submission.desensitize())
-        .collect::<Vec<Submission>>();
+        .iter()
+        .map(SubmissionSummary::from)
+        .collect::<Vec<_>>();
     debug!(
         page,
         size,
@@ -132,7 +132,7 @@ pub struct CreateSubmissionRequest {
     tag = "submission",
     request_body = CreateSubmissionRequest,
     responses(
-        (status = 201, description = "Created submission", body = Submission),
+        (status = 201, description = "Created submission", body = SubmissionSummary),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
@@ -146,7 +146,7 @@ pub async fn create_submission(
 
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateSubmissionRequest>,
-) -> Result<(StatusCode, Json<Submission>), WebError> {
+) -> Result<(StatusCode, Json<SubmissionSummary>), WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
     let token = format!("submission:user:{}", operator.id);
@@ -181,7 +181,7 @@ pub async fn create_submission(
         let _ =
             crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge.id).await?;
 
-        if cds_db::team::find::<Team>(
+        if cds_db::team::find::<TeamView>(
             &s.db.conn,
             FindTeamOptions {
                 id: Some(team_id),
@@ -242,5 +242,8 @@ pub async fn create_submission(
         .await?
         .ok_or_else(|| WebError::NotFound(json!("")))?;
 
-    Ok((StatusCode::CREATED, Json(submission)))
+    Ok((
+        StatusCode::CREATED,
+        Json(SubmissionSummary::from(&submission)),
+    ))
 }

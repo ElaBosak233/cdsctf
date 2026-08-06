@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    GameChallenge,
+    GameChallengeView,
     game_challenge::FindGameChallengeOptions,
     sea_orm::{ActiveValue::Set, NotSet},
 };
@@ -44,7 +44,7 @@ pub struct GetGameChallengeRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminGameChallengesListResponse {
-    pub challenges: Vec<GameChallenge>,
+    pub challenges: Vec<GameChallengeView>,
     pub total: u64,
 }
 
@@ -98,7 +98,7 @@ pub struct CreateGameChallengeRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct GameChallengeResponse {
-    pub game_challenge: GameChallenge,
+    pub game_challenge: GameChallengeView,
 }
 
 /// Creates game challenge.

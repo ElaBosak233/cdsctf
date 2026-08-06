@@ -65,7 +65,7 @@ pub async fn get_user_profile(
     Extension(ext): Extension<AuthPrincipal>,
 ) -> Result<Json<UserResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-    let user = cds_db::user::find_by_id::<cds_db::User>(&s.db.conn, operator.id)
+    let user = cds_db::user::find_by_id::<cds_db::UserAccountView>(&s.db.conn, operator.id)
         .await?
         .ok_or(WebError::NotFound(json!("")))?;
     Ok(Json(UserResponse { user }))
@@ -97,7 +97,7 @@ pub async fn update_user_profile(
 ) -> Result<Json<UserResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let user = cds_db::user::update::<cds_db::User>(
+    let user = cds_db::user::update::<cds_db::UserAccountView>(
         &s.db.conn,
         cds_db::user::ActiveModel {
             id: Unchanged(operator.id),

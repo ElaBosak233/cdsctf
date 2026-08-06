@@ -6,7 +6,7 @@ use axum::{
     Json, Router,
     extract::{Path, State},
 };
-use cds_db::UserIdp;
+use cds_db::UserIdpSummary;
 use serde::Serialize;
 use serde_json::json;
 use utoipa_axum::{
@@ -27,7 +27,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct UserIdpsResponse {
-    pub idps: Vec<UserIdp>,
+    pub idps: Vec<UserIdpSummary>,
 }
 
 #[utoipa::path(
@@ -45,7 +45,8 @@ pub async fn list_my_idps(
     Extension(ext): Extension<AuthPrincipal>,
 ) -> Result<Json<UserIdpsResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-    let idps = cds_db::user_idp::find_user_idps_by_user::<UserIdp>(&s.db.conn, operator.id).await?;
+    let idps =
+        cds_db::user_idp::find_user_idps_by_user::<UserIdpSummary>(&s.db.conn, operator.id).await?;
     Ok(Json(UserIdpsResponse { idps }))
 }
 

@@ -7,7 +7,7 @@ mod instance_id;
 use std::{collections::BTreeMap, sync::Arc};
 
 use axum::{Json, Router, extract::State, http::StatusCode};
-use cds_db::{TeamUser, team_user::FindTeamUserOptions};
+use cds_db::{TeamUserView, team_user::FindTeamUserOptions};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -177,7 +177,7 @@ pub async fn create_instance(
             return Err(WebError::Forbidden(json!("team_not_found")));
         }
 
-        let (_, member_count) = cds_db::team_user::find::<TeamUser>(
+        let (_, member_count) = cds_db::team_user::find::<TeamUserView>(
             &s.db.conn,
             FindTeamUserOptions {
                 team_id: Some(team_id),

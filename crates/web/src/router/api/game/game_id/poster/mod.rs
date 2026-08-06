@@ -44,7 +44,7 @@ pub async fn get_game_poster(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let game = cds_db::game::find_by_id::<cds_db::Game>(&s.db.conn, game_id)
+    let game = cds_db::game::find_by_id::<cds_db::GameDetail>(&s.db.conn, game_id)
         .await?
         .ok_or(WebError::NotFound(json!("game_not_found")))?;
     match game.poster_hash {

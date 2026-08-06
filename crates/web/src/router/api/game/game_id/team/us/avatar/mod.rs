@@ -8,7 +8,7 @@ use axum::{
     extract::{DefaultBodyLimit, Multipart, State},
 };
 use cds_db::{
-    Team,
+    TeamView,
     sea_orm::{Set, Unchanged},
 };
 use serde_json::json;
@@ -67,7 +67,7 @@ pub async fn save_team_avatar(
 
     s.media.save("media".to_owned(), hash.clone(), data).await?;
 
-    let _ = cds_db::team::update::<Team>(
+    let _ = cds_db::team::update::<TeamView>(
         &s.db.conn,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),
@@ -107,7 +107,7 @@ pub async fn delete_team_avatar(
         s.media.delete("media".to_owned(), hash).await?;
     }
 
-    let _ = cds_db::team::update::<Team>(
+    let _ = cds_db::team::update::<TeamView>(
         &s.db.conn,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),

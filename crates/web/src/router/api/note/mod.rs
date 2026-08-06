@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::note::{FindNotesOptions, Note};
+use cds_db::note::{FindNotesOptions, NoteView};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -36,7 +36,7 @@ pub struct ListNotesRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct ListNotesResponse {
-    pub notes: Vec<Note>,
+    pub notes: Vec<NoteView>,
     pub total: u64,
 }
 

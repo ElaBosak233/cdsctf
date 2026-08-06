@@ -4,7 +4,9 @@
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::{GameChallengeMini, game_challenge::FindGameChallengeOptions, team::State as TState};
+use cds_db::{
+    GameChallengeSummary, game_challenge::FindGameChallengeOptions, team::State as TState,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -34,7 +36,7 @@ pub struct GetGameChallengeRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct GameChallengesListResponse {
-    pub challenges: Vec<GameChallengeMini>,
+    pub challenges: Vec<GameChallengeSummary>,
     pub total: u64,
 }
 
@@ -74,7 +76,7 @@ pub async fn get_game_challenge(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let (game_challenges, total) = cds_db::game_challenge::find::<GameChallengeMini>(
+    let (game_challenges, total) = cds_db::game_challenge::find::<GameChallengeSummary>(
         &s.db.conn,
         FindGameChallengeOptions {
             game_id: Some(game.id),

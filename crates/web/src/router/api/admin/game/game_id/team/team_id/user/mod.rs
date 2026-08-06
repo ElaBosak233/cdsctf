@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::{TeamUser, UserMini, sea_orm::ActiveValue::Set, team::State as TState};
+use cds_db::{TeamUserView, UserSummary, sea_orm::ActiveValue::Set, team::State as TState};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -27,7 +27,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminTeamUsersListResponse {
-    pub users: Vec<UserMini>,
+    pub users: Vec<UserSummary>,
     pub total: u64,
 }
 
@@ -100,7 +100,7 @@ pub async fn create_team_user(
         return Err(WebError::BadRequest(json!("user_already_in_game")));
     }
 
-    let _ = cds_db::team_user::create::<TeamUser>(
+    let _ = cds_db::team_user::create::<TeamUserView>(
         &s.db.conn,
         cds_db::team_user::ActiveModel {
             user_id: Set(body.user_id),

@@ -11,7 +11,7 @@ use axum::{
     http::StatusCode,
 };
 use cds_db::{
-    Email, Idp, User, UserIdp,
+    EmailView, IdpSummary, IdpView, UserAccountView, UserIdpSummary, UserIdpView,
     sea_orm::{ActiveValue::Set, NotSet},
     user::{FindUserOptions, Group},
 };
@@ -46,12 +46,12 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct IdpBindResponse {
-    pub idp: UserIdp,
+    pub idp: UserIdpSummary,
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct IdpResponse {
-    pub idp: Idp,
+    pub idp: IdpSummary,
 }
 
 #[utoipa::path(
@@ -71,7 +71,7 @@ pub async fn get_idp(
 ) -> Result<Json<IdpResponse>, WebError> {
     let idp = enabled_idp(&s, idp_id).await?;
     Ok(Json(IdpResponse {
-        idp: idp.desensitize(),
+        idp: IdpSummary::from(&idp),
     }))
 }
 
@@ -102,29 +102,40 @@ pub async fn bind(
 
     let payload = cds_idp::Idp::bind(idp.id, body.params, user_map(&s, &operator).await?).await?;
 
-    if cds_db::user_idp::find_user_idp_by_auth_key::<UserIdp>(&s.db.conn, idp.id, &payload.auth_key)
-        .await?
-        .is_some()
+    if cds_db::user_idp::find_user_idp_by_auth_key::<UserIdpView>(
+        &s.db.conn,
+        idp.id,
+        &payload.auth_key,
+    )
+    .await?
+    .is_some()
     {
         return Err(WebError::Conflict(json!("user_idp_already_bound")));
     }
-    if cds_db::user_idp::find_user_idp_by_user_and_idp::<UserIdp>(&s.db.conn, operator.id, idp.id)
-        .await?
-        .is_some()
+    if cds_db::user_idp::find_user_idp_by_user_and_idp::<UserIdpView>(
+        &s.db.conn,
+        operator.id,
+        idp.id,
+    )
+    .await?
+    .is_some()
     {
         return Err(WebError::Conflict(json!("idp_already_bound")));
     }
 
     let identity = create_user_idp(&s, &idp, operator.id, &payload).await?;
-    Ok((StatusCode::CREATED, Json(IdpBindResponse { idp: identity })))
+    Ok((
+        StatusCode::CREATED,
+        Json(IdpBindResponse {
+            idp: UserIdpSummary::from(&identity),
+        }),
+    ))
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct IdpLoginResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user: Option<User>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub identity: Option<UserIdp>,
+    pub user: Option<UserAccountView>,
     pub registered: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub requires_registration: Option<bool>,
@@ -183,7 +194,7 @@ pub async fn login(
     {
         cds_db::user_idp::update_user_idp_data(&s.db.conn, &identity, Some(json!(payload.data)))
             .await?;
-        let user = cds_db::user::find_by_id::<User>(&s.db.conn, identity.user_id)
+        let user = cds_db::user::find_by_id::<UserAccountView>(&s.db.conn, identity.user_id)
             .await?
             .ok_or(WebError::NotFound(json!("user_not_found")))?;
         session.insert("user_id", user.id).await?;
@@ -193,16 +204,8 @@ pub async fn login(
             idp_id = idp.id,
             "user logged in through idp"
         );
-        let identity = cds_db::user_idp::find_user_idp_by_auth_key::<UserIdp>(
-            &s.db.conn,
-            idp.id,
-            &payload.auth_key,
-        )
-        .await?
-        .ok_or(WebError::NotFound(json!("user_idp_not_found")))?;
         return Ok(Json(IdpLoginResponse {
             user: Some(user),
-            identity: Some(identity),
             registered: false,
             requires_registration: None,
             pending_identity: None,
@@ -223,7 +226,6 @@ pub async fn login(
 
     Ok(Json(IdpLoginResponse {
         user: None,
-        identity: None,
         registered: false,
         requires_registration: Some(true),
         pending_identity: Some(PendingIdentity {
@@ -289,14 +291,14 @@ pub async fn register(
 
     let hashed_password = util::crypto::hash_password(body.password);
 
-    let user = cds_db::user::create::<User>(
+    let user = cds_db::user::create::<UserAccountView>(
         &s.db.conn,
         cds_db::user::ActiveModel {
             username: Set(body.username),
             name: Set(body.name),
             hashed_password: Set(hashed_password),
             group: Set(
-                if cds_db::user::find::<User>(&s.db.conn, FindUserOptions::default())
+                if cds_db::user::find::<UserAccountView>(&s.db.conn, FindUserOptions::default())
                     .await?
                     .1
                     == 0
@@ -311,7 +313,7 @@ pub async fn register(
     )
     .await?;
 
-    let _ = cds_db::email::create::<Email>(
+    let _ = cds_db::email::create::<EmailView>(
         &s.db.conn,
         cds_db::email::ActiveModel {
             user_id: Set(user.id),
@@ -348,8 +350,8 @@ pub async fn register(
     ))
 }
 
-async fn enabled_idp(s: &AppState, idp_id: i64) -> Result<Idp, WebError> {
-    let idp = cds_db::idp::find_idp_by_id::<Idp>(&s.db.conn, idp_id)
+async fn enabled_idp(s: &AppState, idp_id: i64) -> Result<IdpView, WebError> {
+    let idp = cds_db::idp::find_idp_by_id::<IdpView>(&s.db.conn, idp_id)
         .await?
         .ok_or(WebError::NotFound(json!("idp_not_found")))?;
     if !idp.enabled {
@@ -358,7 +360,10 @@ async fn enabled_idp(s: &AppState, idp_id: i64) -> Result<Idp, WebError> {
     Ok(idp)
 }
 
-async fn user_map(s: &AppState, user: &User) -> Result<HashMap<String, String>, WebError> {
+async fn user_map(
+    s: &AppState,
+    user: &UserAccountView,
+) -> Result<HashMap<String, String>, WebError> {
     let mut map = HashMap::from([
         ("id".to_string(), user.id.to_string()),
         ("username".to_string(), user.username.clone()),
@@ -368,7 +373,7 @@ async fn user_map(s: &AppState, user: &User) -> Result<HashMap<String, String>, 
             format!("{:?}", user.group).to_lowercase(),
         ),
     ]);
-    if let Some(email) = cds_db::email::find_by_user_id::<Email>(&s.db.conn, user.id)
+    if let Some(email) = cds_db::email::find_by_user_id::<EmailView>(&s.db.conn, user.id)
         .await?
         .into_iter()
         .find(|email| email.verified)
@@ -380,11 +385,11 @@ async fn user_map(s: &AppState, user: &User) -> Result<HashMap<String, String>, 
 
 async fn create_user_idp(
     s: &AppState,
-    idp: &Idp,
+    idp: &IdpView,
     user_id: i64,
     payload: &cds_idp::IdentityPayload,
-) -> Result<UserIdp, WebError> {
-    Ok(cds_db::user_idp::create_user_idp::<UserIdp>(
+) -> Result<UserIdpView, WebError> {
+    Ok(cds_db::user_idp::create_user_idp::<UserIdpView>(
         &s.db.conn,
         cds_db::user_idp::UserIdpActiveModel {
             id: NotSet,

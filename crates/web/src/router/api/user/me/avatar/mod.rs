@@ -8,7 +8,7 @@ use axum::{
     extract::{DefaultBodyLimit, Multipart, State},
 };
 use cds_db::{
-    User,
+    UserAccountView,
     sea_orm::{Set, Unchanged},
 };
 use serde_json::json;
@@ -61,7 +61,7 @@ pub async fn save_user_avatar(
 
     s.media.save("media".to_owned(), hash.clone(), data).await?;
 
-    let _ = cds_db::user::update::<User>(
+    let _ = cds_db::user::update::<UserAccountView>(
         &s.db.conn,
         cds_db::user::ActiveModel {
             id: Unchanged(operator.id),
@@ -100,7 +100,7 @@ pub async fn delete_user_avatar(
         s.media.delete("media".to_owned(), hash).await?;
     }
 
-    let _ = cds_db::user::update::<User>(
+    let _ = cds_db::user::update::<UserAccountView>(
         &s.db.conn,
         cds_db::user::ActiveModel {
             id: Unchanged(operator.id),

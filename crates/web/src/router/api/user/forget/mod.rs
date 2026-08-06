@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::{Email, User};
+use cds_db::{EmailView, UserAccountView};
 use cds_media::config::email::EmailType;
 use cds_worker::mailbox::SUBJECT;
 use nanoid::nanoid;
@@ -55,7 +55,7 @@ pub async fn user_forget(
     State(s): State<Arc<AppState>>,
     ReqJson(body): ReqJson<UserForgetRequest>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let user: User = cds_db::user::find_by_email(&s.db.conn, body.email.to_lowercase())
+    let user: UserAccountView = cds_db::user::find_by_email(&s.db.conn, body.email.to_lowercase())
         .await?
         .ok_or(WebError::BadRequest("user_not_found".into()))?;
 
@@ -108,11 +108,11 @@ pub async fn send_forget_email(
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
 
-    let email: Email = cds_db::email::find_by_email(&s.db.conn, body.email.to_owned())
+    let email: EmailView = cds_db::email::find_by_email(&s.db.conn, body.email.to_owned())
         .await?
         .ok_or(WebError::BadRequest("email_not_found".into()))?;
 
-    let user: User = cds_db::user::find_by_email(&s.db.conn, email.email.to_owned())
+    let user: UserAccountView = cds_db::user::find_by_email(&s.db.conn, email.email.to_owned())
         .await?
         .ok_or(WebError::BadRequest("user_not_found".into()))?;
 

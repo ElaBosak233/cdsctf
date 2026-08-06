@@ -7,7 +7,7 @@ use axum::{
     extract::{DefaultBodyLimit, Multipart, State},
 };
 use cds_db::{
-    Idp,
+    IdpView,
     sea_orm::{Set, Unchanged},
 };
 use serde_json::json;
@@ -55,7 +55,7 @@ pub async fn save_idp_avatar(
 
     s.media.save("media".to_owned(), hash.clone(), data).await?;
 
-    let _ = cds_db::idp::update_idp::<Idp>(
+    let _ = cds_db::idp::update_idp::<IdpView>(
         &s.db.conn,
         cds_db::idp::IdpActiveModel {
             id: Unchanged(idp_id),
@@ -83,7 +83,7 @@ pub async fn delete_idp_avatar(
     State(s): State<Arc<AppState>>,
     Path(idp_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let idp = cds_db::idp::find_idp_by_id::<Idp>(&s.db.conn, idp_id)
+    let idp = cds_db::idp::find_idp_by_id::<IdpView>(&s.db.conn, idp_id)
         .await?
         .ok_or(WebError::NotFound(json!("idp_not_found")))?;
 
@@ -91,7 +91,7 @@ pub async fn delete_idp_avatar(
         s.media.delete("media".to_owned(), hash).await?;
     }
 
-    let _ = cds_db::idp::update_idp::<Idp>(
+    let _ = cds_db::idp::update_idp::<IdpView>(
         &s.db.conn,
         cds_db::idp::IdpActiveModel {
             id: Unchanged(idp_id),

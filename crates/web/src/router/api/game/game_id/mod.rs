@@ -26,7 +26,7 @@ use axum::{
         sse::{Event as SseEvent, KeepAlive},
     },
 };
-use cds_db::{Game, ScoreRecord};
+use cds_db::{GameView, ScoreboardEntry};
 use cds_event::SubscribeOptions;
 use futures_util::StreamExt as _;
 use serde::{Deserialize, Serialize};
@@ -57,7 +57,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct GameDetailResponse {
-    pub game: Game,
+    pub game: GameView,
 }
 
 /// Returns game.
@@ -85,7 +85,9 @@ pub async fn get_game(
         return Err(WebError::NotFound(json!("")));
     }
 
-    Ok(Json(GameDetailResponse { game }))
+    Ok(Json(GameDetailResponse {
+        game: GameView::from(&game),
+    }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
@@ -97,7 +99,7 @@ pub struct GetGameScoreboardRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct GameScoreboardResponse {
-    pub records: Vec<ScoreRecord>,
+    pub records: Vec<ScoreboardEntry>,
     pub total: u64,
 }
 

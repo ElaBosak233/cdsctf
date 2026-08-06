@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    Game,
+    GameDetail,
     game::FindGameOptions,
     sea_orm::ActiveValue::{NotSet, Set},
 };
@@ -21,7 +21,6 @@ use validator::Validate;
 
 use crate::{
     extract::{Query, VJson},
-    router::api::game::game_id::GameDetailResponse,
     traits::{AppState, WebError},
 };
 
@@ -32,6 +31,11 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(get_games).with_state(state.clone()))
         .routes(routes!(create_game).with_state(state.clone()))
         .nest("/{game_id}", game_id::router(state.clone()))
+}
+
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct AdminGameDetailResponse {
+    pub game: GameDetail,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
@@ -47,7 +51,7 @@ pub struct GetGameRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminGamesListResponse {
-    pub games: Vec<Game>,
+    pub games: Vec<GameDetail>,
     pub total: u64,
 }
 
@@ -108,7 +112,7 @@ pub struct CreateGameRequest {
     tag = "admin-game",
     request_body = CreateGameRequest,
     responses(
-        (status = 201, description = "Created game", body = GameDetailResponse),
+        (status = 201, description = "Created game", body = AdminGameDetailResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -116,8 +120,8 @@ pub struct CreateGameRequest {
 pub async fn create_game(
     State(s): State<Arc<AppState>>,
     VJson(body): VJson<CreateGameRequest>,
-) -> Result<(StatusCode, Json<GameDetailResponse>), WebError> {
-    let game = cds_db::game::create::<Game>(
+) -> Result<(StatusCode, Json<AdminGameDetailResponse>), WebError> {
+    let game = cds_db::game::create::<GameDetail>(
         &s.db.conn,
         cds_db::game::ActiveModel {
             title: Set(body.title),
@@ -147,5 +151,5 @@ pub async fn create_game(
         "admin created game"
     );
 
-    Ok((StatusCode::CREATED, Json(GameDetailResponse { game })))
+    Ok((StatusCode::CREATED, Json(AdminGameDetailResponse { game })))
 }

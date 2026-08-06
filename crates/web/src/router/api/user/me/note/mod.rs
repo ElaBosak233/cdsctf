@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    note::{ActiveModel, FindNotesOptions, Note},
+    note::{ActiveModel, FindNotesOptions, NoteView},
     sea_orm::{Set, Unchanged},
 };
 use serde::{Deserialize, Serialize};
@@ -38,7 +38,7 @@ pub struct GetMyNoteRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct MyNotesListResponse {
-    pub notes: Vec<Note>,
+    pub notes: Vec<NoteView>,
     pub total: u64,
 }
 
@@ -87,7 +87,7 @@ pub struct SaveMyNoteRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct NoteResponse {
-    pub note: Note,
+    pub note: NoteView,
 }
 
 /// Persists the authenticated user's personal note blob.

@@ -9,7 +9,7 @@ use axum::{
     response::IntoResponse,
 };
 use cds_db::{
-    Team,
+    TeamView,
     sea_orm::{Set, Unchanged},
 };
 use cds_media::util::hash;
@@ -108,7 +108,7 @@ pub async fn save_team_write_up(
         .await
         .map_err(|_| WebError::InternalServerError(json!("")))?;
 
-    let team = cds_db::team::update::<Team>(
+    let team = cds_db::team::update::<TeamView>(
         &s.db.conn,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),

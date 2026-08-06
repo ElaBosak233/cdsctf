@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::UserPublic;
+use cds_db::UserProfile;
 use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -54,10 +54,10 @@ pub async fn get_user(
     Path(user_id): Path<i64>,
 ) -> Result<Json<UserPublicResponse>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-    let user = cds_db::user::find_by_id::<cds_db::User>(&s.db.conn, user_id)
+    let user = cds_db::user::find_by_id::<cds_db::UserAccountView>(&s.db.conn, user_id)
         .await?
         .ok_or(WebError::NotFound(json!("")))?;
     Ok(Json(UserPublicResponse {
-        user: UserPublic::from(&user),
+        user: UserProfile::from(&user),
     }))
 }

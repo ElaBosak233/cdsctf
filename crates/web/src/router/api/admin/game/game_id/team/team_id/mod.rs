@@ -14,7 +14,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    Team,
+    TeamView,
     sea_orm::{
         ActiveValue::{Set, Unchanged},
         NotSet,
@@ -78,7 +78,7 @@ pub async fn update_team(
 ) -> Result<Json<TeamResponse>, WebError> {
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
-    let new_team = cds_db::team::update::<Team>(
+    let new_team = cds_db::team::update::<TeamView>(
         &s.db.conn,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),

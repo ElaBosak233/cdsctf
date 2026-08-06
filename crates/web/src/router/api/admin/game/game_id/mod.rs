@@ -33,7 +33,7 @@ use validator::Validate;
 
 use crate::{
     extract::{Path, VJson},
-    router::api::game::game_id::GameDetailResponse,
+    router::api::admin::game::AdminGameDetailResponse,
     traits::{AppState, EmptyJson, WebError},
 };
 
@@ -61,7 +61,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         ("game_id" = i64, Path, description = "Game id"),
     ),
     responses(
-        (status = 200, description = "Game", body = GameDetailResponse),
+        (status = 200, description = "Game", body = AdminGameDetailResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -69,9 +69,9 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 pub async fn get_game(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
-) -> Result<Json<GameDetailResponse>, WebError> {
+) -> Result<Json<AdminGameDetailResponse>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
-    Ok(Json(GameDetailResponse { game }))
+    Ok(Json(AdminGameDetailResponse { game }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
@@ -100,7 +100,7 @@ pub struct UpdateGameRequest {
     ),
     request_body = UpdateGameRequest,
     responses(
-        (status = 200, description = "Updated game", body = GameDetailResponse),
+        (status = 200, description = "Updated game", body = AdminGameDetailResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -109,7 +109,7 @@ pub async fn update_game(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
     VJson(body): VJson<UpdateGameRequest>,
-) -> Result<Json<GameDetailResponse>, WebError> {
+) -> Result<Json<AdminGameDetailResponse>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     let game = cds_db::game::update(
@@ -135,7 +135,7 @@ pub async fn update_game(
     )
     .await?;
 
-    Ok(Json(GameDetailResponse { game }))
+    Ok(Json(AdminGameDetailResponse { game }))
 }
 
 /// Deletes game.

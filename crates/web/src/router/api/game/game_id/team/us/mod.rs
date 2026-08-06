@@ -16,7 +16,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    TeamUser,
+    TeamUserView,
     sea_orm::{
         ActiveValue::{Set, Unchanged},
         NotSet,
@@ -191,7 +191,7 @@ pub async fn set_team_ready(
         return Err(WebError::BadRequest(json!("team_not_preparing")));
     }
 
-    let (_, team_users) = cds_db::team_user::find::<TeamUser>(
+    let (_, team_users) = cds_db::team_user::find::<TeamUserView>(
         &s.db.conn,
         FindTeamUserOptions {
             team_id: Some(team.id),

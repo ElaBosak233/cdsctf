@@ -8,7 +8,7 @@ use std::sync::Arc;
 use axum::{Json, Router, extract::State};
 use cds_db::{
     sea_orm::ActiveValue::Set,
-    team::{FindTeamOptions, State as TState, Team},
+    team::{FindTeamOptions, State as TState, TeamView},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -47,7 +47,7 @@ pub struct GetTeamRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminTeamsListResponse {
-    pub teams: Vec<Team>,
+    pub teams: Vec<TeamView>,
     pub total: u64,
 }
 

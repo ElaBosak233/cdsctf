@@ -11,7 +11,7 @@ use std::{
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    ChallengeMini, GameChallenge, Submission, challenge::FindChallengeOptions,
+    ChallengeSummary, GameChallengeView, SubmissionSummary, challenge::FindChallengeOptions,
     game_challenge::FindGameChallengeOptions,
 };
 use serde::{Deserialize, Serialize};
@@ -49,7 +49,7 @@ pub struct ListChallengesRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct ChallengesListResponse {
-    pub challenges: Vec<ChallengeMini>,
+    pub challenges: Vec<ChallengeSummary>,
     pub total: u64,
 }
 
@@ -76,7 +76,7 @@ pub async fn list_challenges(
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let (challenges, total) = cds_db::challenge::find::<ChallengeMini>(
+    let (challenges, total) = cds_db::challenge::find::<ChallengeSummary>(
         &s.db.conn,
         FindChallengeOptions {
             id: params.id,
@@ -108,7 +108,7 @@ pub struct ChallengeStatusResponse {
     pub solved: bool,
     pub solved_times: i64,
     pub pts: i64,
-    pub bloods: Vec<Submission>,
+    pub bloods: Vec<SubmissionSummary>,
     pub cheated: bool,
 }
 
@@ -143,7 +143,7 @@ pub async fn query_challenge_status(
         return Err(WebError::BadRequest(json!("either_user_or_team")));
     }
 
-    let mut submissions = cds_db::submission::find_correct_by_challenge_ids_and_optional_team_game(
+    let submissions = cds_db::submission::find_correct_by_challenge_ids_and_optional_team_game(
         &s.db.conn,
         body.challenge_ids.clone(),
         body.team_id,
@@ -166,9 +166,7 @@ pub async fn query_challenge_status(
         );
     }
 
-    for submission in submissions.iter_mut() {
-        *submission = submission.desensitize();
-
+    for submission in &submissions {
         if let Some(status_response) = result.get_mut(&submission.challenge_id) {
             if Some(submission.user_id) == body.user_id
                 || submission
@@ -181,7 +179,9 @@ pub async fn query_challenge_status(
             status_response.solved_times += 1;
 
             if status_response.bloods.len() < 3 {
-                status_response.bloods.push(submission.clone());
+                status_response
+                    .bloods
+                    .push(SubmissionSummary::from(submission));
             }
         }
     }
@@ -206,7 +206,7 @@ pub async fn query_challenge_status(
     }
 
     if let Some(game_id) = body.game_id {
-        let (game_challenges, _) = cds_db::game_challenge::find::<GameChallenge>(
+        let (game_challenges, _) = cds_db::game_challenge::find::<GameChallengeView>(
             &s.db.conn,
             FindGameChallengeOptions {
                 game_id: Some(game_id),
