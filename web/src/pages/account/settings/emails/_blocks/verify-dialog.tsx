@@ -54,10 +54,12 @@ function VerifyDialog(props: VerifyDialogProps) {
       });
 
       toast.success(t("user:emails.actions.verify.success", { email }));
-      authStore.setUser({
-        ...authStore.user,
-        verified: true,
-      });
+      if (authStore.user) {
+        authStore.setUser({
+          ...authStore.user,
+          verified: true,
+        });
+      }
       onClose();
       bump();
     } catch (error) {

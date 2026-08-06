@@ -37,11 +37,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { Group, type User } from "@/models/user";
+import { Group, type UserAccountView } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 
-function IdCell({ row }: { row: Row<User> }) {
+function IdCell({ row }: { row: Row<UserAccountView> }) {
   const id = row.original.id;
   const { t } = useTranslation();
   const { isCopied, copyToClipboard } = useClipboard();
@@ -64,7 +64,7 @@ function IdCell({ row }: { row: Row<User> }) {
   );
 }
 
-function CreatedAtHeader({ column }: { column: Column<User> }) {
+function CreatedAtHeader({ column }: { column: Column<UserAccountView> }) {
   const { t } = useTranslation();
 
   const sort = column.getIsSorted();
@@ -93,7 +93,7 @@ function CreatedAtHeader({ column }: { column: Column<User> }) {
   );
 }
 
-function ActionsCell({ row }: { row: Row<User> }) {
+function ActionsCell({ row }: { row: Row<UserAccountView> }) {
   const { t } = useTranslation();
 
   const id = row.original.id;
@@ -202,7 +202,7 @@ function ActionsCell({ row }: { row: Row<User> }) {
 function useColumns() {
   const { t } = useTranslation();
 
-  const columns: Array<ColumnDef<User>> = useMemo(() => {
+  const columns: Array<ColumnDef<UserAccountView>> = useMemo(() => {
     return [
       {
         accessorKey: "id",

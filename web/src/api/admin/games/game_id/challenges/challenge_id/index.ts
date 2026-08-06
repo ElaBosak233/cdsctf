@@ -1,4 +1,4 @@
-import type { GameChallenge } from "@/models/game_challenge";
+import type { GameChallengeView } from "@/models/game_challenge";
 import { api } from "@/utils/query";
 
 export type UpdateGameChallengeRequest = {
@@ -17,7 +17,7 @@ export async function updateGameChallenge(request: UpdateGameChallengeRequest) {
     .put(`admin/games/${request.game_id}/challenges/${request.challenge_id}`, {
       json: request,
     })
-    .json<{ game_challenge: GameChallenge }>();
+    .json<{ game_challenge: GameChallengeView }>();
 }
 
 export type DeleteGameChallengeRequest = {

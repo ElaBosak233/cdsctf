@@ -1,4 +1,4 @@
-import type { Submission } from "@/models/submission";
+import type { SubmissionSummary } from "@/models/submission";
 import { api, toSearchParams } from "@/utils/query";
 
 export type CreateSubmissionRequest = {
@@ -13,7 +13,7 @@ export async function createSubmission(request: CreateSubmissionRequest) {
     .post("submissions", {
       json: request,
     })
-    .json<Submission>();
+    .json<SubmissionSummary>();
 }
 
 export type GetSubmissionRequest = {
@@ -37,5 +37,5 @@ export async function listSubmissions(request: GetSubmissionRequest) {
     .get("submissions", {
       searchParams: toSearchParams(request),
     })
-    .json<{ submissions: Submission[]; total: number }>();
+    .json<{ submissions: SubmissionSummary[]; total: number }>();
 }

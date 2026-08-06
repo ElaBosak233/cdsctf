@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/table";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import { State, type Team } from "@/models/team";
+import { State, type TeamView } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { parseRouteNumericId } from "@/utils/query";
@@ -52,7 +52,7 @@ export default function Index() {
   const { game } = useContext(Context);
 
   const [total, setTotal] = useState<number>(0);
-  const [teams, setTeams] = useState<Array<Team>>([]);
+  const [teams, setTeams] = useState<Array<TeamView>>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const [page, setPage] = useState<number>(1);
@@ -72,7 +72,7 @@ export default function Index() {
 
   const columns = useColumns();
 
-  const table = useReactTable<Team>({
+  const table = useReactTable<TeamView>({
     data: teams,
     columns,
     getCoreRowModel: getCoreRowModel(),

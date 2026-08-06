@@ -44,7 +44,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
-import type { Game } from "@/models/game";
+import type { GameDetail } from "@/models/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 
@@ -57,7 +57,7 @@ function useRowContext() {
   return useContext(RowContext);
 }
 
-function RowProvider({ game, children }: { game: Game; children: ReactNode }) {
+function RowProvider({ game, children }: { game: GameDetail; children: ReactNode }) {
   const { t } = useTranslation();
   const [isEnabled, setIsEnabled] = useState(game.enabled ?? false);
   const [, startTransition] = useTransition();
@@ -87,7 +87,7 @@ function RowProvider({ game, children }: { game: Game; children: ReactNode }) {
   );
 }
 
-function IdCell({ row }: { row: Row<Game> }) {
+function IdCell({ row }: { row: Row<GameDetail> }) {
   const id = row.original.id;
   const { t } = useTranslation();
   const { isCopied, copyToClipboard } = useClipboard();
@@ -109,7 +109,7 @@ function IdCell({ row }: { row: Row<Game> }) {
   );
 }
 
-function TitleCell({ row }: { row: Row<Game> }) {
+function TitleCell({ row }: { row: Row<GameDetail> }) {
   const ctx = useRowContext();
   const isEnabled = ctx
     ? ctx.optimisticEnabled
@@ -126,7 +126,7 @@ function TitleCell({ row }: { row: Row<Game> }) {
   );
 }
 
-function ActionsCell({ row }: { row: Row<Game> }) {
+function ActionsCell({ row }: { row: Row<GameDetail> }) {
   const { t } = useTranslation();
 
   const id = row.original.id;
@@ -239,7 +239,7 @@ function ActionsCell({ row }: { row: Row<Game> }) {
   );
 }
 
-function StartedAtHeader({ column }: { column: Column<Game> }) {
+function StartedAtHeader({ column }: { column: Column<GameDetail> }) {
   const { t } = useTranslation();
 
   const sort = column.getIsSorted();
@@ -268,7 +268,7 @@ function StartedAtHeader({ column }: { column: Column<Game> }) {
   );
 }
 
-function EndedAtHeader({ column }: { column: Column<Game> }) {
+function EndedAtHeader({ column }: { column: Column<GameDetail> }) {
   const { t } = useTranslation();
 
   const sort = column.getIsSorted();
@@ -300,7 +300,7 @@ function EndedAtHeader({ column }: { column: Column<Game> }) {
 function useColumns() {
   const { t } = useTranslation();
 
-  const columns: Array<ColumnDef<Game>> = useMemo(() => {
+  const columns: Array<ColumnDef<GameDetail>> = useMemo(() => {
     return [
       {
         accessorKey: "id",

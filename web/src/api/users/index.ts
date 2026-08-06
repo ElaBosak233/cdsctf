@@ -1,4 +1,4 @@
-import type { User } from "@/models/user";
+import type { UserAccountView } from "@/models/user";
 import { api } from "@/utils/query";
 
 export type UserLoginRequest = {
@@ -11,7 +11,9 @@ export type UserLoginRequest = {
 };
 
 export async function login(request: UserLoginRequest) {
-  return api.post("users/login", { json: request }).json<{ user: User }>();
+  return api
+    .post("users/login", { json: request })
+    .json<{ user: UserAccountView }>();
 }
 
 export async function logout() {
@@ -30,5 +32,7 @@ export type UserRegisterRequest = {
 };
 
 export async function register(request: UserRegisterRequest) {
-  return api.post("users/register", { json: request }).json<{ user: User }>();
+  return api
+    .post("users/register", { json: request })
+    .json<{ user: UserAccountView }>();
 }

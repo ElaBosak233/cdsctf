@@ -41,7 +41,7 @@ import { Separator } from "@/components/ui/separator";
 import { TagsField } from "@/components/ui/tags-field";
 import { TextField } from "@/components/ui/text-field";
 import { useRefresh } from "@/hooks/use-refresh";
-import type { Config } from "@/models/config";
+import type { AdminConfig } from "@/models/config";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
@@ -51,7 +51,7 @@ export default function Index() {
 
   const configStore = useConfigStore();
   const { bump, tick } = useRefresh();
-  const [config, setConfig] = useState<Config>();
+  const [config, setConfig] = useState<AdminConfig>();
 
   useEffect(() => {
     getConfigs().then((res) => {

@@ -30,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDebounce } from "@/hooks/use-debounce";
-import type { Challenge } from "@/models/challenge";
+import type { ChallengeDetail } from "@/models/challenge";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -107,7 +107,7 @@ export default function Index() {
   });
 
   const columns = useColumns();
-  const table = useReactTable<Challenge>({
+  const table = useReactTable<ChallengeDetail>({
     data: challengesData?.challenges || [],
     columns,
     getCoreRowModel: getCoreRowModel(),

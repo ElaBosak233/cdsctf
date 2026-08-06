@@ -1,18 +1,14 @@
-export type Team = {
-  id?: number;
-  game_id?: number;
-  name?: string;
-  email?: string;
-  slogan?: string;
-  avatar_hash?: string;
-  has_writeup?: boolean;
-  writeup_submitted_at?: number;
-  writeup_updated_at?: number;
-
-  state?: State;
-
-  pts?: number;
-  rank?: number;
+export type TeamView = {
+  id: number;
+  game_id: number;
+  name: string;
+  email: string | null;
+  slogan: string | null;
+  avatar_hash: string | null;
+  has_writeup: boolean;
+  state: State;
+  pts: number;
+  rank: number;
 };
 
 export enum State {

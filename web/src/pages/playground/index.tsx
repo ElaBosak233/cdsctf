@@ -23,7 +23,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { ChallengeCard } from "@/components/widgets/challenge-card";
-import type { ChallengeMini } from "@/models/challenge";
+import type { ChallengeSummary } from "@/models/challenge";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
@@ -52,7 +52,7 @@ function usePlaygroundChallengeQuery(
 }
 
 function useChallengeStatusQuery(
-  challenges: ChallengeMini[] | undefined,
+  challenges: ChallengeSummary[] | undefined,
   userId?: number
 ) {
   return useQuery({

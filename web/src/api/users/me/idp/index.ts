@@ -1,8 +1,10 @@
-import type { UserIdp } from "@/models/idp";
+import type { UserIdpSummary } from "@/models/idp";
 import { api } from "@/utils/query";
 
 export async function getMyIdps() {
-  return api.get("users/me/idps").json<{ idps: UserIdp[] }>();
+  return api
+    .get("users/me/idps")
+    .json<{ idps: UserIdpSummary[] }>();
 }
 
 export async function unbindMyIdp(userIdpId: number) {

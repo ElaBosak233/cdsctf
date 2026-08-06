@@ -1,4 +1,4 @@
-import type { Status, Submission } from "@/models/submission";
+import type { Status, SubmissionView } from "@/models/submission";
 import { api } from "@/utils/query";
 
 export type DebugCreateSubmissionRequest = {
@@ -32,5 +32,5 @@ export async function updateSubmissionStatus(
     .put(`admin/submissions/${request.submission_id}/status`, {
       json: { status: request.status },
     })
-    .json<Submission>();
+    .json<SubmissionView>();
 }

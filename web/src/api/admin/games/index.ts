@@ -1,4 +1,4 @@
-import type { Game } from "@/models/game";
+import type { GameDetail } from "@/models/game";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetGamesRequest = {
@@ -15,7 +15,7 @@ export async function getGames(request: GetGamesRequest) {
     .get("admin/games", {
       searchParams: toSearchParams(request),
     })
-    .json<{ games: Game[]; total: number }>();
+    .json<{ games: GameDetail[]; total: number }>();
 }
 
 export type CreateGameRequest = {
@@ -36,5 +36,5 @@ export async function createGame(request: CreateGameRequest) {
     .post("admin/games", {
       json: request,
     })
-    .json<{ game: Game }>();
+    .json<{ game: GameDetail }>();
 }

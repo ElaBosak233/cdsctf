@@ -25,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDebounce } from "@/hooks/use-debounce";
-import type { GameNotice } from "@/models/game_notice";
+import type { GameNoticeView } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { parseRouteNumericId } from "@/utils/query";
@@ -45,7 +45,7 @@ export default function Index() {
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
 
   const [total, setTotal] = useState<number>(0);
-  const [notices, setNotices] = useState<Array<GameNotice>>([]);
+  const [notices, setNotices] = useState<Array<GameNoticeView>>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -56,7 +56,7 @@ export default function Index() {
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
   const columns = useColumns();
-  const table = useReactTable<GameNotice>({
+  const table = useReactTable<GameNoticeView>({
     data: notices,
     columns,
     getCoreRowModel: getCoreRowModel(),

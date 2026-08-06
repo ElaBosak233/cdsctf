@@ -1,4 +1,4 @@
-import type { Group, User } from "@/models/user";
+import type { Group, UserAccountView } from "@/models/user";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetUsersRequest = {
@@ -17,7 +17,7 @@ export async function getUsers(request: GetUsersRequest) {
     .get("admin/users", {
       searchParams: toSearchParams(request),
     })
-    .json<{ users: User[]; total: number }>();
+    .json<{ users: UserAccountView[]; total: number }>();
 }
 
 export type CreateUserRequest = {
@@ -33,5 +33,5 @@ export async function createUser(request: CreateUserRequest) {
     .post("admin/users", {
       json: request,
     })
-    .json<{ user: User }>();
+    .json<{ user: UserAccountView }>();
 }

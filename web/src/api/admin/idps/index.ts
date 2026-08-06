@@ -1,4 +1,4 @@
-import type { Idp } from "@/models/idp";
+import type { IdpView } from "@/models/idp";
 import { api } from "@/utils/query";
 
 export type IdpRequest = {
@@ -18,19 +18,19 @@ export type DiagnosticMarker = {
 };
 
 export async function getAdminIdps() {
-  return api.get("admin/idps").json<{ idps: Idp[] }>();
+  return api.get("admin/idps").json<{ idps: IdpView[] }>();
 }
 
 export async function createAdminIdp(request: IdpRequest) {
-  return api.post("admin/idps", { json: request }).json<{ idp: Idp }>();
+  return api.post("admin/idps", { json: request }).json<{ idp: IdpView }>();
 }
 
 export async function getAdminIdp(idpId: number) {
-  return api.get(`admin/idps/${idpId}`).json<{ idp: Idp }>();
+  return api.get(`admin/idps/${idpId}`).json<{ idp: IdpView }>();
 }
 
 export async function updateAdminIdp(idpId: number, request: IdpRequest) {
-  return api.put(`admin/idps/${idpId}`, { json: request }).json<{ idp: Idp }>();
+  return api.put(`admin/idps/${idpId}`, { json: request }).json<{ idp: IdpView }>();
 }
 
 export async function deleteAdminIdp(idpId: number) {

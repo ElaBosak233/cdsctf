@@ -25,13 +25,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Status, type Submission } from "@/models/submission";
-import type { Team } from "@/models/team";
+import { Status, type SubmissionSummary } from "@/models/submission";
+import type { ScoreboardTeam } from "@/models/game";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 
 interface TeamDetailsDialogProps {
-  team: Team;
+  team: ScoreboardTeam;
 }
 
 function TeamDetailsDialog(props: TeamDetailsDialogProps) {
@@ -63,7 +63,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
   });
 
   const { t } = useTranslation();
-  const columns: Array<ColumnDef<Submission>> = [
+  const columns: Array<ColumnDef<SubmissionSummary>> = [
     {
       accessorKey: "user_id",
       id: "user_id",
@@ -119,7 +119,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
     },
   ];
 
-  const table = useReactTable<Submission>({
+  const table = useReactTable<SubmissionSummary>({
     data: submissionData?.submissions || [],
     columns: columns,
     getCoreRowModel: getCoreRowModel(),

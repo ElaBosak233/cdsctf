@@ -1,4 +1,4 @@
-import type { Status, Submission } from "@/models/submission";
+import type { Status, SubmissionView } from "@/models/submission";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetSubmissionsRequest = {
@@ -17,5 +17,5 @@ export async function getSubmissions(request: GetSubmissionsRequest) {
     .get("admin/submissions", {
       searchParams: toSearchParams(request),
     })
-    .json<{ submissions: Submission[]; total: number }>();
+    .json<{ submissions: SubmissionView[]; total: number }>();
 }

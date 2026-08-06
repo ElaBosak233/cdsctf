@@ -1,19 +1,33 @@
-export type Challenge = {
-  id?: number;
-  title?: string;
-  tags?: Array<string>;
-  description?: string;
-  category?: number;
-  has_attachment?: boolean;
-  public?: boolean;
-  has_writeup?: boolean;
-  has_instance?: boolean;
-  instance?: Instance;
-  checker?: string;
-  writeup?: string;
-  updated_at?: number;
-  created_at?: number;
+export type ChallengeDetail = {
+  id: number;
+  title: string;
+  tags: string[];
+  description: string;
+  category: number;
+  has_attachment: boolean;
+  public: boolean;
+  has_writeup: boolean;
+  has_instance: boolean;
+  instance: Instance | null;
+  checker: string | null;
+  writeup: string | null;
+  deleted_at: number | null;
+  updated_at: number;
+  created_at: number;
 };
+
+export type ChallengeView = Pick<
+  ChallengeDetail,
+  | "id"
+  | "title"
+  | "description"
+  | "category"
+  | "tags"
+  | "has_attachment"
+  | "has_writeup"
+  | "has_instance"
+  | "writeup"
+>;
 
 export type Instance = {
   duration?: number;
@@ -40,9 +54,9 @@ export type EnvVar = {
   value: string;
 };
 
-export type ChallengeMini = {
-  id?: number;
-  title?: string;
-  category?: number;
-  tags?: Array<string>;
+export type ChallengeSummary = {
+  id: number;
+  title: string;
+  category: number;
+  tags: string[];
 };

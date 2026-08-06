@@ -1,4 +1,4 @@
-import type { Game, ScoreRecord } from "@/models/game";
+import type { GameView, ScoreboardEntry } from "@/models/game";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetGameRequest = {
@@ -6,7 +6,7 @@ export type GetGameRequest = {
 };
 
 export async function getGame(request: GetGameRequest) {
-  return api.get(`games/${request.id}`).json<{ game: Game }>();
+  return api.get(`games/${request.id}`).json<{ game: GameView }>();
 }
 
 export type GetGameScoreboardRequest = {
@@ -20,5 +20,5 @@ export async function getGameScoreboard(request: GetGameScoreboardRequest) {
     .get(`games/${request.id}/scoreboard`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ records: ScoreRecord[]; total: number }>();
+    .json<{ records: ScoreboardEntry[]; total: number }>();
 }

@@ -1,5 +1,5 @@
-import type { ChallengeMini } from "@/models/challenge";
-import type { Submission } from "@/models/submission";
+import type { ChallengeSummary } from "@/models/challenge";
+import type { SubmissionSummary } from "@/models/submission";
 import { api, toSearchParams } from "@/utils/query";
 
 export type ListChallengesRequest = {
@@ -18,7 +18,7 @@ export async function listChallenges(request: ListChallengesRequest) {
     .get("challenges", {
       searchParams: toSearchParams(request),
     })
-    .json<{ challenges: ChallengeMini[]; total: number }>();
+    .json<{ challenges: ChallengeSummary[]; total: number }>();
 }
 
 export type QueryChallengeStatusRequest = {
@@ -32,7 +32,7 @@ export type ChallengeStatus = {
   solved?: boolean;
   solved_times?: number;
   pts?: number;
-  bloods?: Array<Submission>;
+  bloods?: Array<SubmissionSummary>;
   cheated?: boolean;
 };
 

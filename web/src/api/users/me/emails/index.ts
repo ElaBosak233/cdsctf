@@ -1,8 +1,8 @@
-import type { Email } from "@/models/email";
+import type { EmailView } from "@/models/email";
 import { api } from "@/utils/query";
 
 export async function getEmails() {
-  return api.get(`users/me/emails`).json<{ emails: Email[]; total: number }>();
+  return api.get(`users/me/emails`).json<{ emails: EmailView[]; total: number }>();
 }
 
 export type AddEmailRequest = {
@@ -12,7 +12,7 @@ export type AddEmailRequest = {
 export async function addEmail(request: AddEmailRequest) {
   return api
     .post(`users/me/emails`, { json: request })
-    .json<{ email: Email }>();
+    .json<{ email: EmailView }>();
 }
 
 export type DeleteEmailRequest = {
@@ -22,7 +22,7 @@ export type DeleteEmailRequest = {
 export async function deleteEmail(request: DeleteEmailRequest) {
   return api
     .delete(`users/me/emails/${request.email}`, { json: request })
-    .json<{ email: Email }>();
+    .json<{ email: EmailView }>();
 }
 
 export type VerifyEmailRequest = {
@@ -33,7 +33,7 @@ export type VerifyEmailRequest = {
 export async function verifyEmail(request: VerifyEmailRequest) {
   return api
     .post(`users/me/emails/${request.email}/verify`, { json: request })
-    .json<{ email: Email }>();
+    .json<{ email: EmailView }>();
 }
 
 export type SendVerifyEmailRequest = {

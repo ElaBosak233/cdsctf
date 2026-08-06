@@ -1,4 +1,4 @@
-import type { Challenge } from "@/models/challenge";
+import type { ChallengeDetail } from "@/models/challenge";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetChallengesRequest = {
@@ -18,7 +18,7 @@ export async function getChallenges(request: GetChallengesRequest) {
     .get("admin/challenges", {
       searchParams: toSearchParams(request),
     })
-    .json<{ challenges: Challenge[]; total: number }>();
+    .json<{ challenges: ChallengeDetail[]; total: number }>();
 }
 
 export type CreateChallengeRequest = {
@@ -33,5 +33,5 @@ export type CreateChallengeRequest = {
 export async function createChallenge(request: CreateChallengeRequest) {
   return api
     .post("admin/challenges", { json: request })
-    .json<{ challenge: Challenge }>();
+    .json<{ challenge: ChallengeDetail }>();
 }

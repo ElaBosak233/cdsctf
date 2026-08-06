@@ -133,7 +133,7 @@ export default function Index() {
     await deleteUserAvatar();
     authStore?.setUser({
       ...authStore.user,
-      avatar_hash: undefined,
+      avatar_hash: null,
     });
     setHasAvatar(false);
     toast.success(t("user:settings.avatar_delete_success"));

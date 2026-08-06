@@ -142,7 +142,7 @@ export default function Index() {
 
       setSelfTeam({
         ...selfTeam,
-        avatar_hash: undefined,
+        avatar_hash: null,
       });
       setHasAvatar(false);
       toast.success(

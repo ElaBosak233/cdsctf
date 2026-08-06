@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/table";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import type { GameChallenge } from "@/models/game_challenge";
+import type { GameChallengeView } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
@@ -48,7 +48,7 @@ export default function Index() {
 
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
 
-  const [challenges, setChallenges] = useState<Array<GameChallenge>>([]);
+  const [challenges, setChallenges] = useState<Array<GameChallengeView>>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -64,7 +64,7 @@ export default function Index() {
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
   const columns = useColumns();
-  const table = useReactTable<GameChallenge>({
+  const table = useReactTable<GameChallengeView>({
     data: challenges,
     columns,
     getCoreRowModel: getCoreRowModel(),

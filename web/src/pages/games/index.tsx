@@ -18,7 +18,7 @@ import { Image } from "@/components/ui/image";
 import { Pagination } from "@/components/ui/pagination";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import type { GameMini } from "@/models/game";
+import type { GameSummary } from "@/models/game";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
@@ -68,7 +68,7 @@ function useGameQuery(params: GetGameRequest, trigger: number = 0) {
   });
 }
 
-function getGameStatus(game: GameMini, nowSeconds: number): GameStatus {
+function getGameStatus(game: GameSummary, nowSeconds: number): GameStatus {
   if (game.started_at != null && nowSeconds < game.started_at) {
     return "upcoming";
   }
@@ -91,7 +91,7 @@ export default function Index() {
   const { t, i18n } = useTranslation();
 
   const { setEntranceGame } = useOutletContext<{
-    setEntranceGame: (game: GameMini) => void;
+    setEntranceGame: (game: GameSummary) => void;
   }>();
 
   const [title, setTitle] = useQueryState("title");
@@ -106,7 +106,7 @@ export default function Index() {
     sorts: "-started_at",
   });
 
-  const [selectedGame, setSelectedGame] = useState<GameMini>();
+  const [selectedGame, setSelectedGame] = useState<GameSummary>();
   const totalPages = Math.ceil(total / size);
   const language = i18n.resolvedLanguage ?? i18n.language;
   const nowSeconds = Date.now() / 1000;

@@ -8,15 +8,15 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { Idp, UserIdp } from "@/models/idp";
+import type { IdpSummary, UserIdpSummary } from "@/models/idp";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
 export default function Index() {
   const { config } = useConfigStore();
   const { t } = useTranslation();
-  const [idps, setIdps] = useState<Idp[]>([]);
-  const [bound, setBound] = useState<UserIdp[]>([]);
+  const [idps, setIdps] = useState<IdpSummary[]>([]);
+  const [bound, setBound] = useState<UserIdpSummary[]>([]);
 
   const refresh = useCallback(async () => {
     const [idpRes, boundRes] = await Promise.all([getIdps(), getMyIdps()]);

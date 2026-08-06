@@ -1,4 +1,4 @@
-export type Note = {
+export type NoteView = {
   id: number;
   content: string;
   user_id: number;
@@ -8,6 +8,6 @@ export type Note = {
   challenge_title?: string;
   challenge_category?: number;
   public: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at: number;
+  updated_at: number;
 };

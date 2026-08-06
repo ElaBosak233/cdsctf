@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/item";
 import { Separator } from "@/components/ui/separator";
 import { useRefresh } from "@/hooks/use-refresh";
-import type { Email } from "@/models/email";
+import type { EmailView } from "@/models/email";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
@@ -35,7 +35,7 @@ export default function Index() {
   const configStore = useConfigStore();
   const { tick, bump } = useRefresh();
 
-  const [emails, setEmails] = useState<Array<Email>>();
+  const [emails, setEmails] = useState<Array<EmailView>>();
 
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
 

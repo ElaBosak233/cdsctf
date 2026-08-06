@@ -1,18 +1,18 @@
 import { create } from "zustand";
 
-import type { Game } from "@/models/game";
-import type { Team } from "@/models/team";
-import type { UserMini } from "@/models/user";
+import type { GameView } from "@/models/game";
+import type { TeamView } from "@/models/team";
+import type { UserSummary } from "@/models/user";
 
 type GameState = {
-  currentGame?: Game;
-  setCurrentGame: (game?: Game) => void;
+  currentGame?: GameView;
+  setCurrentGame: (game?: GameView) => void;
 
-  selfTeam?: Team;
-  setSelfTeam: (team?: Team) => void;
+  selfTeam?: TeamView;
+  setSelfTeam: (team?: TeamView) => void;
 
-  members?: Array<UserMini>;
-  setMembers: (users?: Array<UserMini>) => void;
+  members?: Array<UserSummary>;
+  setMembers: (users?: Array<UserSummary>) => void;
 };
 
 export const useGameStore = create<GameState>()((set, _get) => ({

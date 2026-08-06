@@ -2,7 +2,7 @@ import CryptoJS from "crypto-js";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import type { GameNotice } from "@/models/game_notice";
+import type { GameNoticeView } from "@/models/game_notice";
 
 const MAX_SEEN_FINGERPRINTS = 200;
 
@@ -16,7 +16,7 @@ export type NoticeScope = {
 
 type NoticeReadState = {
   scopes: Record<string, NoticeScope>;
-  syncNotices: (scopeKey: string, notices: Array<GameNotice>) => void;
+  syncNotices: (scopeKey: string, notices: Array<GameNoticeView>) => void;
   markAsRead: (scopeKey: string, fingerprints: Array<string>) => void;
   reset: (scopeKey?: string) => void;
 };
@@ -25,7 +25,7 @@ function getNoticeScopeKey(userId: number, gameId: number) {
   return `${userId}:${gameId}`;
 }
 
-function getNoticeFingerprint(notice: GameNotice) {
+function getNoticeFingerprint(notice: GameNoticeView) {
   return CryptoJS.SHA256(
     JSON.stringify([
       notice.game_id ?? null,
@@ -37,7 +37,7 @@ function getNoticeFingerprint(notice: GameNotice) {
   ).toString();
 }
 
-function getNoticeFingerprints(notices: Array<GameNotice>) {
+function getNoticeFingerprints(notices: Array<GameNoticeView>) {
   return Array.from(new Set(notices.map(getNoticeFingerprint)));
 }
 

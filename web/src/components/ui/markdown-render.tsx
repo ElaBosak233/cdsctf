@@ -25,7 +25,7 @@ import {
 
 interface MarkdownRenderProps
   extends React.ComponentProps<typeof MarkdownHooks> {
-  src?: string;
+  src?: string | null;
   anchors?: boolean;
 }
 

@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/table";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Status, type Submission } from "@/models/submission";
+import { Status, type SubmissionView } from "@/models/submission";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { parseRouteNumericId } from "@/utils/query";
@@ -51,7 +51,7 @@ export default function Index() {
   const { game } = useContext(Context);
 
   const [total, setTotal] = useState<number>(0);
-  const [submissions, setSubmissions] = useState<Array<Submission>>([]);
+  const [submissions, setSubmissions] = useState<Array<SubmissionView>>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const [page, setPage] = useState<number>(1);
@@ -72,7 +72,7 @@ export default function Index() {
 
   const columns = useColumns();
 
-  const table = useReactTable<Submission>({
+  const table = useReactTable<SubmissionView>({
     data: submissions,
     columns,
     getCoreRowModel: getCoreRowModel(),

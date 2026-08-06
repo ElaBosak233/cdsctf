@@ -27,7 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDebounce } from "@/hooks/use-debounce";
-import type { Group, User } from "@/models/user";
+import type { Group, UserAccountView } from "@/models/user";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -96,7 +96,7 @@ export default function Index() {
   });
 
   const columns = useColumns();
-  const table = useReactTable<User>({
+  const table = useReactTable<UserAccountView>({
     data: usersData?.users || [],
     columns,
     getCoreRowModel: getCoreRowModel(),

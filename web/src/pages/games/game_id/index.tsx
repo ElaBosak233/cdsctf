@@ -78,8 +78,9 @@ export default function Index() {
           <div className={cn(["flex", "flex-col", "gap-5", "items-center"])}>
             <Image
               src={
-                currentGame?.poster_hash &&
-                `/api/media?hash=${currentGame?.poster_hash}`
+                currentGame?.poster_hash
+                  ? `/api/media?hash=${currentGame.poster_hash}`
+                  : undefined
               }
               className={cn([
                 "object-cover",
@@ -258,7 +259,7 @@ export function GameActionButton({ status }: GameActionProps) {
     return undefined;
   }, [selfTeam, t]);
 
-  /** Game has ended. */
+  /** GameDetail has ended. */
   if (status === "ended") {
     return (
       <Button

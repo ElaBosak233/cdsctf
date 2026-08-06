@@ -11,11 +11,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Status, type Submission } from "@/models/submission";
+import { Status, type SubmissionView } from "@/models/submission";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 
-function useColumns(): Array<ColumnDef<Submission>> {
+function useColumns(): Array<ColumnDef<SubmissionView>> {
   const { t } = useTranslation();
   const sharedStore = useSharedStore();
 

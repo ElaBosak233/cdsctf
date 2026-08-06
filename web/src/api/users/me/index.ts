@@ -1,4 +1,4 @@
-import type { User } from "@/models/user";
+import type { UserAccountView } from "@/models/user";
 import { api } from "@/utils/query";
 
 export async function getUserProfile() {
@@ -8,7 +8,7 @@ export async function getUserProfile() {
         "ignore-unauthorized": "OK",
       },
     })
-    .json<{ user: User }>();
+    .json<{ user: UserAccountView }>();
 }
 
 export type UpdateUserProfileRequest = {
@@ -18,7 +18,9 @@ export type UpdateUserProfileRequest = {
 };
 
 export async function updateUserProfile(request: UpdateUserProfileRequest) {
-  return api.put("users/me", { json: request }).json<{ user: User }>();
+  return api
+    .put("users/me", { json: request })
+    .json<{ user: UserAccountView }>();
 }
 
 export type UpdateUserProfilePasswordRequest = {

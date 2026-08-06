@@ -1,4 +1,4 @@
-import type { GameNotice } from "@/models/game_notice";
+import type { GameNoticeView } from "@/models/game_notice";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetGameNoticeRequest = {
@@ -10,5 +10,5 @@ export async function getGameNotice(request: GetGameNoticeRequest) {
     .get(`games/${request.game_id}/notices`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ notices: GameNotice[]; total: number }>();
+    .json<{ notices: GameNoticeView[]; total: number }>();
 }

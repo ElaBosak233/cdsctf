@@ -10,13 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ContentDialog } from "@/components/widgets/content-dialog";
-import type { GameNotice } from "@/models/game_notice";
+import type { GameNoticeView } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 
-function ActionsCell({ row }: { row: Row<GameNotice> }) {
+function ActionsCell({ row }: { row: Row<GameNoticeView> }) {
   const { t } = useTranslation();
 
   const { game_id } = useParams<{ game_id: string }>();
@@ -116,7 +116,7 @@ function ActionsCell({ row }: { row: Row<GameNotice> }) {
 function useColumns() {
   const { t } = useTranslation();
 
-  const columns: Array<ColumnDef<GameNotice>> = useMemo(() => {
+  const columns: Array<ColumnDef<GameNoticeView>> = useMemo(() => {
     return [
       {
         accessorKey: "id",

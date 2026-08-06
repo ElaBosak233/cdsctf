@@ -13,13 +13,13 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
-import type { Idp } from "@/models/idp";
+import type { IdpView } from "@/models/idp";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { CreateDialog } from "./_blocks/create-dialog";
 
-function IdpCard({ idp }: { idp: Idp }) {
+function IdpCard({ idp }: { idp: IdpView }) {
   const { t } = useTranslation();
   const sharedStore = useSharedStore();
 

@@ -1,4 +1,4 @@
-import type { Team } from "@/models/team";
+import type { TeamView } from "@/models/team";
 import { api } from "@/utils/query";
 
 export type GetTeamProfile = {
@@ -6,7 +6,7 @@ export type GetTeamProfile = {
 };
 
 export async function getTeamProfile(request: GetTeamProfile) {
-  return api.get(`games/${request.game_id}/teams/us`).json<{ team: Team }>();
+  return api.get(`games/${request.game_id}/teams/us`).json<{ team: TeamView }>();
 }
 
 export type UpdateTeamRequest = {
@@ -21,7 +21,7 @@ export type UpdateTeamRequest = {
 export async function updateTeam(request: UpdateTeamRequest) {
   return api
     .put(`games/${request.game_id}/teams/us`, { json: request })
-    .json<{ team: Team }>();
+    .json<{ team: TeamView }>();
 }
 
 export type DeleteTeamRequest = {

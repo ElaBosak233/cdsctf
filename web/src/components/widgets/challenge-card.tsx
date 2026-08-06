@@ -11,13 +11,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { ChallengeMini } from "@/models/challenge";
+import type { ChallengeSummary } from "@/models/challenge";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { getOrdinal } from "@/utils/math";
 
 type ChallengeCardProps = React.ComponentProps<"div"> & {
-  digest?: ChallengeMini;
+  digest?: Pick<ChallengeSummary, "id" | "title" | "category">;
   status?: ChallengeStatus;
   debug?: boolean;
 };

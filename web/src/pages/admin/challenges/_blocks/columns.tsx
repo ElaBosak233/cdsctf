@@ -49,7 +49,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
-import type { Challenge } from "@/models/challenge";
+import type { ChallengeDetail } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
@@ -67,7 +67,7 @@ function RowProvider({
   challenge,
   children,
 }: {
-  challenge: Challenge;
+  challenge: ChallengeDetail;
   children: ReactNode;
 }) {
   const { t } = useTranslation();
@@ -100,7 +100,7 @@ function RowProvider({
   );
 }
 
-function IdCell({ row }: { row: Row<Challenge> }) {
+function IdCell({ row }: { row: Row<ChallengeDetail> }) {
   const id = row.original.id!;
   const { t } = useTranslation();
   const { isCopied, copyToClipboard } = useClipboard();
@@ -122,7 +122,7 @@ function IdCell({ row }: { row: Row<Challenge> }) {
   );
 }
 
-function TitleCell({ row }: { row: Row<Challenge> }) {
+function TitleCell({ row }: { row: Row<ChallengeDetail> }) {
   const ctx = useRowContext();
   const isPublic = ctx ? ctx.optimisticPublic : (row.original.public ?? false);
   return (
@@ -135,7 +135,7 @@ function TitleCell({ row }: { row: Row<Challenge> }) {
   );
 }
 
-function UpdatedAtHeader({ column }: { column: Column<Challenge> }) {
+function UpdatedAtHeader({ column }: { column: Column<ChallengeDetail> }) {
   const { t } = useTranslation();
   const sort = column.getIsSorted();
 
@@ -163,7 +163,7 @@ function UpdatedAtHeader({ column }: { column: Column<Challenge> }) {
   );
 }
 
-function CreatedAtHeader({ column }: { column: Column<Challenge> }) {
+function CreatedAtHeader({ column }: { column: Column<ChallengeDetail> }) {
   const { t } = useTranslation();
   const sort = column.getIsSorted();
 
@@ -191,7 +191,7 @@ function CreatedAtHeader({ column }: { column: Column<Challenge> }) {
   );
 }
 
-function ActionsCell({ row }: { row: Row<Challenge> }) {
+function ActionsCell({ row }: { row: Row<ChallengeDetail> }) {
   const { t } = useTranslation();
 
   const id = row.original.id;
@@ -311,7 +311,7 @@ function ActionsCell({ row }: { row: Row<Challenge> }) {
 function useColumns() {
   const { t } = useTranslation();
 
-  const columns: Array<ColumnDef<Challenge>> = useMemo(() => {
+  const columns: Array<ColumnDef<ChallengeDetail>> = useMemo(() => {
     return [
       {
         accessorKey: "id",

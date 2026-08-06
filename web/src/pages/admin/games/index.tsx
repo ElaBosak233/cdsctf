@@ -27,7 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDebounce } from "@/hooks/use-debounce";
-import type { Game } from "@/models/game";
+import type { GameDetail } from "@/models/game";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -95,7 +95,7 @@ export default function Index() {
   });
 
   const columns = useColumns();
-  const table = useReactTable<Game>({
+  const table = useReactTable<GameDetail>({
     data: gamesData?.games || [],
     columns,
     getCoreRowModel: getCoreRowModel(),

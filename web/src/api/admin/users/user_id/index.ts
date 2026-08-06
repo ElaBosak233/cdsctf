@@ -1,4 +1,4 @@
-import type { Group, User } from "@/models/user";
+import type { Group, UserAccountView } from "@/models/user";
 import { api } from "@/utils/query";
 
 export type GetUserRequest = {
@@ -6,7 +6,7 @@ export type GetUserRequest = {
 };
 
 export async function getUser(request: GetUserRequest) {
-  return api.get(`admin/users/${request.id}`).json<{ user: User }>();
+  return api.get(`admin/users/${request.id}`).json<{ user: UserAccountView }>();
 }
 
 export type DeleteUserRequest = {
@@ -33,5 +33,5 @@ export type UpdateUserRequest = {
 export async function updateUser(request: UpdateUserRequest) {
   return api
     .put(`admin/users/${request.id}`, { json: request })
-    .json<{ user: User }>();
+    .json<{ user: UserAccountView }>();
 }

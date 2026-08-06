@@ -15,7 +15,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import type { ScoreRecord } from "@/models/game";
+import type { ScoreboardEntry } from "@/models/game";
 import { cn } from "@/utils";
 
 const COLORS = [
@@ -28,7 +28,7 @@ const COLORS = [
 ];
 
 interface ChampionChartProps {
-  scoreboard?: Array<ScoreRecord>;
+  scoreboard?: Array<ScoreboardEntry>;
 }
 
 function ChampionChart(props: ChampionChartProps) {

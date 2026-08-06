@@ -1,4 +1,4 @@
-import type { State, Team } from "@/models/team";
+import type { State, TeamView } from "@/models/team";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetTeamRequest = {
@@ -17,7 +17,7 @@ export async function getTeams(request: GetTeamRequest) {
     .get(`admin/games/${request.game_id}/teams`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ teams: Team[]; total: number }>();
+    .json<{ teams: TeamView[]; total: number }>();
 }
 
 export type CreateTeamRequest = {
@@ -31,5 +31,5 @@ export type CreateTeamRequest = {
 export async function createTeam(request: CreateTeamRequest) {
   return api
     .post(`admin/games/${request.game_id}/teams`, { json: request })
-    .json<{ team: Team }>();
+    .json<{ team: TeamView }>();
 }
