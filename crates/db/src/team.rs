@@ -3,8 +3,9 @@
 use std::str::FromStr;
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, JoinType, Order,
-    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityLoaderTrait, EntityTrait,
+    FromQueryResult, JoinType, LoaderTraitEx, Order, PaginatorTrait, QueryFilter, QueryOrder,
+    QuerySelect, RelationTrait,
 };
 use serde::{Deserialize, Serialize};
 use tracing::info;
@@ -56,9 +57,110 @@ impl From<&Team> for TeamPublic {
     }
 }
 
+impl From<&crate::entity::team::ModelEx> for TeamPublic {
+    fn from(team: &crate::entity::team::ModelEx) -> Self {
+        Self {
+            id: team.id,
+            name: team.name.clone(),
+            slogan: team.slogan.clone(),
+            avatar_hash: team.avatar_hash.clone(),
+            pts: team.pts,
+            rank: team.rank,
+        }
+    }
+}
+
+/// A scoreboard record assembled from a SeaORM 2 relation graph.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct ScoreRecord {
+    pub team: TeamPublic,
+    pub submissions: Vec<crate::submission::SubmissionPublic>,
+}
+
+/// Loads the public scoreboard graph with SeaORM 2's batch loader.
+///
+/// Teams are paginated in the database. Correct submissions are loaded in one
+/// `WHERE team_id IN (...)` query, then their user and challenge relations are
+/// loaded in batches. This avoids the previous parent query + global child
+/// query + per-parent filtering pipeline without exposing internal columns.
+pub async fn find_scoreboard(
+    conn: &impl ConnectionTrait,
+    game_id: i64,
+    page: Option<u64>,
+    size: Option<u64>,
+) -> Result<(Vec<ScoreRecord>, u64), DbError> {
+    use crate::entity::{submission, team};
+
+    let loader = team::Entity::load()
+        .filter(team::Column::GameId.eq(game_id))
+        .filter(team::Column::State.eq(team::State::Passed))
+        .order_by_asc(team::Column::Rank)
+        .order_by_desc(team::Column::Pts)
+        .order_by_asc(team::Column::Id);
+
+    let (teams, total) = match (page, size) {
+        (Some(_page), Some(0)) => {
+            let total = loader.clone().paginate(conn, 1).num_items().await?;
+            (Vec::new(), total)
+        }
+        (Some(page), Some(size)) => {
+            let paginator = loader.paginate(conn, size);
+            let total = paginator.num_items().await?;
+            let teams = paginator.fetch_page(page.saturating_sub(1)).await?;
+            (teams, total)
+        }
+        _ => {
+            let teams = loader.all(conn).await?;
+            let total = teams.len() as u64;
+            (teams, total)
+        }
+    };
+
+    if teams.is_empty() {
+        return Ok((Vec::new(), total));
+    }
+
+    let submission_groups = teams
+        .as_slice()
+        .load_many_ex(
+            submission::Entity::find()
+                .filter(submission::Column::GameId.eq(game_id))
+                .filter(submission::Column::Status.eq(submission::Status::Correct))
+                .order_by_asc(submission::Column::CreatedAt)
+                .order_by_asc(submission::Column::Id),
+            conn,
+        )
+        .await?;
+
+    let mut submission_with = submission::EntityLoaderWith::default();
+    submission_with.user = true;
+    submission_with.challenge = true;
+    let submission_groups =
+        submission::EntityLoader::load_nest_nest(submission_groups, &submission_with, conn).await?;
+
+    let records = teams
+        .into_iter()
+        .zip(submission_groups)
+        .map(|(team, submissions)| {
+            let submissions = submissions
+                .into_iter()
+                .map(|submission| crate::submission::SubmissionPublic::try_from(&submission))
+                .collect::<Result<Vec<_>, _>>()?;
+
+            Ok(ScoreRecord {
+                team: TeamPublic::from(&team),
+                submissions,
+            })
+        })
+        .collect::<Result<Vec<_>, DbError>>()?;
+
+    Ok((records, total))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::TeamPublic;
+    use super::{ScoreRecord, TeamPublic};
+    use crate::submission::SubmissionPublic;
 
     #[test]
     fn public_team_serialization_excludes_contact_and_moderation_fields() {
@@ -80,6 +182,54 @@ mod tests {
                 "avatar_hash": "avatar",
                 "pts": 100,
                 "rank": 2,
+            })
+        );
+    }
+
+    #[test]
+    fn score_record_serialization_is_an_explicit_public_contract() {
+        let record = ScoreRecord {
+            team: TeamPublic {
+                id: 1,
+                name: "team".to_owned(),
+                slogan: Some("hello".to_owned()),
+                avatar_hash: Some("team-avatar".to_owned()),
+                pts: 100,
+                rank: 2,
+            },
+            submissions: vec![SubmissionPublic {
+                id: 10,
+                user_id: 20,
+                user_name: "user".to_owned(),
+                user_avatar_hash: Some("user-avatar".to_owned()),
+                challenge_id: 30,
+                challenge_title: "challenge".to_owned(),
+                pts: 100,
+                created_at: 1_700_000_000,
+            }],
+        };
+
+        assert_eq!(
+            serde_json::to_value(record).unwrap(),
+            serde_json::json!({
+                "team": {
+                    "id": 1,
+                    "name": "team",
+                    "slogan": "hello",
+                    "avatar_hash": "team-avatar",
+                    "pts": 100,
+                    "rank": 2,
+                },
+                "submissions": [{
+                    "id": 10,
+                    "user_id": 20,
+                    "user_name": "user",
+                    "user_avatar_hash": "user-avatar",
+                    "challenge_id": 30,
+                    "challenge_title": "challenge",
+                    "pts": 100,
+                    "created_at": 1_700_000_000,
+                }],
             })
         );
     }

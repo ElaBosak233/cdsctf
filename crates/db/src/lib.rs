@@ -68,7 +68,7 @@ pub use idp::Idp;
 pub use sea_orm;
 use sea_orm::{ConnectOptions, ConnectionTrait, Database, DatabaseConnection};
 pub use submission::{Submission, SubmissionPublic};
-pub use team::{Team, TeamPublic};
+pub use team::{ScoreRecord, Team, TeamPublic};
 pub use team_user::TeamUser;
 use tracing::{info, log};
 pub use traits::DbError;

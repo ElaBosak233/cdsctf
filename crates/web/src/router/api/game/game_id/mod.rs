@@ -26,10 +26,7 @@ use axum::{
         sse::{Event as SseEvent, KeepAlive},
     },
 };
-use cds_db::{
-    Game, Submission, SubmissionPublic, Team, TeamPublic,
-    team::{FindTeamOptions, State as TState},
-};
+use cds_db::{Game, ScoreRecord};
 use cds_event::SubscribeOptions;
 use futures_util::StreamExt as _;
 use serde::{Deserialize, Serialize};
@@ -98,12 +95,6 @@ pub struct GetGameScoreboardRequest {
     pub page: Option<u64>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
-pub struct ScoreRecord {
-    pub team: TeamPublic,
-    pub submissions: Vec<SubmissionPublic>,
-}
-
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct GameScoreboardResponse {
     pub records: Vec<ScoreRecord>,
@@ -133,46 +124,10 @@ pub async fn get_game_scoreboard(
 ) -> Result<Json<GameScoreboardResponse>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    let (teams, total) = cds_db::team::find(
-        &s.db.conn,
-        FindTeamOptions {
-            game_id: Some(game.id),
-            state: Some(TState::Passed),
-            sorts: Some("rank,-pts".to_string()),
-            page: params.page,
-            size: params.size,
-            ..Default::default()
-        },
-    )
-    .await?;
+    let (records, total) =
+        cds_db::team::find_scoreboard(&s.db.conn, game.id, params.page, params.size).await?;
 
-    let team_ids = teams.iter().map(|t: &Team| t.id).collect::<Vec<i64>>();
-
-    let submissions = cds_db::submission::find_correct_by_team_ids_and_game_id::<Submission>(
-        &s.db.conn, team_ids, game_id,
-    )
-    .await?;
-
-    let mut result: Vec<ScoreRecord> = Vec::new();
-
-    for team in teams {
-        let submissions = submissions
-            .iter()
-            .filter(|s| s.team_id.is_some_and(|t| t == team.id))
-            .cloned()
-            .map(|submission| SubmissionPublic::from(&submission))
-            .collect::<Vec<SubmissionPublic>>();
-
-        result.push(ScoreRecord {
-            team: TeamPublic::from(&team),
-            submissions,
-        });
-    }
-
-    Ok(Json(GameScoreboardResponse {
-        records: result,
-        total,
-    }))
+    Ok(Json(GameScoreboardResponse { records, total }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]

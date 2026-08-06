@@ -50,6 +50,39 @@ pub struct SubmissionPublic {
     pub created_at: i64,
 }
 
+/// Projects a SeaORM 2 loaded submission graph to the public scoreboard
+/// contract. The graph supplies the related user and challenge without a
+/// second hand-written join DTO.
+impl TryFrom<&crate::entity::submission::ModelEx> for SubmissionPublic {
+    type Error = DbError;
+
+    fn try_from(submission: &crate::entity::submission::ModelEx) -> Result<Self, Self::Error> {
+        let user = submission.user.as_ref().ok_or_else(|| {
+            DbError::Other(anyhow::anyhow!(
+                "submission {} was loaded without its user relation",
+                submission.id
+            ))
+        })?;
+        let challenge = submission.challenge.as_ref().ok_or_else(|| {
+            DbError::Other(anyhow::anyhow!(
+                "submission {} was loaded without its challenge relation",
+                submission.id
+            ))
+        })?;
+
+        Ok(Self {
+            id: submission.id,
+            user_id: submission.user_id,
+            user_name: user.name.clone(),
+            user_avatar_hash: user.avatar_hash.clone(),
+            challenge_id: submission.challenge_id,
+            challenge_title: challenge.title.clone(),
+            pts: submission.pts,
+            created_at: submission.created_at,
+        })
+    }
+}
+
 impl From<&Submission> for SubmissionPublic {
     fn from(submission: &Submission) -> Self {
         Self {
