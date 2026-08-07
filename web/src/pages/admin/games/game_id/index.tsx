@@ -1,12 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  CirclePauseIcon,
   ClockAlertIcon,
   ClockFadingIcon,
   ClockIcon,
   FileCheck2Icon,
   LockOpenIcon,
-  MoonIcon,
   SaveIcon,
   TrashIcon,
   TypeIcon,
@@ -39,7 +37,6 @@ import { Label } from "@/components/ui/label";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { NumberField } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -72,8 +69,6 @@ export default function Index() {
     sketch: z.string().nullable(),
     description: z.string().nullable(),
     public: z.boolean(),
-    paused: z.boolean(),
-    blacked_out: z.boolean(),
     writeup_required: z.boolean(),
     member_limit_min: z.number({
       message: t("game:form.member_limit_min.message"),
@@ -96,8 +91,6 @@ export default function Index() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       ...game,
-      paused: false,
-      blacked_out: false,
       started_at: undefined,
       frozen_at: undefined,
       ended_at: undefined,
@@ -568,72 +561,6 @@ export default function Index() {
                       value={String(field.value)}
                     />
                   </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name={"paused"}
-            render={({ field }) => (
-              <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("game:form.paused._")}</FormLabel>
-                <FormControl>
-                  <div
-                    className={cn([
-                      "flex",
-                      "h-10",
-                      "items-center",
-                      "gap-2.5",
-                      "rounded-md",
-                      "border",
-                      "px-3",
-                    ])}
-                  >
-                    <CirclePauseIcon className="size-4 text-muted-foreground" />
-                    <span className="flex-1 text-sm">
-                      {t(`game:form.paused.${String(field.value)}`)}
-                    </span>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      aria-label={t("game:form.paused._")}
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name={"blacked_out"}
-            render={({ field }) => (
-              <FormItem className={cn(["w-full"])}>
-                <FormLabel>{t("game:form.blacked_out._")}</FormLabel>
-                <FormControl>
-                  <div
-                    className={cn([
-                      "flex",
-                      "h-10",
-                      "items-center",
-                      "gap-2.5",
-                      "rounded-md",
-                      "border",
-                      "px-3",
-                    ])}
-                  >
-                    <MoonIcon className="size-4 text-muted-foreground" />
-                    <span className="flex-1 text-sm">
-                      {t(`game:form.blacked_out.${String(field.value)}`)}
-                    </span>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      aria-label={t("game:form.blacked_out._")}
-                    />
-                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

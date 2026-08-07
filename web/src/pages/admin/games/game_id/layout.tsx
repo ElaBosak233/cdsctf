@@ -1,21 +1,24 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
+  CirclePauseIcon,
   FlagIcon,
   InfoIcon,
   LibraryIcon,
   MessageCircleIcon,
+  MoonIcon,
   RefreshCwIcon,
   UsersRoundIcon,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useParams } from "react-router";
 import { toast } from "sonner";
-import { getGame } from "@/api/admin/games/game_id";
+import { getGame, updateGame } from "@/api/admin/games/game_id";
 import { calculateGame } from "@/api/admin/games/game_id/calculate";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";
+import { Switch } from "@/components/ui/switch";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -73,6 +76,50 @@ export default function Layout() {
   }, [game_id, t]);
 
   const [loading, setLoading] = useState<boolean>(false);
+  const [updatingState, setUpdatingState] = useState<
+    "paused" | "blacked_out" | null
+  >(null);
+  const [gameState, setGameState] = useState({
+    paused: false,
+    blacked_out: false,
+  });
+
+  useEffect(() => {
+    if (!game) return;
+
+    setGameState({
+      paused: game.paused,
+      blacked_out: game.blacked_out,
+    });
+  }, [game]);
+
+  async function handleStateChange(
+    state: "paused" | "blacked_out",
+    checked: boolean
+  ) {
+    if (gameId == null || updatingState != null) return;
+
+    const previous = gameState[state];
+    setGameState((current) => ({ ...current, [state]: checked }));
+    setUpdatingState(state);
+
+    try {
+      const res = await updateGame({ id: gameId, [state]: checked });
+      setGameState({
+        paused: res.game.paused,
+        blacked_out: res.game.blacked_out,
+      });
+      toast.success(
+        t("game:actions.update.success", { title: res.game.title })
+      );
+      sharedStore.setRefresh();
+    } catch {
+      setGameState((current) => ({ ...current, [state]: previous }));
+      toast.error(t("common:errors.network"));
+    } finally {
+      setUpdatingState(null);
+    }
+  }
 
   function handleRecalculate() {
     setLoading(true);
@@ -164,7 +211,47 @@ export default function Layout() {
                 </Button>
               ))}
             </nav>
-            <div className={cn(["border-t", "pt-4"])}>
+            <div
+              className={cn(["border-t", "pt-4", "flex", "flex-col", "gap-1"])}
+            >
+              <div
+                className={cn(
+                  buttonVariants({ variant: "ghost" }),
+                  "justify-start",
+                  "w-full",
+                  "text-muted-foreground"
+                )}
+              >
+                <CirclePauseIcon className="size-4" />
+                <span className="flex-1">{t("game:form.paused._")}</span>
+                <Switch
+                  checked={gameState.paused}
+                  disabled={game == null || updatingState != null}
+                  onCheckedChange={(checked) =>
+                    handleStateChange("paused", checked)
+                  }
+                  aria-label={t("game:form.paused._")}
+                />
+              </div>
+              <div
+                className={cn(
+                  buttonVariants({ variant: "ghost" }),
+                  "justify-start",
+                  "w-full",
+                  "text-muted-foreground"
+                )}
+              >
+                <MoonIcon className="size-4" />
+                <span className="flex-1">{t("game:form.blacked_out._")}</span>
+                <Switch
+                  checked={gameState.blacked_out}
+                  disabled={game == null || updatingState != null}
+                  onCheckedChange={(checked) =>
+                    handleStateChange("blacked_out", checked)
+                  }
+                  aria-label={t("game:form.blacked_out._")}
+                />
+              </div>
               <Button
                 icon={<RefreshCwIcon className="size-4" />}
                 variant="ghost"
