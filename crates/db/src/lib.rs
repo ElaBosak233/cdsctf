@@ -19,9 +19,6 @@ pub mod repository;
 /// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
 
-/// Defines the `util` submodule (see sibling `*.rs` files).
-pub mod util;
-
 use std::time::Duration;
 
 use cds_env::Env;

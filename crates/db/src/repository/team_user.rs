@@ -20,6 +20,21 @@ pub struct FindTeamUserOptions {
     pub user_id: Option<i64>,
 }
 
+/// Returns whether a user belongs to a team.
+pub async fn contains_user(
+    conn: &impl ConnectionTrait,
+    team_id: i64,
+    user_id: i64,
+) -> Result<bool, DbError> {
+    Ok(membership_query(team_id, user_id).count(conn).await? > 0)
+}
+
+fn membership_query(team_id: i64, user_id: i64) -> sea_orm::Select<Entity> {
+    Entity::find()
+        .filter(Column::TeamId.eq(team_id))
+        .filter(Column::UserId.eq(user_id))
+}
+
 /// Queries rows using filter options and returns `(rows, total_count)`.
 pub async fn find<T>(
     conn: &impl ConnectionTrait,
@@ -133,4 +148,21 @@ pub async fn delete_by_team_id(conn: &impl ConnectionTrait, team_id: i64) -> Res
     info!(team_id, "team members deleted");
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use sea_orm::{DbBackend, QueryTrait};
+
+    use super::*;
+
+    #[test]
+    fn membership_query_is_scoped_to_team_and_user() {
+        let statement = membership_query(11, 22).build(DbBackend::Postgres);
+
+        assert!(statement.sql.contains("FROM \"team_users\""));
+        assert!(statement.sql.contains("\"team_id\" = $1"));
+        assert!(statement.sql.contains("\"user_id\" = $2"));
+        assert_eq!(statement.values.unwrap().0.len(), 2);
+    }
 }

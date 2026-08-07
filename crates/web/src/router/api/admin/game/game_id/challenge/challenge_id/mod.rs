@@ -6,10 +6,10 @@ use std::sync::Arc;
 use axum::{Json, Router, extract::State};
 use cds_db::sea_orm::{
     ActiveValue::{Set, Unchanged},
-    NotSet,
+    NotSet, TransactionTrait,
 };
 use cds_event::types::game_challenge::{GameChallengeEvent, GameChallengeEventType};
-use cds_worker::calculator::{Payload, SUBJECT};
+use cds_worker::calculator;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use utoipa_axum::{
@@ -72,8 +72,9 @@ pub async fn update_game_challenge(
     let game_challenge =
         crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge_id).await?;
 
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
     let new_game_challenge = cds_db::game_challenge::update(
-        &s.db.conn,
+        &transaction,
         cds_db::game_challenge::ActiveModel {
             game_id: Unchanged(game_challenge.game_id),
             challenge_id: Unchanged(game_challenge.challenge_id),
@@ -88,19 +89,17 @@ pub async fn update_game_challenge(
     )
     .await?;
 
-    if game_challenge.difficulty != new_game_challenge.difficulty
+    let score_changed = game_challenge.difficulty != new_game_challenge.difficulty
         || game_challenge.max_pts != new_game_challenge.max_pts
         || game_challenge.min_pts != new_game_challenge.min_pts
-        || game_challenge.bonus_ratios != new_game_challenge.bonus_ratios
-    {
-        s.queue
-            .publish(
-                SUBJECT,
-                Payload {
-                    game_id: Some(new_game_challenge.game_id),
-                },
-            )
-            .await?;
+        || game_challenge.bonus_ratios != new_game_challenge.bonus_ratios;
+    if score_changed {
+        cds_db::game::request_score_recalculation(&transaction, new_game_challenge.game_id).await?;
+    }
+    transaction.commit().await.map_err(cds_db::DbError::from)?;
+
+    if score_changed {
+        calculator::notify(&s.queue, new_game_challenge.game_id).await;
     }
 
     if new_game_challenge.enabled != game_challenge.enabled {
@@ -142,12 +141,16 @@ pub async fn delete_game_challenge(
     let game_challenge =
         crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge_id).await?;
 
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
     cds_db::game_challenge::delete(
-        &s.db.conn,
+        &transaction,
         game_challenge.game_id,
         game_challenge.challenge_id,
     )
     .await?;
+    cds_db::game::request_score_recalculation(&transaction, game_challenge.game_id).await?;
+    transaction.commit().await.map_err(cds_db::DbError::from)?;
+    calculator::notify(&s.queue, game_challenge.game_id).await;
 
     Ok(Json(EmptyJson::default()))
 }

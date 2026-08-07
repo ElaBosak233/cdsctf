@@ -30,6 +30,8 @@ pub struct Model {
     pub ended_at: i64,
     pub icon_hash: Option<String>,
     pub poster_hash: Option<String>,
+    #[sea_orm(default_value = 0)]
+    pub score_revision: i64,
     pub created_at: i64,
     #[sea_orm(has_many)]
     pub submissions: HasMany<super::submission::Entity>,

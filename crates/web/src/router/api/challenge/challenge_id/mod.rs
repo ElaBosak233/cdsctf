@@ -57,7 +57,7 @@ pub async fn get_challenge(
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
-    if !cds_db::util::can_user_access_challenge(&s.db.conn, operator.id, challenge.id).await? {
+    if !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge.id).await? {
         return Err(WebError::Forbidden(json!("")));
     }
 

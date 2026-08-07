@@ -3,8 +3,9 @@
 use std::str::FromStr;
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityName, EntityTrait, FromQueryResult,
-    Iden as _, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, prelude::Expr,
+    ActiveModelTrait, ColumnTrait, Condition, ConnectionTrait, EntityName, EntityTrait,
+    FromQueryResult, Iden as _, JoinType, Order, PaginatorTrait, QueryFilter, QueryOrder,
+    QuerySelect, QueryTrait, RelationTrait, Set, prelude::Expr,
 };
 use tracing::info;
 
@@ -26,6 +27,61 @@ pub struct FindChallengeOptions {
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
+}
+
+/// Checks whether a challenge is public or available through an active game
+/// in which the user is a passed team member.
+pub async fn can_user_access(
+    conn: &impl ConnectionTrait,
+    user_id: i64,
+    challenge_id: i64,
+) -> Result<bool, DbError> {
+    Ok(user_access_query(
+        user_id,
+        challenge_id,
+        time::OffsetDateTime::now_utc().unix_timestamp(),
+    )
+    .count(conn)
+    .await?
+        > 0)
+}
+
+fn user_access_query(user_id: i64, challenge_id: i64, now: i64) -> sea_orm::Select<Entity> {
+    let active_game_access = active_game_access_query(user_id, challenge_id, now)
+        .select_only()
+        .column(crate::entity::game::Column::Id)
+        .into_query();
+
+    Entity::find_by_id(challenge_id).filter(
+        Condition::any()
+            .add(Column::Public.eq(true))
+            .add(Expr::exists(active_game_access)),
+    )
+}
+
+fn active_game_access_query(
+    user_id: i64,
+    challenge_id: i64,
+    now: i64,
+) -> sea_orm::Select<crate::entity::game::Entity> {
+    crate::entity::game::Entity::find()
+        .join(
+            JoinType::InnerJoin,
+            crate::entity::game_challenge::Relation::Game.def().rev(),
+        )
+        .join(
+            JoinType::InnerJoin,
+            crate::entity::team::Relation::Game.def().rev(),
+        )
+        .join(
+            JoinType::InnerJoin,
+            crate::entity::team_user::Relation::Team.def().rev(),
+        )
+        .filter(crate::entity::game_challenge::Column::ChallengeId.eq(challenge_id))
+        .filter(crate::entity::team_user::Column::UserId.eq(user_id))
+        .filter(crate::entity::team::Column::State.eq(crate::entity::team::State::Passed))
+        .filter(crate::entity::game::Column::StartedAt.lte(now))
+        .filter(crate::entity::game::Column::EndedAt.gte(now))
 }
 
 /// Queries rows using filter options and returns `(rows, total_count)`.
@@ -190,4 +246,37 @@ pub async fn delete(conn: &impl ConnectionTrait, challenge_id: i64) -> Result<()
     );
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use sea_orm::{DbBackend, QueryTrait};
+
+    use super::*;
+
+    #[test]
+    fn active_game_access_query_covers_membership_state_and_time() {
+        let statement = active_game_access_query(7, 9, 1_000).build(DbBackend::Postgres);
+
+        assert!(statement.sql.contains("INNER JOIN \"game_challenges\""));
+        assert!(statement.sql.contains("INNER JOIN \"teams\""));
+        assert!(statement.sql.contains("INNER JOIN \"team_users\""));
+        assert!(statement.sql.contains("\"challenge_id\" = $1"));
+        assert!(statement.sql.contains("\"user_id\" = $2"));
+        assert!(statement.sql.contains("\"state\" = $3"));
+        assert!(statement.sql.contains("\"started_at\" <= $4"));
+        assert!(statement.sql.contains("\"ended_at\" >= $5"));
+        assert_eq!(statement.values.unwrap().0.len(), 5);
+    }
+
+    #[test]
+    fn user_access_query_combines_public_and_game_access_in_one_statement() {
+        let statement = user_access_query(7, 9, 1_000).build(DbBackend::Postgres);
+
+        assert_eq!(statement.sql.matches("SELECT").count(), 2);
+        assert!(statement.sql.contains("\"challenges\".\"id\" = $1"));
+        assert!(statement.sql.contains("\"challenges\".\"public\" = $2"));
+        assert!(statement.sql.contains(" OR EXISTS(SELECT"));
+        assert_eq!(statement.values.unwrap().0.len(), 7);
+    }
 }

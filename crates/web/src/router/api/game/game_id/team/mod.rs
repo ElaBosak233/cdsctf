@@ -75,7 +75,7 @@ pub async fn create_team(
 
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    if cds_db::util::is_user_in_game(&s.db.conn, operator.id, game.id, None).await? {
+    if cds_db::team::contains_user_in_game(&s.db.conn, game.id, operator.id, None).await? {
         return Err(WebError::BadRequest(json!("user_already_in_game")));
     }
 

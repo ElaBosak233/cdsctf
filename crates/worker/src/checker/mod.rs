@@ -9,16 +9,16 @@
 //!
 //! # Startup
 //!
-//! [`spawn`] returns interrupted `Processing` rows to `Queued` and
+//! [`spawn`] returns expired `Processing` rows to `Queued` and
 //! re-publishes every queued submission so no job is lost after a restart.
 
-use std::sync::Arc;
+use std::{future::Future, sync::Arc, time::Duration};
 
 use anyhow::anyhow;
 use cds_checker::Checker;
 use cds_db::{
     DB, GameChallengeView, GameDetail, SubmissionView, TeamView, UserAccountView,
-    sea_orm::{ActiveValue::Unchanged, IntoActiveModel, Set},
+    sea_orm::{ActiveValue::Unchanged, IntoActiveModel, Set, TransactionTrait},
     submission::{FindSubmissionsOptions, Status},
     team::{Model, State},
 };
@@ -26,13 +26,22 @@ use cds_queue::Queue;
 use futures_util::StreamExt as _;
 use tracing::{debug, error, info, warn};
 
-use crate::calculator::{self, Payload};
+use crate::calculator;
 
 /// JetStream subject for asynchronous submission verification.
 pub const SUBJECT: &str = "cds.submission.check";
 
 /// Maximum number of submissions checked concurrently by this process.
 const MAX_IN_FLIGHT: usize = 16;
+
+/// Maximum wall-clock time allowed for one checker invocation.
+const CHECK_TIMEOUT: Duration = Duration::from_secs(10);
+
+async fn enforce_check_timeout<F: Future>(
+    future: F,
+) -> Result<F::Output, tokio::time::error::Elapsed> {
+    tokio::time::timeout(CHECK_TIMEOUT, future).await
+}
 
 /// Shared handles for one consumer instance (cloned into async jobs).
 #[derive(Clone)]
@@ -74,26 +83,13 @@ async fn prepare_game_challenge(
         .ok_or_else(|| anyhow!("game_challenge_not_found"))
 }
 
-/// Claims one queued submission, runs its script, applies game rules, and
-/// notifies the calculator.
-#[tracing::instrument(skip_all, fields(submission_id = id))]
-async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
-    let Some(submission) = cds_db::submission::claim_queued_by_id(&ctx.db.conn, id).await? else {
-        debug!(
-            submission_id = id,
-            "submission is not queued; message skipped"
-        );
-        return Ok(());
-    };
-    debug!(
-        submission_id = submission.id,
-        user_id = submission.user_id,
-        team_id = submission.team_id,
-        game_id = submission.game_id,
-        challenge_id = submission.challenge_id,
-        "submission claimed"
-    );
-
+/// Runs a claimed submission, applies game rules, and notifies the calculator.
+#[tracing::instrument(skip_all, fields(submission_id = submission.id))]
+async fn check(
+    ctx: Arc<Context>,
+    submission: SubmissionView,
+    processing_at: i64,
+) -> Result<(), anyhow::Error> {
     let user = if let Some(user) =
         cds_db::user::find_by_id::<UserAccountView>(&ctx.db.conn, submission.user_id).await?
     {
@@ -119,12 +115,14 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
         _ => submission.user_id,
     };
 
-    let mut status = match ctx
-        .checker
-        .check(&challenge, operator_id, &submission.content)
-        .await
-    {
-        Ok(c_status) => match c_status {
+    let checker_result = enforce_check_timeout(ctx.checker.check(
+        &challenge,
+        operator_id,
+        &submission.content,
+    ))
+    .await;
+    let mut status = match checker_result {
+        Ok(Ok(c_status)) => match c_status {
             cds_checker::Status::Correct => Status::Correct,
             cds_checker::Status::Incorrect => Status::Incorrect,
             cds_checker::Status::Cheat(peer_team_id) => {
@@ -133,12 +131,21 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
                     .unwrap_or_else(|_| Status::Incorrect)
             }
         },
-        Err(err) => {
+        Ok(Err(err)) => {
             warn!(
                 submission_id = submission.id,
                 challenge_id = challenge.id,
                 error = ?err,
                 "checker script failed"
+            );
+            Status::Incorrect
+        }
+        Err(_) => {
+            warn!(
+                submission_id = submission.id,
+                challenge_id = challenge.id,
+                timeout_seconds = CHECK_TIMEOUT.as_secs(),
+                "checker invocation timed out"
             );
             Status::Incorrect
         }
@@ -210,8 +217,14 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
         "submission checked"
     );
 
-    let Some(submission) =
-        cds_db::submission::finish_processing(&ctx.db.conn, submission.id, status.clone()).await?
+    let transaction = ctx.db.conn.begin().await?;
+    let Some(submission) = cds_db::submission::finish_processing(
+        &transaction,
+        submission.id,
+        processing_at,
+        status.clone(),
+    )
+    .await?
     else {
         warn!(
             submission_id = submission.id,
@@ -220,19 +233,20 @@ async fn check(ctx: Arc<Context>, id: i64) -> Result<(), anyhow::Error> {
         return Ok(());
     };
 
-    if submission.game_id.is_some() && status == Status::Correct {
+    let score_game_id = if let (Some(game_id), Status::Correct) = (submission.game_id, &status) {
+        cds_db::game::request_score_recalculation(&transaction, game_id).await?;
+        Some(game_id)
+    } else {
+        None
+    };
+    transaction.commit().await?;
+
+    if let Some(game_id) = score_game_id {
         // Fan-out score recompute for the affected competition only.
-        ctx.queue
-            .publish(
-                calculator::SUBJECT,
-                Payload {
-                    game_id: submission.game_id,
-                },
-            )
-            .await?;
+        calculator::notify(&ctx.queue, game_id).await;
         debug!(
             submission_id = submission.id,
-            game_id = submission.game_id,
+            game_id,
             subject = calculator::SUBJECT,
             "score recalculation queued"
         );
@@ -262,13 +276,14 @@ async fn handle_cheat(
         cds_db::team::find_by_id::<Model>(&ctx.db.conn, team_id, game_id).await?,
         cds_db::team::find_by_id::<Model>(&ctx.db.conn, peer_team_id, game_id).await?,
     ) {
+        let transaction = ctx.db.conn.begin().await?;
         for t in &[team, peer_team] {
             warn!(
                 team_id = t.id,
                 game_id, peer_team_id, "team banned by cheat detection"
             );
             let _ = cds_db::team::update::<TeamView>(
-                &ctx.db.conn,
+                &transaction,
                 cds_db::team::ActiveModel {
                     id: Unchanged(t.id),
                     state: Set(State::Banned),
@@ -277,6 +292,9 @@ async fn handle_cheat(
             )
             .await?;
         }
+        cds_db::game::request_score_recalculation(&transaction, game_id).await?;
+        transaction.commit().await?;
+        calculator::notify(&ctx.queue, game_id).await;
     }
 
     Ok(Status::Cheat)
@@ -286,7 +304,7 @@ async fn handle_cheat(
 /// crashes.
 #[tracing::instrument(skip_all)]
 async fn recover_queued(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
-    let reset = cds_db::submission::reset_processing(&ctx.db.conn).await?;
+    let reset = cds_db::submission::reset_stale_processing(&ctx.db.conn).await?;
     let (unchecked_submissions, _) = cds_db::submission::find(
         &ctx.db.conn,
         FindSubmissionsOptions {
@@ -339,11 +357,45 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
                 };
                 debug!(submission_id = id, "checker message received");
 
+                let submission =
+                    match cds_db::submission::claim_queued_by_id(&ctx.db.conn, id).await {
+                        Ok(Some(submission)) => submission,
+                        Ok(None) => {
+                            debug!(
+                                submission_id = id,
+                                "submission is not queued; message skipped"
+                            );
+                            message.double_ack().await.ok();
+                            return;
+                        }
+                        Err(err) => {
+                            error!(submission_id = id, error = ?err, "submission claim failed");
+                            return;
+                        }
+                    };
+                let Some(processing_at) = submission.processing_at else {
+                    error!(
+                        submission_id = id,
+                        "claimed submission has no processing timestamp"
+                    );
+                    return;
+                };
+                debug!(
+                    submission_id = submission.id,
+                    user_id = submission.user_id,
+                    team_id = submission.team_id,
+                    game_id = submission.game_id,
+                    challenge_id = submission.challenge_id,
+                    processing_at,
+                    "submission claimed"
+                );
+
                 let mut acknowledge = true;
-                if let Err(err) = check(Arc::clone(&ctx), id).await {
-                    let released = cds_db::submission::release_processing(&ctx.db.conn, id)
-                        .await
-                        .unwrap_or(false);
+                if let Err(err) = check(Arc::clone(&ctx), submission, processing_at).await {
+                    let released =
+                        cds_db::submission::release_processing(&ctx.db.conn, id, processing_at)
+                            .await
+                            .unwrap_or(false);
                     acknowledge = !released;
                     error!(submission_id = id, released, error = ?err, "submission check failed");
                 }
@@ -376,4 +428,18 @@ pub async fn spawn(db: &DB, queue: &Queue, checker: &Checker) {
         concurrency = MAX_IN_FLIGHT,
         "queue consumer spawned"
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use std::future::pending;
+
+    use super::*;
+
+    #[tokio::test(start_paused = true)]
+    async fn checker_deadline_expires_after_ten_seconds() {
+        let started_at = tokio::time::Instant::now();
+        assert!(enforce_check_timeout(pending::<()>()).await.is_err());
+        assert_eq!(started_at.elapsed(), Duration::from_secs(10));
+    }
 }

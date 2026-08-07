@@ -17,11 +17,11 @@ use cds_db::{
     TeamView,
     sea_orm::{
         ActiveValue::{Set, Unchanged},
-        NotSet,
+        NotSet, TransactionTrait,
     },
     team::State as TState,
 };
-use cds_worker::calculator::{Payload, SUBJECT};
+use cds_worker::calculator;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -78,8 +78,9 @@ pub async fn update_team(
 ) -> Result<Json<TeamResponse>, WebError> {
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
     let new_team = cds_db::team::update::<TeamView>(
-        &s.db.conn,
+        &transaction,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),
             game_id: Unchanged(team.game_id),
@@ -92,15 +93,14 @@ pub async fn update_team(
     )
     .await?;
 
-    if team.state != new_team.state {
-        s.queue
-            .publish(
-                SUBJECT,
-                Payload {
-                    game_id: Some(game_id),
-                },
-            )
-            .await?;
+    let score_changed = team.state != new_team.state;
+    if score_changed {
+        cds_db::game::request_score_recalculation(&transaction, game_id).await?;
+    }
+    transaction.commit().await.map_err(cds_db::DbError::from)?;
+
+    if score_changed {
+        calculator::notify(&s.queue, game_id).await;
     }
 
     Ok(Json(TeamResponse { team: new_team }))

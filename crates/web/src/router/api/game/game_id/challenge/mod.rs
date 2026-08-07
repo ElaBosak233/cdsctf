@@ -69,7 +69,7 @@ pub async fn get_game_challenge(
 
     let now = time::OffsetDateTime::now_utc().unix_timestamp();
     let in_game =
-        cds_db::util::is_user_in_game(&s.db.conn, operator.id, game.id, Some(TState::Passed))
+        cds_db::team::contains_user_in_game(&s.db.conn, game.id, operator.id, Some(TState::Passed))
             .await?;
 
     if !in_game || !(game.started_at..=game.ended_at).contains(&now) {

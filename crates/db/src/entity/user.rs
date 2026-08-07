@@ -1,11 +1,9 @@
 //! SeaORM `user` entity — maps the `user` table and its relations.
 
 use async_trait::async_trait;
-use sea_orm::{ExprTrait, QuerySelect, Set, entity::prelude::*, sea_query::Query};
+use sea_orm::{Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-
-use super::email;
 
 #[sea_orm::model]
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
@@ -73,27 +71,5 @@ impl ActiveModelBehavior for ActiveModel {
         }
 
         Ok(self)
-    }
-}
-
-impl Entity {
-    /// Begins the canonical query with standard joins and projections.
-    pub fn base_find() -> Select<Entity> {
-        Self::find().column_as(
-            Expr::exists(
-                Query::select()
-                    .expr(Expr::val(1))
-                    .from(email::Entity.table_name())
-                    .and_where(
-                        Expr::col((email::Entity.table_name(), email::Column::UserId))
-                            .eq(Expr::col((Entity.table_name(), Column::Id))),
-                    )
-                    .and_where(
-                        Expr::col((email::Entity.table_name(), email::Column::Verified)).eq(true),
-                    )
-                    .to_owned(),
-            ),
-            "verified",
-        )
     }
 }

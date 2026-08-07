@@ -155,7 +155,7 @@ pub async fn create_instance(
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
-    if !cds_db::util::can_user_access_challenge(&s.db.conn, operator.id, challenge.id).await? {
+    if !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge.id).await? {
         return Err(WebError::NotFound(json!("challenge_not_found")));
     }
 
@@ -173,7 +173,7 @@ pub async fn create_instance(
         let _ =
             crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge.id).await?;
 
-        if !cds_db::util::is_user_in_team(&s.db.conn, operator.id, team_id).await? {
+        if !cds_db::team_user::contains_user(&s.db.conn, team_id, operator.id).await? {
             return Err(WebError::Forbidden(json!("team_not_found")));
         }
 

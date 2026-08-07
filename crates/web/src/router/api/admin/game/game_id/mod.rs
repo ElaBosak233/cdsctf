@@ -23,7 +23,7 @@ use cds_db::sea_orm::{
     ActiveValue::{Set, Unchanged},
     NotSet,
 };
-use cds_worker::calculator::{Payload, SUBJECT};
+use cds_worker::calculator;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -181,14 +181,7 @@ pub async fn calculate_game(
 ) -> Result<Json<EmptyJson>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    s.queue
-        .publish(
-            SUBJECT,
-            Payload {
-                game_id: Some(game.id),
-            },
-        )
-        .await?;
+    calculator::request(&s.db.conn, &s.queue, game.id).await?;
 
     Ok(Json(EmptyJson::default()))
 }

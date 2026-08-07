@@ -6,6 +6,9 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityLoaderTrait, EntityTrait,
     FromQueryResult, JoinType, LoaderTraitEx, Order, PaginatorTrait, QueryFilter, QueryOrder,
     QuerySelect, RelationTrait,
+    sea_query::{
+        Alias, Condition, Expr, ExprTrait, IntoIden, Query, TableRef, UpdateStatement, ValueTuple,
+    },
 };
 use tracing::info;
 
@@ -117,6 +120,9 @@ pub async fn find_scoreboard(
 
 #[cfg(test)]
 mod tests {
+    use sea_orm::{DbBackend, QueryTrait};
+
+    use super::{ScoreUpdate, State, score_update_statements, user_game_membership_query};
     use crate::dto::scoreboard::{ScoreboardEntry, ScoreboardSubmission, ScoreboardTeam};
 
     #[test]
@@ -146,6 +152,44 @@ mod tests {
             serde_json::json!({"team":{"id":1,"name":"team","slogan":"hello","avatar_hash":"team-avatar","pts":100,"rank":2},"submissions":[{"id":10,"user_id":20,"user_name":"user","user_avatar_hash":"user-avatar","challenge_id":30,"challenge_title":"challenge","pts":100,"created_at":1_700_000_000_i64}]})
         );
     }
+
+    #[test]
+    fn score_updates_use_bound_values_and_change_checks() {
+        let statements = score_update_statements(
+            5,
+            &[
+                ScoreUpdate {
+                    id: 1,
+                    pts: 100,
+                    rank: 1,
+                },
+                ScoreUpdate {
+                    id: 2,
+                    pts: 50,
+                    rank: 2,
+                },
+            ],
+        );
+
+        let statement = DbBackend::Postgres.build(&statements[0]);
+        assert_eq!(statements.len(), 1);
+        assert_eq!(statement.values.unwrap().0.len(), 8);
+        assert!(statement.sql.starts_with("UPDATE \"teams\""));
+        assert!(statement.sql.contains("FROM (VALUES"));
+        assert!(statement.sql.contains(" OR "));
+    }
+
+    #[test]
+    fn game_membership_query_joins_team_users_and_filters_state() {
+        let statement =
+            user_game_membership_query(7, 9, Some(State::Passed)).build(DbBackend::Postgres);
+
+        assert!(statement.sql.contains("INNER JOIN \"team_users\""));
+        assert!(statement.sql.contains("\"team_users\".\"user_id\" = $1"));
+        assert!(statement.sql.contains("\"teams\".\"game_id\" = $2"));
+        assert!(statement.sql.contains("\"teams\".\"state\" = $3"));
+        assert_eq!(statement.values.unwrap().0.len(), 3);
+    }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -173,6 +217,122 @@ pub struct FindTeamOptions {
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
+}
+
+/// Returns whether a user belongs to a team in the requested game and state.
+pub async fn contains_user_in_game(
+    conn: &impl ConnectionTrait,
+    game_id: i64,
+    user_id: i64,
+    state: Option<State>,
+) -> Result<bool, DbError> {
+    Ok(user_game_membership_query(game_id, user_id, state)
+        .count(conn)
+        .await?
+        > 0)
+}
+
+fn user_game_membership_query(
+    game_id: i64,
+    user_id: i64,
+    state: Option<State>,
+) -> sea_orm::Select<Entity> {
+    let mut query = Entity::find()
+        .join(
+            JoinType::InnerJoin,
+            super::team_user::Relation::Team.def().rev(),
+        )
+        .filter(super::team_user::Column::UserId.eq(user_id))
+        .filter(Column::GameId.eq(game_id));
+
+    if let Some(state) = state {
+        query = query.filter(Column::State.eq(state));
+    }
+
+    query
+}
+
+/// Narrow team projection used by score recomputation.
+#[derive(Clone, Debug, PartialEq, Eq, FromQueryResult)]
+pub struct ScoreInput {
+    pub id: i64,
+    pub pts: i64,
+    pub rank: i64,
+}
+
+/// Persisted score fields for one team.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ScoreUpdate {
+    pub id: i64,
+    pub pts: i64,
+    pub rank: i64,
+}
+
+/// Loads passed teams using only fields needed for score recomputation.
+pub async fn find_score_inputs(
+    conn: &impl ConnectionTrait,
+    game_id: i64,
+) -> Result<Vec<ScoreInput>, DbError> {
+    Ok(Entity::find()
+        .select_only()
+        .columns([Column::Id, Column::Pts, Column::Rank])
+        .filter(Column::GameId.eq(game_id))
+        .filter(Column::State.eq(State::Passed))
+        .order_by_asc(Column::Id)
+        .into_model::<ScoreInput>()
+        .all(conn)
+        .await?)
+}
+
+/// Applies changed team scores in bounded, set-based updates.
+pub async fn update_scores(
+    conn: &impl ConnectionTrait,
+    game_id: i64,
+    updates: &[ScoreUpdate],
+) -> Result<u64, DbError> {
+    let mut rows_affected = 0;
+    for statement in score_update_statements(game_id, updates) {
+        rows_affected += conn.execute(&statement).await?.rows_affected();
+    }
+    Ok(rows_affected)
+}
+
+fn score_update_statements(game_id: i64, updates: &[ScoreUpdate]) -> Vec<UpdateStatement> {
+    updates
+        .chunks(super::BULK_UPDATE_BATCH_SIZE)
+        .map(|chunk| {
+            let source = Alias::new("team_scores");
+            let values = chunk
+                .iter()
+                .map(|update| {
+                    ValueTuple::Many(vec![
+                        game_id.into(),
+                        update.id.into(),
+                        update.pts.into(),
+                        update.rank.into(),
+                    ])
+                })
+                .collect();
+            let source_game_id = Expr::col((source.clone(), Alias::new("column1")));
+            let source_id = Expr::col((source.clone(), Alias::new("column2")));
+            let source_pts = Expr::col((source.clone(), Alias::new("column3")));
+            let source_rank = Expr::col((source.clone(), Alias::new("column4")));
+
+            Query::update()
+                .table(Entity)
+                .value(Column::Pts, source_pts.clone())
+                .value(Column::Rank, source_rank.clone())
+                .from(TableRef::ValuesList(values, source.into_iden()))
+                .cond_where(Expr::col(Column::GameId).eq(source_game_id))
+                .cond_where(Expr::col(Column::Id).eq(source_id))
+                .cond_where(
+                    Condition::any()
+                        .add(Expr::col(Column::Pts).ne(source_pts))
+                        .add(Expr::col(Column::Rank).ne(source_rank)),
+                )
+                .to_owned()
+        })
+        .collect()
 }
 
 /// Queries rows using filter options and returns `(rows, total_count)`.

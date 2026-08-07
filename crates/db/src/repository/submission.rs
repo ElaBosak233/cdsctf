@@ -3,8 +3,11 @@
 use std::str::FromStr;
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityLoaderTrait, EntityTrait, Order,
-    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityLoaderTrait, EntityTrait,
+    FromQueryResult, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
+    sea_query::{
+        Alias, Condition, Expr, ExprTrait, IntoIden, Query, TableRef, UpdateStatement, ValueTuple,
+    },
 };
 use tracing::info;
 
@@ -17,6 +20,8 @@ pub use crate::{
     },
     entity::submission::{ActiveModel, Status},
 };
+
+const PROCESSING_LEASE_SECONDS: i64 = 10;
 
 impl TryFrom<crate::entity::submission::ModelEx> for SubmissionView {
     type Error = DbError;
@@ -139,6 +144,105 @@ pub struct FindSubmissionsOptions {
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
+}
+
+/// Narrow submission projection used by score recomputation.
+#[derive(Clone, Debug, PartialEq, Eq, FromQueryResult)]
+pub struct ScoreInput {
+    pub id: i64,
+    pub challenge_id: i64,
+    pub team_id: Option<i64>,
+    pub created_at: i64,
+    pub pts: i64,
+    pub rank: i64,
+}
+
+/// Persisted score fields for one submission.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ScoreUpdate {
+    pub id: i64,
+    pub pts: i64,
+    pub rank: i64,
+}
+
+/// Loads correct submissions using only fields needed for score recomputation.
+pub async fn find_score_inputs(
+    conn: &impl ConnectionTrait,
+    game_id: i64,
+) -> Result<Vec<ScoreInput>, DbError> {
+    Ok(score_input_query(game_id)
+        .into_model::<ScoreInput>()
+        .all(conn)
+        .await?)
+}
+
+fn score_input_query(game_id: i64) -> sea_orm::Select<Entity> {
+    Entity::find()
+        .select_only()
+        .columns([
+            Column::Id,
+            Column::ChallengeId,
+            Column::TeamId,
+            Column::CreatedAt,
+            Column::Pts,
+            Column::Rank,
+        ])
+        .filter(Column::GameId.eq(game_id))
+        .filter(Expr::col(Column::Status).eq(Expr::Constant("correct".into())))
+        .order_by_asc(Column::ChallengeId)
+        .order_by_asc(Column::CreatedAt)
+        .order_by_asc(Column::Id)
+}
+
+/// Applies changed submission scores in bounded, set-based updates.
+pub async fn update_scores(
+    conn: &impl ConnectionTrait,
+    game_id: i64,
+    updates: &[ScoreUpdate],
+) -> Result<u64, DbError> {
+    let mut rows_affected = 0;
+    for statement in score_update_statements(game_id, updates) {
+        rows_affected += conn.execute(&statement).await?.rows_affected();
+    }
+    Ok(rows_affected)
+}
+
+fn score_update_statements(game_id: i64, updates: &[ScoreUpdate]) -> Vec<UpdateStatement> {
+    updates
+        .chunks(super::BULK_UPDATE_BATCH_SIZE)
+        .map(|chunk| {
+            let source = Alias::new("submission_scores");
+            let values = chunk
+                .iter()
+                .map(|update| {
+                    ValueTuple::Many(vec![
+                        game_id.into(),
+                        update.id.into(),
+                        update.pts.into(),
+                        update.rank.into(),
+                    ])
+                })
+                .collect();
+            let source_game_id = Expr::col((source.clone(), Alias::new("column1")));
+            let source_id = Expr::col((source.clone(), Alias::new("column2")));
+            let source_pts = Expr::col((source.clone(), Alias::new("column3")));
+            let source_rank = Expr::col((source.clone(), Alias::new("column4")));
+
+            Query::update()
+                .table(Entity)
+                .value(Column::Pts, source_pts.clone())
+                .value(Column::Rank, source_rank.clone())
+                .from(TableRef::ValuesList(values, source.into_iden()))
+                .cond_where(Expr::col(Column::GameId).eq(source_game_id))
+                .cond_where(Expr::col(Column::Id).eq(source_id))
+                .cond_where(
+                    Condition::any()
+                        .add(Expr::col(Column::Pts).ne(source_pts))
+                        .add(Expr::col(Column::Rank).ne(source_rank)),
+                )
+                .to_owned()
+        })
+        .collect()
 }
 
 /// Queries rows using filter options and returns `(rows, total_count)`.
@@ -281,6 +385,7 @@ pub async fn claim_queued_by_id(
 pub async fn release_processing(
     conn: &impl ConnectionTrait,
     submission_id: i64,
+    processing_at: i64,
 ) -> Result<bool, DbError> {
     let result = Entity::update_many()
         .set(ActiveModel {
@@ -291,6 +396,7 @@ pub async fn release_processing(
         })
         .filter(Column::Id.eq(submission_id))
         .filter(Column::Status.eq(Status::Processing))
+        .filter(Column::ProcessingAt.eq(processing_at))
         .exec(conn)
         .await?;
 
@@ -301,6 +407,7 @@ pub async fn release_processing(
 pub async fn finish_processing(
     conn: &impl ConnectionTrait,
     submission_id: i64,
+    processing_at: i64,
     status: Status,
 ) -> Result<Option<SubmissionView>, DbError> {
     let now = time::OffsetDateTime::now_utc().unix_timestamp();
@@ -312,6 +419,7 @@ pub async fn finish_processing(
         })
         .filter(Column::Id.eq(submission_id))
         .filter(Column::Status.eq(Status::Processing))
+        .filter(Column::ProcessingAt.eq(processing_at))
         .exec(conn)
         .await?;
 
@@ -322,9 +430,20 @@ pub async fn finish_processing(
     find_by_id(conn, submission_id).await
 }
 
-/// Returns in-flight rows to the queue during startup recovery.
-pub async fn reset_processing(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
-    Ok(Entity::update_many()
+/// Returns expired in-flight rows to the queue during startup recovery.
+pub async fn reset_stale_processing(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
+    let cutoff = time::OffsetDateTime::now_utc()
+        .unix_timestamp()
+        .saturating_sub(PROCESSING_LEASE_SECONDS);
+
+    Ok(stale_processing_reset_query(cutoff)
+        .exec(conn)
+        .await?
+        .rows_affected)
+}
+
+fn stale_processing_reset_query(cutoff: i64) -> sea_orm::UpdateMany<Entity> {
+    Entity::update_many()
         .set(ActiveModel {
             status: Set(Status::Queued),
             processing_at: Set(None),
@@ -332,9 +451,11 @@ pub async fn reset_processing(conn: &impl ConnectionTrait) -> Result<u64, DbErro
             ..Default::default()
         })
         .filter(Column::Status.eq(Status::Processing))
-        .exec(conn)
-        .await?
-        .rows_affected)
+        .filter(
+            Condition::any()
+                .add(Column::ProcessingAt.is_null())
+                .add(Column::ProcessingAt.lte(cutoff)),
+        )
 }
 
 /// Looks up correct by team ids and game id.
@@ -504,4 +625,70 @@ pub async fn delete(conn: &impl ConnectionTrait, submission_id: i64) -> Result<(
     info!(submission_id, "submission deleted");
 
     Ok(())
+}
+
+#[cfg(test)]
+mod score_tests {
+    use sea_orm::{DbBackend, QueryTrait};
+
+    use super::*;
+
+    #[test]
+    fn score_updates_are_chunked_and_built_with_bound_values() {
+        let updates = (0..super::super::BULK_UPDATE_BATCH_SIZE + 1)
+            .map(|id| ScoreUpdate {
+                id: id as i64,
+                pts: 100,
+                rank: id as i64 + 1,
+            })
+            .collect::<Vec<_>>();
+
+        let statements = score_update_statements(7, &updates);
+        assert_eq!(statements.len(), 2);
+
+        let first = DbBackend::Postgres.build(&statements[0]);
+        let second = DbBackend::Postgres.build(&statements[1]);
+        assert_eq!(
+            first.values.unwrap().0.len(),
+            super::super::BULK_UPDATE_BATCH_SIZE * 4
+        );
+        assert_eq!(second.values.unwrap().0.len(), 4);
+        assert!(first.sql.starts_with("UPDATE \"submissions\""));
+        assert!(first.sql.contains("FROM (VALUES"));
+        assert!(first.sql.contains("\"submission_scores\".\"column3\""));
+    }
+
+    #[test]
+    fn empty_score_updates_build_no_statements() {
+        assert!(score_update_statements(1, &[]).is_empty());
+    }
+
+    #[test]
+    fn score_input_query_keeps_partial_index_predicate_literal() {
+        let statement = score_input_query(7).build(DbBackend::Postgres);
+
+        assert!(statement.sql.contains("\"status\" = 'correct'"));
+        assert_eq!(statement.values.unwrap().0.len(), 1);
+    }
+
+    #[test]
+    fn stale_processing_reset_uses_the_ten_second_lease_cutoff() {
+        let statement = stale_processing_reset_query(990).build(DbBackend::Postgres);
+
+        assert!(statement.sql.starts_with("UPDATE \"submissions\""));
+        assert!(statement.sql.contains("\"status\" = $4"));
+        assert!(statement.sql.contains("\"processing_at\" IS NULL"));
+        assert!(statement.sql.contains("\"processing_at\" <= $5"));
+        assert_eq!(
+            statement.values.unwrap().0,
+            vec![
+                Status::Queued.into(),
+                Option::<i64>::None.into(),
+                Option::<i64>::None.into(),
+                Status::Processing.into(),
+                990_i64.into(),
+            ]
+        );
+        assert_eq!(PROCESSING_LEASE_SECONDS, 10);
+    }
 }

@@ -39,6 +39,7 @@ impl MigrationTrait for Migration {
                     "ended_at" BIGINT NOT NULL,
                     "icon_hash" VARCHAR,
                     "poster_hash" VARCHAR,
+                    "score_revision" BIGINT NOT NULL DEFAULT 0,
                     "created_at" BIGINT NOT NULL
                 );
             "#

@@ -76,7 +76,7 @@ pub async fn renew_instance(
         .unwrap_or_default();
 
     if !(operator.id == user_id
-        || cds_db::util::is_user_in_team(&s.db.conn, operator.id, team_id).await?)
+        || cds_db::team_user::contains_user(&s.db.conn, team_id, operator.id).await?)
     {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -160,7 +160,7 @@ pub async fn stop_instance(
         .unwrap_or_default();
 
     if !(operator.id == user_id
-        || cds_db::util::is_user_in_team(&s.db.conn, operator.id, team_id).await?)
+        || cds_db::team_user::contains_user(&s.db.conn, team_id, operator.id).await?)
     {
         return Err(WebError::Forbidden(json!("")));
     }

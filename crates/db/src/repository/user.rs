@@ -28,6 +28,33 @@ pub struct FindUserOptions {
     pub sorts: Option<String>,
 }
 
+/// Begins the canonical user query with its derived verification flag.
+fn base_find() -> sea_orm::Select<Entity> {
+    Entity::find().column_as(
+        Expr::exists(
+            Query::select()
+                .expr(Expr::val(1))
+                .from(crate::entity::email::Entity.table_name())
+                .and_where(
+                    Expr::col((
+                        crate::entity::email::Entity.table_name(),
+                        crate::entity::email::Column::UserId,
+                    ))
+                    .eq(Expr::col((Entity.table_name(), Column::Id))),
+                )
+                .and_where(
+                    Expr::col((
+                        crate::entity::email::Entity.table_name(),
+                        crate::entity::email::Column::Verified,
+                    ))
+                    .eq(true),
+                )
+                .to_owned(),
+        ),
+        "verified",
+    )
+}
+
 /// Queries rows using filter options and returns `(rows, total_count)`.
 pub async fn find<T>(
     conn: &impl ConnectionTrait,
@@ -42,7 +69,7 @@ pub async fn find<T>(
 ) -> Result<(Vec<T>, u64), DbError>
 where
     T: FromQueryResult, {
-    let mut sql = Entity::base_find();
+    let mut sql = base_find();
 
     if let Some(id) = id {
         sql = sql.filter(Column::Id.eq(id));
@@ -97,7 +124,7 @@ pub async fn find_by_id<T>(
 ) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
-    Ok(Entity::base_find()
+    Ok(base_find()
         .filter(Column::Id.eq(user_id))
         .filter(Column::DeletedAt.is_null())
         .into_model::<T>()
@@ -113,7 +140,7 @@ pub async fn find_by_account<T>(
 ) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult + Debug, {
-    Ok(Entity::base_find()
+    Ok(base_find()
         .filter(
             Condition::any()
                 .add(
@@ -161,7 +188,7 @@ pub async fn find_by_email<T>(
 ) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
-    Ok(Entity::base_find()
+    Ok(base_find()
         .filter(Expr::exists(
             Query::select()
                 .expr(Expr::val(1))
@@ -203,7 +230,7 @@ pub async fn is_username_unique(
     user_id: i64,
     username: &str,
 ) -> Result<bool, DbError> {
-    let user = Entity::base_find()
+    let user = base_find()
         .filter(Expr::expr(Func::lower(Expr::col(Column::Username))).eq(username.to_lowercase()))
         .one(conn)
         .await?;
@@ -299,4 +326,20 @@ pub async fn delete(conn: &impl ConnectionTrait, user_id: i64) -> Result<(), DbE
     );
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use sea_orm::{DbBackend, QueryTrait};
+
+    use super::*;
+
+    #[test]
+    fn base_find_projects_verified_inside_the_repository() {
+        let statement = base_find().build(DbBackend::Postgres);
+
+        assert!(statement.sql.contains("EXISTS(SELECT $1"));
+        assert!(statement.sql.contains("FROM \"emails\""));
+        assert!(statement.sql.contains("AS \"verified\""));
+    }
 }

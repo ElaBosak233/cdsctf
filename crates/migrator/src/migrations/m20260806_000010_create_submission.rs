@@ -59,6 +59,17 @@ impl MigrationTrait for Migration {
         ))
         .await?;
 
+        db.execute_raw(Statement::from_string(
+            manager.get_database_backend(),
+            r#"
+                CREATE INDEX IF NOT EXISTS idx_submissions_scoring
+                ON "submissions" ("game_id", "challenge_id", "created_at", "id")
+                WHERE "status" = 'correct';
+            "#
+            .to_owned(),
+        ))
+        .await?;
+
         Ok(())
     }
 
