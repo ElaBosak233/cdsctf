@@ -4,6 +4,15 @@ result_count: "{{count}} games"
 filter:
   all: ALL
   pts: pts
+list:
+  columns:
+    game: Game
+    status: Status
+    schedule: Schedule
+  visibility:
+    public: Public
+    private: Private
+  freeze_at: "Freeze {{time}}"
 id: ID
 edit:
   _: Edit Game

@@ -4,6 +4,15 @@ result_count: "{{count}} 场比赛"
 filter:
   all: ALL
   pts: 分
+list:
+  columns:
+    game: 比赛
+    status: 状态
+    schedule: 赛程
+  visibility:
+    public: 公开
+    private: 非公开
+  freeze_at: "冻结 {{time}}"
 edit:
   _: 编辑比赛
   info: 基本信息

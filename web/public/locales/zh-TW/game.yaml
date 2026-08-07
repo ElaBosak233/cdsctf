@@ -4,6 +4,15 @@ result_count: "{{count}} 場比賽"
 filter:
   all: 全部
   pts: 分
+list:
+  columns:
+    game: 比賽
+    status: 狀態
+    schedule: 賽程
+  visibility:
+    public: 公開
+    private: 非公開
+  freeze_at: "凍結 {{time}}"
 edit:
   _: 編輯比賽
   info: 基本資訊

@@ -4,6 +4,15 @@ result_count: '{{count}} 件の大会'
 filter:
   all: すべて
   pts: 点
+list:
+  columns:
+    game: 大会
+    status: 状態
+    schedule: 日程
+  visibility:
+    public: 公開
+    private: 非公開
+  freeze_at: "凍結 {{time}}"
 id: ID
 edit:
   _: 大会を編集

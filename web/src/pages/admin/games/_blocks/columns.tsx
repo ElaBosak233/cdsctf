@@ -1,18 +1,22 @@
 import type { Column, ColumnDef, Row } from "@tanstack/react-table";
 import {
   ArrowDownIcon,
+  ArrowRightIcon,
   ArrowUpDownIcon,
   ArrowUpIcon,
-  CheckIcon,
   ClipboardCheckIcon,
   ClipboardCopyIcon,
+  ClockFadingIcon,
   EditIcon,
   EllipsisIcon,
   EyeClosedIcon,
   EyeIcon,
+  FlagIcon,
+  Globe2Icon,
   LockIcon,
+  LockKeyholeIcon,
+  MoonIcon,
   TrashIcon,
-  XIcon,
 } from "lucide-react";
 import {
   createContext,
@@ -38,6 +42,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Image } from "@/components/ui/image";
 import {
   Tooltip,
   TooltipContent,
@@ -57,7 +62,13 @@ function useRowContext() {
   return useContext(RowContext);
 }
 
-function RowProvider({ game, children }: { game: GameDetail; children: ReactNode }) {
+function RowProvider({
+  game,
+  children,
+}: {
+  game: GameDetail;
+  children: ReactNode;
+}) {
   const { t } = useTranslation();
   const [isEnabled, setIsEnabled] = useState(game.enabled ?? false);
   const [, startTransition] = useTransition();
@@ -87,41 +98,199 @@ function RowProvider({ game, children }: { game: GameDetail; children: ReactNode
   );
 }
 
-function IdCell({ row }: { row: Row<GameDetail> }) {
+type GameStatus =
+  | "disabled"
+  | "paused"
+  | "upcoming"
+  | "ongoing"
+  | "frozen"
+  | "ended";
+
+function getGameStatus(game: GameDetail): GameStatus {
+  const now = Date.now() / 1000;
+
+  if (!game.enabled) return "disabled";
+  if (now > game.ended_at) return "ended";
+  if (game.paused) return "paused";
+  if (now < game.started_at) return "upcoming";
+  if (now > game.frozen_at) return "frozen";
+  return "ongoing";
+}
+
+const statusClasses: Record<GameStatus, string[]> = {
+  disabled: ["border-transparent", "bg-muted", "text-muted-foreground"],
+  paused: ["border-warning/20", "bg-warning/10", "text-warning"],
+  upcoming: ["border-info/20", "bg-info/10", "text-info"],
+  ongoing: ["border-success/20", "bg-success/10", "text-success"],
+  frozen: ["border-warning/20", "bg-warning/10", "text-warning"],
+  ended: ["border-transparent", "bg-muted", "text-muted-foreground"],
+};
+
+function GameCell({ row }: { row: Row<GameDetail> }) {
   const id = row.original.id;
   const { t } = useTranslation();
   const { isCopied, copyToClipboard } = useClipboard();
+
   return (
-    <div className={cn(["flex", "items-center", "gap-2"])}>
-      <Badge className={cn(["font-mono"])}># {id}</Badge>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
-            square
-            size={"sm"}
-            onClick={() => copyToClipboard(`${id}`)}
-          />
-        </TooltipTrigger>
-        <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
-      </Tooltip>
+    <div className={cn(["flex", "min-w-0", "items-center", "gap-3"])}>
+      {row.original.icon_hash ? (
+        <Image
+          src={`/api/media?hash=${row.original.icon_hash}`}
+          alt=""
+          delay={0}
+          glass={false}
+          fallback={<FlagIcon className="size-4" />}
+          className={cn(["size-9", "shrink-0", "rounded-md", "bg-muted"])}
+        />
+      ) : (
+        <div
+          className={cn([
+            "flex",
+            "size-9",
+            "shrink-0",
+            "items-center",
+            "justify-center",
+            "rounded-md",
+            "bg-muted",
+            "text-muted-foreground",
+          ])}
+        >
+          <FlagIcon className="size-4" />
+        </div>
+      )}
+      <div className={cn(["min-w-0", "flex-1"])}>
+        <Link
+          to={`/admin/games/${id}`}
+          className={cn([
+            "block",
+            "truncate",
+            "text-sm",
+            "font-semibold",
+            "hover:underline",
+            "underline-offset-4",
+          ])}
+        >
+          {row.original.title || "-"}
+        </Link>
+        <div
+          className={cn([
+            "mt-0.5",
+            "flex",
+            "min-w-0",
+            "items-center",
+            "gap-1.5",
+            "text-xs",
+            "text-muted-foreground",
+          ])}
+        >
+          <span className={cn(["shrink-0", "font-mono"])}>#{id}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
+                square
+                size="sm"
+                variant="ghost"
+                className={cn(["size-6", "shrink-0", "text-muted-foreground"])}
+                aria-label={t("common:tooltip.copy")}
+                onClick={() => copyToClipboard(`${id}`)}
+              />
+            </TooltipTrigger>
+            <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
+          </Tooltip>
+          {row.original.sketch && (
+            <>
+              <span className={cn(["shrink-0"])}>·</span>
+              <span className={cn(["truncate"])}>{row.original.sketch}</span>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-function TitleCell({ row }: { row: Row<GameDetail> }) {
-  const ctx = useRowContext();
-  const isEnabled = ctx
-    ? ctx.optimisticEnabled
-    : (row.original.enabled ?? false);
+function StatusCell({ row }: { row: Row<GameDetail> }) {
+  const { t } = useTranslation();
+  const { optimisticEnabled } = useRowContext()!;
+  const status = getGameStatus({
+    ...row.original,
+    enabled: optimisticEnabled,
+  });
+  const statusLabel =
+    status === "disabled"
+      ? t("game:enabled.false")
+      : status === "paused"
+        ? t("game:form.paused.true")
+        : t(`game:status.${status}._`);
+
   return (
-    <div className={cn(["flex", "gap-2", "items-center"])}>
-      {!isEnabled && (
-        <LockIcon className={cn(["size-[1em]", "text-warning"])} />
+    <div className={cn(["flex", "flex-wrap", "items-center", "gap-1.5"])}>
+      <Badge variant="outline" className={cn(statusClasses[status])}>
+        {status === "disabled" && <LockIcon />}
+        {statusLabel}
+      </Badge>
+      <Badge variant="outline" className={cn(["text-muted-foreground"])}>
+        {row.original.public ? <Globe2Icon /> : <LockKeyholeIcon />}
+        {t(
+          row.original.public
+            ? "game:list.visibility.public"
+            : "game:list.visibility.private"
+        )}
+      </Badge>
+      {row.original.blacked_out && (
+        <Badge
+          variant="outline"
+          className={cn(["border-info/20", "bg-info/10", "text-info"])}
+        >
+          <MoonIcon />
+          {t("game:form.blacked_out.true")}
+        </Badge>
       )}
-      <span className={cn(["w-64", "truncate"])}>
-        {row.original.title || "-"}
-      </span>
+    </div>
+  );
+}
+
+function ScheduleCell({
+  row,
+  formatter,
+}: {
+  row: Row<GameDetail>;
+  formatter: Intl.DateTimeFormat;
+}) {
+  const { t } = useTranslation();
+  const format = (timestamp: number) =>
+    formatter.format(new Date(timestamp * 1000));
+
+  return (
+    <div className={cn(["flex", "min-w-0", "flex-col", "gap-1"])}>
+      <div
+        className={cn([
+          "flex",
+          "items-center",
+          "gap-1.5",
+          "whitespace-nowrap",
+          "text-sm",
+        ])}
+      >
+        <span>{format(row.original.started_at)}</span>
+        <ArrowRightIcon className="size-3.5 shrink-0 text-muted-foreground" />
+        <span>{format(row.original.ended_at)}</span>
+      </div>
+      <div
+        className={cn([
+          "flex",
+          "items-center",
+          "gap-1.5",
+          "text-xs",
+          "text-muted-foreground",
+        ])}
+      >
+        <ClockFadingIcon className="size-3.5" />
+        {t("game:list.freeze_at", {
+          time: format(row.original.frozen_at),
+        })}
+      </div>
     </div>
   );
 }
@@ -153,9 +322,21 @@ function ActionsCell({ row }: { row: Row<GameDetail> }) {
 
   return (
     <div className={cn(["flex", "items-center", "justify-center", "gap-2"])}>
-      <Button variant={"ghost"} size={"sm"} square icon={<EditIcon />} asChild>
-        <Link to={`/admin/games/${id}`} />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            square
+            icon={<EditIcon />}
+            aria-label={t("game:actions.update._")}
+            asChild
+          >
+            <Link to={`/admin/games/${id}`} />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{t("game:actions.update._")}</TooltipContent>
+      </Tooltip>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -164,6 +345,7 @@ function ActionsCell({ row }: { row: Row<GameDetail> }) {
             size={"sm"}
             variant={"ghost"}
             icon={<EllipsisIcon />}
+            aria-label={t("game:actions._")}
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
@@ -239,7 +421,7 @@ function ActionsCell({ row }: { row: Row<GameDetail> }) {
   );
 }
 
-function StartedAtHeader({ column }: { column: Column<GameDetail> }) {
+function ScheduleHeader({ column }: { column: Column<GameDetail> }) {
   const { t } = useTranslation();
 
   const sort = column.getIsSorted();
@@ -256,112 +438,50 @@ function StartedAtHeader({ column }: { column: Column<GameDetail> }) {
   }, [sort]);
 
   return (
-    <div className={cn(["flex", "gap-1", "items-center"])}>
-      {t("game:started_at")}
-      <Button
-        icon={icon}
-        square
-        size={"sm"}
-        onClick={() => column.toggleSorting()}
-      />
-    </div>
-  );
-}
-
-function EndedAtHeader({ column }: { column: Column<GameDetail> }) {
-  const { t } = useTranslation();
-
-  const sort = column.getIsSorted();
-
-  const icon = useMemo(() => {
-    switch (sort) {
-      case "asc":
-        return <ArrowUpIcon />;
-      case "desc":
-        return <ArrowDownIcon />;
-      default:
-        return <ArrowUpDownIcon />;
-    }
-  }, [sort]);
-
-  return (
-    <div className={cn(["flex", "gap-1", "items-center"])}>
-      {t("game:ended_at")}
-      <Button
-        icon={icon}
-        square
-        size={"sm"}
-        onClick={() => column.toggleSorting()}
-      />
-    </div>
+    <Button
+      icon={icon}
+      variant="ghost"
+      size="sm"
+      className={cn(["-ml-3", "px-3", "text-muted-foreground"])}
+      onClick={() => column.toggleSorting()}
+    >
+      {t("game:list.columns.schedule")}
+    </Button>
   );
 }
 
 function useColumns() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage ?? i18n.language;
+  const formatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(language, {
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    [language]
+  );
 
   const columns: Array<ColumnDef<GameDetail>> = useMemo(() => {
     return [
       {
-        accessorKey: "id",
-        id: "id",
-        header: t("game:id"),
-        cell: IdCell,
+        id: "game",
+        accessorFn: (game) => game.title,
+        header: () => t("game:list.columns.game"),
+        cell: GameCell,
       },
       {
-        accessorKey: "title",
-        id: "title",
-        header: () => t("game:title"),
-        cell: TitleCell,
-      },
-      {
-        accessorKey: "public",
-        id: "public",
-        header: () => t("game:public"),
-        cell: ({ row }) => {
-          const isPublic = row.original.public;
-
-          return (
-            <Badge
-              className={cn([
-                isPublic
-                  ? ["bg-info", "text-info-foreground"]
-                  : ["bg-success", "text-success-foreground"],
-              ])}
-            >
-              {isPublic ? <CheckIcon /> : <XIcon />}
-            </Badge>
-          );
-        },
-      },
-      {
-        accessorKey: "sketch",
-        header: () => t("game:sketch"),
-        cell: ({ row }) => (
-          <div className={cn(["w-96", "line-clamp-2"])}>
-            {row.original.sketch}
-          </div>
-        ),
+        id: "status",
+        header: () => t("game:list.columns.status"),
+        cell: StatusCell,
       },
       {
         accessorKey: "started_at",
         id: "started_at",
-        header: StartedAtHeader,
-        cell: ({ row }) => (
-          <span className={cn(["text-sm", "text-secondary-foreground"])}>
-            {new Date(Number(row.original.started_at) * 1000).toLocaleString()}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "ended_at",
-        id: "ended_at",
-        header: EndedAtHeader,
-        cell: ({ row }) => (
-          <span className={cn(["text-sm", "text-secondary-foreground"])}>
-            {new Date(Number(row.original.ended_at) * 1000).toLocaleString()}
-          </span>
-        ),
+        header: ScheduleHeader,
+        cell: ({ row }) => <ScheduleCell row={row} formatter={formatter} />,
       },
       {
         id: "actions",
@@ -373,7 +493,7 @@ function useColumns() {
         cell: ActionsCell,
       },
     ];
-  }, [t]);
+  }, [formatter, t]);
 
   return columns;
 }
