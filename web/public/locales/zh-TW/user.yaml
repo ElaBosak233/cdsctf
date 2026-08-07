@@ -1,5 +1,14 @@
 _: 使用者
 empty: 目前尚無使用者。
+result_count: "{{count}} 位使用者"
+list:
+  columns:
+    user: 使用者
+    status: 帳號狀態
+    created_at: 註冊時間
+  verified:
+    "true": 已驗證
+    "false": 未驗證
 edit:
   _: 編輯使用者
   info: 基本資訊

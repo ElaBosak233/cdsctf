@@ -1,25 +1,27 @@
 import type { Column, ColumnDef, Row } from "@tanstack/react-table";
 import {
-  AlertCircleIcon,
   ArrowDownIcon,
   ArrowUpDownIcon,
   ArrowUpIcon,
-  CircleCheckIcon,
-  ClipboardCheckIcon,
-  ClipboardCopyIcon,
   EditIcon,
   EllipsisIcon,
-  ShieldIcon,
+  Globe2Icon,
   TrashIcon,
-  UserRoundCheckIcon,
-  UserRoundIcon,
-  UserRoundXIcon,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useOptimistic,
+  useState,
+  useTransition,
+} from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
-import { deleteUser } from "@/api/admin/users/user_id";
+import { deleteAdminIdp, updateAdminIdp } from "@/api/admin/idps";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,30 +33,78 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useClipboard } from "@/hooks/use-clipboard";
-import { Group, type UserAccountView } from "@/models/user";
+import type { IdpView } from "@/models/idp";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 
-function UserCell({ row }: { row: Row<UserAccountView> }) {
-  const user = row.original;
+const RowContext = createContext<{
+  optimisticEnabled: boolean;
+  toggleEnabled: () => void;
+} | null>(null);
+
+function useRowContext() {
+  return useContext(RowContext);
+}
+
+function RowProvider({ idp, children }: { idp: IdpView; children: ReactNode }) {
   const { t } = useTranslation();
-  const { isCopied, copyToClipboard } = useClipboard();
+  const [enabled, setEnabled] = useState(idp.enabled);
+  const [, startTransition] = useTransition();
+  const [optimisticEnabled, setOptimisticEnabled] = useOptimistic(enabled);
+
+  const toggleEnabled = useCallback(() => {
+    const newValue = !optimisticEnabled;
+    startTransition(async () => {
+      setOptimisticEnabled(newValue);
+      await updateAdminIdp(idp.id, {
+        name: idp.name,
+        enabled: newValue,
+        portal: idp.portal,
+        script: idp.script,
+      });
+      setEnabled(newValue);
+      toast.success(
+        newValue
+          ? t("admin:idp.actions.enable.success", { name: idp.name })
+          : t("admin:idp.actions.disable.success", { name: idp.name })
+      );
+    });
+  }, [
+    idp.id,
+    idp.name,
+    idp.portal,
+    idp.script,
+    optimisticEnabled,
+    setOptimisticEnabled,
+    t,
+  ]);
+
+  return (
+    <RowContext.Provider value={{ optimisticEnabled, toggleEnabled }}>
+      {children}
+    </RowContext.Provider>
+  );
+}
+
+function IdpCell({ row }: { row: Row<IdpView> }) {
+  const idp = row.original;
 
   return (
     <div className={cn(["flex", "min-w-0", "items-center", "gap-3"])}>
       <Avatar
-        src={user.avatar_hash && `/api/media?hash=${user.avatar_hash}`}
-        fallback={user.username?.charAt(0)}
-        className="size-9 shrink-0"
+        square
+        className={cn(["size-9", "shrink-0", "border", "bg-transparent"])}
+        src={idp.avatar_hash && `/api/media?hash=${idp.avatar_hash}`}
+        fallback={idp.name?.charAt(0)}
       />
       <div className={cn(["min-w-0", "flex-1"])}>
-        <div className="truncate text-sm font-semibold">{user.username}</div>
+        <div className="truncate text-sm font-semibold">{idp.name}</div>
         <div
           className={cn([
             "mt-0.5",
@@ -66,87 +116,46 @@ function UserCell({ row }: { row: Row<UserAccountView> }) {
             "text-muted-foreground",
           ])}
         >
-          <span className="shrink-0 font-mono">#{user.id}</span>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
-                square
-                size="sm"
-                variant="ghost"
-                className={cn(["size-6", "shrink-0", "text-muted-foreground"])}
-                aria-label={t("common:tooltip.copy")}
-                onClick={() => copyToClipboard(String(user.id))}
-              />
-            </TooltipTrigger>
-            <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
-          </Tooltip>
-          {user.name && (
-            <>
-              <span className="shrink-0">·</span>
-              <span className="truncate">{user.name}</span>
-            </>
-          )}
+          <span className="shrink-0 font-mono">#{idp.id}</span>
+          <span className="shrink-0">·</span>
+          <span className="truncate">{idp.portal || "-"}</span>
         </div>
       </div>
     </div>
   );
 }
 
-function AccountStatusCell({ row }: { row: Row<UserAccountView> }) {
+function StatusCell() {
   const { t } = useTranslation();
-  const groupConfig = {
-    [Group.Guest]: {
-      name: t("user:group.guest"),
-      icon: UserRoundIcon,
-      className: "text-muted-foreground",
-    },
-    [Group.Banned]: {
-      name: t("user:group.banned"),
-      icon: UserRoundXIcon,
-      className: "border-error/20 bg-error/10 text-error",
-    },
-    [Group.User]: {
-      name: t("user:group.user"),
-      icon: UserRoundCheckIcon,
-      className: "border-success/20 bg-success/10 text-success",
-    },
-    [Group.Admin]: {
-      name: t("user:group.admin"),
-      icon: ShieldIcon,
-      className: "border-info/20 bg-info/10 text-info",
-    },
-  };
-  const config =
-    groupConfig[row.original.group as Group] ?? groupConfig[Group.Guest];
-  const Icon = config.icon;
+  const { optimisticEnabled, toggleEnabled } = useRowContext()!;
 
   return (
-    <div className={cn(["flex", "flex-wrap", "items-center", "gap-1.5"])}>
-      <Badge variant="outline" className={config.className}>
-        <Icon />
-        {config.name}
-      </Badge>
+    <div className={cn(["flex", "items-center", "gap-2"])}>
       <Badge
         variant="outline"
         className={cn(
-          row.original.verified
+          optimisticEnabled
             ? ["border-success/20", "bg-success/10", "text-success"]
-            : ["text-warning"]
+            : ["text-muted-foreground"]
         )}
       >
-        {row.original.verified ? <CircleCheckIcon /> : <AlertCircleIcon />}
+        <Globe2Icon />
         {t(
-          row.original.verified
-            ? "user:list.verified.true"
-            : "user:list.verified.false"
+          optimisticEnabled
+            ? "admin:idp.enabled.true"
+            : "admin:idp.enabled.false"
         )}
       </Badge>
+      <Switch
+        checked={optimisticEnabled}
+        onCheckedChange={toggleEnabled}
+        aria-label={t("admin:idp.form.enabled._")}
+      />
     </div>
   );
 }
 
-function CreatedAtHeader({ column }: { column: Column<UserAccountView> }) {
+function UpdatedAtHeader({ column }: { column: Column<IdpView> }) {
   const { t } = useTranslation();
   const sort = column.getIsSorted();
   const icon = useMemo(() => {
@@ -168,35 +177,34 @@ function CreatedAtHeader({ column }: { column: Column<UserAccountView> }) {
       className={cn(["-ml-3", "px-3", "text-muted-foreground"])}
       onClick={() => column.toggleSorting()}
     >
-      {t("user:list.columns.created_at")}
+      {t("admin:idp.list.columns.updated_at")}
     </Button>
   );
 }
 
-function CreatedAtCell({
+function UpdatedAtCell({
   row,
   formatter,
 }: {
-  row: Row<UserAccountView>;
+  row: Row<IdpView>;
   formatter: Intl.DateTimeFormat;
 }) {
   return (
     <span className="whitespace-nowrap text-sm text-secondary-foreground">
-      {formatter.format(new Date(row.original.created_at * 1000))}
+      {formatter.format(new Date(row.original.updated_at * 1000))}
     </span>
   );
 }
 
-function ActionsCell({ row }: { row: Row<UserAccountView> }) {
+function ActionsCell({ row }: { row: Row<IdpView> }) {
   const { t } = useTranslation();
-  const id = row.original.id;
-  const username = row.original.username;
+  const idp = row.original;
   const sharedStore = useSharedStore();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   async function handleDelete() {
-    await deleteUser({ id: id! });
-    toast.success(t("user:actions.delete.success", { username }));
+    await deleteAdminIdp(idp.id);
+    toast.success(t("admin:idp.actions.delete.success", { name: idp.name }));
     setDeleteDialogOpen(false);
     sharedStore?.setRefresh();
   }
@@ -210,13 +218,13 @@ function ActionsCell({ row }: { row: Row<UserAccountView> }) {
             size="sm"
             square
             icon={<EditIcon />}
-            aria-label={t("user:actions.update._")}
+            aria-label={t("admin:idp.actions.update._")}
             asChild
           >
-            <Link to={`/admin/users/${id}`} />
+            <Link to={`/admin/idps/${idp.id}`} />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>{t("user:actions.update._")}</TooltipContent>
+        <TooltipContent>{t("admin:idp.actions.update._")}</TooltipContent>
       </Tooltip>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -225,17 +233,16 @@ function ActionsCell({ row }: { row: Row<UserAccountView> }) {
             size="sm"
             variant="ghost"
             icon={<EllipsisIcon />}
-            aria-label={t("user:actions._")}
+            aria-label={t("admin:idp.actions._")}
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem
             onClick={() => setDeleteDialogOpen(true)}
             className="text-error"
-            disabled={row.original.group === Group.Admin}
           >
             <TrashIcon />
-            {t("user:actions.delete._")}
+            {t("admin:idp.actions.delete._")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -269,13 +276,13 @@ function ActionsCell({ row }: { row: Row<UserAccountView> }) {
                   <TrashIcon className="size-5" />
                 </div>
                 <h3 className="text-base font-semibold">
-                  {t("user:actions.delete._")}
+                  {t("admin:idp.actions.delete._")}
                 </h3>
               </div>
               <p className="text-sm">
                 <Trans
-                  i18nKey="user:actions.delete.message"
-                  values={{ username }}
+                  i18nKey="admin:idp.actions.delete.message"
+                  values={{ name: idp.name }}
                   components={{
                     muted: <span className="text-muted-foreground" />,
                   }}
@@ -314,29 +321,29 @@ function useColumns() {
     [language]
   );
 
-  return useMemo<Array<ColumnDef<UserAccountView>>>(
+  return useMemo<Array<ColumnDef<IdpView>>>(
     () => [
       {
-        id: "user",
-        accessorFn: (user) => user.username,
-        header: () => t("user:list.columns.user"),
-        cell: UserCell,
+        id: "idp",
+        accessorFn: (idp) => idp.name,
+        header: () => t("admin:idp.list.columns.idp"),
+        cell: IdpCell,
       },
       {
         id: "status",
-        header: () => t("user:list.columns.status"),
-        cell: AccountStatusCell,
+        header: () => t("admin:idp.list.columns.status"),
+        cell: StatusCell,
       },
       {
-        accessorKey: "created_at",
-        id: "created_at",
-        header: CreatedAtHeader,
-        cell: ({ row }) => <CreatedAtCell row={row} formatter={formatter} />,
+        accessorKey: "updated_at",
+        id: "updated_at",
+        header: UpdatedAtHeader,
+        cell: ({ row }) => <UpdatedAtCell row={row} formatter={formatter} />,
       },
       {
         id: "actions",
         header: () => (
-          <div className="justify-self-center">{t("user:actions._")}</div>
+          <div className="justify-self-center">{t("admin:idp.actions._")}</div>
         ),
         cell: ActionsCell,
       },
@@ -345,4 +352,4 @@ function useColumns() {
   );
 }
 
-export { useColumns };
+export { RowProvider, useColumns };

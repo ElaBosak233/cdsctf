@@ -1,5 +1,14 @@
 _: ユーザー
 empty: ユーザーはまだいません。
+result_count: '{{count}} 人のユーザー'
+list:
+  columns:
+    user: ユーザー
+    status: アカウント状態
+    created_at: 登録日時
+  verified:
+    'true': 認証済み
+    'false': 未認証
 edit:
   _: ユーザーを編集
   info: 情報

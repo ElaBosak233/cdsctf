@@ -116,6 +116,12 @@ captcha:
 idp:
   _: IdP
   empty: No IdP configured
+  result_count: "{{count}} IdPs"
+  list:
+    columns:
+      idp: Identity Provider
+      status: Status
+      updated_at: Updated
   enabled:
     "true": Enabled
     "false": Disabled
@@ -145,10 +151,12 @@ idp:
         oauth: OAuth 2.0
         cas: CAS
   actions:
+    _: Actions
     create:
       _: Create IdP
       success: "{{name}} created successfully."
     update:
+      _: Edit IdP
       success: "{{name}} updated successfully."
     enable:
       success: "{{name}} enabled."

@@ -1,5 +1,14 @@
 _: User
 empty: But nobody came.
+result_count: "{{count}} users"
+list:
+  columns:
+    user: User
+    status: Account Status
+    created_at: Registered
+  verified:
+    "true": Verified
+    "false": Unverified
 edit:
   _: Edit User
   info: Info

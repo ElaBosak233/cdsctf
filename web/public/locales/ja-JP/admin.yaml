@@ -116,6 +116,12 @@ captcha:
 idp:
   _: ID プロバイダー
   empty: ID プロバイダーが設定されていません。
+  result_count: '{{count}} 件の ID プロバイダー'
+  list:
+    columns:
+      idp: ID プロバイダー
+      status: 状態
+      updated_at: 更新日時
   enabled:
     'true': 有効
     'false': 無効
@@ -145,10 +151,12 @@ idp:
         oauth: OAuth 2.0
         cas: CAS
   actions:
+    _: 操作
     create:
       _: ID プロバイダーを作成
       success: '{{name}} を作成しました。'
     update:
+      _: ID プロバイダーを編集
       success: '{{name}} を更新しました。'
     enable:
       success: '{{name}} を有効にしました。'

@@ -116,6 +116,12 @@ captcha:
 idp:
   _: 第三方身分驗證
   empty: 尚未設定第三方身分驗證服務
+  result_count: "{{count}} 個第三方身分驗證"
+  list:
+    columns:
+      idp: 身分驗證
+      status: 狀態
+      updated_at: 更新時間
   enabled:
     "true": 已啟用
     "false": 已停用
@@ -145,10 +151,12 @@ idp:
         oauth: OAuth 2.0
         cas: CAS
   actions:
+    _: 操作
     create:
       _: 建立第三方身分驗證服務
       success: "{{name}} 建立成功。"
     update:
+      _: 編輯第三方身分驗證
       success: "{{name}} 更新成功。"
     enable:
       success: "{{name}} 已啟用。"

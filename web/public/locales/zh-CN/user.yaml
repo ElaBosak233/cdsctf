@@ -1,5 +1,14 @@
 _: 用户
 empty: 但是谁也没有来。
+result_count: "{{count}} 个用户"
+list:
+  columns:
+    user: 用户
+    status: 账号状态
+    created_at: 注册时间
+  verified:
+    "true": 已验证
+    "false": 未验证
 edit:
   _: 编辑用户
   info: 基本信息

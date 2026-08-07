@@ -6,12 +6,14 @@ import {
   TypeIcon,
   UserRoundIcon,
 } from "lucide-react";
+import { parseAsInteger, useQueryState } from "nuqs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";
+import { ScrollableNav } from "@/components/ui/scrollable-nav";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { Group } from "@/models/user";
@@ -27,6 +29,83 @@ function setFilter(
   return value === undefined || value === "" ? rest : [...rest, { id, value }];
 }
 
+type FilterFieldsProps = {
+  columnFilters: ColumnFiltersState;
+  compact?: boolean;
+  setColumnFilters: (
+    updater:
+      | ColumnFiltersState
+      | ((prev: ColumnFiltersState) => ColumnFiltersState)
+  ) => void;
+};
+
+function FilterFields({
+  columnFilters,
+  compact = false,
+  setColumnFilters,
+}: FilterFieldsProps) {
+  const { t } = useTranslation();
+  const idValue =
+    (columnFilters.find((filter) => filter.id === "id")?.value as string) ?? "";
+  const usernameValue =
+    (columnFilters.find((filter) => filter.id === "username")
+      ?.value as string) ?? "";
+  const groupValue =
+    (columnFilters.find((filter) => filter.id === "group")?.value as string) ??
+    "all";
+  const groupSelectOptions = [
+    { value: "all", content: t("common:all") },
+    { value: Group.Banned.toString(), content: t("user:group.banned") },
+    { value: Group.User.toString(), content: t("user:group.user") },
+    { value: Group.Admin.toString(), content: t("user:group.admin") },
+  ];
+
+  return (
+    <>
+      <Field size="sm" className={cn(compact && ["w-28", "shrink-0"])}>
+        <FieldIcon>
+          <HashIcon className="size-4" />
+        </FieldIcon>
+        <TextField
+          placeholder={t("user:id")}
+          value={idValue}
+          onChange={(event) =>
+            setColumnFilters((current) =>
+              setFilter(current, "id", event.target.value || undefined)
+            )
+          }
+        />
+      </Field>
+      <Field size="sm" className={cn(compact && ["w-56", "shrink-0"])}>
+        <FieldIcon>
+          <TypeIcon className="size-4" />
+        </FieldIcon>
+        <TextField
+          placeholder={t("user:search.username")}
+          value={usernameValue}
+          onChange={(event) =>
+            setColumnFilters((current) =>
+              setFilter(current, "username", event.target.value || undefined)
+            )
+          }
+        />
+      </Field>
+      <Field size="sm" className={cn(compact && ["w-36", "shrink-0"])}>
+        <FieldIcon>
+          <UserRoundIcon className="size-4" />
+        </FieldIcon>
+        <Select
+          options={groupSelectOptions}
+          onValueChange={(value) =>
+            setColumnFilters((current) => setFilter(current, "group", value))
+          }
+          value={groupValue}
+        />
+      </Field>
+    </>
+  );
+}
+
 export default function Layout() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
@@ -37,34 +116,22 @@ export default function Layout() {
   const [columnFilters, setColumnFiltersState] = useState<ColumnFiltersState>([
     { id: "group", value: "all" },
   ]);
+  const [, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
 
   const setColumnFilters = (
     updater:
       | ColumnFiltersState
       | ((prev: ColumnFiltersState) => ColumnFiltersState)
   ) => {
-    setColumnFiltersState(
-      typeof updater === "function" ? updater(columnFilters) : updater
+    setColumnFiltersState((current) =>
+      typeof updater === "function" ? updater(current) : updater
     );
+    void setPage(1);
   };
 
   if (!isListPage) {
     return <Outlet />;
   }
-
-  const idValue =
-    (columnFilters.find((c) => c.id === "id")?.value as string) ?? "";
-  const usernameValue =
-    (columnFilters.find((c) => c.id === "username")?.value as string) ?? "";
-  const groupValue =
-    (columnFilters.find((c) => c.id === "group")?.value as string) ?? "all";
-
-  const groupSelectOptions = [
-    { value: "all", content: t("common:all") },
-    { value: Group.Banned.toString(), content: t("user:group.banned") },
-    { value: Group.User.toString(), content: t("user:group.user") },
-    { value: Group.Admin.toString(), content: t("user:group.admin") },
-  ];
 
   return (
     <UserListContext.Provider
@@ -83,9 +150,29 @@ export default function Layout() {
           "xl:min-h-(--app-content-height)",
           "flex-1",
           "min-h-0",
+          "min-w-0",
           "xl:pl-64",
         ])}
       >
+        <ScrollableNav className={cn(["xl:hidden"])}>
+          <Button
+            icon={<PlusCircleIcon className="size-4" />}
+            variant="solid"
+            size="sm"
+            className="shrink-0"
+            onClick={() => setCreateDialogOpen(true)}
+          >
+            {t("common:actions.add")}
+          </Button>
+          <div
+            className={cn(["mx-1", "h-6", "w-px", "shrink-0", "bg-border"])}
+          />
+          <FilterFields
+            compact
+            columnFilters={columnFilters}
+            setColumnFilters={setColumnFilters}
+          />
+        </ScrollableNav>
         <aside
           className={cn([
             "hidden",
@@ -143,51 +230,14 @@ export default function Layout() {
               <FilterIcon className="size-3.5" />
               {t("common:filter")}
             </div>
-            <Field size="sm">
-              <FieldIcon>
-                <HashIcon className="size-4" />
-              </FieldIcon>
-              <TextField
-                placeholder={t("user:id")}
-                value={idValue}
-                onChange={(e) =>
-                  setColumnFilters((prev) =>
-                    setFilter(prev, "id", e.target.value || undefined)
-                  )
-                }
-              />
-            </Field>
-            <Field size="sm">
-              <FieldIcon>
-                <TypeIcon className="size-4" />
-              </FieldIcon>
-              <TextField
-                placeholder={t("user:search.username")}
-                value={usernameValue}
-                onChange={(e) =>
-                  setColumnFilters((prev) =>
-                    setFilter(prev, "username", e.target.value || undefined)
-                  )
-                }
-              />
-            </Field>
-            <Field size="sm">
-              <FieldIcon>
-                <UserRoundIcon className="size-4" />
-              </FieldIcon>
-              <Select
-                options={groupSelectOptions}
-                onValueChange={(value) =>
-                  setColumnFilters((prev) => setFilter(prev, "group", value))
-                }
-                value={groupValue}
-              />
-            </Field>
+            <FilterFields
+              columnFilters={columnFilters}
+              setColumnFilters={setColumnFilters}
+            />
           </div>
         </aside>
         <Card
           className={cn([
-            "h-(--app-content-height)",
             "flex-1",
             "min-h-0",
             "min-w-0",
@@ -195,6 +245,7 @@ export default function Layout() {
             "rounded-none",
             "flex",
             "flex-col",
+            "xl:h-(--app-content-height)",
             "xl:rounded-l-none",
           ])}
         >

@@ -116,6 +116,12 @@ captcha:
 idp:
   _: 第三方认证服务
   empty: 暂无第三方认证服务配置
+  result_count: "{{count}} 个第三方认证服务"
+  list:
+    columns:
+      idp: 认证服务
+      status: 状态
+      updated_at: 更新时间
   enabled:
     "true": 已启用
     "false": 已禁用
@@ -145,10 +151,12 @@ idp:
         oauth: OAuth 2.0
         cas: CAS
   actions:
+    _: 操作
     create:
       _: 创建第三方认证服务
       success: "{{name}} 创建成功。"
     update:
+      _: 编辑第三方认证服务
       success: "{{name}} 更新成功。"
     enable:
       success: "{{name}} 已启用。"
