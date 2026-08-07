@@ -19,11 +19,12 @@ use cds_db::{
     TeamUserView,
     sea_orm::{
         ActiveValue::{Set, Unchanged},
-        NotSet,
+        NotSet, TransactionTrait,
     },
     team::State as TState,
     team_user::FindTeamUserOptions,
 };
+use cds_worker::calculator;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -204,8 +205,9 @@ pub async fn set_team_ready(
         return Err(WebError::BadRequest(json!("member_limit_not_satisfied")));
     }
 
-    let team = cds_db::team::update(
-        &s.db.conn,
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
+    let team: cds_db::TeamView = cds_db::team::update(
+        &transaction,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),
             game_id: Unchanged(team.game_id),
@@ -218,6 +220,16 @@ pub async fn set_team_ready(
         },
     )
     .await?;
+
+    let score_changed = team.state == TState::Passed;
+    if score_changed {
+        cds_db::game::request_score_recalculation(&transaction, game.id).await?;
+    }
+    transaction.commit().await.map_err(cds_db::DbError::from)?;
+
+    if score_changed {
+        calculator::notify(&s.queue, game.id).await;
+    }
 
     Ok(Json(TeamResponse { team }))
 }

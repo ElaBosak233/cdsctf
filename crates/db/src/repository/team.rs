@@ -53,6 +53,12 @@ pub async fn find_scoreboard(
     let loader = team::Entity::load()
         .filter(team::Column::GameId.eq(game_id))
         .filter(team::Column::State.eq(team::State::Passed))
+        // A freshly passed team can briefly retain the default rank of zero
+        // until the asynchronous score calculation is applied. Keep it out
+        // of the first place while that calculation is pending.
+        .order_by_asc(Into::<Expr>::into(
+            Expr::case(team::Column::Rank.eq(0), 1).finally(0),
+        ))
         .order_by_asc(team::Column::Rank)
         .order_by_desc(team::Column::Pts)
         .order_by_asc(team::Column::Id);
@@ -151,6 +157,24 @@ mod tests {
             serde_json::to_value(record).unwrap(),
             serde_json::json!({"team":{"id":1,"name":"team","slogan":"hello","avatar_hash":"team-avatar","pts":100,"rank":2},"submissions":[{"id":10,"user_id":20,"user_name":"user","user_avatar_hash":"user-avatar","challenge_id":30,"challenge_title":"challenge","pts":100,"created_at":1_700_000_000_i64}]})
         );
+    }
+
+    #[test]
+    fn scoreboard_orders_unranked_teams_after_ranked_teams() {
+        use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QueryOrder, QueryTrait};
+
+        use crate::entity::team;
+
+        let statement = team::Entity::find()
+            .filter(team::Column::GameId.eq(7))
+            .order_by_asc(Into::<sea_orm::prelude::Expr>::into(
+                sea_orm::prelude::Expr::case(team::Column::Rank.eq(0), 1).finally(0),
+            ))
+            .order_by_asc(team::Column::Rank)
+            .build(DbBackend::Postgres);
+
+        assert!(statement.sql.contains("CASE WHEN"));
+        assert!(statement.sql.contains("\"teams\".\"rank\" = $"));
     }
 
     #[test]
