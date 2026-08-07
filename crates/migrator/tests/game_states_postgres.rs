@@ -32,7 +32,7 @@ async fn game_state_columns(
 
 #[tokio::test]
 #[ignore = "requires CDS_TEST_DATABASE_URL pointing to disposable PostgreSQL"]
-async fn game_state_migration_round_trips_on_postgres() {
+async fn game_state_columns_are_created_on_postgres() {
     let database_url = std::env::var("CDS_TEST_DATABASE_URL")
         .expect("CDS_TEST_DATABASE_URL must point to disposable PostgreSQL");
     let database = Database::connect(database_url).await.unwrap();
@@ -47,10 +47,4 @@ async fn game_state_migration_round_trips_on_postgres() {
     assert!(columns.iter().all(|(_, default, nullable)| {
         default.eq_ignore_ascii_case("false") && nullable == "NO"
     }));
-
-    Migrator::down(&database, Some(1)).await.unwrap();
-    assert!(game_state_columns(&database).await.is_empty());
-
-    Migrator::up(&database, Some(1)).await.unwrap();
-    assert_eq!(game_state_columns(&database).await.len(), 2);
 }

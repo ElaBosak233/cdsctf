@@ -30,6 +30,8 @@ impl MigrationTrait for Migration {
                     "description" TEXT,
                     "enabled" BOOLEAN NOT NULL,
                     "public" BOOLEAN NOT NULL,
+                    "paused" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "blacked_out" BOOLEAN NOT NULL DEFAULT FALSE,
                     "member_limit_min" BIGINT NOT NULL DEFAULT 3,
                     "member_limit_max" BIGINT NOT NULL DEFAULT 3,
                     "writeup_required" BOOLEAN NOT NULL DEFAULT FALSE,
