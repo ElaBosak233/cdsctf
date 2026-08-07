@@ -117,6 +117,7 @@ export default function Index() {
           <ul>
             <li>{t("user:delete_account.warnings.username")}</li>
             <li>{t("user:delete_account.warnings.email")}</li>
+            <li>{t("user:delete_account.warnings.idp")}</li>
             <li>{t("user:delete_account.warnings.data")}</li>
           </ul>
           <p className={cn(["font-bold"])}>
