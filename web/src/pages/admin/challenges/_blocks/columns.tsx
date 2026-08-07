@@ -3,18 +3,21 @@ import {
   ArrowDownIcon,
   ArrowUpDownIcon,
   ArrowUpIcon,
+  BookOpenCheckIcon,
   BoxIcon,
-  CheckIcon,
+  CalendarPlusIcon,
   ClipboardCheckIcon,
   ClipboardCopyIcon,
+  Clock3Icon,
   EditIcon,
   EllipsisIcon,
   EyeClosedIcon,
   EyeIcon,
-  LockIcon,
+  Globe2Icon,
+  LockKeyholeIcon,
+  PaperclipIcon,
   ShipWheelIcon,
   TrashIcon,
-  XIcon,
 } from "lucide-react";
 import {
   createContext,
@@ -100,120 +103,210 @@ function RowProvider({
   );
 }
 
-function IdCell({ row }: { row: Row<ChallengeDetail> }) {
-  const id = row.original.id!;
+function ChallengeCell({ row }: { row: Row<ChallengeDetail> }) {
+  const challenge = row.original;
+  const category = getCategory(challenge.category);
+  const CategoryIcon = category.icon!;
   const { t } = useTranslation();
   const { isCopied, copyToClipboard } = useClipboard();
+
   return (
-    <div className={cn(["flex", "items-center", "gap-2"])}>
-      <Badge className={cn(["font-mono"])}># {id}</Badge>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
-            square
-            size={"sm"}
-            onClick={() => copyToClipboard(String(id))}
-          />
-        </TooltipTrigger>
-        <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
-      </Tooltip>
+    <div className={cn(["flex", "min-w-0", "items-center", "gap-3"])}>
+      <div
+        className={cn([
+          "flex",
+          "size-9",
+          "shrink-0",
+          "items-center",
+          "justify-center",
+          "rounded-md",
+        ])}
+        style={{
+          backgroundColor: `${category.color}1a`,
+          color: category.color,
+        }}
+      >
+        <CategoryIcon className="size-4" />
+      </div>
+      <div className={cn(["min-w-0", "flex-1"])}>
+        <Link
+          to={`/admin/challenges/${challenge.id}`}
+          className={cn([
+            "block",
+            "truncate",
+            "text-sm",
+            "font-semibold",
+            "hover:underline",
+            "underline-offset-4",
+          ])}
+        >
+          {challenge.title || "-"}
+        </Link>
+        <div
+          className={cn([
+            "mt-0.5",
+            "flex",
+            "min-w-0",
+            "items-center",
+            "gap-1.5",
+            "text-xs",
+            "text-muted-foreground",
+          ])}
+        >
+          <span className={cn(["shrink-0", "font-mono"])}>#{challenge.id}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
+                square
+                size="sm"
+                variant="ghost"
+                className={cn(["size-6", "shrink-0", "text-muted-foreground"])}
+                aria-label={t("common:tooltip.copy")}
+                onClick={() => copyToClipboard(String(challenge.id))}
+              />
+            </TooltipTrigger>
+            <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
+          </Tooltip>
+          {challenge.description && (
+            <>
+              <span className="shrink-0">·</span>
+              <span className="truncate">{challenge.description}</span>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-function TitleCell({ row }: { row: Row<ChallengeDetail> }) {
-  const ctx = useRowContext();
-  const isPublic = ctx ? ctx.optimisticPublic : (row.original.public ?? false);
+function ClassificationCell({ row }: { row: Row<ChallengeDetail> }) {
+  const category = getCategory(row.original.category);
+  const CategoryIcon = category.icon!;
+
   return (
-    <div className={cn(["flex", "gap-2", "items-center"])}>
-      {!isPublic && <LockIcon className={cn(["size-[1em]", "text-warning"])} />}
-      <span className={cn(["w-64", "truncate"])}>
-        {row.original.title || "-"}
-      </span>
+    <div className={cn(["flex", "min-w-0", "flex-col", "gap-1.5"])}>
+      <div className={cn(["flex", "items-center", "gap-1.5", "text-sm"])}>
+        <CategoryIcon className="size-3.5" style={{ color: category.color }} />
+        <span className="font-medium">{category.name?.toUpperCase()}</span>
+      </div>
+      {row.original.tags.length > 0 && (
+        <div className={cn(["flex", "min-w-0", "gap-1", "overflow-hidden"])}>
+          {row.original.tags.map((tag, index) => (
+            <Badge
+              key={`${tag}-${index}`}
+              variant="outline"
+              className={cn(["max-w-24", "truncate", "text-muted-foreground"])}
+            >
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-function UpdatedAtHeader({ column }: { column: Column<ChallengeDetail> }) {
+function StatusCell({ row }: { row: Row<ChallengeDetail> }) {
   const { t } = useTranslation();
-  const sort = column.getIsSorted();
-
-  const icon = useMemo(() => {
-    switch (sort) {
-      case "asc":
-        return <ArrowUpIcon />;
-      case "desc":
-        return <ArrowDownIcon />;
-      default:
-        return <ArrowUpDownIcon />;
-    }
-  }, [sort]);
+  const { optimisticPublic } = useRowContext()!;
 
   return (
-    <div className={cn(["flex", "gap-1", "items-center"])}>
-      {t("challenge:updated_at")}
-      <Button
-        icon={icon}
-        square
-        size={"sm"}
-        onClick={() => column.toggleSorting()}
-      />
+    <div className={cn(["flex", "flex-wrap", "items-center", "gap-1.5"])}>
+      <Badge
+        variant="outline"
+        className={cn(
+          optimisticPublic
+            ? ["border-success/20", "bg-success/10", "text-success"]
+            : ["text-muted-foreground"]
+        )}
+      >
+        {optimisticPublic ? <Globe2Icon /> : <LockKeyholeIcon />}
+        {t(
+          optimisticPublic
+            ? "challenge:list.visibility.public"
+            : "challenge:list.visibility.private"
+        )}
+      </Badge>
+      <Badge
+        variant="outline"
+        className={cn(
+          row.original.has_instance
+            ? ["border-info/20", "bg-info/10", "text-info"]
+            : ["text-muted-foreground"]
+        )}
+      >
+        {row.original.has_instance ? <ShipWheelIcon /> : <BoxIcon />}
+        {t(
+          row.original.has_instance
+            ? "challenge:has_instance.true"
+            : "challenge:has_instance.false"
+        )}
+      </Badge>
+      {row.original.has_attachment && (
+        <Badge variant="outline" className="text-muted-foreground">
+          <PaperclipIcon />
+          {t("challenge:has_attachment")}
+        </Badge>
+      )}
+      {row.original.has_writeup && (
+        <Badge variant="outline" className="text-muted-foreground">
+          <BookOpenCheckIcon />
+          {t("challenge:edit.writeup")}
+        </Badge>
+      )}
     </div>
   );
 }
 
-function CreatedAtHeader({ column }: { column: Column<ChallengeDetail> }) {
+function TimeCell({
+  row,
+  formatter,
+}: {
+  row: Row<ChallengeDetail>;
+  formatter: Intl.DateTimeFormat;
+}) {
   const { t } = useTranslation();
-  const sort = column.getIsSorted();
-
-  const icon = useMemo(() => {
-    switch (sort) {
-      case "asc":
-        return <ArrowUpIcon />;
-      case "desc":
-        return <ArrowDownIcon />;
-      default:
-        return <ArrowUpDownIcon />;
-    }
-  }, [sort]);
+  const format = (timestamp: number) =>
+    formatter.format(new Date(timestamp * 1000));
 
   return (
-    <div className={cn(["flex", "gap-1", "items-center"])}>
-      {t("challenge:created_at")}
-      <Button
-        icon={icon}
-        square
-        size={"sm"}
-        onClick={() => column.toggleSorting()}
-      />
+    <div className={cn(["flex", "flex-col", "gap-1", "whitespace-nowrap"])}>
+      <div className={cn(["flex", "items-center", "gap-1.5", "text-sm"])}>
+        <Clock3Icon className="size-3.5 text-muted-foreground" />
+        <span>{format(row.original.updated_at)}</span>
+      </div>
+      <div
+        className={cn([
+          "flex",
+          "items-center",
+          "gap-1.5",
+          "text-xs",
+          "text-muted-foreground",
+        ])}
+      >
+        <CalendarPlusIcon className="size-3.5" />
+        {t("challenge:list.created_at", {
+          time: format(row.original.created_at),
+        })}
+      </div>
     </div>
   );
 }
 
 function ActionsCell({ row }: { row: Row<ChallengeDetail> }) {
   const { t } = useTranslation();
-
-  const id = row.original.id;
-  const title = row.original.title;
-
+  const challenge = row.original;
   const sharedStore = useSharedStore();
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
-
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { optimisticPublic, togglePublic } = useRowContext()!;
-
-  function handlePublicnessChange() {
-    togglePublic(title!);
-  }
 
   async function handleDelete() {
     try {
-      await deleteChallenge({
-        id,
-      });
-
-      toast.success(t("challenge:actions.delete.success", { title }));
+      await deleteChallenge({ id: challenge.id });
+      toast.success(
+        t("challenge:actions.delete.success", { title: challenge.title })
+      );
       setDeleteDialogOpen(false);
     } finally {
       sharedStore?.setRefresh();
@@ -222,21 +315,34 @@ function ActionsCell({ row }: { row: Row<ChallengeDetail> }) {
 
   return (
     <div className={cn(["flex", "items-center", "justify-center", "gap-2"])}>
-      <Button variant={"ghost"} size={"sm"} square icon={<EditIcon />} asChild>
-        <Link to={`/admin/challenges/${id}`} />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            square
+            icon={<EditIcon />}
+            aria-label={t("challenge:edit._")}
+            asChild
+          >
+            <Link to={`/admin/challenges/${challenge.id}`} />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{t("challenge:edit._")}</TooltipContent>
+      </Tooltip>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             square
-            size={"sm"}
-            variant={"ghost"}
+            size="sm"
+            variant="ghost"
             icon={<EllipsisIcon />}
+            aria-label={t("challenge:actions._")}
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem onClick={handlePublicnessChange}>
+          <DropdownMenuItem onClick={() => togglePublic(challenge.title)}>
             {optimisticPublic ? <EyeClosedIcon /> : <EyeIcon />}
             {optimisticPublic
               ? t("challenge:public.actions.false")
@@ -244,7 +350,7 @@ function ActionsCell({ row }: { row: Row<ChallengeDetail> }) {
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setDeleteDialogOpen(true)}
-            className={cn(["text-error"])}
+            className="text-error"
           >
             <TrashIcon />
             {t("challenge:actions.delete._")}
@@ -256,45 +362,49 @@ function ActionsCell({ row }: { row: Row<ChallengeDetail> }) {
         <DialogContent>
           <Card
             className={cn([
+              "flex",
               "w-full",
               "max-w-xl",
+              "flex-col",
+              "overflow-hidden",
               "rounded-elevated",
               "shadow-lg",
-              "overflow-hidden",
-              "flex",
-              "flex-col",
             ])}
           >
-            <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
+            <div className={cn(["flex", "flex-col", "gap-5", "p-5"])}>
               <div className={cn(["flex", "items-center", "gap-3"])}>
                 <div
                   className={cn([
-                    "flex items-center justify-center",
-                    "size-10 rounded-badge",
-                    "bg-error/10 text-error",
+                    "flex",
+                    "size-10",
                     "shrink-0",
+                    "items-center",
+                    "justify-center",
+                    "rounded-badge",
+                    "bg-error/10",
+                    "text-error",
                   ])}
                 >
-                  <TrashIcon className={cn(["size-5"])} />
+                  <TrashIcon className="size-5" />
                 </div>
-                <h3 className={cn(["text-base", "font-semibold"])}>
+                <h3 className="text-base font-semibold">
                   {t("challenge:actions.delete._")}
                 </h3>
               </div>
-              <p className={cn(["text-sm"])}>
+              <p className="text-sm">
                 <Trans
-                  i18nKey={"challenge:actions.delete.message"}
-                  values={{ title }}
+                  i18nKey="challenge:actions.delete.message"
+                  values={{ title: challenge.title }}
                   components={{
-                    muted: <span className={cn(["text-muted-foreground"])} />,
+                    muted: <span className="text-muted-foreground" />,
                   }}
                 />
               </p>
-              <div className={cn(["flex", "justify-end"])}>
+              <div className="flex justify-end">
                 <Button
-                  level={"error"}
-                  variant={"solid"}
-                  size={"sm"}
+                  level="error"
+                  variant="solid"
+                  size="sm"
                   onClick={handleDelete}
                 >
                   {t("common:actions.confirm")}
@@ -308,136 +418,81 @@ function ActionsCell({ row }: { row: Row<ChallengeDetail> }) {
   );
 }
 
-function useColumns() {
+function UpdatedAtHeader({ column }: { column: Column<ChallengeDetail> }) {
   const { t } = useTranslation();
+  const sort = column.getIsSorted();
+  const icon = useMemo(() => {
+    switch (sort) {
+      case "asc":
+        return <ArrowUpIcon />;
+      case "desc":
+        return <ArrowDownIcon />;
+      default:
+        return <ArrowUpDownIcon />;
+    }
+  }, [sort]);
 
-  const columns: Array<ColumnDef<ChallengeDetail>> = useMemo(() => {
-    return [
+  return (
+    <Button
+      icon={icon}
+      variant="ghost"
+      size="sm"
+      className={cn(["-ml-3", "px-3", "text-muted-foreground"])}
+      onClick={() => column.toggleSorting()}
+    >
+      {t("challenge:list.columns.time")}
+    </Button>
+  );
+}
+
+function useColumns() {
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage ?? i18n.language;
+  const formatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(language, {
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    [language]
+  );
+
+  const columns: Array<ColumnDef<ChallengeDetail>> = useMemo(
+    () => [
       {
-        accessorKey: "id",
-        id: "id",
-        header: t("challenge:form.id._"),
-        cell: IdCell,
+        id: "challenge",
+        accessorFn: (challenge) => challenge.title,
+        header: () => t("challenge:list.columns.challenge"),
+        cell: ChallengeCell,
       },
       {
-        accessorKey: "title",
-        id: "title",
-        header: t("challenge:title"),
-        cell: TitleCell,
+        id: "classification",
+        header: () => t("challenge:list.columns.classification"),
+        cell: ClassificationCell,
       },
       {
-        accessorKey: "category",
-        header: t("challenge:category"),
-        cell: ({ row }) => {
-          const categoryId = row.original.category!;
-          const category = getCategory(categoryId);
-
-          const Icon = category.icon!;
-          return (
-            <div className={cn(["flex", "gap-2", "items-center"])}>
-              <Icon className={cn(["size-4"])} />
-              {category.name?.toUpperCase()}
-            </div>
-          );
-        },
-      },
-      {
-        accessorKey: "tags",
-        id: "tags",
-        header: t("challenge:tags"),
-        cell: ({ row }) => {
-          const tags = row.original.tags;
-
-          return (
-            <div className={cn(["flex", "flex-wrap", "gap-1", "w-36"])}>
-              {tags?.map((tag, index) => (
-                <Badge key={index}>{tag}</Badge>
-              ))}
-            </div>
-          );
-        },
-      },
-      {
-        accessorKey: "has_attachment",
-        header: t("challenge:has_attachment"),
-        cell: ({ row }) => {
-          const hasAttachment = row.original.has_attachment;
-
-          const options = [
-            {
-              className: ["bg-warning", "text-warning-foreground"],
-              icon: <XIcon />,
-            },
-            {
-              className: ["bg-info", "text-info-foreground"],
-              icon: <CheckIcon />,
-            },
-          ];
-
-          return (
-            <Badge className={cn([options[Number(hasAttachment)]?.className])}>
-              {options[Number(hasAttachment)]?.icon}
-            </Badge>
-          );
-        },
-      },
-      {
-        accessorKey: "has_instance",
-        header: t("challenge:has_instance._"),
-        cell: ({ row }) => {
-          const hasInstance = row.original.has_instance;
-
-          return (
-            <Badge
-              className={cn([
-                hasInstance
-                  ? ["bg-info", "text-info-foreground"]
-                  : ["bg-success", "text-success-foreground"],
-              ])}
-            >
-              {hasInstance ? <ShipWheelIcon /> : <BoxIcon />}
-              {hasInstance
-                ? t("challenge:has_instance.true")
-                : t("challenge:has_instance.false")}
-            </Badge>
-          );
-        },
+        id: "status",
+        header: () => t("challenge:list.columns.status"),
+        cell: StatusCell,
       },
       {
         accessorKey: "updated_at",
         id: "updated_at",
         header: UpdatedAtHeader,
-        cell: ({ row }) => (
-          <span className={cn(["text-secondary-foreground", "text-sm"])}>
-            {new Date(
-              row.getValue<number>("updated_at") * 1000
-            ).toLocaleString()}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "created_at",
-        id: "created_at",
-        header: CreatedAtHeader,
-        cell: ({ row }) => (
-          <span className={cn(["text-secondary-foreground", "text-sm"])}>
-            {new Date(
-              row.getValue<number>("created_at") * 1000
-            ).toLocaleString()}
-          </span>
-        ),
+        cell: ({ row }) => <TimeCell row={row} formatter={formatter} />,
       },
       {
         id: "actions",
         header: () => (
-          <div className={cn(["justify-self-center"])}>
-            {t("challenge:actions._")}
-          </div>
+          <div className="justify-self-center">{t("challenge:actions._")}</div>
         ),
         cell: ActionsCell,
       },
-    ];
-  }, [t]);
+    ],
+    [formatter, t]
+  );
 
   return columns;
 }

@@ -1,6 +1,17 @@
 _: 题目
 playground: 练习场
 empty: 好像还没有题目哦。
+result_count: "{{count}} 道题目"
+list:
+  columns:
+    challenge: 题目
+    classification: 分类
+    status: 状态与能力
+    time: 时间
+  visibility:
+    public: 公开
+    private: 非公开
+  created_at: "创建 {{time}}"
 edit:
   _: 编辑题目
   info: 基本信息
