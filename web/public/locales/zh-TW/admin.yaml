@@ -15,10 +15,6 @@ platform:
     error: 標誌上傳失敗。
   logo_reset:
     success: 標誌重設成功。
-  auth:
-    registration_enabled:
-      "true": 允許
-      "false": 不允許
   form:
     meta:
       _: 中繼資料
@@ -32,10 +28,6 @@ platform:
         placeholder: 我才不想攻擊你呢！
       footer:
         _: 頁尾
-    auth:
-      _: 認證
-      registration_enabled:
-        _: 是否允許新使用者註冊
   actions:
     update:
       _: 更新平台設定
@@ -117,6 +109,12 @@ idp:
   _: 第三方身分驗證
   empty: 尚未設定第三方身分驗證服務
   result_count: "{{count}} 個第三方身分驗證"
+  local_registration:
+    _: 帳號密碼註冊
+    updated: 帳號密碼註冊設定已更新。
+  status:
+    service: 驗證服務
+    registration: 新使用者註冊
   list:
     columns:
       idp: 身分驗證
@@ -162,6 +160,10 @@ idp:
       success: "{{name}} 已啟用。"
     disable:
       success: "{{name}} 已停用。"
+    registration_enable:
+      success: "{{name}} 已允許新使用者註冊。"
+    registration_disable:
+      success: "{{name}} 已停止新使用者註冊。"
     delete:
       _: 刪除第三方身分驗證服務
       message: "確定要刪除 <muted>{{name}}</muted> 嗎？"

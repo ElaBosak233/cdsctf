@@ -8,6 +8,7 @@ pub struct IdpView {
     pub id: i64,
     pub name: String,
     pub enabled: bool,
+    pub registration_enabled: bool,
     pub avatar_hash: Option<String>,
     pub portal: Option<String>,
     pub script: String,
@@ -46,6 +47,7 @@ mod tests {
             id: 1,
             name: "provider".to_owned(),
             enabled: true,
+            registration_enabled: false,
             avatar_hash: None,
             portal: Some("https://example.com".to_owned()),
             script: "secret provider script".to_owned(),
@@ -56,6 +58,7 @@ mod tests {
 
         assert!(value.get("script").is_none());
         assert!(value.get("enabled").is_none());
+        assert!(value.get("registration_enabled").is_none());
         assert!(value.get("created_at").is_none());
         assert!(value.get("updated_at").is_none());
     }

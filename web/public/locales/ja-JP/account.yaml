@@ -92,6 +92,7 @@ idp:
   login:
     success: サインインしました。
     error: ID プロバイダーへのリクエストに失敗しました。
+    registration_disabled: このプロバイダーでは新規登録できません。既存のアカウントにログインしてから紐付けてください。
   unbind:
     success: ID プロバイダーの紐付けを解除しました。
   third_party: サードパーティのログイン

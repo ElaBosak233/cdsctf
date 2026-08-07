@@ -6,7 +6,7 @@ export type PublicConfig = {
     footer?: string;
   };
   auth?: {
-    registration_enabled?: boolean;
+    local_registration_enabled?: boolean;
   };
   captcha?: {
     provider?: "none" | "pow" | "image" | "turnstile" | "hcaptcha";

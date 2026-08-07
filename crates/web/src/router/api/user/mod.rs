@@ -149,7 +149,7 @@ pub async fn user_register(
     if !cds_db::get_config(&s.db.conn)
         .await
         .auth
-        .registration_enabled
+        .local_registration_enabled
     {
         return Err(WebError::BadRequest(json!("registration_disabled")));
     }

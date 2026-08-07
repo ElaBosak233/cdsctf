@@ -92,6 +92,7 @@ idp:
   login:
     success: 登入成功
     error: 第三方登入失敗
+    registration_disabled: 此認證服務不允許新使用者註冊，請先登入既有帳號後再綁定。
   unbind:
     success: 第三方帳號解除綁定成功
   third_party: 第三方登入

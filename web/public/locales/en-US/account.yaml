@@ -92,6 +92,7 @@ idp:
   login:
     success: Signed in
     error: IdP request failed
+    registration_disabled: This provider does not accept new registrations. Sign in to an existing account before binding it.
   unbind:
     success: IdP unbound
   third_party: Third-party Login

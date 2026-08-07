@@ -2,10 +2,11 @@ import type { IdpView } from "@/models/idp";
 import { api } from "@/utils/query";
 
 export type IdpRequest = {
-  name?: string;
-  enabled?: boolean;
-  portal?: string | null;
-  script?: string;
+  name: string;
+  enabled: boolean;
+  registration_enabled: boolean;
+  portal: string | null;
+  script: string;
 };
 
 export type DiagnosticMarker = {
@@ -30,7 +31,9 @@ export async function getAdminIdp(idpId: number) {
 }
 
 export async function updateAdminIdp(idpId: number, request: IdpRequest) {
-  return api.put(`admin/idps/${idpId}`, { json: request }).json<{ idp: IdpView }>();
+  return api
+    .put(`admin/idps/${idpId}`, { json: request })
+    .json<{ idp: IdpView }>();
 }
 
 export async function deleteAdminIdp(idpId: number) {

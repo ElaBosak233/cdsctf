@@ -85,7 +85,7 @@ export default function Index() {
                 <LoginForm />
               </div>
               <div className={cn(["md:hidden", "flex", "flex-col", "gap-2"])}>
-                {config?.auth?.registration_enabled && (
+                {config?.auth?.local_registration_enabled && (
                   <Button
                     asChild
                     className={cn(["w-full"])}
@@ -170,7 +170,7 @@ export default function Index() {
                 {config?.meta?.description}
               </span>
             </div>
-            {config?.auth?.registration_enabled && (
+            {config?.auth?.local_registration_enabled && (
               <Button
                 asChild
                 className={cn("w-full")}

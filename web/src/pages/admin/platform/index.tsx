@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  BadgeCheckIcon,
   InfoIcon,
   ListEndIcon,
   SaveIcon,
@@ -8,7 +7,6 @@ import {
   TextIcon,
   TypeIcon,
   UndoIcon,
-  UserRoundCheckIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -36,7 +34,6 @@ import {
 import { Image } from "@/components/ui/image";
 import { Label } from "@/components/ui/label";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
-import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { TagsField } from "@/components/ui/tags-field";
 import { TextField } from "@/components/ui/text-field";
@@ -66,11 +63,6 @@ export default function Index() {
         description: z.string().optional(),
         keywords: z.array(z.string()).optional(),
         footer: z.string().optional(),
-      })
-      .optional(),
-    auth: z
-      .object({
-        registration_enabled: z.boolean().optional(),
       })
       .optional(),
   });
@@ -335,53 +327,6 @@ export default function Index() {
                       {...field}
                       value={field.value || ""}
                       onChange={field.onChange}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <h2
-            className={cn(["flex", "gap-2", "items-center", "text-xl", "mt-2"])}
-          >
-            <BadgeCheckIcon />
-            {t("admin:platform.form.auth._")}
-          </h2>
-          <Separator />
-          <FormField
-            control={form.control}
-            name={"auth.registration_enabled"}
-            render={({ field }) => (
-              <FormItem className={cn(["w-full"])}>
-                <FormLabel>
-                  {t("admin:platform.form.auth.registration_enabled._")}
-                </FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <UserRoundCheckIcon />
-                    </FieldIcon>
-                    <Select
-                      {...field}
-                      options={[
-                        {
-                          value: String(true),
-                          content: t(
-                            "admin:platform.auth.registration_enabled.true"
-                          ),
-                        },
-                        {
-                          value: String(false),
-                          content: t(
-                            "admin:platform.auth.registration_enabled.false"
-                          ),
-                        },
-                      ]}
-                      onValueChange={(value) =>
-                        field.onChange(value === "true")
-                      }
-                      value={String(field.value)}
                     />
                   </Field>
                 </FormControl>

@@ -42,6 +42,21 @@ where
         .await?)
 }
 
+pub async fn find_user_idp_by_id_and_user<T>(
+    conn: &impl ConnectionTrait,
+    id: i64,
+    user_id: i64,
+) -> Result<Option<T>, DbError>
+where
+    T: FromQueryResult, {
+    Ok(UserIdpEntity::find()
+        .filter(UserIdpColumn::Id.eq(id))
+        .filter(UserIdpColumn::UserId.eq(user_id))
+        .into_model::<T>()
+        .one(conn)
+        .await?)
+}
+
 pub async fn find_user_idps_by_user<T>(
     conn: &impl ConnectionTrait,
     user_id: i64,
@@ -98,5 +113,21 @@ pub async fn delete_user_idp(
         .exec(conn)
         .await?;
     info!(user_idp_id = id, user_id, "user idp unbound");
+    Ok(())
+}
+
+pub async fn delete_user_idps_by_user(
+    conn: &impl ConnectionTrait,
+    user_id: i64,
+) -> Result<(), DbError> {
+    let result = UserIdpEntity::delete_many()
+        .filter(UserIdpColumn::UserId.eq(user_id))
+        .exec(conn)
+        .await?;
+    info!(
+        user_id,
+        deleted = result.rows_affected,
+        "user idps released"
+    );
     Ok(())
 }

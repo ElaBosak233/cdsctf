@@ -137,6 +137,7 @@ export default function Index() {
       const res = await updateAdminIdp(idpId, {
         ...values,
         enabled: idp?.enabled ?? true,
+        registration_enabled: idp?.registration_enabled ?? false,
         portal: values.portal || null,
       });
       toast.success(

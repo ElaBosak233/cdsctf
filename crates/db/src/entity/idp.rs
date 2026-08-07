@@ -12,6 +12,7 @@ pub struct Model {
     pub id: i64,
     pub name: String,
     pub enabled: bool,
+    pub registration_enabled: bool,
     pub avatar_hash: Option<String>,
     pub portal: Option<String>,
     #[sea_orm(column_type = "Text")]

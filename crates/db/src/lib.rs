@@ -31,6 +31,7 @@ pub use dto::{
     SubmissionView, TeamUserView, TeamView, UserAccountView, UserIdpSummary, UserIdpView,
     UserProfile, UserSummary,
 };
+pub use entity::user_idp::Source as UserIdpSource;
 pub use repository::{
     challenge, config, email, game, game_challenge, game_notice, idp, note, submission, team,
     team_user, user, user_idp,

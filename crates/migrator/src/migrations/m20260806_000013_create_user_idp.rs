@@ -26,6 +26,7 @@ impl MigrationTrait for Migration {
                     "user_id" BIGINT NOT NULL,
                     "idp_id" BIGINT NOT NULL,
                     "auth_key" VARCHAR(255) NOT NULL,
+                    "source" VARCHAR NOT NULL,
                     "data" JSONB,
                     "created_at" BIGINT NOT NULL,
                     "updated_at" BIGINT NOT NULL,

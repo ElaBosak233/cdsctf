@@ -7,6 +7,7 @@ import {
   EllipsisIcon,
   Globe2Icon,
   TrashIcon,
+  UserRoundPlusIcon,
 } from "lucide-react";
 import {
   createContext,
@@ -45,7 +46,10 @@ import { cn } from "@/utils";
 
 const RowContext = createContext<{
   optimisticEnabled: boolean;
+  optimisticRegistrationEnabled: boolean;
+  pending: boolean;
   toggleEnabled: () => void;
+  toggleRegistrationEnabled: () => void;
 } | null>(null);
 
 function useRowContext() {
@@ -54,41 +58,142 @@ function useRowContext() {
 
 function RowProvider({ idp, children }: { idp: IdpView; children: ReactNode }) {
   const { t } = useTranslation();
-  const [enabled, setEnabled] = useState(idp.enabled);
-  const [, startTransition] = useTransition();
-  const [optimisticEnabled, setOptimisticEnabled] = useOptimistic(enabled);
+  const [status, setStatus] = useState({
+    enabled: idp.enabled,
+    registrationEnabled: idp.registration_enabled,
+  });
+  const [pending, startTransition] = useTransition();
+  const [optimisticStatus, setOptimisticStatus] = useOptimistic(status);
+
+  const updateStatus = useCallback(
+    (next: typeof status, action: "enabled" | "registration") => {
+      startTransition(async () => {
+        setOptimisticStatus(next);
+        try {
+          await updateAdminIdp(idp.id, {
+            name: idp.name,
+            enabled: next.enabled,
+            registration_enabled: next.registrationEnabled,
+            portal: idp.portal,
+            script: idp.script,
+          });
+          setStatus(next);
+          toast.success(
+            t(
+              action === "enabled"
+                ? next.enabled
+                  ? "admin:idp.actions.enable.success"
+                  : "admin:idp.actions.disable.success"
+                : next.registrationEnabled
+                  ? "admin:idp.actions.registration_enable.success"
+                  : "admin:idp.actions.registration_disable.success",
+              { name: idp.name }
+            )
+          );
+        } catch {
+          setOptimisticStatus(status);
+          toast.error(t("common:errors.default"));
+        }
+      });
+    },
+    [idp.id, idp.name, idp.portal, idp.script, setOptimisticStatus, status, t]
+  );
 
   const toggleEnabled = useCallback(() => {
-    const newValue = !optimisticEnabled;
-    startTransition(async () => {
-      setOptimisticEnabled(newValue);
-      await updateAdminIdp(idp.id, {
-        name: idp.name,
-        enabled: newValue,
-        portal: idp.portal,
-        script: idp.script,
-      });
-      setEnabled(newValue);
-      toast.success(
-        newValue
-          ? t("admin:idp.actions.enable.success", { name: idp.name })
-          : t("admin:idp.actions.disable.success", { name: idp.name })
-      );
-    });
-  }, [
-    idp.id,
-    idp.name,
-    idp.portal,
-    idp.script,
-    optimisticEnabled,
-    setOptimisticEnabled,
-    t,
-  ]);
+    updateStatus(
+      { ...optimisticStatus, enabled: !optimisticStatus.enabled },
+      "enabled"
+    );
+  }, [optimisticStatus, updateStatus]);
+
+  const toggleRegistrationEnabled = useCallback(() => {
+    updateStatus(
+      {
+        ...optimisticStatus,
+        registrationEnabled: !optimisticStatus.registrationEnabled,
+      },
+      "registration"
+    );
+  }, [optimisticStatus, updateStatus]);
 
   return (
-    <RowContext.Provider value={{ optimisticEnabled, toggleEnabled }}>
+    <RowContext.Provider
+      value={{
+        optimisticEnabled: optimisticStatus.enabled,
+        optimisticRegistrationEnabled: optimisticStatus.registrationEnabled,
+        pending,
+        toggleEnabled,
+        toggleRegistrationEnabled,
+      }}
+    >
       {children}
     </RowContext.Provider>
+  );
+}
+
+function StatusToggle({
+  checked,
+  disabled,
+  icon,
+  label,
+  onCheckedChange,
+}: {
+  checked: boolean;
+  disabled: boolean;
+  icon: ReactNode;
+  label: string;
+  onCheckedChange: () => void;
+}) {
+  return (
+    <div className={cn(["flex", "items-center", "justify-between", "gap-3"])}>
+      <Badge
+        variant="outline"
+        className={cn(
+          checked
+            ? ["border-success/20", "bg-success/10", "text-success"]
+            : ["text-muted-foreground"]
+        )}
+      >
+        {icon}
+        {label}
+      </Badge>
+      <Switch
+        checked={checked}
+        disabled={disabled}
+        onCheckedChange={onCheckedChange}
+        aria-label={label}
+      />
+    </div>
+  );
+}
+
+function StatusCell() {
+  const { t } = useTranslation();
+  const {
+    optimisticEnabled,
+    optimisticRegistrationEnabled,
+    pending,
+    toggleEnabled,
+    toggleRegistrationEnabled,
+  } = useRowContext()!;
+
+  return (
+    <div className={cn(["grid", "min-w-44", "gap-2"])}>
+      <StatusToggle
+        checked={optimisticEnabled}
+        disabled={pending}
+        icon={<Globe2Icon />}
+        label={t("admin:idp.status.service")}
+        onCheckedChange={toggleEnabled}
+      />
+      <StatusToggle
+        checked={optimisticRegistrationEnabled}
+        disabled={pending}
+        icon={<UserRoundPlusIcon />}
+        label={t("admin:idp.status.registration")}
+        onCheckedChange={toggleRegistrationEnabled}
+      />
+    </div>
   );
 }
 
@@ -121,36 +226,6 @@ function IdpCell({ row }: { row: Row<IdpView> }) {
           <span className="truncate">{idp.portal || "-"}</span>
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatusCell() {
-  const { t } = useTranslation();
-  const { optimisticEnabled, toggleEnabled } = useRowContext()!;
-
-  return (
-    <div className={cn(["flex", "items-center", "gap-2"])}>
-      <Badge
-        variant="outline"
-        className={cn(
-          optimisticEnabled
-            ? ["border-success/20", "bg-success/10", "text-success"]
-            : ["text-muted-foreground"]
-        )}
-      >
-        <Globe2Icon />
-        {t(
-          optimisticEnabled
-            ? "admin:idp.enabled.true"
-            : "admin:idp.enabled.false"
-        )}
-      </Badge>
-      <Switch
-        checked={optimisticEnabled}
-        onCheckedChange={toggleEnabled}
-        aria-label={t("admin:idp.form.enabled._")}
-      />
     </div>
   );
 }

@@ -15,10 +15,6 @@ platform:
     error: 标志上传失败。
   logo_reset:
     success: 标志重置成功。
-  auth:
-    registration_enabled:
-      "true": 允许
-      "false": 不允许
   form:
     meta:
       _: 元信息
@@ -32,10 +28,6 @@ platform:
         placeholder: 我才不想攻击你呢！
       footer:
         _: 页脚
-    auth:
-      _: 认证
-      registration_enabled:
-        _: 是否允许新用户注册
   actions:
     update:
       _: 更新平台设置
@@ -117,6 +109,12 @@ idp:
   _: 第三方认证服务
   empty: 暂无第三方认证服务配置
   result_count: "{{count}} 个第三方认证服务"
+  local_registration:
+    _: 账号密码注册
+    updated: 账号密码注册设置已更新。
+  status:
+    service: 认证服务
+    registration: 新用户注册
   list:
     columns:
       idp: 认证服务
@@ -162,6 +160,10 @@ idp:
       success: "{{name}} 已启用。"
     disable:
       success: "{{name}} 已禁用。"
+    registration_enable:
+      success: "{{name}} 已允许新用户注册。"
+    registration_disable:
+      success: "{{name}} 已停止新用户注册。"
     delete:
       _: 删除第三方认证服务
       message: "确定要删除 <muted>{{name}}</muted> 吗？"

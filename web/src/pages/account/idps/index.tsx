@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
 import { LoaderCircleIcon } from "lucide-react";
 import { useEffect } from "react";
@@ -9,7 +10,7 @@ import { bindWithIdp, getIdp, loginWithIdp } from "@/api/idps";
 import { Avatar } from "@/components/ui/avatar";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
-import { parseRouteNumericId } from "@/utils/query";
+import { parseErrorResponse, parseRouteNumericId } from "@/utils/query";
 
 function searchParamsToRecord(searchParams: URLSearchParams) {
   const params: Record<string, string> = {};
@@ -72,7 +73,13 @@ export default function Index() {
         navigate(redirect, { replace: true });
       } catch (error) {
         if (error instanceof HTTPError) {
-          toast.error(t("account:idp.login.error"));
+          const body = await parseErrorResponse(error);
+          toast.error(
+            error.response.status === StatusCodes.FORBIDDEN &&
+              body.msg === "idp_registration_disabled"
+              ? t("account:idp.login.registration_disabled")
+              : t("account:idp.login.error")
+          );
           navigate(user ? "/account/settings/idps" : "/account/login", {
             replace: true,
           });

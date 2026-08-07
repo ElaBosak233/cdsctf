@@ -1,7 +1,7 @@
 //! SeaORM `user_idp` entity — maps external identities to local users.
 
 use async_trait::async_trait;
-use sea_orm::{Set, entity::prelude::*};
+use sea_orm::{DeriveActiveEnum, EnumIter, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
 #[sea_orm::model]
@@ -13,6 +13,7 @@ pub struct Model {
     pub user_id: i64,
     pub idp_id: i64,
     pub auth_key: String,
+    pub source: Source,
     #[sea_orm(column_type = "JsonBinary", nullable)]
     pub data: Option<Json>,
     pub created_at: i64,
@@ -21,6 +22,26 @@ pub struct Model {
     pub idp: BelongsTo<super::idp::Entity>,
     #[sea_orm(belongs_to, from = "user_id", to = "id", on_delete = "Cascade")]
     pub user: BelongsTo<super::user::Entity>,
+}
+
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    EnumIter,
+    DeriveActiveEnum,
+    utoipa::ToSchema,
+)]
+#[sea_orm(rs_type = "String", db_type = "String(StringLen::None)")]
+#[serde(rename_all = "snake_case")]
+pub enum Source {
+    #[sea_orm(string_value = "registration")]
+    Registration,
+    #[sea_orm(string_value = "binding")]
+    Binding,
 }
 
 #[async_trait]
@@ -34,5 +55,22 @@ impl ActiveModelBehavior for ActiveModel {
             self.created_at = Set(ts);
         }
         Ok(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Source;
+
+    #[test]
+    fn source_uses_stable_string_values() {
+        assert_eq!(
+            serde_json::to_value(Source::Registration).unwrap(),
+            "registration"
+        );
+        assert_eq!(
+            serde_json::from_str::<Source>(r#""binding""#).unwrap(),
+            Source::Binding
+        );
     }
 }

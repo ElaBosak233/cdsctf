@@ -17,7 +17,7 @@ use std::sync::Arc;
 use axum::{Json, Router, extract::State};
 use cds_db::sea_orm::{
     ActiveValue::{Set, Unchanged},
-    NotSet,
+    NotSet, TransactionTrait,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -155,7 +155,9 @@ pub async fn delete_user_profile(
         return Err(WebError::BadRequest(json!("password_invalid")));
     }
 
-    cds_db::user::delete(&s.db.conn, operator.id).await?;
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
+    cds_db::user::delete(&transaction, operator.id).await?;
+    transaction.commit().await.map_err(cds_db::DbError::from)?;
 
     Ok(Json(EmptyJson::default()))
 }

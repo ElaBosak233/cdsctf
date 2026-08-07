@@ -53,6 +53,7 @@ function CreateDialog(props: CreateDialogProps) {
     createAdminIdp({
       name: values.name,
       enabled: false,
+      registration_enabled: false,
       portal: null,
       script: defaultScript,
     })

@@ -140,6 +140,13 @@ function IdpRegisterForm() {
           description: t("account:idp.register.conflict"),
         });
       }
+
+      if (status === StatusCodes.FORBIDDEN) {
+        toast.error(t("account:idp.register.failed"), {
+          id: "idp-register-error",
+          description: t("account:idp.login.registration_disabled"),
+        });
+      }
     } finally {
       setLoading(false);
     }

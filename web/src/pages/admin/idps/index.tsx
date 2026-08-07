@@ -6,9 +6,11 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { IdCardIcon, PlusCircleIcon } from "lucide-react";
-import { useState } from "react";
+import { IdCardIcon, PlusCircleIcon, UserRoundPlusIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import { getConfigs, updateConfig } from "@/api/admin/configs";
 import { getAdminIdps } from "@/api/admin/idps";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,6 +18,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -24,6 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { AdminConfig } from "@/models/config";
 import type { IdpView } from "@/models/idp";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
@@ -33,12 +37,67 @@ import { CreateDialog } from "./_blocks/create-dialog";
 
 export default function Index() {
   const { t } = useTranslation();
-  const { config } = useConfigStore();
+  const { config, setConfig } = useConfigStore();
   const sharedStore = useSharedStore();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [adminConfig, setAdminConfig] = useState<AdminConfig>();
+  const [configSaving, setConfigSaving] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([
     { id: "updated_at", desc: true },
   ]);
+
+  useEffect(() => {
+    getConfigs().then((response) => setAdminConfig(response.config));
+  }, []);
+
+  async function setLocalRegistrationEnabled(enabled: boolean) {
+    if (!adminConfig) return;
+    setConfigSaving(true);
+    try {
+      const response = await updateConfig({
+        ...adminConfig,
+        auth: {
+          ...adminConfig.auth,
+          local_registration_enabled: enabled,
+        },
+      });
+      setAdminConfig(response.config);
+      setConfig({
+        ...config,
+        auth: response.config.auth,
+      });
+      toast.success(t("admin:idp.local_registration.updated"));
+    } catch {
+      toast.error(t("common:errors.default"));
+    } finally {
+      setConfigSaving(false);
+    }
+  }
+
+  const localRegistrationControl = (
+    <div
+      className={cn([
+        "flex",
+        "shrink-0",
+        "items-center",
+        "gap-3",
+        "rounded-md",
+        "px-2",
+        "py-1.5",
+      ])}
+    >
+      <UserRoundPlusIcon className="size-4 shrink-0 text-muted-foreground" />
+      <span className="whitespace-nowrap text-sm">
+        {t("admin:idp.local_registration._")}
+      </span>
+      <Switch
+        checked={adminConfig?.auth?.local_registration_enabled ?? false}
+        disabled={!adminConfig || configSaving}
+        onCheckedChange={setLocalRegistrationEnabled}
+        aria-label={t("admin:idp.local_registration._")}
+      />
+    </div>
+  );
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "idps", sharedStore.refresh],
@@ -78,6 +137,7 @@ export default function Index() {
         ])}
       >
         <ScrollableNav className="xl:hidden">
+          {localRegistrationControl}
           <Button
             icon={<PlusCircleIcon className="size-4" />}
             variant="solid"
@@ -123,6 +183,7 @@ export default function Index() {
             <IdCardIcon className="size-4" />
             {t("admin:idp._")}
           </div>
+          <div className="border-y py-2">{localRegistrationControl}</div>
           <Button
             icon={<PlusCircleIcon className="size-4" />}
             variant="solid"
@@ -201,7 +262,7 @@ export default function Index() {
                           key={header.id}
                           className={cn([
                             "bg-muted/95",
-                            header.column.id === "status" && ["w-52"],
+                            header.column.id === "status" && ["w-64"],
                             header.column.id === "updated_at" && ["w-48"],
                             header.column.id === "actions" && [
                               "sticky",

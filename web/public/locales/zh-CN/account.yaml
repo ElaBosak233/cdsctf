@@ -92,6 +92,7 @@ idp:
   login:
     success: 登录成功
     error: 第三方登录失败
+    registration_disabled: 此认证服务不允许新用户注册，请先登录已有账号后再绑定。
   unbind:
     success: 第三方账号解绑成功
   third_party: 第三方登录

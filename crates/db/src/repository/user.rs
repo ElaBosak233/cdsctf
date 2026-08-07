@@ -319,6 +319,7 @@ pub async fn delete(conn: &impl ConnectionTrait, user_id: i64) -> Result<(), DbE
     .await?;
 
     let _ = super::email::delete_by_user_id(conn, user_id).await?;
+    super::user_idp::delete_user_idps_by_user(conn, user_id).await?;
     info!(
         user_id,
         username = %user.username,
