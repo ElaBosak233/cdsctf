@@ -1,7 +1,6 @@
 import type { Column, ColumnDef, Row } from "@tanstack/react-table";
 import {
   ArrowDownIcon,
-  ArrowRightIcon,
   ArrowUpDownIcon,
   ArrowUpIcon,
   ClipboardCheckIcon,
@@ -259,6 +258,14 @@ function ScheduleCell({
   formatter: Intl.DateTimeFormat;
 }) {
   const { t } = useTranslation();
+  const startedAt = new Date(row.original.started_at * 1000);
+  const endedAt = new Date(row.original.ended_at * 1000);
+  const rangeFormatter = formatter as Intl.DateTimeFormat & {
+    formatRange?: (start: Date, end: Date) => string;
+  };
+  const range = rangeFormatter.formatRange
+    ? rangeFormatter.formatRange(startedAt, endedAt)
+    : `${formatter.format(startedAt)} - ${formatter.format(endedAt)}`;
   const format = (timestamp: number) =>
     formatter.format(new Date(timestamp * 1000));
 
@@ -268,14 +275,12 @@ function ScheduleCell({
         className={cn([
           "flex",
           "items-center",
-          "gap-1.5",
-          "whitespace-nowrap",
+          "min-w-0",
           "text-sm",
+          "leading-5",
         ])}
       >
-        <span>{format(row.original.started_at)}</span>
-        <ArrowRightIcon className="size-3.5 shrink-0 text-muted-foreground" />
-        <span>{format(row.original.ended_at)}</span>
+        <span>{range}</span>
       </div>
       <div
         className={cn([
@@ -456,6 +461,7 @@ function useColumns() {
   const formatter = useMemo(
     () =>
       new Intl.DateTimeFormat(language, {
+        year: "numeric",
         month: "2-digit",
         day: "2-digit",
         hour: "2-digit",

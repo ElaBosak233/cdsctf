@@ -190,7 +190,7 @@ export default function Index() {
                         "bg-muted/95",
                         header.column.id === "classification" && ["w-44"],
                         header.column.id === "status" && ["w-52"],
-                        header.column.id === "updated_at" && ["w-40"],
+                        header.column.id === "updated_at" && ["w-44"],
                         header.column.id === "actions" && [
                           "sticky",
                           "right-0",

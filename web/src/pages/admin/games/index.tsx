@@ -147,7 +147,7 @@ export default function Index() {
           <Table
             className={cn([
               "w-full",
-              "min-w-192",
+              "min-w-224",
               "table-fixed",
               "text-foreground",
             ])}
@@ -170,7 +170,7 @@ export default function Index() {
                       className={cn([
                         header.column.id === "game" && ["min-w-64"],
                         header.column.id === "status" && ["w-52"],
-                        header.column.id === "started_at" && ["w-72"],
+                        header.column.id === "started_at" && ["w-80"],
                         header.column.id === "actions" && [
                           "sticky",
                           "right-0",
