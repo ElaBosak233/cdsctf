@@ -168,6 +168,7 @@ export default function Index() {
                     <TableHead
                       key={header.id}
                       className={cn([
+                        "bg-muted/95",
                         header.column.id === "game" && ["min-w-64"],
                         header.column.id === "status" && ["w-52"],
                         header.column.id === "started_at" && ["w-80"],
@@ -196,20 +197,24 @@ export default function Index() {
                   <RowProvider key={row.original.id} game={row.original}>
                     <TableRow
                       data-state={row.getIsSelected() ? "selected" : undefined}
-                      className={cn(["group", "transition-colors"])}
+                      className={cn([
+                        "group",
+                        "transition-colors",
+                        "hover:bg-transparent",
+                      ])}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
                           key={cell.id}
                           className={cn([
                             "py-3",
+                            "transition-colors",
+                            "group-hover:bg-muted/50",
                             cell.column.id === "actions" && [
                               "sticky",
                               "right-0",
                               "z-1",
                               "bg-card",
-                              "transition-colors",
-                              "group-hover:bg-muted",
                             ],
                           ])}
                         >
