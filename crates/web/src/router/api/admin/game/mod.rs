@@ -97,6 +97,8 @@ pub struct CreateGameRequest {
     pub description: Option<String>,
     pub enabled: Option<bool>,
     pub public: Option<bool>,
+    pub paused: Option<bool>,
+    pub blacked_out: Option<bool>,
     pub writeup_required: Option<bool>,
     pub member_limit_min: Option<i64>,
     pub member_limit_max: Option<i64>,
@@ -130,6 +132,8 @@ pub async fn create_game(
 
             enabled: Set(body.enabled.unwrap_or(false)),
             public: Set(body.public.unwrap_or(false)),
+            paused: Set(body.paused.unwrap_or(false)),
+            blacked_out: Set(body.blacked_out.unwrap_or(false)),
             writeup_required: Set(body.writeup_required.unwrap_or(false)),
 
             member_limit_min: body.member_limit_min.map_or(NotSet, Set),

@@ -74,6 +74,8 @@ pub enum WebError {
     Unauthorized(serde_json::Value),
     #[error("forbidden: {0}")]
     Forbidden(serde_json::Value),
+    #[error("locked: {0}")]
+    Locked(serde_json::Value),
     #[error("conflict: {0}")]
     Conflict(serde_json::Value),
     #[error("too many requests: {0}")]
@@ -119,6 +121,7 @@ impl IntoResponse for WebError {
             Self::BadRequest(_) => "bad_request",
             Self::Unauthorized(_) => "unauthorized",
             Self::Forbidden(_) => "forbidden",
+            Self::Locked(_) => "locked",
             Self::Conflict(_) => "conflict",
             Self::TooManyRequests(_) => "too_many_requests",
             Self::UnprocessableEntity(_) => "unprocessable_entity",
@@ -143,6 +146,7 @@ impl IntoResponse for WebError {
             Self::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg.clone()),
             Self::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, msg.clone()),
             Self::Forbidden(msg) => (StatusCode::FORBIDDEN, msg.clone()),
+            Self::Locked(msg) => (StatusCode::LOCKED, msg.clone()),
             Self::Conflict(msg) => (StatusCode::CONFLICT, msg.clone()),
             Self::TooManyRequests(msg) => (StatusCode::TOO_MANY_REQUESTS, msg.clone()),
             Self::UnprocessableEntity(msg) => (StatusCode::UNPROCESSABLE_ENTITY, msg.clone()),

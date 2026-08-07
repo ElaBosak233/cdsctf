@@ -80,6 +80,8 @@ fn active_game_access_query(
         .filter(crate::entity::game_challenge::Column::ChallengeId.eq(challenge_id))
         .filter(crate::entity::team_user::Column::UserId.eq(user_id))
         .filter(crate::entity::team::Column::State.eq(crate::entity::team::State::Passed))
+        .filter(crate::entity::game::Column::Enabled.eq(true))
+        .filter(crate::entity::game::Column::Paused.eq(false))
         .filter(crate::entity::game::Column::StartedAt.lte(now))
         .filter(crate::entity::game::Column::EndedAt.gte(now))
 }
@@ -264,9 +266,11 @@ mod tests {
         assert!(statement.sql.contains("\"challenge_id\" = $1"));
         assert!(statement.sql.contains("\"user_id\" = $2"));
         assert!(statement.sql.contains("\"state\" = $3"));
-        assert!(statement.sql.contains("\"started_at\" <= $4"));
-        assert!(statement.sql.contains("\"ended_at\" >= $5"));
-        assert_eq!(statement.values.unwrap().0.len(), 5);
+        assert!(statement.sql.contains("\"enabled\" = $4"));
+        assert!(statement.sql.contains("\"paused\" = $5"));
+        assert!(statement.sql.contains("\"started_at\" <= $6"));
+        assert!(statement.sql.contains("\"ended_at\" >= $7"));
+        assert_eq!(statement.values.unwrap().0.len(), 7);
     }
 
     #[test]
@@ -277,6 +281,6 @@ mod tests {
         assert!(statement.sql.contains("\"challenges\".\"id\" = $1"));
         assert!(statement.sql.contains("\"challenges\".\"public\" = $2"));
         assert!(statement.sql.contains(" OR EXISTS(SELECT"));
-        assert_eq!(statement.values.unwrap().0.len(), 7);
+        assert_eq!(statement.values.unwrap().0.len(), 9);
     }
 }

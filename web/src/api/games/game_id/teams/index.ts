@@ -1,4 +1,4 @@
-import type { TeamView } from "@/models/team";
+import type { PlayerTeamView } from "@/models/team";
 import { api } from "@/utils/query";
 
 export type CreateTeamRequest = {
@@ -19,5 +19,5 @@ export async function createTeam(request: CreateTeamRequest) {
         description: request.description,
       },
     })
-    .json<{ team: TeamView }>();
+    .json<{ team: PlayerTeamView }>();
 }

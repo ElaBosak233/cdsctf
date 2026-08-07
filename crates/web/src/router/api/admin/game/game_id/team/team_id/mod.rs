@@ -31,7 +31,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Json as ReqJson, Path},
-    router::api::game::game_id::team::TeamResponse,
+    router::api::admin::game::game_id::team::AdminTeamResponse,
     traits::{AppState, EmptyJson, WebError},
 };
 
@@ -66,7 +66,7 @@ pub struct UpdateTeamRequest {
     ),
     request_body = UpdateTeamRequest,
     responses(
-        (status = 200, description = "Updated team", body = TeamResponse),
+        (status = 200, description = "Updated team", body = AdminTeamResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -75,7 +75,7 @@ pub async fn update_team(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,
     ReqJson(body): ReqJson<UpdateTeamRequest>,
-) -> Result<Json<TeamResponse>, WebError> {
+) -> Result<Json<AdminTeamResponse>, WebError> {
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
     let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
@@ -103,7 +103,7 @@ pub async fn update_team(
         calculator::notify(&s.queue, game_id).await;
     }
 
-    Ok(Json(TeamResponse { team: new_team }))
+    Ok(Json(AdminTeamResponse { team: new_team }))
 }
 
 /// Deletes team.

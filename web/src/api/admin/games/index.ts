@@ -24,6 +24,8 @@ export type CreateGameRequest = {
   description?: string;
   enabled?: boolean;
   public?: boolean;
+  paused?: boolean;
+  blacked_out?: boolean;
   writeup_required?: boolean;
   member_limit_min?: number;
   member_limit_max?: number;

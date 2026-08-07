@@ -114,6 +114,7 @@ pub struct GameScoreboardResponse {
     ),
     responses(
         (status = 200, description = "Scoreboard", body = GameScoreboardResponse),
+        (status = 403, description = "Game is blacked out", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -125,6 +126,13 @@ pub async fn get_game_scoreboard(
     Query(params): Query<GetGameScoreboardRequest>,
 ) -> Result<Json<GameScoreboardResponse>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+
+    if !game.enabled {
+        return Err(WebError::NotFound(json!("")));
+    }
+    if game.blacked_out {
+        return Err(WebError::Forbidden(json!("game_blacked_out")));
+    }
 
     let (records, total) =
         cds_db::team::find_scoreboard(&s.db.conn, game.id, params.page, params.size).await?;

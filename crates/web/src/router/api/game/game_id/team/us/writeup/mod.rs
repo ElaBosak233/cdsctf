@@ -118,5 +118,5 @@ pub async fn save_team_write_up(
     )
     .await?;
 
-    Ok(Json(TeamResponse { team }))
+    Ok(Json(TeamResponse::new(team, game.blacked_out)))
 }

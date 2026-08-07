@@ -33,6 +33,7 @@ impl MigratorTrait for Migrator {
             Box::new(migrations::m20260806_000011_create_note::Migration),
             Box::new(migrations::m20260806_000012_create_idp::Migration),
             Box::new(migrations::m20260806_000013_create_user_idp::Migration),
+            Box::new(migrations::m20260807_000014_add_game_states::Migration),
         ]
     }
 }

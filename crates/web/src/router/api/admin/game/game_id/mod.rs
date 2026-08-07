@@ -81,6 +81,8 @@ pub struct UpdateGameRequest {
     pub description: Option<String>,
     pub enabled: Option<bool>,
     pub public: Option<bool>,
+    pub paused: Option<bool>,
+    pub blacked_out: Option<bool>,
     pub member_limit_min: Option<i64>,
     pub member_limit_max: Option<i64>,
     pub writeup_required: Option<bool>,
@@ -121,6 +123,8 @@ pub async fn update_game(
             description: body.description.map_or(NotSet, |v| Set(Some(v))),
             enabled: body.enabled.map_or(NotSet, Set),
             public: body.public.map_or(NotSet, Set),
+            paused: body.paused.map_or(NotSet, Set),
+            blacked_out: body.blacked_out.map_or(NotSet, Set),
             writeup_required: body.writeup_required.map_or(NotSet, Set),
 
             member_limit_min: body.member_limit_min.map_or(NotSet, Set),

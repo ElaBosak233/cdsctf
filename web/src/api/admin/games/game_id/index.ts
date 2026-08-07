@@ -15,6 +15,8 @@ export type UpdateGameBody = {
   description?: string | null;
   enabled?: boolean;
   public?: boolean;
+  paused?: boolean;
+  blacked_out?: boolean;
   writeup_required?: boolean;
   member_limit_min?: number;
   member_limit_max?: number;
@@ -29,7 +31,9 @@ export type UpdateGameRequest = UpdateGameBody & {
 
 export async function updateGame(request: UpdateGameRequest) {
   const { id, ...body } = request;
-  return api.put(`admin/games/${id}`, { json: body }).json<{ game: GameDetail }>();
+  return api
+    .put(`admin/games/${id}`, { json: body })
+    .json<{ game: GameDetail }>();
 }
 
 export type DeleteGameRequest = {

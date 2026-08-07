@@ -17,3 +17,6 @@ async-trait       = { workspace = true }
 sea-orm           = { workspace = true }
 sea-orm-migration = { workspace = true }
 tracing           = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }

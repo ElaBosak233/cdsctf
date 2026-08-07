@@ -27,6 +27,7 @@ enabled:
     success: 大会 {{title}} の状態を更新しました。
 scoreboard:
   _: スコアボード
+  blackout: ブラックアウト中のため順位表は非公開です
   empty: 参加チームはありません。
   columns:
     user: ユーザー
@@ -80,6 +81,14 @@ form:
     _: 公開（審査不要）
     'true': はい
     'false': いいえ
+  paused:
+    _: 大会を一時停止
+    'true': 一時停止中
+    'false': 開催中
+  blacked_out:
+    _: ブラックアウトモード
+    'true': 非公開
+    'false': リアルタイム公開
   writeup_required:
     _: 解答レポートの提出が必要
     'true': はい
@@ -119,6 +128,9 @@ actions:
     success: 大会 {{title}} を更新しました。
 challenges:
   no_permission: この大会の課題を表示する権限がありません。
+paused:
+  title: 大会は一時停止中です
+  description: 管理者が再開すると、引き続き課題に取り組めます。
 challenge:
   empty: この大会には課題がまだありません。
   pts: 現在のポイント

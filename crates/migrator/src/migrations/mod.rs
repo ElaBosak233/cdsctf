@@ -51,3 +51,6 @@ pub mod m20260806_000012_create_idp;
 /// Defines the `m20260806_000013_create_user_idp` submodule (see sibling `*.rs`
 /// files).
 pub mod m20260806_000013_create_user_idp;
+
+/// Adds the runtime pause and blackout states to games.
+pub mod m20260807_000014_add_game_states;

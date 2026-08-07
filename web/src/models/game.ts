@@ -5,6 +5,8 @@ export type GameDetail = {
   description: string | null;
   enabled: boolean;
   public: boolean;
+  paused: boolean;
+  blacked_out: boolean;
   writeup_required: boolean;
   member_limit_min: number;
   member_limit_max: number;
@@ -24,6 +26,8 @@ export type GameView = Pick<
   | "sketch"
   | "description"
   | "writeup_required"
+  | "paused"
+  | "blacked_out"
   | "started_at"
   | "frozen_at"
   | "ended_at"

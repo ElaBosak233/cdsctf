@@ -29,7 +29,7 @@ pub use idp::{IdpSummary, IdpView};
 pub use note::NoteView;
 pub use scoreboard::{ScoreboardEntry, ScoreboardSubmission, ScoreboardTeam};
 pub use submission::{SubmissionSummary, SubmissionView};
-pub use team::TeamView;
+pub use team::{PlayerTeamView, TeamView};
 pub use team_user::TeamUserView;
 pub use user::{UserAccountView, UserProfile, UserSummary};
 pub use user_idp::{UserIdpSummary, UserIdpView};

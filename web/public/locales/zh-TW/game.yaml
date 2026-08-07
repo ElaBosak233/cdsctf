@@ -27,6 +27,7 @@ enabled:
     success: "比賽 {{title}} 狀態更新成功。"
 scoreboard:
   _: 積分榜
+  blackout: 黑夜模式封榜
   empty: 目前尚無團隊。
   columns:
     user: 使用者
@@ -80,6 +81,14 @@ form:
     _: 是否公開（免審核）
     "true": 是
     "false": 否
+  paused:
+    _: 暫停比賽
+    "true": 已暫停
+    "false": 正常進行
+  blacked_out:
+    _: 黑燈模式
+    "true": 已封榜
+    "false": 即時公開
   writeup_required:
     _: 是否需要送出解題報告
     "true": 是
@@ -119,6 +128,9 @@ actions:
     success: "比賽 {{title}} 更新成功。"
 challenges:
   no_permission: 你沒有權限檢視這場比賽的題目。
+paused:
+  title: 比賽已暫停
+  description: 管理員恢復比賽後可以繼續答題。
 challenge:
   empty: 此比賽目前尚無題目。
   pts: 目前分數

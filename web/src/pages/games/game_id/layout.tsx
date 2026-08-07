@@ -19,6 +19,7 @@ function useGameQuery(gameId: number | undefined, trigger: number = 0) {
     select: (response) => response.game,
     enabled: gameId != null,
     placeholderData: keepPreviousData,
+    refetchInterval: 5000,
   });
 }
 
@@ -44,6 +45,16 @@ export default function GameLayout() {
   useEffect(() => {
     void sharedStore?.refresh;
 
+    if (game?.blacked_out) {
+      const currentTeam = useGameStore.getState().selfTeam;
+      if (
+        currentTeam &&
+        (currentTeam.pts !== undefined || currentTeam.rank !== undefined)
+      ) {
+        setSelfTeam({ ...currentTeam, pts: undefined, rank: undefined });
+      }
+    }
+
     if (gameId == null) {
       setGtLoaded(true);
       return;
@@ -67,7 +78,13 @@ export default function GameLayout() {
         setGtLoaded(true);
       }
     })();
-  }, [sharedStore?.refresh, gameId, setSelfTeam, authStore?.user]);
+  }, [
+    sharedStore?.refresh,
+    gameId,
+    game?.blacked_out,
+    setSelfTeam,
+    authStore?.user,
+  ]);
 
   useEffect(() => {
     void sharedStore?.refresh;

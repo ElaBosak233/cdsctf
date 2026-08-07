@@ -73,9 +73,10 @@ pub async fn get_team(
     Path(game_id): Path<i64>,
 ) -> Result<Json<TeamResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
-    Ok(Json(TeamResponse { team }))
+    Ok(Json(TeamResponse::new(team, game.blacked_out)))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
@@ -110,6 +111,7 @@ pub async fn update_team(
 ) -> Result<Json<TeamResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
     let team = cds_db::team::update(
@@ -125,7 +127,7 @@ pub async fn update_team(
     )
     .await?;
 
-    Ok(Json(TeamResponse { team }))
+    Ok(Json(TeamResponse::new(team, game.blacked_out)))
 }
 
 /// Deletes team.
@@ -231,5 +233,5 @@ pub async fn set_team_ready(
         calculator::notify(&s.queue, game.id).await;
     }
 
-    Ok(Json(TeamResponse { team }))
+    Ok(Json(TeamResponse::new(team, game.blacked_out)))
 }

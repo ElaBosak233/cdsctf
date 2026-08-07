@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   ListOrderedIcon,
   MessageCircleDashedIcon,
+  MoonIcon,
   StarIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -40,8 +41,32 @@ export default function Index() {
       total: response.total || 0,
     }),
     placeholderData: keepPreviousData,
-    enabled: !!currentGame?.id,
+    enabled: !!currentGame?.id && !currentGame.blacked_out,
   });
+
+  if (currentGame?.blacked_out) {
+    return (
+      <>
+        <title>{`${t("game:scoreboard._")} - ${currentGame.title}`}</title>
+        <div
+          className={cn([
+            "flex",
+            "flex-1",
+            "flex-col",
+            "items-center",
+            "justify-center",
+            "gap-5",
+            "select-none",
+          ])}
+        >
+          <MoonIcon className="size-16 text-muted-foreground" />
+          <span className="text-base font-medium">
+            {t("game:scoreboard.blackout")}
+          </span>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

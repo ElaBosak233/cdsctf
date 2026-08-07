@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
-import { Clock3Icon, LibraryIcon } from "lucide-react";
+import { CirclePauseIcon, Clock3Icon, LibraryIcon } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -53,7 +53,7 @@ export default function Index() {
         return (a.challenge_category ?? 0) - (b.challenge_category ?? 0);
       });
     },
-    enabled: gameId != null,
+    enabled: gameId != null && !currentGame?.paused,
   });
 
   const categories = useMemo(() => {
@@ -83,6 +83,10 @@ export default function Index() {
       navigate(`/games/${currentGame?.id}`);
       toast.error(t("game:challenges.no_permission"));
     }
+    if (error.response.status === StatusCodes.LOCKED) {
+      navigate(`/games/${currentGame?.id}`);
+      toast.error(t("game:paused.title"));
+    }
   }, [error, navigate, currentGame?.id, t]);
 
   const teamId = selfGameTeam?.id;
@@ -101,7 +105,11 @@ export default function Index() {
       }),
     select: (response) => response.statuses,
     refetchInterval: 15000,
-    enabled: gameId != null && teamId != null && challengeIds.length > 0,
+    enabled:
+      gameId != null &&
+      teamId != null &&
+      challengeIds.length > 0 &&
+      !currentGame?.paused,
   });
 
   const loading = useMemo(() => {
@@ -163,6 +171,35 @@ export default function Index() {
     if (statusKey === "upcoming") return "bg-info/10";
     return "bg-success/10";
   }, [statusKey]);
+
+  if (currentGame?.paused) {
+    return (
+      <>
+        <title>{`${t("challenge:_")} - ${currentGame.title}`}</title>
+        <div
+          className={cn([
+            "flex",
+            "flex-1",
+            "flex-col",
+            "items-center",
+            "justify-center",
+            "gap-4",
+            "px-6",
+            "text-center",
+            "select-none",
+          ])}
+        >
+          <CirclePauseIcon className="size-16 text-muted-foreground" />
+          <div className="flex flex-col gap-1.5">
+            <h1 className="text-lg font-semibold">{t("game:paused.title")}</h1>
+            <p className="text-sm text-muted-foreground">
+              {t("game:paused.description")}
+            </p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    TeamUserView,
+    PlayerTeamView, TeamUserView,
     sea_orm::ActiveValue::Set,
     team::{State as TState, TeamView},
 };
@@ -37,7 +37,15 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct TeamResponse {
-    pub team: TeamView,
+    pub team: PlayerTeamView,
+}
+
+impl TeamResponse {
+    pub fn new(team: TeamView, blacked_out: bool) -> Self {
+        Self {
+            team: PlayerTeamView::from_team(team, blacked_out),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
@@ -105,5 +113,8 @@ pub async fn create_team(
         .await?
         .ok_or(WebError::NotFound(json!("")))?;
 
-    Ok((StatusCode::CREATED, Json(TeamResponse { team })))
+    Ok((
+        StatusCode::CREATED,
+        Json(TeamResponse::new(team, game.blacked_out)),
+    ))
 }

@@ -1119,6 +1119,7 @@ dependencies = [
  "cds-db",
  "sea-orm",
  "sea-orm-migration",
+ "tokio",
  "tracing",
 ]
 

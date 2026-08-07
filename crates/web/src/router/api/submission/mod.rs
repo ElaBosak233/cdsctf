@@ -135,7 +135,9 @@ pub struct CreateSubmissionRequest {
         (status = 201, description = "Created submission", body = SubmissionSummary),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Forbidden", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
+        (status = 423, description = "Game paused", body = crate::traits::ErrorResponse),
         (status = 429, description = "Rate limited", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -148,20 +150,6 @@ pub async fn create_submission(
     ReqJson(body): ReqJson<CreateSubmissionRequest>,
 ) -> Result<(StatusCode, Json<SubmissionSummary>), WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
-
-    let token = format!("submission:user:{}", operator.id);
-    let decision = s
-        .cache
-        .fixed_window(&token, 10, std::time::Duration::from_secs(60))
-        .await?;
-    if !decision.allowed {
-        warn!(
-            user_id = operator.id,
-            limit = decision.used,
-            "submission rate limit exceeded"
-        );
-        return Err(WebError::TooManyRequests(json!("submission")));
-    }
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
@@ -177,8 +165,20 @@ pub async fn create_submission(
     if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
         let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-        let _ =
+        if !game.enabled {
+            return Err(WebError::NotFound(json!("game_not_found")));
+        }
+        crate::util::loader::ensure_game_not_paused(&game)?;
+        crate::util::loader::ensure_game_ongoing(
+            &game,
+            time::OffsetDateTime::now_utc().unix_timestamp(),
+        )?;
+
+        let game_challenge =
             crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge.id).await?;
+        if !game_challenge.enabled {
+            return Err(WebError::NotFound(json!("game_challenge_not_found")));
+        }
 
         if cds_db::team::find::<TeamView>(
             &s.db.conn,
@@ -210,6 +210,20 @@ pub async fn create_submission(
             );
             return Err(WebError::Forbidden(json!("cheated")));
         }
+    }
+
+    let token = format!("submission:user:{}", operator.id);
+    let decision = s
+        .cache
+        .fixed_window(&token, 10, std::time::Duration::from_secs(60))
+        .await?;
+    if !decision.allowed {
+        warn!(
+            user_id = operator.id,
+            limit = decision.used,
+            "submission rate limit exceeded"
+        );
+        return Err(WebError::TooManyRequests(json!("submission")));
     }
 
     let submission = cds_db::submission::create(

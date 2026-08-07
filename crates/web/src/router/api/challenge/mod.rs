@@ -128,6 +128,7 @@ pub struct ChallengeStatusesResponse {
         (status = 200, description = "Per-challenge status", body = ChallengeStatusesResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 423, description = "Game paused", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -141,6 +142,11 @@ pub async fn query_challenge_status(
 
     if body.user_id.is_some() && (body.team_id.is_some() || body.game_id.is_some()) {
         return Err(WebError::BadRequest(json!("either_user_or_team")));
+    }
+
+    if let Some(game_id) = body.game_id {
+        let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+        crate::util::loader::ensure_game_not_paused(&game)?;
     }
 
     let submissions = cds_db::submission::find_correct_by_challenge_ids_and_optional_team_game(

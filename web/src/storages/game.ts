@@ -1,15 +1,15 @@
 import { create } from "zustand";
 
 import type { GameView } from "@/models/game";
-import type { TeamView } from "@/models/team";
+import type { PlayerTeamView } from "@/models/team";
 import type { UserSummary } from "@/models/user";
 
 type GameState = {
   currentGame?: GameView;
   setCurrentGame: (game?: GameView) => void;
 
-  selfTeam?: TeamView;
-  setSelfTeam: (team?: TeamView) => void;
+  selfTeam?: PlayerTeamView;
+  setSelfTeam: (team?: PlayerTeamView) => void;
 
   members?: Array<UserSummary>;
   setMembers: (users?: Array<UserSummary>) => void;

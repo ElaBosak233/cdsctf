@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
 import type { ChallengeSummary } from "@/models/challenge";
-import type { TeamView } from "@/models/team";
+import type { PlayerTeamView } from "@/models/team";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { AttachmentSection } from "./attachment-section";
@@ -21,7 +21,7 @@ import { SubmitSection } from "./submit-section";
 
 type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
   digest?: Pick<ChallengeSummary, "id" | "title" | "category">;
-  gameTeam?: TeamView;
+  gameTeam?: PlayerTeamView;
   frozenAt?: number | null;
   debug?: boolean;
   cheated?: boolean;

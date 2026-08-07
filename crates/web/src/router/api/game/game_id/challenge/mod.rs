@@ -53,6 +53,7 @@ pub struct GameChallengesListResponse {
         (status = 200, description = "Game challenges", body = GameChallengesListResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 403, description = "Forbidden", body = crate::traits::ErrorResponse),
+        (status = 423, description = "Game paused", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -67,14 +68,20 @@ pub async fn get_game_challenge(
 
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
+    if !game.enabled {
+        return Err(WebError::NotFound(json!("")));
+    }
+    crate::util::loader::ensure_game_not_paused(&game)?;
+
     let now = time::OffsetDateTime::now_utc().unix_timestamp();
     let in_game =
         cds_db::team::contains_user_in_game(&s.db.conn, game.id, operator.id, Some(TState::Passed))
             .await?;
 
-    if !in_game || !(game.started_at..=game.ended_at).contains(&now) {
+    if !in_game {
         return Err(WebError::Forbidden(json!("")));
     }
+    crate::util::loader::ensure_game_ongoing(&game, now)?;
 
     let (game_challenges, total) = cds_db::game_challenge::find::<GameChallengeSummary>(
         &s.db.conn,

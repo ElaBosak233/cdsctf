@@ -27,6 +27,7 @@ enabled:
     success: "Game {{title}} status updated successfully."
 scoreboard:
   _: Scoreboard
+  blackout: Scoreboard blackout is active
   empty: But nobody came.
   columns:
     user: User
@@ -80,6 +81,14 @@ form:
     _: Is Public (without review)
     "true": "Yes"
     "false": "No"
+  paused:
+    _: Pause Game
+    "true": Paused
+    "false": Running
+  blacked_out:
+    _: Blackout Mode
+    "true": Blacked out
+    "false": Live
   writeup_required:
     _: Is Write-up Required
     "true": "Yes"
@@ -119,6 +128,9 @@ actions:
     success: "Game {{title}} updated successfully."
 challenges:
   no_permission: You do not have permission to view challenges in this game.
+paused:
+  title: Game paused
+  description: You can continue solving after an administrator resumes the game.
 challenge:
   empty: "Oops, it seems that there are no challenges in this game yet."
   pts: Current Points

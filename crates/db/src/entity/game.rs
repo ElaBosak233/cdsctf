@@ -17,6 +17,10 @@ pub struct Model {
     pub description: Option<String>,
     pub enabled: bool,
     pub public: bool,
+    #[sea_orm(default_value = false)]
+    pub paused: bool,
+    #[sea_orm(default_value = false)]
+    pub blacked_out: bool,
     #[sea_orm(default_value = 3)]
     pub member_limit_min: i64,
     #[sea_orm(default_value = 3)]

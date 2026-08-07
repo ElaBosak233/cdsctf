@@ -11,6 +11,11 @@ export type TeamView = {
   rank: number;
 };
 
+export type PlayerTeamView = Omit<TeamView, "pts" | "rank"> & {
+  pts?: number;
+  rank?: number;
+};
+
 export enum State {
   Banned = 0,
   Preparing = 1,
