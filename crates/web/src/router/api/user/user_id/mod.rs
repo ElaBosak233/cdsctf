@@ -13,8 +13,8 @@ use utoipa_axum::{
 
 use super::UserPublicResponse;
 use crate::{
-    extract::{Extension, Path},
-    traits::{AppState, AuthPrincipal, WebError},
+    extract::Path,
+    traits::{AppState, WebError},
 };
 
 /// Defines the `avatar` submodule (see sibling `*.rs` files).
@@ -42,7 +42,6 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     ),
     responses(
         (status = 200, description = "User profile", body = UserPublicResponse),
-        (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -50,10 +49,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[tracing::instrument(skip_all, fields(handler = "get_user"))]
 pub async fn get_user(
     State(s): State<Arc<AppState>>,
-    Extension(ext): Extension<AuthPrincipal>,
     Path(user_id): Path<i64>,
 ) -> Result<Json<UserPublicResponse>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
     let user = cds_db::user::find_by_id::<cds_db::UserAccountView>(&s.db.conn, user_id)
         .await?
         .ok_or(WebError::NotFound(json!("")))?;

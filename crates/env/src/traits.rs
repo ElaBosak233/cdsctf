@@ -9,9 +9,15 @@ pub enum EnvError {
     #[error("io error: {0}")]
     IOError(#[from] std::io::Error),
     #[error("figment error: {0}")]
-    FigmentError(#[from] figment::Error),
+    FigmentError(#[source] Box<figment::Error>),
     #[error("utf8 error: {0}")]
     Utf8Error(#[from] std::str::Utf8Error),
     #[error("other error: {0}")]
     OtherError(#[from] anyhow::Error),
+}
+
+impl From<figment::Error> for EnvError {
+    fn from(error: figment::Error) -> Self {
+        Self::FigmentError(Box::new(error))
+    }
 }

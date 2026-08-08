@@ -33,6 +33,10 @@ const dataTableFeatures = tableFeatures({
   sortFns,
 });
 
+// TanStack Table v9 compares data by reference. Reusing one empty value keeps
+// loading states from rebuilding row models on every render.
+const EMPTY_DATA: never[] = [];
+
 type DataTableFeatures = typeof dataTableFeatures;
 
 export type Column<TData extends RowData, TValue = unknown> = TanStackColumn<
@@ -51,7 +55,11 @@ export type Row<TData extends RowData> = TanStackRow<DataTableFeatures, TData>;
 export function useDataTable<TData extends RowData>(
   options: Omit<TableOptions<DataTableFeatures, TData>, "features">
 ) {
-  return useTable({ ...options, features: dataTableFeatures });
+  return useTable({
+    ...options,
+    data: options.data.length === 0 ? EMPTY_DATA : options.data,
+    features: dataTableFeatures,
+  });
 }
 
 export {

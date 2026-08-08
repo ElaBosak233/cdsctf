@@ -4,7 +4,7 @@ import Backend from "i18next-http-backend";
 import { load as loadYaml } from "js-yaml";
 import { initReactI18next } from "react-i18next";
 
-i18n
+await i18n
   .use(Backend)
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -31,7 +31,7 @@ i18n
       "instance",
       "admin",
     ],
-    defaultNS: false,
+    defaultNS: "common",
     load: "currentOnly",
     nsSeparator: ":",
     backend: {

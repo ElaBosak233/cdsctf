@@ -27,7 +27,7 @@ const api = ky.extend({
         if (existing) {
           // A request is already in-flight — share its response instead of
           // making a duplicate call to the server.
-          return existing.responsePromise;
+          return existing.responsePromise.then((response) => response.clone());
         }
 
         let resolve: (response: Response) => void;
