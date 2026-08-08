@@ -22,6 +22,9 @@ errors:
   default: エラーが発生しました
   unexpected: エラーが発生しました
   network: ネットワークエラー
+  service_unavailable: サービスを利用できません
+  service_unavailable_description: サーバーがリクエストを完了できませんでした
+  timeout: リクエストがタイムアウトしました
 captcha:
   placeholder: CAPTCHA
 language:

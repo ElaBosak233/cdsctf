@@ -76,7 +76,7 @@ function InstanceSection() {
   const { t } = useTranslation();
 
   const { challenge, team, debug } = useContext(Context);
-  const authStore = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   const mode = useMemo(() => {
     if (team) {
@@ -110,15 +110,8 @@ function InstanceSection() {
     if (mode === "game") {
       return team?.id != null && team.game_id != null;
     }
-    return authStore?.user?.id != null;
-  }, [
-    authStore?.user?.id,
-    challenge?.id,
-    debug,
-    mode,
-    team?.game_id,
-    team?.id,
-  ]);
+    return user?.id != null;
+  }, [user?.id, challenge?.id, debug, mode, team?.game_id, team?.id]);
 
   const fetchInstances = useCallback(() => {
     const cid = challenge?.id;
@@ -129,7 +122,7 @@ function InstanceSection() {
     let pollTeamId: number | undefined;
 
     if (debug) {
-      pollUserId = mode !== "game" ? authStore?.user?.id : undefined;
+      pollUserId = mode !== "game" ? user?.id : undefined;
       if (mode === "game" && team?.id != null && team.game_id != null) {
         pollGameId = Number(team.game_id);
         pollTeamId = Number(team.id);
@@ -138,10 +131,10 @@ function InstanceSection() {
       if (team?.id == null || team.game_id == null) return;
       pollGameId = Number(team.game_id);
       pollTeamId = Number(team.id);
-    } else if (authStore?.user?.id == null) {
+    } else if (user?.id == null) {
       return;
     } else {
-      pollUserId = authStore.user.id;
+      pollUserId = user.id;
     }
 
     getInstances({
@@ -178,15 +171,7 @@ function InstanceSection() {
         }
       }
     });
-  }, [
-    authStore?.user?.id,
-    challenge?.id,
-    debug,
-    mode,
-    team?.game_id,
-    team?.id,
-    t,
-  ]);
+  }, [user?.id, challenge?.id, debug, mode, team?.game_id, team?.id, t]);
 
   async function handleInstanceRenew() {
     if (!instance) return;
@@ -247,7 +232,7 @@ function InstanceSection() {
       if (team?.id == null || team.game_id == null) return;
       createGameId = Number(team.game_id);
       createTeamId = Number(team.id);
-    } else if (authStore?.user?.id == null) {
+    } else if (user?.id == null) {
       return;
     }
 

@@ -19,6 +19,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::Extension,
+    router::api::user::UserResponse,
     traits::{AppState, AuthPrincipal, EmptyJson, WebError},
     util::media::handle_multipart,
 };
@@ -41,7 +42,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     path = "/",
     tag = "user",
     responses(
-        (status = 200, description = "Avatar saved", body = EmptyJson),
+        (status = 200, description = "Avatar saved", body = UserResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -51,7 +52,7 @@ pub async fn save_user_avatar(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
     multipart: Multipart,
-) -> Result<Json<EmptyJson>, WebError> {
+) -> Result<Json<UserResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
     let data = handle_multipart(multipart, mime::IMAGE).await?;
@@ -61,7 +62,7 @@ pub async fn save_user_avatar(
 
     s.media.save("media".to_owned(), hash.clone(), data).await?;
 
-    let _ = cds_db::user::update::<UserAccountView>(
+    let user = cds_db::user::update::<UserAccountView>(
         &s.db.conn,
         cds_db::user::ActiveModel {
             id: Unchanged(operator.id),
@@ -71,7 +72,7 @@ pub async fn save_user_avatar(
     )
     .await?;
 
-    Ok(Json(EmptyJson::default()))
+    Ok(Json(UserResponse { user }))
 }
 
 /// Deletes user avatar.

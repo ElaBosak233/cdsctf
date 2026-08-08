@@ -23,6 +23,7 @@ import { State } from "@/models/team";
 import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
+import { getLoginUrl } from "@/utils/redirect";
 import { TeamGatheringDialog } from "./_blocks/team-gathering-dialog";
 
 export default function Index() {
@@ -241,7 +242,7 @@ interface GameActionProps {
 export function GameActionButton({ status }: GameActionProps) {
   const { t } = useTranslation();
 
-  const { user } = useAuthStore();
+  const { status: authStatus, user } = useAuthStore();
   const { selfTeam } = useGameStore();
   const navigate = useNavigate();
   const { game_id } = useParams<{ game_id: string }>();
@@ -276,7 +277,7 @@ export function GameActionButton({ status }: GameActionProps) {
   }
 
   /** Visitor is not signed in. */
-  if (!user?.id) {
+  if (authStatus !== "authenticated" || !user?.id) {
     return (
       <Button
         className="w-full"
@@ -284,7 +285,7 @@ export function GameActionButton({ status }: GameActionProps) {
         level="warning"
         size="lg"
         icon={<UserRoundIcon />}
-        disabled
+        onClick={() => navigate(getLoginUrl(`/games/${game_id}/challenges`))}
       >
         {t("team:actions.participate_after_login")}
       </Button>

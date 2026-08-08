@@ -22,6 +22,9 @@ errors:
   default: 發生錯誤
   unexpected: 發生錯誤
   network: 網路錯誤
+  service_unavailable: 服務暫時無法使用
+  service_unavailable_description: 伺服器暫時無法完成請求
+  timeout: 請求逾時
 captcha:
   placeholder: 驗證碼
 language:

@@ -13,7 +13,7 @@ import { TabSection } from "./tab-section";
 import { Title } from "./title";
 
 function Navbar() {
-  const authStore = useAuthStore();
+  const { status, user } = useAuthStore();
   const location = useLocation();
   const pathname = location.pathname;
   const { game_id } = useParams<{ game_id?: string }>();
@@ -70,7 +70,7 @@ function Navbar() {
           </div>
           <div className={cn(["flex", "gap-1", "sm:gap-3", "items-center"])}>
             <Appearance />
-            {authStore?.user?.group === Group.Admin && (
+            {status === "authenticated" && user?.group === Group.Admin && (
               <Button
                 asChild
                 icon={<SettingsIcon />}

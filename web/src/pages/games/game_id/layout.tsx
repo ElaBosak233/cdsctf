@@ -28,7 +28,7 @@ export default function GameLayout() {
   const gameId = parseRouteNumericId(game_id);
   const { setCurrentGame, selfTeam, setSelfTeam, setMembers } = useGameStore();
   const sharedStore = useSharedStore();
-  const authStore = useAuthStore();
+  const { status: authStatus, user } = useAuthStore();
 
   const [gtLoaded, setGtLoaded] = useState<boolean>(false);
 
@@ -60,7 +60,7 @@ export default function GameLayout() {
       return;
     }
 
-    if (!authStore?.user) return;
+    if (authStatus !== "authenticated" || !user) return;
 
     (async () => {
       try {
@@ -83,7 +83,8 @@ export default function GameLayout() {
     gameId,
     game?.blacked_out,
     setSelfTeam,
-    authStore?.user,
+    authStatus,
+    user,
   ]);
 
   useEffect(() => {

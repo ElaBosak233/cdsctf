@@ -110,8 +110,8 @@ idp:
   empty: 尚未設定第三方身分驗證服務
   result_count: "{{count}} 個第三方身分驗證"
   local_registration:
-    _: 帳號密碼註冊
-    updated: 帳號密碼註冊設定已更新。
+    _: 本機帳號註冊
+    updated: 本機帳號註冊設定已更新。
   status:
     service: 驗證服務
     registration: 新使用者註冊

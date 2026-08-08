@@ -43,3 +43,5 @@ i18n
     },
     debug: import.meta.env.DEV,
   });
+
+export default i18n;

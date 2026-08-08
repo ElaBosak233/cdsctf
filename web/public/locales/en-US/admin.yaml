@@ -110,8 +110,8 @@ idp:
   empty: No IdP configured
   result_count: "{{count}} IdPs"
   local_registration:
-    _: Password registration
-    updated: Password registration setting updated.
+    _: Local account registration
+    updated: Local account registration setting updated.
   status:
     service: Service
     registration: Registration

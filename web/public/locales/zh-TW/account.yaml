@@ -16,6 +16,10 @@ login:
     already_logged_in: 你已登入
     not_verified: 你的帳號尚未驗證
     verify_email: 請先驗證你的電子郵件地址
+guard:
+  login_required: 請登入後繼續
+  unavailable: 暫時無法確認登入狀態，請重試
+  forbidden: 你沒有權限存取此頁面
 register:
   _: 註冊
   not_yet: 還沒有帳號？註冊！
@@ -87,10 +91,12 @@ idp:
     success_desc: 您已登入
     failed: 註冊失敗
     conflict: 使用者名稱或電子郵件已存在
+    expired: 第三方登入狀態已過期，請重新選擇認證服務
   bind:
     success: 第三方帳號綁定成功
   login:
     success: 登入成功
+    verifying: 正在驗證第三方帳號...
     error: 第三方登入失敗
     registration_disabled: 此認證服務不允許新使用者註冊，請先登入既有帳號後再綁定。
   unbind:

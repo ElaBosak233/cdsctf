@@ -8,9 +8,8 @@ import {
   PencilLineIcon,
   UserRoundIcon,
 } from "lucide-react";
-import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, Outlet, useLocation, useNavigate } from "react-router";
+import { Link, Outlet, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";
 import {
@@ -18,8 +17,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Group } from "@/models/user";
-import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { isSubRoute } from "@/utils/route";
 
@@ -28,23 +25,6 @@ export default function Layout() {
 
   const location = useLocation();
   const pathname = location.pathname;
-  const navigate = useNavigate();
-  const user = useAuthStore((s) => s.user);
-
-  useEffect(() => {
-    if (!user) {
-      navigate(
-        `/account/login?redirect=${encodeURIComponent(location.pathname + location.search)}`,
-        { replace: true }
-      );
-    } else if ((user.group ?? 0) < Group.Admin) {
-      navigate("/", { replace: true });
-    }
-  }, [user, navigate, location.pathname, location.search]);
-
-  if (!user || (user.group ?? 0) < Group.Admin) {
-    return null;
-  }
 
   const options = [
     {

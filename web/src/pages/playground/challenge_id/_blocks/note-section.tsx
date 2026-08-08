@@ -34,10 +34,10 @@ function useNoteQuery(userId: number | undefined, challengeId?: number) {
 
 function NoteSection() {
   const { t } = useTranslation();
-  const authStore = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const { challenge } = useContext(Context);
 
-  const { data: notes } = useNoteQuery(authStore?.user?.id, challenge?.id);
+  const { data: notes } = useNoteQuery(user?.id, challenge?.id);
 
   const note = notes && notes.length > 0 ? notes[0] : null;
 

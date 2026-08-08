@@ -110,8 +110,8 @@ idp:
   empty: 暂无第三方认证服务配置
   result_count: "{{count}} 个第三方认证服务"
   local_registration:
-    _: 账号密码注册
-    updated: 账号密码注册设置已更新。
+    _: 本地账号注册
+    updated: 本地账号注册设置已更新。
   status:
     service: 认证服务
     registration: 新用户注册

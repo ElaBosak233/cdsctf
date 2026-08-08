@@ -1,7 +1,7 @@
 import { IdCardIcon, LogInIcon, UserRoundPlusIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { getIdps } from "@/api/idps";
 import { Avatar } from "@/components/ui/avatar";
@@ -17,6 +17,11 @@ import { Separator } from "@/components/ui/separator";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
+import {
+  getSafeRedirect,
+  rememberIdpRedirect,
+  withRedirect,
+} from "@/utils/redirect";
 import { LoginForm } from "./_blocks/login-form";
 
 export default function Index() {
@@ -25,16 +30,25 @@ export default function Index() {
     []
   );
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
+  const { status, user } = useAuthStore();
+  const authenticatedByForm = useRef(false);
+  const redirect = getSafeRedirect(searchParams.get("redirect"));
+  const registerUrl = withRedirect("/account/register", redirect);
+
+  const getIdpUrl = (idpId: number | undefined, portal: string | null) =>
+    portal || withRedirect(`/account/idps/${idpId ?? ""}`, redirect);
 
   useEffect(() => {
-    if (!useAuthStore.getState().user) return;
+    if (status !== "authenticated" || !user) return;
+    if (authenticatedByForm.current) return;
 
-    navigate("/");
+    navigate(redirect, { replace: true });
     toast.warning(t("account:login.warning.already_logged_in"), {
       id: "login-already",
     });
-  }, [navigate, t]);
+  }, [navigate, redirect, status, t, user]);
 
   useEffect(() => {
     getIdps().then((res) => setIdps(res.idps ?? []));
@@ -82,7 +96,11 @@ export default function Index() {
                 {`${t("account:login.continue")} ${config?.meta?.title}`}
               </div>
               <div className={cn(["pt-6"])}>
-                <LoginForm />
+                <LoginForm
+                  onAuthenticated={() => {
+                    authenticatedByForm.current = true;
+                  }}
+                />
               </div>
               <div className={cn(["md:hidden", "flex", "flex-col", "gap-2"])}>
                 {config?.auth?.local_registration_enabled && (
@@ -93,7 +111,7 @@ export default function Index() {
                     variant={"tonal"}
                     icon={<UserRoundPlusIcon />}
                   >
-                    <Link to={"/account/register"}>
+                    <Link to={registerUrl}>
                       {t("account:register.not_yet")}
                     </Link>
                   </Button>
@@ -118,7 +136,8 @@ export default function Index() {
                           asChild
                         >
                           <a
-                            href={idp.portal || `/account/idps/${idp.id ?? ""}`}
+                            href={getIdpUrl(idp.id, idp.portal)}
+                            onClick={() => rememberIdpRedirect(redirect)}
                           >
                             <Avatar
                               square
@@ -178,9 +197,7 @@ export default function Index() {
                 variant={"tonal"}
                 icon={<UserRoundPlusIcon />}
               >
-                <Link to={"/account/register"}>
-                  {t("account:register.not_yet")}
-                </Link>
+                <Link to={registerUrl}>{t("account:register.not_yet")}</Link>
               </Button>
             )}
             {idps.length > 0 && (
@@ -202,7 +219,10 @@ export default function Index() {
                       className={cn(["flex", "items-center", "gap-2"])}
                       asChild
                     >
-                      <a href={idp.portal || `/account/idps/${idp.id ?? ""}`}>
+                      <a
+                        href={getIdpUrl(idp.id, idp.portal)}
+                        onClick={() => rememberIdpRedirect(redirect)}
+                      >
                         <Avatar
                           square
                           className={cn(["size-5", "bg-transparent"])}

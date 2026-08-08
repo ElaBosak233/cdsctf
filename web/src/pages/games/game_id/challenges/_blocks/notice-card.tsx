@@ -25,7 +25,7 @@ import { cn } from "@/utils";
 
 function NoticeCard() {
   const { t } = useTranslation();
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const { currentGame } = useGameStore();
   const [open, setOpen] = useState(false);
   const [selectedNoticeId, setSelectedNoticeId] = useState<number>();

@@ -110,8 +110,8 @@ idp:
   empty: ID プロバイダーが設定されていません。
   result_count: '{{count}} 件の ID プロバイダー'
   local_registration:
-    _: パスワードによる登録
-    updated: パスワードによる登録設定を更新しました。
+    _: ローカルアカウント登録
+    updated: ローカルアカウント登録設定を更新しました。
   status:
     service: サービス
     registration: 新規登録

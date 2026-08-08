@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { getConfigs, updateConfig } from "@/api/admin/configs";
 import { getAdminIdps } from "@/api/admin/idps";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
@@ -74,20 +74,17 @@ export default function Index() {
     }
   }
 
-  const localRegistrationControl = (
+  const renderLocalRegistrationControl = (compact = false) => (
     <div
-      className={cn([
-        "flex",
-        "shrink-0",
-        "items-center",
-        "gap-3",
-        "rounded-md",
-        "px-2",
-        "py-1.5",
-      ])}
+      className={cn(
+        buttonVariants({ variant: "ghost", size: compact ? "sm" : "md" }),
+        "justify-start",
+        "text-muted-foreground",
+        compact ? "shrink-0" : "w-full"
+      )}
     >
-      <UserRoundPlusIcon className="size-4 shrink-0 text-muted-foreground" />
-      <span className="whitespace-nowrap text-sm">
+      <UserRoundPlusIcon className="size-4" />
+      <span className="flex-1 whitespace-nowrap">
         {t("admin:idp.local_registration._")}
       </span>
       <Switch
@@ -137,7 +134,6 @@ export default function Index() {
         ])}
       >
         <ScrollableNav className="xl:hidden">
-          {localRegistrationControl}
           <Button
             icon={<PlusCircleIcon className="size-4" />}
             variant="solid"
@@ -147,6 +143,7 @@ export default function Index() {
           >
             {t("common:actions.add")}
           </Button>
+          {renderLocalRegistrationControl(true)}
         </ScrollableNav>
         <aside
           className={cn([
@@ -183,7 +180,6 @@ export default function Index() {
             <IdCardIcon className="size-4" />
             {t("admin:idp._")}
           </div>
-          <div className="border-y py-2">{localRegistrationControl}</div>
           <Button
             icon={<PlusCircleIcon className="size-4" />}
             variant="solid"
@@ -192,6 +188,9 @@ export default function Index() {
           >
             {t("common:actions.add")}
           </Button>
+          <div className={cn(["mt-auto", "border-t", "pt-4"])}>
+            {renderLocalRegistrationControl()}
+          </div>
         </aside>
         <Card
           className={cn([

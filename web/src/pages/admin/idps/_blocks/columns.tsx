@@ -204,7 +204,12 @@ function IdpCell({ row }: { row: Row<IdpView> }) {
     <div className={cn(["flex", "min-w-0", "items-center", "gap-3"])}>
       <Avatar
         square
-        className={cn(["size-9", "shrink-0", "border", "bg-transparent"])}
+        className={cn([
+          "size-9",
+          "shrink-0",
+          "bg-transparent",
+          !idp.avatar_hash && "border",
+        ])}
         src={idp.avatar_hash && `/api/media?hash=${idp.avatar_hash}`}
         fallback={idp.name?.charAt(0)}
       />

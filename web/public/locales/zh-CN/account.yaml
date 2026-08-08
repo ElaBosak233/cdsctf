@@ -16,6 +16,10 @@ login:
     already_logged_in: 你已经登录了
     not_verified: 你还未经过验证
     verify_email: 请先验证你的邮箱
+guard:
+  login_required: 请登录后继续
+  unavailable: 暂时无法确认登录状态，请重试
+  forbidden: 你没有权限访问此页面
 register:
   _: 注册
   not_yet: 还没有账号？注册！
@@ -87,10 +91,12 @@ idp:
     success_desc: 您已登录
     failed: 注册失败
     conflict: 用户名或邮箱已存在
+    expired: 第三方登录状态已过期，请重新选择认证服务
   bind:
     success: 第三方账号绑定成功
   login:
     success: 登录成功
+    verifying: 正在验证第三方账号...
     error: 第三方登录失败
     registration_disabled: 此认证服务不允许新用户注册，请先登录已有账号后再绑定。
   unbind:

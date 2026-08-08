@@ -16,6 +16,10 @@ login:
     already_logged_in: すでにログインしています
     not_verified: まだ認証されていません
     verify_email: 先にメールアドレスを認証してください。
+guard:
+  login_required: 続行するにはログインしてください
+  unavailable: ログイン状態を確認できません。もう一度お試しください。
+  forbidden: このページにアクセスする権限がありません
 register:
   _: 登録
   not_yet: アカウントをお持ちでない方は登録してください。
@@ -87,10 +91,12 @@ idp:
     success_desc: ログインしました。
     failed: 登録に失敗しました
     conflict: ユーザー名またはメールアドレスが既に存在します
+    expired: サードパーティーログインの有効期限が切れました。プロバイダーをもう一度選択してください。
   bind:
     success: ID プロバイダーを紐付けました。
   login:
     success: サインインしました。
+    verifying: サードパーティーアカウントを確認しています...
     error: ID プロバイダーへのリクエストに失敗しました。
     registration_disabled: このプロバイダーでは新規登録できません。既存のアカウントにログインしてから紐付けてください。
   unbind:

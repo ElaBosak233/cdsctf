@@ -11,16 +11,16 @@ function parseXHRResponse(xhr: XMLHttpRequest): unknown {
   }
 }
 
-export async function uploadFile(
+export async function uploadFile<T = unknown>(
   url: string,
   file: File[],
   onUploadProgress?: (progress: Progress) => void
-): Promise<unknown> {
+): Promise<T> {
   const formData = new FormData();
   for (const f of file) {
     formData.append(f.name, f);
   }
-  return new Promise<unknown>((resolve, reject) => {
+  return new Promise<T>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) {
@@ -34,7 +34,7 @@ export async function uploadFile(
     xhr.onloadend = () => {
       const payload = parseXHRResponse(xhr);
       if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 300) {
-        resolve(payload);
+        resolve(payload as T);
       } else {
         reject(payload);
       }

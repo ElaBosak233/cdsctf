@@ -26,6 +26,7 @@ type NumberInputProps = Omit<
   };
 
 function NumberField(props: NumberInputProps) {
+  const isControlled = "value" in props;
   const {
     stepper,
     thousandSeparator,
@@ -48,7 +49,7 @@ function NumberField(props: NumberInputProps) {
   const { size, hasIcon, hasExtraButton } = context;
 
   const [value, setValue] = useState<number | undefined>(
-    controlledValue ?? defaultValue
+    isControlled ? controlledValue : defaultValue
   );
 
   const handleIncrement = useCallback(() => {
@@ -66,10 +67,10 @@ function NumberField(props: NumberInputProps) {
   }, [stepper, min]);
 
   useEffect(() => {
-    if (controlledValue !== undefined) {
+    if (isControlled) {
       setValue(controlledValue);
     }
-  }, [controlledValue]);
+  }, [controlledValue, isControlled]);
 
   const handleChange = (values: {
     value: string;
@@ -98,7 +99,7 @@ function NumberField(props: NumberInputProps) {
   return (
     <div className={cn(["flex", "items-center", "flex-1", "w-0", "relative"])}>
       <NumericFormat
-        value={value}
+        value={value ?? ""}
         onValueChange={handleChange}
         thousandSeparator={thousandSeparator}
         decimalScale={decimalScale}

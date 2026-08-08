@@ -2,15 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Outlet } from "react-router";
 import { getConfigs, getVersion } from "@/api/configs";
-import { getUserProfile } from "@/api/users/me";
-import { useAuthStore } from "@/storages/auth";
+import { RouteAccessBoundary } from "@/components/utils/route-access-boundary";
 import { useConfigStore } from "@/storages/config";
 import { cn, stripIndent } from "@/utils";
 import { Background } from "./_blocks/background";
 import { Navbar } from "./_blocks/navbar";
 
 export default function RootLayout() {
-  const { setUser } = useAuthStore();
   const { setConfig, setVersion } = useConfigStore();
 
   const { data: configData } = useQuery({
@@ -25,13 +23,6 @@ export default function RootLayout() {
     select: (response) => response,
   });
 
-  const { data: profileData } = useQuery({
-    queryKey: ["profile"],
-    queryFn: getUserProfile,
-    retry: false,
-    select: (response) => response.user,
-  });
-
   useEffect(() => {
     if (!configData) return;
 
@@ -43,12 +34,6 @@ export default function RootLayout() {
 
     setVersion(versionData);
   }, [versionData, setVersion]);
-
-  useEffect(() => {
-    if (!profileData) return;
-
-    setUser(profileData);
-  }, [profileData, setUser]);
 
   useEffect(() => {
     if (!versionData?.tag) return;
@@ -75,7 +60,9 @@ export default function RootLayout() {
       <Background />
       <Navbar />
       <div className={cn(["min-h-(--app-content-height)", "flex", "flex-col"])}>
-        <Outlet />
+        <RouteAccessBoundary>
+          <Outlet />
+        </RouteAccessBoundary>
       </div>
     </div>
   );

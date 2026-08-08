@@ -12,7 +12,7 @@ import {
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 import { getIdp, registerWithIdp } from "@/api/idps";
@@ -28,9 +28,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { TextField } from "@/components/ui/text-field";
-import { useAuthStore } from "@/storages/auth";
+import { setAuthenticatedUser } from "@/storages/auth";
 import { cn } from "@/utils";
 import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import {
+  clearIdpRedirect,
+  getIdpRedirect,
+  withRedirect,
+} from "@/utils/redirect";
 
 type PendingIdentity = {
   token: string;
@@ -38,27 +43,33 @@ type PendingIdentity = {
   data: Record<string, string>;
 };
 
+function readPendingIdentity(): PendingIdentity | null {
+  const raw = sessionStorage.getItem("idp_pending_identity");
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw) as PendingIdentity;
+  } catch {
+    sessionStorage.removeItem("idp_pending_identity");
+    return null;
+  }
+}
+
 function IdpRegisterForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { idp_id } = useParams();
   const idpId = Number(idp_id);
 
   const { t } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
+  const [pending] = useState<PendingIdentity | null>(readPendingIdentity);
 
   const { data: idp } = useQuery({
     queryKey: ["idp", idpId],
     queryFn: () => getIdp(idpId).then((res) => res.idp),
     enabled: idpId != null,
   });
-
-  const pendingRaw = sessionStorage.getItem("idp_pending_identity");
-  let pending: PendingIdentity | null = null;
-  try {
-    pending = pendingRaw ? JSON.parse(pendingRaw) : null;
-  } catch {
-    sessionStorage.removeItem("idp_pending_identity");
-  }
 
   const formSchema = z
     .object({
@@ -96,7 +107,14 @@ function IdpRegisterForm() {
         <Button
           variant={"solid"}
           level={"info"}
-          onClick={() => navigate("/account/login")}
+          onClick={() =>
+            navigate(
+              withRedirect(
+                "/account/login",
+                getIdpRedirect(searchParams.get("redirect"))
+              )
+            )
+          }
         >
           {t("account:idp.register.go_login")}
         </Button>
@@ -116,18 +134,39 @@ function IdpRegisterForm() {
       });
 
       sessionStorage.removeItem("idp_pending_identity");
-      useAuthStore.getState().setUser(res.user);
+      const redirect = getIdpRedirect(searchParams.get("redirect"));
+      clearIdpRedirect();
+      setAuthenticatedUser(res.user);
       toast.success(t("account:idp.register.success"), {
         id: "idp-register-success",
         description: t("account:idp.register.success_desc"),
       });
-      navigate("/", { replace: true });
+      navigate(redirect, {
+        replace: true,
+      });
     } catch (error) {
       if (!(error instanceof HTTPError)) throw error;
       const status = error.response.status;
       const body = await parseErrorResponse(error);
 
       if (status === StatusCodes.BAD_REQUEST) {
+        if (
+          body.msg === "invalid_or_expired_token" ||
+          body.msg === "idp_pending_mismatch"
+        ) {
+          sessionStorage.removeItem("idp_pending_identity");
+          const redirect = getIdpRedirect(searchParams.get("redirect"));
+          clearIdpRedirect();
+          toast.error(t("account:idp.register.failed"), {
+            id: "idp-register-error",
+            description: t("account:idp.register.expired"),
+          });
+          navigate(withRedirect("/account/login", redirect), {
+            replace: true,
+          });
+          return;
+        }
+
         toast.error(t("account:idp.register.failed"), {
           id: "idp-register-error",
           description: formatApiMsg(body.msg),
