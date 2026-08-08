@@ -27,7 +27,7 @@ import {
   flexRender,
   type SortingState,
   useDataTable,
-} from "@/utils/data-table";
+} from "@/hooks/use-data-table";
 import { useColumns } from "./_blocks/columns";
 import { CreateUserDialog } from "./_blocks/create-dialog";
 import { UserListContext } from "./context";

@@ -12,7 +12,7 @@ import { ContentDialog } from "@/components/widgets/content-dialog";
 import type { GameNoticeView } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import type { ColumnDef, Row } from "@/utils/data-table";
+import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 

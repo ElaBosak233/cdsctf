@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import type { ColumnFiltersState } from "@/utils/data-table";
+import type { ColumnFiltersState } from "@/hooks/use-data-table";
 
 export type ChallengeListContextValue = {
   createDialogOpen: boolean;

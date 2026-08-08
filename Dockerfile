@@ -32,7 +32,7 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN npm install -g pnpm
 
 WORKDIR /app
-COPY ./web/package.json ./web/pnpm-lock.yaml ./
+COPY ./web/package.json ./web/pnpm-lock.yaml ./web/pnpm-workspace.yaml ./
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile

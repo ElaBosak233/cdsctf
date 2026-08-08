@@ -50,7 +50,7 @@ import { useClipboard } from "@/hooks/use-clipboard";
 import type { GameDetail } from "@/models/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import type { Column, ColumnDef, Row } from "@/utils/data-table";
+import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 
 const RowContext = createContext<{
   optimisticEnabled: boolean;

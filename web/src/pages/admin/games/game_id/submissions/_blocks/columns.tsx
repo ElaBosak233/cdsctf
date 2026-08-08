@@ -13,7 +13,7 @@ import {
 import { Status, type SubmissionView } from "@/models/submission";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import type { ColumnDef } from "@/utils/data-table";
+import type { ColumnDef } from "@/hooks/use-data-table";
 
 function useColumns(): Array<ColumnDef<SubmissionView>> {
   const { t } = useTranslation();

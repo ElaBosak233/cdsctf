@@ -39,7 +39,7 @@ import { useClipboard } from "@/hooks/use-clipboard";
 import { Group, type UserAccountView } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import type { Column, ColumnDef, Row } from "@/utils/data-table";
+import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 
 function UserCell({ row }: { row: Row<UserAccountView> }) {
   const user = row.original;

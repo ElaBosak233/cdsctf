@@ -25,7 +25,7 @@ import {
   flexRender,
   type SortingState,
   useDataTable,
-} from "@/utils/data-table";
+} from "@/hooks/use-data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./_blocks/columns";

@@ -34,7 +34,7 @@ import type { GameChallengeView } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
-import type { ColumnDef, Row } from "@/utils/data-table";
+import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 import { EditDialog } from "./edit-dialog";

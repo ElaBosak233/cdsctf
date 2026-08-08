@@ -17,7 +17,7 @@ import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { Group } from "@/models/user";
 import { cn } from "@/utils";
-import type { ColumnFiltersState } from "@/utils/data-table";
+import type { ColumnFiltersState } from "@/hooks/use-data-table";
 import { UserListContext } from "./context";
 
 function setFilter(

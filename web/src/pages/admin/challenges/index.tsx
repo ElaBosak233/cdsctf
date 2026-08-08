@@ -30,7 +30,7 @@ import {
   flexRender,
   type SortingState,
   useDataTable,
-} from "@/utils/data-table";
+} from "@/hooks/use-data-table";
 import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
 import { ChallengeListContext } from "./context";

@@ -55,7 +55,7 @@ import type { ChallengeDetail } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
-import type { Column, ColumnDef, Row } from "@/utils/data-table";
+import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 
 const RowContext = createContext<{
   optimisticPublic: boolean;

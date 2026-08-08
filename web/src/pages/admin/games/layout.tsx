@@ -17,7 +17,7 @@ import { ScrollableNav } from "@/components/ui/scrollable-nav";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
-import type { ColumnFiltersState } from "@/utils/data-table";
+import type { ColumnFiltersState } from "@/hooks/use-data-table";
 import { GameListContext } from "./context";
 
 function setFilter(

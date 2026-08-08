@@ -22,7 +22,7 @@ import {
 import type { Metadata } from "@/models/media";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { flexRender, useDataTable } from "@/utils/data-table";
+import { flexRender, useDataTable } from "@/hooks/use-data-table";
 import { uploadFile } from "@/utils/file";
 import { Context } from "../context";
 import { useColumns } from "./columns";

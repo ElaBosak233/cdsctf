@@ -18,7 +18,7 @@ import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
-import type { ColumnFiltersState } from "@/utils/data-table";
+import type { ColumnFiltersState } from "@/hooks/use-data-table";
 import { ChallengeListContext } from "./context";
 
 function setFilter(
