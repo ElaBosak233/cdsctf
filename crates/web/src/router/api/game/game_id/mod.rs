@@ -26,10 +26,7 @@ use axum::{
         sse::{Event as SseEvent, KeepAlive},
     },
 };
-use cds_db::{
-    Game, Submission, Team,
-    team::{FindTeamOptions, State as TState},
-};
+use cds_db::{GameView, ScoreboardEntry};
 use cds_event::SubscribeOptions;
 use futures_util::StreamExt as _;
 use serde::{Deserialize, Serialize};
@@ -60,7 +57,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct GameDetailResponse {
-    pub game: Game,
+    pub game: GameView,
 }
 
 /// Returns game.
@@ -88,7 +85,9 @@ pub async fn get_game(
         return Err(WebError::NotFound(json!("")));
     }
 
-    Ok(Json(GameDetailResponse { game }))
+    Ok(Json(GameDetailResponse {
+        game: GameView::from(&game),
+    }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
@@ -98,15 +97,9 @@ pub struct GetGameScoreboardRequest {
     pub page: Option<u64>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
-pub struct ScoreRecord {
-    pub team: Team,
-    pub submissions: Vec<Submission>,
-}
-
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct GameScoreboardResponse {
-    pub records: Vec<ScoreRecord>,
+    pub records: Vec<ScoreboardEntry>,
     pub total: u64,
 }
 
@@ -121,6 +114,7 @@ pub struct GameScoreboardResponse {
     ),
     responses(
         (status = 200, description = "Scoreboard", body = GameScoreboardResponse),
+        (status = 403, description = "Game is blacked out", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -133,43 +127,17 @@ pub async fn get_game_scoreboard(
 ) -> Result<Json<GameScoreboardResponse>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    let (teams, total) = cds_db::team::find(
-        &s.db.conn,
-        FindTeamOptions {
-            game_id: Some(game.id),
-            state: Some(TState::Passed),
-            sorts: Some("rank,-pts".to_string()),
-            page: params.page,
-            size: params.size,
-            ..Default::default()
-        },
-    )
-    .await?;
-
-    let team_ids = teams.iter().map(|t: &Team| t.id).collect::<Vec<i64>>();
-
-    let submissions = cds_db::submission::find_correct_by_team_ids_and_game_id::<Submission>(
-        &s.db.conn, team_ids, game_id,
-    )
-    .await?;
-
-    let mut result: Vec<ScoreRecord> = Vec::new();
-
-    for team in teams {
-        let submissions = submissions
-            .iter()
-            .filter(|s| s.team_id.is_some_and(|t| t == team.id))
-            .cloned()
-            .map(|submission| submission.desensitize())
-            .collect::<Vec<Submission>>();
-
-        result.push(ScoreRecord { team, submissions });
+    if !game.enabled {
+        return Err(WebError::NotFound(json!("")));
+    }
+    if game.blacked_out {
+        return Err(WebError::Forbidden(json!("game_blacked_out")));
     }
 
-    Ok(Json(GameScoreboardResponse {
-        records: result,
-        total,
-    }))
+    let (records, total) =
+        cds_db::team::find_scoreboard(&s.db.conn, game.id, params.page, params.size).await?;
+
+    Ok(Json(GameScoreboardResponse { records, total }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]

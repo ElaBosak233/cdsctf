@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    Submission,
+    SubmissionView,
     submission::{FindSubmissionsOptions, Status},
 };
 use serde::{Deserialize, Serialize};
@@ -48,7 +48,7 @@ pub struct GetSubmissionsRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct ListSubmissionsResponse {
-    pub submissions: Vec<Submission>,
+    pub submissions: Vec<SubmissionView>,
     pub total: u64,
 }
 

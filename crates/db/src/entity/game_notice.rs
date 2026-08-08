@@ -5,8 +5,7 @@ use async_trait::async_trait;
 use sea_orm::{Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use super::game;
-
+#[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "game_notices")]
 pub struct Model {
@@ -17,24 +16,8 @@ pub struct Model {
     #[sea_orm(column_type = "Text")]
     pub content: String,
     pub created_at: i64,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    Game,
-}
-
-impl RelationTrait for Relation {
-    /// Returns the [`RelationDef`] for this relation variant.
-    fn def(&self) -> RelationDef {
-        match self {
-            Self::Game => Entity::belongs_to(game::Entity)
-                .from(Column::GameId)
-                .to(game::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-        }
-    }
+    #[sea_orm(belongs_to, from = "game_id", to = "id", on_delete = "Cascade")]
+    pub game: BelongsTo<super::game::Entity>,
 }
 
 #[async_trait]

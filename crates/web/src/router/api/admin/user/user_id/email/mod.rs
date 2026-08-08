@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    Email,
+    EmailView,
     sea_orm::{Set, Unchanged},
 };
 use serde::{Deserialize, Serialize};
@@ -33,7 +33,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminEmailsListResponse {
-    pub emails: Vec<Email>,
+    pub emails: Vec<EmailView>,
     pub total: u64,
 }
 
@@ -68,7 +68,7 @@ pub struct AdminAddEmailRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminEmailResponse {
-    pub email: Email,
+    pub email: EmailView,
 }
 
 /// Associates a new email address with a user.
@@ -91,7 +91,7 @@ pub async fn add_email(
     Path(user_id): Path<i64>,
     ReqJson(body): ReqJson<AdminAddEmailRequest>,
 ) -> Result<Json<AdminEmailResponse>, WebError> {
-    let email = cds_db::email::create::<Email>(
+    let email = cds_db::email::create::<EmailView>(
         &s.db.conn,
         cds_db::email::ActiveModel {
             user_id: Set(user_id),
@@ -148,15 +148,16 @@ pub async fn verify_email(
     State(s): State<Arc<AppState>>,
     Path((user_id, email)): Path<(i64, String)>,
 ) -> Result<Json<AdminEmailResponse>, WebError> {
-    let email = cds_db::email::find_by_email::<Email>(&s.db.conn, email.to_lowercase())
-        .await?
-        .ok_or(WebError::BadRequest(json!("email_not_found")))?;
+    let email =
+        cds_db::email::find_by_email::<cds_db::email::Model>(&s.db.conn, email.to_lowercase())
+            .await?
+            .ok_or(WebError::BadRequest(json!("email_not_found")))?;
 
     if email.user_id != user_id {
         return Err(WebError::Forbidden(json!("email_not_found")));
     }
 
-    let email = cds_db::email::update::<Email>(
+    let email = cds_db::email::update::<EmailView>(
         &s.db.conn,
         cds_db::email::ActiveModel {
             email: Unchanged(email.email.to_owned()),

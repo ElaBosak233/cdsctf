@@ -19,6 +19,7 @@ function useGameQuery(gameId: number | undefined, trigger: number = 0) {
     select: (response) => response.game,
     enabled: gameId != null,
     placeholderData: keepPreviousData,
+    refetchInterval: 5000,
   });
 }
 
@@ -27,7 +28,7 @@ export default function GameLayout() {
   const gameId = parseRouteNumericId(game_id);
   const { setCurrentGame, selfTeam, setSelfTeam, setMembers } = useGameStore();
   const sharedStore = useSharedStore();
-  const authStore = useAuthStore();
+  const { status: authStatus, user } = useAuthStore();
 
   const [gtLoaded, setGtLoaded] = useState<boolean>(false);
 
@@ -44,12 +45,22 @@ export default function GameLayout() {
   useEffect(() => {
     void sharedStore?.refresh;
 
+    if (game?.blacked_out) {
+      const currentTeam = useGameStore.getState().selfTeam;
+      if (
+        currentTeam &&
+        (currentTeam.pts !== undefined || currentTeam.rank !== undefined)
+      ) {
+        setSelfTeam({ ...currentTeam, pts: undefined, rank: undefined });
+      }
+    }
+
     if (gameId == null) {
       setGtLoaded(true);
       return;
     }
 
-    if (!authStore?.user) return;
+    if (authStatus !== "authenticated" || !user) return;
 
     (async () => {
       try {
@@ -67,7 +78,14 @@ export default function GameLayout() {
         setGtLoaded(true);
       }
     })();
-  }, [sharedStore?.refresh, gameId, setSelfTeam, authStore?.user]);
+  }, [
+    sharedStore?.refresh,
+    gameId,
+    game?.blacked_out,
+    setSelfTeam,
+    authStatus,
+    user,
+  ]);
 
   useEffect(() => {
     void sharedStore?.refresh;

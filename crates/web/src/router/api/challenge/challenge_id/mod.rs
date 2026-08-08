@@ -7,7 +7,7 @@ mod attachment;
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::Challenge;
+use cds_db::ChallengeView;
 use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -29,7 +29,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
 pub struct ChallengeDetailResponse {
-    pub challenge: Challenge,
+    pub challenge: ChallengeView,
 }
 
 /// Returns challenge.
@@ -55,15 +55,13 @@ pub async fn get_challenge(
 ) -> Result<Json<ChallengeDetailResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id)
-        .await?
-        .desensitize();
+    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
-    if !cds_db::util::can_user_access_challenge(&s.db.conn, operator.id, challenge.id).await? {
+    if !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge.id).await? {
         return Err(WebError::Forbidden(json!("")));
     }
 
     Ok(Json(ChallengeDetailResponse {
-        challenge: challenge.desensitize(),
+        challenge: ChallengeView::from(&challenge),
     }))
 }

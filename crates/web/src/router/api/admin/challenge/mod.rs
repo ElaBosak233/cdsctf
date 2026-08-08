@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    Challenge,
+    ChallengeDetail,
     challenge::FindChallengeOptions,
     sea_orm::{ActiveValue::Set, TransactionTrait},
 };
@@ -51,7 +51,7 @@ pub struct GetChallengeRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminChallengesListResponse {
-    pub challenges: Vec<Challenge>,
+    pub challenges: Vec<ChallengeDetail>,
     pub total: u64,
 }
 
@@ -108,7 +108,7 @@ pub struct CreateChallengeRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminChallengeResponse {
-    pub challenge: Challenge,
+    pub challenge: ChallengeDetail,
 }
 
 /// Creates challenge.
@@ -165,9 +165,9 @@ async fn create_challenge_with_key(
     conn: &cds_db::sea_orm::DatabaseConnection,
     media: &Media,
     model: cds_db::challenge::ActiveModel,
-) -> Result<Challenge, WebError> {
+) -> Result<ChallengeDetail, WebError> {
     let transaction = conn.begin().await.map_err(cds_db::DbError::from)?;
-    let challenge = cds_db::challenge::create::<Challenge>(&transaction, model).await?;
+    let challenge = cds_db::challenge::create::<ChallengeDetail>(&transaction, model).await?;
 
     let mut key = [0_u8; 64];
     SystemRandom::new().fill(&mut key).map_err(|_| {

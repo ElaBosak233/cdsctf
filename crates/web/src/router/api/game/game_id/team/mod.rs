@@ -10,9 +10,9 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    TeamUser,
+    PlayerTeamView, TeamUserView,
     sea_orm::ActiveValue::Set,
-    team::{State as TState, Team},
+    team::{State as TState, TeamView},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -37,7 +37,15 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct TeamResponse {
-    pub team: Team,
+    pub team: PlayerTeamView,
+}
+
+impl TeamResponse {
+    pub fn new(team: TeamView, blacked_out: bool) -> Self {
+        Self {
+            team: PlayerTeamView::from_team(team, blacked_out),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
@@ -75,11 +83,11 @@ pub async fn create_team(
 
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    if cds_db::util::is_user_in_game(&s.db.conn, operator.id, game.id, None).await? {
+    if cds_db::team::contains_user_in_game(&s.db.conn, game.id, operator.id, None).await? {
         return Err(WebError::BadRequest(json!("user_already_in_game")));
     }
 
-    let team = cds_db::team::create::<Team>(
+    let team = cds_db::team::create::<TeamView>(
         &s.db.conn,
         cds_db::team::ActiveModel {
             name: Set(body.name),
@@ -92,7 +100,7 @@ pub async fn create_team(
     )
     .await?;
 
-    let _ = cds_db::team_user::create::<TeamUser>(
+    let _ = cds_db::team_user::create::<TeamUserView>(
         &s.db.conn,
         cds_db::team_user::ActiveModel {
             team_id: Set(team.id),
@@ -105,5 +113,8 @@ pub async fn create_team(
         .await?
         .ok_or(WebError::NotFound(json!("")))?;
 
-    Ok((StatusCode::CREATED, Json(TeamResponse { team })))
+    Ok((
+        StatusCode::CREATED,
+        Json(TeamResponse::new(team, game.blacked_out)),
+    ))
 }

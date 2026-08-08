@@ -1,4 +1,4 @@
-import type { Note } from "@/models/note";
+import type { NoteView } from "@/models/note";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetNotesRequest = {
@@ -14,5 +14,5 @@ export async function listNotes(request: GetNotesRequest) {
     .get(`notes`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ notes: Note[]; total: number }>();
+    .json<{ notes: NoteView[]; total: number }>();
 }

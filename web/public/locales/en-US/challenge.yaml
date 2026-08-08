@@ -1,6 +1,17 @@
 _: Challenge
 playground: Playground
 empty: "Oops, it seems that there are no challenges yet."
+result_count: "{{count}} challenges"
+list:
+  columns:
+    challenge: Challenge
+    classification: Classification
+    status: Status & Capabilities
+    time: Time
+  visibility:
+    public: Public
+    private: Private
+  created_at: "Created {{time}}"
 edit:
   _: Edit Challenge
   info: Info

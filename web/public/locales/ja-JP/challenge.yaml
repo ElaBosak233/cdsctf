@@ -1,6 +1,17 @@
 _: 課題
 playground: プレイグラウンド
 empty: 課題はまだありません。
+result_count: '{{count}} 件の課題'
+list:
+  columns:
+    challenge: 課題
+    classification: 分類
+    status: 状態と機能
+    time: 日時
+  visibility:
+    public: 公開
+    private: 非公開
+  created_at: '作成 {{time}}'
 edit:
   _: 課題を編集
   info: 情報

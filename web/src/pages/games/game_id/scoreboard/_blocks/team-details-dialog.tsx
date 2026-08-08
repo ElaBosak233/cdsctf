@@ -1,13 +1,6 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
 import { StarIcon } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { listSubmissions } from "@/api/submissions";
@@ -25,13 +18,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Status, type Submission } from "@/models/submission";
-import type { Team } from "@/models/team";
+import type { ScoreboardTeam } from "@/models/game";
+import { Status, type SubmissionSummary } from "@/models/submission";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
+import { type ColumnDef, flexRender, useDataTable } from "@/hooks/use-data-table";
 
 interface TeamDetailsDialogProps {
-  team: Team;
+  team: ScoreboardTeam;
 }
 
 function TeamDetailsDialog(props: TeamDetailsDialogProps) {
@@ -63,70 +57,71 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
   });
 
   const { t } = useTranslation();
-  const columns: Array<ColumnDef<Submission>> = [
-    {
-      accessorKey: "user_id",
-      id: "user_id",
-      header: t("game:scoreboard.columns.user"),
-      cell: ({ row }) => (
-        <div className={cn(["flex", "items-center", "gap-4"])}>
-          <Avatar
-            className={cn(["size-7"])}
-            src={
-              row.original.user_avatar_hash &&
-              `/api/media?hash=${row.original.user_avatar_hash}`
-            }
-            fallback={row.original.user_name?.charAt(0)}
-          />
-          <Link
-            to={`/users/${row.original.user_id}`}
-            className={cn(["hover:underline"])}
-          >
-            {row.original.user_name}
-          </Link>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "challenge_id",
-      id: "challenge_id",
-      header: t("game:scoreboard.columns.challenge"),
-      cell: ({ row }) => {
-        return (
-          <div className={cn(["flex", "items-center", "gap-3"])}>
-            {row.original.challenge_title}
+  const columns = useMemo<Array<ColumnDef<SubmissionSummary>>>(
+    () => [
+      {
+        accessorKey: "user_id",
+        id: "user_id",
+        header: t("game:scoreboard.columns.user"),
+        cell: ({ row }) => (
+          <div className={cn(["flex", "items-center", "gap-4"])}>
+            <Avatar
+              className={cn(["size-7"])}
+              src={
+                row.original.user_avatar_hash &&
+                `/api/media?hash=${row.original.user_avatar_hash}`
+              }
+              fallback={row.original.user_name?.charAt(0)}
+            />
+            <Link
+              to={`/users/${row.original.user_id}`}
+              className={cn(["hover:underline"])}
+            >
+              {row.original.user_name}
+            </Link>
           </div>
-        );
+        ),
       },
-    },
-    {
-      accessorKey: "pts",
-      id: "pts",
-      header: t("game:scoreboard.columns.score"),
-      cell: ({ row }) => (
-        <span className={cn(["font-mono"])}>{row.original.pts}</span>
-      ),
-    },
-    {
-      accessorKey: "created_at",
-      id: "created_at",
-      header: t("game:scoreboard.columns.time"),
-      cell: ({ row }) => (
-        <span className={cn(["font-mono", "text-secondary-foreground"])}>
-          {new Date(Number(row.original.created_at) * 1000).toLocaleString()}
-        </span>
-      ),
-    },
-  ];
+      {
+        accessorKey: "challenge_id",
+        id: "challenge_id",
+        header: t("game:scoreboard.columns.challenge"),
+        cell: ({ row }) => {
+          return (
+            <div className={cn(["flex", "items-center", "gap-3"])}>
+              {row.original.challenge_title}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "pts",
+        id: "pts",
+        header: t("game:scoreboard.columns.score"),
+        cell: ({ row }) => (
+          <span className={cn(["font-mono"])}>{row.original.pts}</span>
+        ),
+      },
+      {
+        accessorKey: "created_at",
+        id: "created_at",
+        header: t("game:scoreboard.columns.time"),
+        cell: ({ row }) => (
+          <span className={cn(["font-mono", "text-secondary-foreground"])}>
+            {new Date(Number(row.original.created_at) * 1000).toLocaleString()}
+          </span>
+        ),
+      },
+    ],
+    [t]
+  );
 
-  const table = useReactTable<Submission>({
+  const table = useDataTable<SubmissionSummary>({
     data: submissionData?.submissions || [],
     columns: columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     rowCount: submissionData?.total,
     manualFiltering: true,
-    getFilteredRowModel: getFilteredRowModel(),
     manualSorting: true,
   });
 

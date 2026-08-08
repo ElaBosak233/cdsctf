@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
-use cds_db::{GameNotice, sea_orm::ActiveValue::Set};
+use cds_db::{GameNoticeView, sea_orm::ActiveValue::Set};
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -32,7 +32,7 @@ pub struct CreateGameNoticeRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct GameNoticeResponse {
-    pub notice: GameNotice,
+    pub notice: GameNoticeView,
 }
 
 /// Creates game notice.

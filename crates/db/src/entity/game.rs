@@ -4,8 +4,7 @@ use async_trait::async_trait;
 use sea_orm::{FromJsonQueryResult, Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use super::{challenge, game_challenge, submission, team};
-
+#[sea_orm::model]
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "games")]
 pub struct Model {
@@ -18,6 +17,10 @@ pub struct Model {
     pub description: Option<String>,
     pub enabled: bool,
     pub public: bool,
+    #[sea_orm(default_value = false)]
+    pub paused: bool,
+    #[sea_orm(default_value = false)]
+    pub blacked_out: bool,
     #[sea_orm(default_value = 3)]
     pub member_limit_min: i64,
     #[sea_orm(default_value = 3)]
@@ -31,7 +34,15 @@ pub struct Model {
     pub ended_at: i64,
     pub icon_hash: Option<String>,
     pub poster_hash: Option<String>,
+    #[sea_orm(default_value = 0)]
+    pub score_revision: i64,
     pub created_at: i64,
+    #[sea_orm(has_many)]
+    pub submissions: HasMany<super::submission::Entity>,
+    #[sea_orm(has_many)]
+    pub teams: HasMany<super::team::Entity>,
+    #[sea_orm(has_many, via = "game_challenge")]
+    pub challenges: HasMany<super::challenge::Entity>,
 }
 
 #[derive(
@@ -49,34 +60,6 @@ pub struct Timeslot {
     pub label: String,
     pub started_at: i64,
     pub ended_at: i64,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    Submission,
-    Team,
-}
-
-impl RelationTrait for Relation {
-    /// Returns the [`RelationDef`] for this relation variant.
-    fn def(&self) -> RelationDef {
-        match self {
-            Self::Submission => Entity::has_many(submission::Entity).into(),
-            Self::Team => Entity::has_many(team::Entity).into(),
-        }
-    }
-}
-
-impl Related<challenge::Entity> for Entity {
-    /// Returns the [`RelationDef`] linking to the related [`Entity`].
-    fn to() -> RelationDef {
-        game_challenge::Relation::Challenge.def()
-    }
-
-    /// Declares a `via` join path for related entities.
-    fn via() -> Option<RelationDef> {
-        Some(game_challenge::Relation::Game.def().rev())
-    }
 }
 
 #[async_trait]

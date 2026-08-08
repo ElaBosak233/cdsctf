@@ -1,4 +1,4 @@
-import type { Challenge } from "@/models/challenge";
+import type { ChallengeDetail } from "@/models/challenge";
 import { api } from "@/utils/query";
 
 export type UpdateWriteupRequest = {
@@ -9,5 +9,5 @@ export type UpdateWriteupRequest = {
 export async function updateWriteup(request: UpdateWriteupRequest) {
   return api
     .put(`admin/challenges/${request?.id}/writeup`, { json: request })
-    .json<{ challenge: Challenge }>();
+    .json<{ challenge: ChallengeDetail }>();
 }

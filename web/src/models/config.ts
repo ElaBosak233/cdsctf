@@ -1,4 +1,4 @@
-export type Config = {
+export type PublicConfig = {
   meta?: {
     title?: string;
     description?: string;
@@ -6,8 +6,25 @@ export type Config = {
     footer?: string;
   };
   auth?: {
-    registration_enabled?: boolean;
+    local_registration_enabled?: boolean;
   };
+  captcha?: {
+    provider?: "none" | "pow" | "image" | "turnstile" | "hcaptcha";
+    difficulty?: number;
+    turnstile?: {
+      site_key?: string;
+    };
+    hcaptcha?: {
+      site_key?: string;
+    };
+  };
+  email?: {
+    enabled?: boolean;
+  };
+  logo_hash?: string | null;
+};
+
+export type AdminConfig = Omit<PublicConfig, "captcha" | "email"> & {
   captcha?: {
     provider?: "none" | "pow" | "image" | "turnstile" | "hcaptcha";
     difficulty?: number;
@@ -20,7 +37,6 @@ export type Config = {
       url?: string;
       site_key?: string;
       secret_key?: string;
-      score?: number;
     };
   };
   email?: {

@@ -18,6 +18,8 @@ function TeamCard() {
     ? t("team:write_up.actions.submit.done")
     : t("team:write_up.actions.submit._");
 
+  if (!selfTeam) return null;
+
   return (
     <section
       className={cn([
@@ -67,26 +69,30 @@ function TeamCard() {
           "lg:gap-4",
         ])}
       >
-        <div className={cn(["flex", "items-center", "gap-1.5"])}>
-          <Star className={cn(["size-3.5", "text-muted-foreground"])} />
-          <span className={cn(["font-mono", "text-sm", "tabular-nums"])}>
-            {selfTeam?.pts}
-          </span>
-          <span className={cn(["text-xs", "text-muted-foreground"])}>
-            {t("team:pts")}
-          </span>
-        </div>
-        <div className={cn(["flex", "items-center", "gap-1.5"])}>
-          <ChartNoAxesCombined
-            className={cn(["size-3.5", "text-muted-foreground"])}
-          />
-          <span className={cn(["font-mono", "text-sm", "tabular-nums"])}>
-            {selfTeam?.rank}
-          </span>
-          <span className={cn(["text-xs", "text-muted-foreground"])}>
-            {t("team:rank")}
-          </span>
-        </div>
+        {!currentGame?.blacked_out && (
+          <>
+            <div className={cn(["flex", "items-center", "gap-1.5"])}>
+              <Star className={cn(["size-3.5", "text-muted-foreground"])} />
+              <span className={cn(["font-mono", "text-sm", "tabular-nums"])}>
+                {selfTeam?.pts}
+              </span>
+              <span className={cn(["text-xs", "text-muted-foreground"])}>
+                {t("team:pts")}
+              </span>
+            </div>
+            <div className={cn(["flex", "items-center", "gap-1.5"])}>
+              <ChartNoAxesCombined
+                className={cn(["size-3.5", "text-muted-foreground"])}
+              />
+              <span className={cn(["font-mono", "text-sm", "tabular-nums"])}>
+                {selfTeam?.rank === 0 ? "-" : selfTeam?.rank}
+              </span>
+              <span className={cn(["text-xs", "text-muted-foreground"])}>
+                {t("team:rank")}
+              </span>
+            </div>
+          </>
+        )}
         {currentGame?.writeup_required && (
           <Tooltip>
             <TooltipTrigger asChild>

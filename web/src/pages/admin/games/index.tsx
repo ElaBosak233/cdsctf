@@ -1,12 +1,4 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  type SortingState,
-  useReactTable,
-  type VisibilityState,
-} from "@tanstack/react-table";
 import { ListOrderedIcon } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useContext, useState } from "react";
@@ -27,10 +19,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDebounce } from "@/hooks/use-debounce";
-import type { Game } from "@/models/game";
+import type { GameDetail } from "@/models/game";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import {
+  flexRender,
+  type SortingState,
+  useDataTable,
+} from "@/hooks/use-data-table";
 import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
 import { GameListContext } from "./context";
@@ -74,7 +71,6 @@ export default function Index() {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "started_at", desc: true },
   ]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
   const enabled =
@@ -95,19 +91,19 @@ export default function Index() {
   });
 
   const columns = useColumns();
-  const table = useReactTable<Game>({
+  const table = useDataTable<GameDetail>({
     data: gamesData?.games || [],
     columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     rowCount: gamesData?.total,
     manualFiltering: true,
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
     manualSorting: true,
-    onSortingChange: setSorting,
-    state: { sorting, columnVisibility, columnFilters },
+    onSortingChange: (updater) => {
+      setSorting(updater);
+      void setPage(1);
+    },
+    state: { sorting, columnFilters },
   });
 
   return (
@@ -138,7 +134,7 @@ export default function Index() {
           className={cn([
             "flex-1",
             "min-h-0",
-            "rounded-xl",
+            "rounded-lg",
             "border",
             "ring-1",
             "ring-border/50",
@@ -146,7 +142,14 @@ export default function Index() {
           ])}
         >
           <LoadingOverlay loading={loading} />
-          <Table className={cn(["text-foreground", "w-full", "min-w-160"])}>
+          <Table
+            className={cn([
+              "w-full",
+              "min-w-224",
+              "table-fixed",
+              "text-foreground",
+            ])}
+          >
             <TableHeader
               className={cn([
                 "sticky",
@@ -160,7 +163,22 @@ export default function Index() {
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className={cn([
+                        "bg-muted/95",
+                        header.column.id === "game" && ["min-w-64"],
+                        header.column.id === "status" && ["w-52"],
+                        header.column.id === "started_at" && ["w-80"],
+                        header.column.id === "actions" && [
+                          "sticky",
+                          "right-0",
+                          "z-3",
+                          "w-24",
+                          "bg-muted/95",
+                        ],
+                      ])}
+                    >
                       {!header.isPlaceholder &&
                         flexRender(
                           header.column.columnDef.header,
@@ -174,13 +192,30 @@ export default function Index() {
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <RowProvider key={row.getValue("id")} game={row.original}>
+                  <RowProvider key={row.original.id} game={row.original}>
                     <TableRow
                       data-state={row.getIsSelected() ? "selected" : undefined}
-                      className={cn(["transition-colors"])}
+                      className={cn([
+                        "group",
+                        "transition-colors",
+                        "hover:bg-transparent",
+                      ])}
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
+                        <TableCell
+                          key={cell.id}
+                          className={cn([
+                            "py-3",
+                            "transition-colors",
+                            "group-hover:bg-muted/50",
+                            cell.column.id === "actions" && [
+                              "sticky",
+                              "right-0",
+                              "z-1",
+                              "bg-card",
+                            ],
+                          ])}
+                        >
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()
@@ -219,7 +254,7 @@ export default function Index() {
           ])}
         >
           <p className={cn(["text-sm", "text-muted-foreground"])}>
-            {table.getFilteredRowModel().rows.length} / {gamesData?.total ?? 0}
+            {t("game:result_count", { count: gamesData?.total ?? 0 })}
           </p>
           <div
             className={cn([
@@ -248,7 +283,10 @@ export default function Index() {
                   { value: "60" },
                 ]}
                 value={String(size)}
-                onValueChange={(value) => setSize(Number(value))}
+                onValueChange={(value) => {
+                  void setSize(Number(value));
+                  void setPage(1);
+                }}
               />
             </Field>
           </div>

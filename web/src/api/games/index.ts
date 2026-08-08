@@ -1,4 +1,4 @@
-import type { GameMini } from "@/models/game";
+import type { GameSummary } from "@/models/game";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetGameRequest = {
@@ -13,5 +13,5 @@ export async function getGames(request: GetGameRequest) {
     .get("games", {
       searchParams: toSearchParams(request),
     })
-    .json<{ games: GameMini[]; total: number }>();
+    .json<{ games: GameSummary[]; total: number }>();
 }

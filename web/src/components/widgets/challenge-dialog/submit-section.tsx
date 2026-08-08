@@ -75,7 +75,7 @@ function SubmitSection() {
           }),
           {
             id: `submission-${submission.id}`,
-            description: t("submission:pending_review"),
+            description: t("submission:queued_review"),
           }
         );
         add(submission);

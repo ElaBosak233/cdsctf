@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import type { Challenge } from "@/models/challenge";
+import type { ChallengeDetail } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
@@ -35,7 +35,7 @@ function CreateDialog(props: CreateDialogProps) {
   const debouncedId = useDebounce(id, 100);
   const [title, setTitle] = useState<string>("");
   const debounceTitle = useDebounce(title, 100);
-  const [challenges, setChallenges] = useState<Array<Challenge>>();
+  const [challenges, setChallenges] = useState<Array<ChallengeDetail>>();
 
   const fetchChallenges = useCallback(() => {
     getChallenges({
@@ -57,7 +57,7 @@ function CreateDialog(props: CreateDialogProps) {
     fetchChallenges();
   }, [fetchChallenges, debounceTitle, debouncedId]);
 
-  function handleCreateGameChallenge(challenge: Challenge) {
+  function handleCreateGameChallenge(challenge: ChallengeDetail) {
     const gid = routeGameId ?? game?.id;
     if (gid == null || challenge.id == null) return;
 

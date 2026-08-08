@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    note::{ActiveModel, FindNotesOptions, Note},
+    note::{ActiveModel, FindNotesOptions, NoteView},
     sea_orm::{Set, Unchanged},
 };
 use serde::{Deserialize, Serialize};
@@ -38,7 +38,7 @@ pub struct GetMyNoteRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct MyNotesListResponse {
-    pub notes: Vec<Note>,
+    pub notes: Vec<NoteView>,
     pub total: u64,
 }
 
@@ -87,7 +87,7 @@ pub struct SaveMyNoteRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct NoteResponse {
-    pub note: Note,
+    pub note: NoteView,
 }
 
 /// Persists the authenticated user's personal note blob.
@@ -117,7 +117,7 @@ pub async fn save_my_note(
         return Err(WebError::Forbidden(json!("")));
     }
 
-    let note = match cds_db::note::find_by_user_id_and_challenge_id::<Note>(
+    let note = match cds_db::note::find_by_user_id_and_challenge_id(
         &s.db.conn,
         operator.id,
         body.challenge_id,
@@ -125,7 +125,7 @@ pub async fn save_my_note(
     .await?
     {
         Some(note) => {
-            cds_db::note::update::<Note>(
+            cds_db::note::update(
                 &s.db.conn,
                 ActiveModel {
                     id: Unchanged(note.id),
@@ -139,7 +139,7 @@ pub async fn save_my_note(
             .await?
         }
         None => {
-            cds_db::note::create::<Note>(
+            cds_db::note::create(
                 &s.db.conn,
                 ActiveModel {
                     content: Set(body.content),

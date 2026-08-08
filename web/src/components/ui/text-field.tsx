@@ -6,7 +6,7 @@ import { FieldContext } from "./field";
 type TextFieldProps = React.ComponentProps<"input"> & {};
 
 function TextField(props: TextFieldProps) {
-  const { className, ref, ...rest } = props;
+  const { className, ref, value, ...rest } = props;
   const context = React.useContext(FieldContext);
 
   if (!context) {
@@ -14,6 +14,7 @@ function TextField(props: TextFieldProps) {
   }
 
   const { size, disabled, hasIcon, hasExtraButton } = context;
+  const isControlled = "value" in props;
 
   return (
     <input
@@ -28,6 +29,7 @@ function TextField(props: TextFieldProps) {
         className
       )}
       {...rest}
+      {...(isControlled ? { value: value ?? "" } : {})}
     />
   );
 }

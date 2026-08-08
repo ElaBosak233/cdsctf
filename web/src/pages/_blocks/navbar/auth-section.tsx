@@ -1,6 +1,6 @@
 import { LogOutIcon, SettingsIcon, UserRoundIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 
 import { logout } from "@/api/users";
 import { Avatar } from "@/components/ui/avatar";
@@ -12,36 +12,34 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuthStore } from "@/storages/auth";
+import { clearAuthenticatedUser, useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
+import { getLoginTarget, getLoginUrl } from "@/utils/redirect";
 
 function AuthSection() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const authStore = useAuthStore();
+  const location = useLocation();
+  const user = useAuthStore((state) => state.user);
 
-  function handleLogout() {
-    logout()
-      .then(() => {
-        navigate("/account/login");
-      })
-      .finally(() => {
-        authStore.setUser(undefined);
-      });
+  async function handleLogout() {
+    try {
+      await logout();
+    } finally {
+      clearAuthenticatedUser();
+      navigate("/account/login", { replace: true });
+    }
   }
 
-  if (authStore?.user?.id) {
+  if (user?.id) {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button square>
             <Avatar
               className={cn("h-8", "w-8")}
-              src={
-                authStore?.user?.avatar_hash &&
-                `/api/media?hash=${authStore?.user?.avatar_hash}`
-              }
-              fallback={authStore?.user?.name?.charAt(0)}
+              src={user.avatar_hash && `/api/media?hash=${user.avatar_hash}`}
+              fallback={user.name?.charAt(0)}
             />
           </Button>
         </DropdownMenuTrigger>
@@ -50,19 +48,14 @@ function AuthSection() {
             className={cn(["flex", "items-center", "gap-2"])}
             asChild
           >
-            <Link to={`/users/${authStore?.user?.id}`}>
+            <Link to={`/users/${user.id}`}>
               <Avatar
                 className={cn("h-8", "w-8")}
-                src={
-                  authStore?.user?.avatar_hash &&
-                  `/api/media?hash=${authStore?.user?.avatar_hash}`
-                }
-                fallback={authStore?.user?.name?.charAt(0)}
+                src={user.avatar_hash && `/api/media?hash=${user.avatar_hash}`}
+                fallback={user.name?.charAt(0)}
               />
               <div className={cn(["flex", "flex-col"])}>
-                <p className={cn(["text-sm", "line-clamp-2"])}>
-                  {authStore?.user?.name}
-                </p>
+                <p className={cn(["text-sm", "line-clamp-2"])}>{user.name}</p>
                 <p
                   className={cn([
                     "text-xs",
@@ -70,7 +63,7 @@ function AuthSection() {
                     "line-clamp-1",
                   ])}
                 >
-                  {`# ${authStore?.user?.username}`}
+                  {`# ${user.username}`}
                 </p>
               </div>
             </Link>
@@ -96,7 +89,9 @@ function AuthSection() {
 
   return (
     <Button asChild icon={<UserRoundIcon />}>
-      <Link to={"/account/login"}>{t("account:login._")}</Link>
+      <Link to={getLoginUrl(getLoginTarget(location))}>
+        {t("account:login._")}
+      </Link>
     </Button>
   );
 }

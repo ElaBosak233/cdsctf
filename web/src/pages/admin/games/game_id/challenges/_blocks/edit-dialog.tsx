@@ -37,7 +37,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { NumberField } from "@/components/ui/number-field";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { GameChallenge } from "@/models/game_challenge";
+import type { GameChallengeView } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { curve } from "@/utils/math";
@@ -46,7 +46,7 @@ import { Context } from "../../context";
 
 interface EditDialogProps {
   onClose: () => void;
-  gameChallenge: GameChallenge;
+  gameChallenge: GameChallengeView;
 }
 
 function EditDialog(props: EditDialogProps) {

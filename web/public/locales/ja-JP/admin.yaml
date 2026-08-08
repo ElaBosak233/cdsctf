@@ -15,10 +15,6 @@ platform:
     error: ロゴのアップロードに失敗しました。
   logo_reset:
     success: ロゴをリセットしました。
-  auth:
-    registration_enabled:
-      'true': はい
-      'false': いいえ
   form:
     meta:
       _: メタ情報
@@ -32,10 +28,6 @@ platform:
         placeholder: あなたを攻撃したくありません！
       footer:
         _: フッター
-    auth:
-      _: 認証
-      registration_enabled:
-        _: 登録を有効にする
   actions:
     update:
       _: プラットフォーム設定の更新
@@ -116,6 +108,18 @@ captcha:
 idp:
   _: ID プロバイダー
   empty: ID プロバイダーが設定されていません。
+  result_count: '{{count}} 件の ID プロバイダー'
+  local_registration:
+    _: ローカルアカウント登録
+    updated: ローカルアカウント登録設定を更新しました。
+  status:
+    service: サービス
+    registration: 新規登録
+  list:
+    columns:
+      idp: ID プロバイダー
+      status: 状態
+      updated_at: 更新日時
   enabled:
     'true': 有効
     'false': 無効
@@ -145,15 +149,21 @@ idp:
         oauth: OAuth 2.0
         cas: CAS
   actions:
+    _: 操作
     create:
       _: ID プロバイダーを作成
       success: '{{name}} を作成しました。'
     update:
+      _: ID プロバイダーを編集
       success: '{{name}} を更新しました。'
     enable:
       success: '{{name}} を有効にしました。'
     disable:
       success: '{{name}} を無効にしました。'
+    registration_enable:
+      success: '{{name}} からの新規登録を許可しました。'
+    registration_disable:
+      success: '{{name}} からの新規登録を停止しました。'
     delete:
       _: ID プロバイダーを削除
       message: 本当に <muted>{{name}}</muted> を削除しますか？

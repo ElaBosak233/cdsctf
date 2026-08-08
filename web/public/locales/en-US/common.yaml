@@ -22,6 +22,9 @@ errors:
   default: Something went wrong
   unexpected: Something went wrong
   network: Network error
+  service_unavailable: Service unavailable
+  service_unavailable_description: The server could not complete the request.
+  timeout: Request timed out
 captcha:
   placeholder: Captcha
 language:

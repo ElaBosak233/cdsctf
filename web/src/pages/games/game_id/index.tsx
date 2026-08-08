@@ -23,6 +23,7 @@ import { State } from "@/models/team";
 import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
+import { getLoginUrl } from "@/utils/redirect";
 import { TeamGatheringDialog } from "./_blocks/team-gathering-dialog";
 
 export default function Index() {
@@ -78,8 +79,9 @@ export default function Index() {
           <div className={cn(["flex", "flex-col", "gap-5", "items-center"])}>
             <Image
               src={
-                currentGame?.poster_hash &&
-                `/api/media?hash=${currentGame?.poster_hash}`
+                currentGame?.poster_hash
+                  ? `/api/media?hash=${currentGame.poster_hash}`
+                  : undefined
               }
               className={cn([
                 "object-cover",
@@ -240,7 +242,7 @@ interface GameActionProps {
 export function GameActionButton({ status }: GameActionProps) {
   const { t } = useTranslation();
 
-  const { user } = useAuthStore();
+  const { status: authStatus, user } = useAuthStore();
   const { selfTeam } = useGameStore();
   const navigate = useNavigate();
   const { game_id } = useParams<{ game_id: string }>();
@@ -258,7 +260,7 @@ export function GameActionButton({ status }: GameActionProps) {
     return undefined;
   }, [selfTeam, t]);
 
-  /** Game has ended. */
+  /** GameDetail has ended. */
   if (status === "ended") {
     return (
       <Button
@@ -275,7 +277,7 @@ export function GameActionButton({ status }: GameActionProps) {
   }
 
   /** Visitor is not signed in. */
-  if (!user?.id) {
+  if (authStatus !== "authenticated" || !user?.id) {
     return (
       <Button
         className="w-full"
@@ -283,7 +285,7 @@ export function GameActionButton({ status }: GameActionProps) {
         level="warning"
         size="lg"
         icon={<UserRoundIcon />}
-        disabled
+        onClick={() => navigate(getLoginUrl(`/games/${game_id}/challenges`))}
       >
         {t("team:actions.participate_after_login")}
       </Button>

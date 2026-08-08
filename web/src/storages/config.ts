@@ -1,10 +1,10 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import type { Config, Version } from "@/models/config";
+import type { PublicConfig, Version } from "@/models/config";
 
 export type ConfigState = {
-  config?: Config;
+  config?: PublicConfig;
   setConfig: (config: ConfigState["config"]) => void;
 
   version?: Version;

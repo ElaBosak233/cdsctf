@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::{TeamUser, team::State as TState, team_user::FindTeamUserOptions};
+use cds_db::{TeamUserView, team::State as TState, team_user::FindTeamUserOptions};
 use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -50,7 +50,7 @@ pub async fn leave_team(
         return Err(WebError::BadRequest(json!("team_not_preparing")));
     }
 
-    let (_, count) = cds_db::team_user::find::<TeamUser>(
+    let (_, count) = cds_db::team_user::find::<TeamUserView>(
         &s.db.conn,
         FindTeamUserOptions {
             team_id: Some(team.id),

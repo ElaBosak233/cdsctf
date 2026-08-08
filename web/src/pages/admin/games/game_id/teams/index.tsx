@@ -1,14 +1,4 @@
 import {
-  type ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getExpandedRowModel,
-  getFilteredRowModel,
-  type SortingState,
-  useReactTable,
-  type VisibilityState,
-} from "@tanstack/react-table";
-import {
   HashIcon,
   ListOrderedIcon,
   SatelliteIcon,
@@ -34,9 +24,16 @@ import {
 } from "@/components/ui/table";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import { State, type Team } from "@/models/team";
+import { State, type TeamView } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import {
+  type ColumnFiltersState,
+  type ColumnVisibilityState,
+  flexRender,
+  type SortingState,
+  useDataTable,
+} from "@/hooks/use-data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./_blocks/columns";
@@ -52,16 +49,17 @@ export default function Index() {
   const { game } = useContext(Context);
 
   const [total, setTotal] = useState<number>(0);
-  const [teams, setTeams] = useState<Array<Team>>([]);
+  const [teams, setTeams] = useState<Array<TeamView>>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(10);
 
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    game_id: false,
-  });
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({
+      game_id: false,
+    });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     {
       id: "state",
@@ -72,15 +70,12 @@ export default function Index() {
 
   const columns = useColumns();
 
-  const table = useReactTable<Team>({
+  const table = useDataTable<TeamView>({
     data: teams,
     columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     rowCount: total,
     manualFiltering: true,
-    getFilteredRowModel: getFilteredRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     manualSorting: true,

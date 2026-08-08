@@ -72,7 +72,7 @@ export default function Index() {
 
   useEffect(() => {
     form.reset({
-      checker: challenge?.checker,
+      checker: challenge?.checker ?? "",
     });
   }, [challenge, form]);
 

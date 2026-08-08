@@ -1,15 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
+import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
 import { LoaderCircleIcon } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { bindWithIdp, getIdp, loginWithIdp } from "@/api/idps";
 import { Avatar } from "@/components/ui/avatar";
-import { useAuthStore } from "@/storages/auth";
+import { setAuthenticatedUser, useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
-import { parseRouteNumericId } from "@/utils/query";
+import { parseErrorResponse, parseRouteNumericId } from "@/utils/query";
+import {
+  clearIdpRedirect,
+  getIdpRedirect,
+  withRedirect,
+} from "@/utils/redirect";
 
 function searchParamsToRecord(searchParams: URLSearchParams) {
   const params: Record<string, string> = {};
@@ -24,6 +30,8 @@ export default function Index() {
   const idpId = parseRouteNumericId(idp_id);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { status, user } = useAuthStore();
+  const startedRef = useRef(false);
 
   const { t } = useTranslation();
   const { data: idp } = useQuery({
@@ -33,12 +41,19 @@ export default function Index() {
   });
 
   useEffect(() => {
-    if (idpId == null || !idp) return;
+    if (
+      idpId == null ||
+      !idp ||
+      !["authenticated", "anonymous"].includes(status) ||
+      startedRef.current
+    )
+      return;
+
+    startedRef.current = true;
 
     const resolvedIdpId = idpId;
-    const redirect = searchParams.get("redirect") || "/";
+    const redirect = getIdpRedirect(searchParams.get("redirect"));
     const params = searchParamsToRecord(searchParams);
-    const user = useAuthStore.getState().user;
 
     async function run() {
       try {
@@ -67,15 +82,28 @@ export default function Index() {
           return;
         }
 
-        useAuthStore.getState().setUser(res.user!);
+        setAuthenticatedUser(res.user!);
+        clearIdpRedirect();
         toast.success(t("account:idp.login.success"));
         navigate(redirect, { replace: true });
       } catch (error) {
         if (error instanceof HTTPError) {
-          toast.error(t("account:idp.login.error"));
-          navigate(user ? "/account/settings/idps" : "/account/login", {
-            replace: true,
-          });
+          const body = await parseErrorResponse(error);
+          toast.error(
+            error.response.status === StatusCodes.FORBIDDEN &&
+              body.msg === "idp_registration_disabled"
+              ? t("account:idp.login.registration_disabled")
+              : t("account:idp.login.error")
+          );
+          navigate(
+            user
+              ? "/account/settings/idps"
+              : withRedirect("/account/login", redirect),
+            {
+              replace: true,
+            }
+          );
+          clearIdpRedirect();
         } else {
           throw error;
         }
@@ -83,7 +111,7 @@ export default function Index() {
     }
 
     run();
-  }, [idpId, idp, searchParams, navigate, t]);
+  }, [idpId, idp, navigate, searchParams, status, t, user]);
 
   return (
     <div
@@ -109,6 +137,9 @@ export default function Index() {
       <LoaderCircleIcon
         className={cn(["size-8", "animate-spin", "text-primary"])}
       />
+      <p className={cn(["text-sm", "text-muted-foreground"])}>
+        {t("account:idp.login.verifying")}
+      </p>
     </div>
   );
 }

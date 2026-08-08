@@ -1,4 +1,4 @@
-import type { GameChallenge } from "@/models/game_challenge";
+import type { GameChallengeView } from "@/models/game_challenge";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetGameChallengeRequest = {
@@ -13,7 +13,7 @@ export async function getGameChallenges(request: GetGameChallengeRequest) {
     .get(`admin/games/${request.game_id}/challenges`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ challenges: GameChallenge[]; total: number }>();
+    .json<{ challenges: GameChallengeView[]; total: number }>();
 }
 
 export type CreateGameChallengeRequest = {
@@ -31,5 +31,5 @@ export async function createGameChallenge(request: CreateGameChallengeRequest) {
     .post(`admin/games/${request.game_id}/challenges`, {
       json: request,
     })
-    .json<{ game_challenge: GameChallenge }>();
+    .json<{ game_challenge: GameChallengeView }>();
 }

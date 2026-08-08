@@ -66,10 +66,10 @@ pub struct Env {
 
 /// Expands a leading `~/` using `$HOME`; otherwise returns the path as-is.
 fn expand_tilde(path: &str) -> std::path::PathBuf {
-    if let Some(stripped) = path.strip_prefix("~/") {
-        if let Some(home) = std::env::var_os("HOME") {
-            return std::path::PathBuf::from(home).join(stripped);
-        }
+    if let Some(stripped) = path.strip_prefix("~/")
+        && let Some(home) = std::env::var_os("HOME")
+    {
+        return std::path::PathBuf::from(home).join(stripped);
     }
     std::path::PathBuf::from(path)
 }

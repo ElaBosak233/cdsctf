@@ -20,7 +20,8 @@ function CheckerWatcher() {
         });
 
         const s = res.submissions?.[0];
-        if (!s || s.status === 0) return;
+        if (!s || s.status === Status.Queued || s.status === Status.Processing)
+          return;
 
         switch (s.status) {
           case Status.Correct:

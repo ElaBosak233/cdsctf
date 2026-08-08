@@ -11,9 +11,9 @@ use axum::{
     http::StatusCode,
 };
 use cds_db::{
-    Email, Idp, User, UserIdp,
-    sea_orm::{ActiveValue::Set, NotSet},
-    user::{FindUserOptions, Group},
+    EmailView, IdpSummary, IdpView, UserAccountView, UserIdpSource, UserIdpSummary, UserIdpView,
+    sea_orm::{ActiveValue::Set, ConnectionTrait, NotSet, SqlErr, TransactionTrait},
+    user::Group,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -46,12 +46,12 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct IdpBindResponse {
-    pub idp: UserIdp,
+    pub idp: UserIdpSummary,
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct IdpResponse {
-    pub idp: Idp,
+    pub idp: IdpSummary,
 }
 
 #[utoipa::path(
@@ -71,7 +71,7 @@ pub async fn get_idp(
 ) -> Result<Json<IdpResponse>, WebError> {
     let idp = enabled_idp(&s, idp_id).await?;
     Ok(Json(IdpResponse {
-        idp: idp.desensitize(),
+        idp: IdpSummary::from(&idp),
     }))
 }
 
@@ -102,29 +102,47 @@ pub async fn bind(
 
     let payload = cds_idp::Idp::bind(idp.id, body.params, user_map(&s, &operator).await?).await?;
 
-    if cds_db::user_idp::find_user_idp_by_auth_key::<UserIdp>(&s.db.conn, idp.id, &payload.auth_key)
-        .await?
-        .is_some()
+    if cds_db::user_idp::find_user_idp_by_auth_key::<UserIdpView>(
+        &s.db.conn,
+        idp.id,
+        &payload.auth_key,
+    )
+    .await?
+    .is_some()
     {
         return Err(WebError::Conflict(json!("user_idp_already_bound")));
     }
-    if cds_db::user_idp::find_user_idp_by_user_and_idp::<UserIdp>(&s.db.conn, operator.id, idp.id)
-        .await?
-        .is_some()
+    if cds_db::user_idp::find_user_idp_by_user_and_idp::<UserIdpView>(
+        &s.db.conn,
+        operator.id,
+        idp.id,
+    )
+    .await?
+    .is_some()
     {
         return Err(WebError::Conflict(json!("idp_already_bound")));
     }
 
-    let identity = create_user_idp(&s, &idp, operator.id, &payload).await?;
-    Ok((StatusCode::CREATED, Json(IdpBindResponse { idp: identity })))
+    let identity = create_user_idp(
+        &s.db.conn,
+        &idp,
+        operator.id,
+        &payload,
+        UserIdpSource::Binding,
+    )
+    .await?;
+    Ok((
+        StatusCode::CREATED,
+        Json(IdpBindResponse {
+            idp: UserIdpSummary::from(&identity),
+        }),
+    ))
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct IdpLoginResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user: Option<User>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub identity: Option<UserIdp>,
+    pub user: Option<UserAccountView>,
     pub registered: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub requires_registration: Option<bool>,
@@ -138,6 +156,13 @@ pub struct PendingIdentity {
     pub idp_id: i64,
     #[serde(default)]
     pub data: HashMap<String, String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct PendingIdentityState {
+    idp_id: i64,
+    auth_key: String,
+    data: HashMap<String, String>,
 }
 
 #[derive(Clone, Debug, Deserialize, Validate, utoipa::ToSchema)]
@@ -183,7 +208,7 @@ pub async fn login(
     {
         cds_db::user_idp::update_user_idp_data(&s.db.conn, &identity, Some(json!(payload.data)))
             .await?;
-        let user = cds_db::user::find_by_id::<User>(&s.db.conn, identity.user_id)
+        let user = cds_db::user::find_by_id::<UserAccountView>(&s.db.conn, identity.user_id)
             .await?
             .ok_or(WebError::NotFound(json!("user_not_found")))?;
         session.insert("user_id", user.id).await?;
@@ -193,37 +218,31 @@ pub async fn login(
             idp_id = idp.id,
             "user logged in through idp"
         );
-        let identity = cds_db::user_idp::find_user_idp_by_auth_key::<UserIdp>(
-            &s.db.conn,
-            idp.id,
-            &payload.auth_key,
-        )
-        .await?
-        .ok_or(WebError::NotFound(json!("user_idp_not_found")))?;
         return Ok(Json(IdpLoginResponse {
             user: Some(user),
-            identity: Some(identity),
             registered: false,
             requires_registration: None,
             pending_identity: None,
         }));
     }
 
+    ensure_registration_enabled(idp.registration_enabled)?;
+
     let token = nanoid::nanoid!();
     s.cache
-        .set_ex(
+        .set_with_ttl(
             format!("idp_pending:{}", token),
-            serde_json::json!({
-                "idp_id": idp.id,
-                "auth_key": payload.auth_key,
-            }),
-            600,
+            PendingIdentityState {
+                idp_id: idp.id,
+                auth_key: payload.auth_key,
+                data: payload.data.clone(),
+            },
+            std::time::Duration::from_secs(600),
         )
         .await?;
 
     Ok(Json(IdpLoginResponse {
         user: None,
-        identity: None,
         registered: false,
         requires_registration: Some(true),
         pending_identity: Some(PendingIdentity {
@@ -256,20 +275,19 @@ pub async fn register(
     ReqJson(mut body): ReqJson<IdpRegisterRequest>,
 ) -> Result<(StatusCode, Json<crate::router::api::user::UserResponse>), WebError> {
     let idp = enabled_idp(&s, idp_id).await?;
+    ensure_registration_enabled(idp.registration_enabled)?;
+    body.validate()
+        .map_err(|err| WebError::BadRequest(json!(err.to_string())))?;
 
-    // Resolve auth_key from one-time token stored in cache
     let pending_key = format!("idp_pending:{}", body.token);
-    let pending: Option<serde_json::Value> = s.cache.get_del(&pending_key).await?;
+    let pending: Option<PendingIdentityState> = s.cache.take(&pending_key).await?;
     let pending = pending.ok_or(WebError::BadRequest(json!("invalid_or_expired_token")))?;
-    let auth_key = pending
-        .get("auth_key")
-        .and_then(|v| v.as_str())
-        .ok_or(WebError::BadRequest(json!("invalid_token_payload")))?
-        .to_string();
+    ensure_pending_matches(idp.id, pending.idp_id)?;
 
-    // Verify the auth_key is not already bound
     if cds_db::user_idp::find_user_idp_by_auth_key::<cds_db::user_idp::UserIdpModel>(
-        &s.db.conn, idp.id, &auth_key,
+        &s.db.conn,
+        idp.id,
+        &pending.auth_key,
     )
     .await?
     .is_some()
@@ -288,49 +306,50 @@ pub async fn register(
     }
 
     let hashed_password = util::crypto::hash_password(body.password);
+    let email_verified = !cds_db::get_config(&s.db.conn).await.email.enabled;
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
 
-    let user = cds_db::user::create::<User>(
-        &s.db.conn,
+    let user = cds_db::user::create::<UserAccountView>(
+        &transaction,
         cds_db::user::ActiveModel {
             username: Set(body.username),
             name: Set(body.name),
             hashed_password: Set(hashed_password),
-            group: Set(
-                if cds_db::user::find::<User>(&s.db.conn, FindUserOptions::default())
-                    .await?
-                    .1
-                    == 0
-                {
-                    Group::Admin
-                } else {
-                    Group::User
-                },
-            ),
+            group: Set(Group::User),
             ..Default::default()
         },
     )
-    .await?;
+    .await
+    .map_err(registration_db_error)?;
 
-    let _ = cds_db::email::create::<Email>(
-        &s.db.conn,
+    let _ = cds_db::email::create::<EmailView>(
+        &transaction,
         cds_db::email::ActiveModel {
             user_id: Set(user.id),
             email: Set(body.email),
-            verified: Set(!cds_db::get_config(&s.db.conn).await.email.enabled),
+            verified: Set(email_verified),
         },
     )
-    .await?;
+    .await
+    .map_err(registration_db_error)?;
 
     let _ = create_user_idp(
-        &s,
+        &transaction,
         &idp,
         user.id,
         &cds_idp::IdentityPayload {
-            auth_key,
-            data: HashMap::new(),
+            auth_key: pending.auth_key,
+            data: pending.data,
         },
+        UserIdpSource::Registration,
     )
-    .await?;
+    .await
+    .map_err(registration_db_error)?;
+    transaction
+        .commit()
+        .await
+        .map_err(cds_db::DbError::from)
+        .map_err(registration_db_error)?;
 
     session.insert("user_id", user.id).await?;
     Span::current().record("username", user.username.as_str());
@@ -348,8 +367,8 @@ pub async fn register(
     ))
 }
 
-async fn enabled_idp(s: &AppState, idp_id: i64) -> Result<Idp, WebError> {
-    let idp = cds_db::idp::find_idp_by_id::<Idp>(&s.db.conn, idp_id)
+async fn enabled_idp(s: &AppState, idp_id: i64) -> Result<IdpView, WebError> {
+    let idp = cds_db::idp::find_idp_by_id::<IdpView>(&s.db.conn, idp_id)
         .await?
         .ok_or(WebError::NotFound(json!("idp_not_found")))?;
     if !idp.enabled {
@@ -358,7 +377,38 @@ async fn enabled_idp(s: &AppState, idp_id: i64) -> Result<Idp, WebError> {
     Ok(idp)
 }
 
-async fn user_map(s: &AppState, user: &User) -> Result<HashMap<String, String>, WebError> {
+fn ensure_registration_enabled(enabled: bool) -> Result<(), WebError> {
+    if enabled {
+        Ok(())
+    } else {
+        Err(WebError::Forbidden(json!("idp_registration_disabled")))
+    }
+}
+
+fn ensure_pending_matches(idp_id: i64, pending_idp_id: i64) -> Result<(), WebError> {
+    if idp_id == pending_idp_id {
+        Ok(())
+    } else {
+        Err(WebError::BadRequest(json!("idp_pending_mismatch")))
+    }
+}
+
+fn registration_db_error(error: cds_db::DbError) -> WebError {
+    if matches!(
+        &error,
+        cds_db::DbError::SeaORM(error)
+            if matches!(error.sql_err(), Some(SqlErr::UniqueConstraintViolation(_)))
+    ) {
+        WebError::Conflict(json!("registration_conflict"))
+    } else {
+        error.into()
+    }
+}
+
+async fn user_map(
+    s: &AppState,
+    user: &UserAccountView,
+) -> Result<HashMap<String, String>, WebError> {
     let mut map = HashMap::from([
         ("id".to_string(), user.id.to_string()),
         ("username".to_string(), user.username.clone()),
@@ -368,7 +418,7 @@ async fn user_map(s: &AppState, user: &User) -> Result<HashMap<String, String>, 
             format!("{:?}", user.group).to_lowercase(),
         ),
     ]);
-    if let Some(email) = cds_db::email::find_by_user_id::<Email>(&s.db.conn, user.id)
+    if let Some(email) = cds_db::email::find_by_user_id::<EmailView>(&s.db.conn, user.id)
         .await?
         .into_iter()
         .find(|email| email.verified)
@@ -379,21 +429,47 @@ async fn user_map(s: &AppState, user: &User) -> Result<HashMap<String, String>, 
 }
 
 async fn create_user_idp(
-    s: &AppState,
-    idp: &Idp,
+    conn: &impl ConnectionTrait,
+    idp: &IdpView,
     user_id: i64,
     payload: &cds_idp::IdentityPayload,
-) -> Result<UserIdp, WebError> {
-    Ok(cds_db::user_idp::create_user_idp::<UserIdp>(
-        &s.db.conn,
+    source: UserIdpSource,
+) -> Result<UserIdpView, cds_db::DbError> {
+    Ok(cds_db::user_idp::create_user_idp::<UserIdpView>(
+        conn,
         cds_db::user_idp::UserIdpActiveModel {
             id: NotSet,
             user_id: Set(user_id),
             idp_id: Set(idp.id),
             auth_key: Set(payload.auth_key.clone()),
+            source: Set(source),
             data: Set(Some(json!(payload.data))),
             ..Default::default()
         },
     )
     .await?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ensure_pending_matches, ensure_registration_enabled};
+    use crate::traits::WebError;
+
+    #[test]
+    fn registration_guard_is_independent_from_login() {
+        assert!(ensure_registration_enabled(true).is_ok());
+        assert!(matches!(
+            ensure_registration_enabled(false),
+            Err(WebError::Forbidden(_))
+        ));
+    }
+
+    #[test]
+    fn pending_identity_is_scoped_to_its_provider() {
+        assert!(ensure_pending_matches(3, 3).is_ok());
+        assert!(matches!(
+            ensure_pending_matches(3, 4),
+            Err(WebError::BadRequest(_))
+        ));
+    }
 }

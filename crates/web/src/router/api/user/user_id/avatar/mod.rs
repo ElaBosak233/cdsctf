@@ -33,7 +33,7 @@ pub async fn get_user_avatar(
     State(s): State<Arc<AppState>>,
     Path(user_id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let user = cds_db::user::find_by_id::<cds_db::User>(&s.db.conn, user_id)
+    let user = cds_db::user::find_by_id::<cds_db::UserAccountView>(&s.db.conn, user_id)
         .await?
         .ok_or(WebError::NotFound(json!("user_not_found")))?;
     match user.avatar_hash {

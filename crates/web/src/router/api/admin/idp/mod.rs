@@ -11,7 +11,7 @@ use axum::{
     http::StatusCode,
 };
 use cds_db::{
-    Idp,
+    IdpView,
     sea_orm::ActiveValue::{NotSet, Set, Unchanged},
 };
 use cds_engine::traits::EngineError;
@@ -47,12 +47,12 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminIdpsResponse {
-    pub idps: Vec<Idp>,
+    pub idps: Vec<IdpView>,
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminIdpResponse {
-    pub idp: Idp,
+    pub idp: IdpView,
 }
 
 #[derive(Clone, Debug, Deserialize, Validate, utoipa::ToSchema)]
@@ -61,6 +61,8 @@ pub struct AdminIdpRequest {
     pub name: String,
     #[serde(default = "default_true")]
     pub enabled: bool,
+    #[serde(default)]
+    pub registration_enabled: bool,
     pub portal: Option<String>,
     pub script: String,
 }
@@ -84,7 +86,7 @@ fn default_true() -> bool {
 pub async fn list_idps(
     State(s): State<Arc<AppState>>,
 ) -> Result<Json<AdminIdpsResponse>, WebError> {
-    let idps = cds_db::idp::find_idps::<Idp>(&s.db.conn).await?;
+    let idps = cds_db::idp::find_idps::<IdpView>(&s.db.conn).await?;
     Ok(Json(AdminIdpsResponse { idps }))
 }
 
@@ -114,12 +116,13 @@ pub async fn create_idp(
             _ => WebError::BadRequest(json!(err.to_string())),
         })?;
 
-    let idp = cds_db::idp::create_idp::<Idp>(
+    let idp = cds_db::idp::create_idp::<IdpView>(
         &s.db.conn,
         cds_db::idp::IdpActiveModel {
             id: NotSet,
             name: Set(body.name),
             enabled: Set(body.enabled),
+            registration_enabled: Set(body.registration_enabled),
             portal: Set(body.portal),
             script: Set(body.script),
             ..Default::default()
@@ -141,7 +144,7 @@ pub async fn get_idp(
     State(s): State<Arc<AppState>>,
     Path(idp_id): Path<i64>,
 ) -> Result<Json<AdminIdpResponse>, WebError> {
-    let idp = cds_db::idp::find_idp_by_id::<Idp>(&s.db.conn, idp_id)
+    let idp = cds_db::idp::find_idp_by_id::<IdpView>(&s.db.conn, idp_id)
         .await?
         .ok_or(WebError::NotFound(json!("idp_not_found")))?;
     Ok(Json(AdminIdpResponse { idp }))
@@ -163,7 +166,7 @@ pub async fn update_idp(
 ) -> Result<Json<AdminIdpResponse>, WebError> {
     body.validate()
         .map_err(|err| WebError::BadRequest(json!(err.to_string())))?;
-    let _ = cds_db::idp::find_idp_by_id::<Idp>(&s.db.conn, idp_id)
+    let _ = cds_db::idp::find_idp_by_id::<IdpView>(&s.db.conn, idp_id)
         .await?
         .ok_or(WebError::NotFound(json!("idp_not_found")))?;
     cds_idp::Idp::lint(&body.script)
@@ -175,12 +178,13 @@ pub async fn update_idp(
             _ => WebError::BadRequest(json!(err.to_string())),
         })?;
 
-    let idp = cds_db::idp::update_idp::<Idp>(
+    let idp = cds_db::idp::update_idp::<IdpView>(
         &s.db.conn,
         cds_db::idp::IdpActiveModel {
             id: Unchanged(idp_id),
             name: Set(body.name),
             enabled: Set(body.enabled),
+            registration_enabled: Set(body.registration_enabled),
             portal: Set(body.portal),
             script: Set(body.script),
             ..Default::default()

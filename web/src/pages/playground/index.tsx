@@ -8,7 +8,7 @@ import {
   TypeIcon,
 } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import {
@@ -23,7 +23,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { ChallengeCard } from "@/components/widgets/challenge-card";
-import type { ChallengeMini } from "@/models/challenge";
+import type { ChallengeSummary } from "@/models/challenge";
 import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
@@ -52,7 +52,7 @@ function usePlaygroundChallengeQuery(
 }
 
 function useChallengeStatusQuery(
-  challenges: ChallengeMini[] | undefined,
+  challenges: ChallengeSummary[] | undefined,
   userId?: number
 ) {
   return useQuery({
@@ -68,16 +68,10 @@ function useChallengeStatusQuery(
 }
 
 export default function Index() {
-  const authStore = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const { config } = useConfigStore();
   const { t } = useTranslation();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (useAuthStore.getState().user) return;
-
-    navigate(`/account/login?redirect=/playground`, { replace: true });
-  }, [navigate]);
 
   const [doSearch, setDoSearch] = useState<number>(0);
   const [title, setTitle] = useQueryState("title");
@@ -104,7 +98,7 @@ export default function Index() {
   );
 
   const { data: challengeStatus, isLoading: isChallengeStatusFetching } =
-    useChallengeStatusQuery(challenges, authStore?.user?.id);
+    useChallengeStatusQuery(challenges, user?.id);
 
   const loading = isChallengeFetching || isChallengeStatusFetching;
 
@@ -132,7 +126,7 @@ export default function Index() {
             </FieldIcon>
             <TextField
               placeholder={t("challenge:search.title")}
-              value={title || undefined}
+              value={title ?? ""}
               onChange={(e) => setTitle(e.target.value)}
             />
           </Field>
@@ -176,7 +170,7 @@ export default function Index() {
               </FieldIcon>
               <TextField
                 placeholder={t("challenge:search.tag")}
-                value={tag || undefined}
+                value={tag ?? ""}
                 onChange={(e) => setTag(e.target.value)}
               />
             </Field>
@@ -244,7 +238,7 @@ export default function Index() {
               </FieldIcon>
               <TextField
                 placeholder={t("challenge:search.tag")}
-                value={tag || undefined}
+                value={tag ?? ""}
                 onChange={(e) => setTag(e.target.value)}
               />
             </Field>

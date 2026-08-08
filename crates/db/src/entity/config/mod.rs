@@ -16,6 +16,7 @@ use async_trait::async_trait;
 use sea_orm::{FromJsonQueryResult, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
+#[sea_orm::model]
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "configs")]
 pub struct Model {
@@ -56,9 +57,6 @@ impl Config {
         }
     }
 }
-
-#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {

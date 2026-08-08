@@ -1,4 +1,3 @@
-import type { ColumnDef } from "@tanstack/react-table";
 import { BanIcon, XIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -11,11 +10,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Status, type Submission } from "@/models/submission";
+import { Status, type SubmissionView } from "@/models/submission";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import type { ColumnDef } from "@/hooks/use-data-table";
 
-function useColumns(): Array<ColumnDef<Submission>> {
+function useColumns(): Array<ColumnDef<SubmissionView>> {
   const { t } = useTranslation();
   const sharedStore = useSharedStore();
 
@@ -100,10 +100,16 @@ function useColumns(): Array<ColumnDef<Submission>> {
         const status = row.original.status;
 
         switch (status) {
-          case Status.Pending:
+          case Status.Queued:
             return (
               <Badge className={cn(["bg-warning", "text-warning-foreground"])}>
-                {t("submission:status.pending")}
+                {t("submission:status.queued")}
+              </Badge>
+            );
+          case Status.Processing:
+            return (
+              <Badge className={cn(["bg-info", "text-info-foreground"])}>
+                {t("submission:status.processing")}
               </Badge>
             );
           case Status.Correct:
@@ -152,6 +158,23 @@ function useColumns(): Array<ColumnDef<Submission>> {
             />
             <span>{name}</span>
           </div>
+        );
+      },
+    },
+    {
+      accessorKey: "processing_at",
+      id: "processing_duration",
+      header: t("submission:processing_duration"),
+      cell: ({ row }) => {
+        const processingAt = row.original.processing_at;
+        const checkedAt = row.original.checked_at;
+        if (processingAt == null || checkedAt == null) return "-";
+
+        const duration = Math.max(0, checkedAt - processingAt);
+        return (
+          <span className={cn(["text-xs", "text-muted-foreground"])}>
+            {duration}s
+          </span>
         );
       },
     },

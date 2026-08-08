@@ -1,4 +1,4 @@
-import type { GameNotice } from "@/models/game_notice";
+import type { GameNoticeView } from "@/models/game_notice";
 import { api } from "@/utils/query";
 
 export type CreateGameNoticeRequest = {
@@ -13,7 +13,7 @@ export async function createGameNotice(request: CreateGameNoticeRequest) {
     .post(`admin/games/${game_id}/notices`, {
       json: { title, content },
     })
-    .json<{ notice: GameNotice }>();
+    .json<{ notice: GameNoticeView }>();
 }
 
 export type DeleteGameNoticeRequest = {

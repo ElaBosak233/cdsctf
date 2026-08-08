@@ -29,7 +29,7 @@ pub async fn get_idp_avatar(
     State(s): State<Arc<AppState>>,
     Path(idp_id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let idp = cds_db::idp::find_idp_by_id::<cds_db::Idp>(&s.db.conn, idp_id)
+    let idp = cds_db::idp::find_idp_by_id::<cds_db::IdpView>(&s.db.conn, idp_id)
         .await?
         .ok_or(WebError::NotFound(json!("idp_not_found")))?;
     match idp.avatar_hash {

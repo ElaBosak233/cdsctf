@@ -1,12 +1,4 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  type SortingState,
-  useReactTable,
-  type VisibilityState,
-} from "@tanstack/react-table";
 import { ListOrderedIcon } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useContext, useState } from "react";
@@ -30,10 +22,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDebounce } from "@/hooks/use-debounce";
-import type { Challenge } from "@/models/challenge";
+import type { ChallengeDetail } from "@/models/challenge";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import {
+  flexRender,
+  type SortingState,
+  useDataTable,
+} from "@/hooks/use-data-table";
 import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
 import { ChallengeListContext } from "./context";
@@ -76,16 +73,16 @@ export default function Index() {
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(10));
   const [sorting, setSorting] = useState<SortingState>([
-    { id: "created_at", desc: true },
+    { id: "updated_at", desc: true },
   ]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
+  const categoryFilter = debouncedColumnFilters.find(
+    (filter) => filter.id === "category"
+  )?.value as string | undefined;
   const category =
-    (debouncedColumnFilters.find((c) => c.id === "category")
-      ?.value as string) !== "all"
-      ? (debouncedColumnFilters.find((c) => c.id === "category")
-          ?.value as number)
+    categoryFilter && categoryFilter !== "all"
+      ? Number(categoryFilter)
       : undefined;
 
   const isPublic =
@@ -96,7 +93,9 @@ export default function Index() {
       : undefined;
 
   const { data: challengesData, isLoading: loading } = useChallengeQuery({
-    id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
+    id:
+      Number(debouncedColumnFilters.find((c) => c.id === "id")?.value) ||
+      undefined,
     title: debouncedColumnFilters.find((c) => c.id === "title")
       ?.value as string,
     category,
@@ -107,19 +106,19 @@ export default function Index() {
   });
 
   const columns = useColumns();
-  const table = useReactTable<Challenge>({
+  const table = useDataTable<ChallengeDetail>({
     data: challengesData?.challenges || [],
     columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     rowCount: challengesData?.total,
     manualFiltering: true,
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
     manualSorting: true,
-    onSortingChange: setSorting,
-    state: { sorting, columnVisibility, columnFilters },
+    onSortingChange: (updater) => {
+      setSorting(updater);
+      void setPage(1);
+    },
+    state: { sorting, columnFilters },
   });
 
   return (
@@ -154,7 +153,7 @@ export default function Index() {
             "w-full",
             "max-w-full",
             "overflow-hidden",
-            "rounded-xl",
+            "rounded-lg",
             "border",
             "ring-1",
             "ring-border/50",
@@ -162,7 +161,14 @@ export default function Index() {
           ])}
         >
           <LoadingOverlay loading={loading} />
-          <Table className={cn(["text-foreground", "w-full", "min-w-160"])}>
+          <Table
+            className={cn([
+              "w-full",
+              "min-w-224",
+              "table-fixed",
+              "text-foreground",
+            ])}
+          >
             <TableHeader
               className={cn([
                 "sticky",
@@ -176,7 +182,21 @@ export default function Index() {
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className={cn([
+                        "bg-muted/95",
+                        header.column.id === "classification" && ["w-44"],
+                        header.column.id === "status" && ["w-52"],
+                        header.column.id === "updated_at" && ["w-44"],
+                        header.column.id === "actions" && [
+                          "sticky",
+                          "right-0",
+                          "z-3",
+                          "w-24",
+                        ],
+                      ])}
+                    >
                       {!header.isPlaceholder &&
                         flexRender(
                           header.column.columnDef.header,
@@ -190,16 +210,30 @@ export default function Index() {
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <RowProvider
-                    key={row.getValue("id")}
-                    challenge={row.original}
-                  >
+                  <RowProvider key={row.original.id} challenge={row.original}>
                     <TableRow
                       data-state={row.getIsSelected() ? "selected" : undefined}
-                      className={cn(["transition-colors"])}
+                      className={cn([
+                        "group",
+                        "transition-colors",
+                        "hover:bg-transparent",
+                      ])}
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
+                        <TableCell
+                          key={cell.id}
+                          className={cn([
+                            "py-3",
+                            "transition-colors",
+                            "group-hover:bg-muted/50",
+                            cell.column.id === "actions" && [
+                              "sticky",
+                              "right-0",
+                              "z-1",
+                              "bg-card",
+                            ],
+                          ])}
+                        >
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()
@@ -238,8 +272,9 @@ export default function Index() {
           ])}
         >
           <p className={cn(["text-sm", "text-muted-foreground"])}>
-            {table.getFilteredRowModel().rows.length} /{" "}
-            {challengesData?.total ?? 0}
+            {t("challenge:result_count", {
+              count: challengesData?.total ?? 0,
+            })}
           </p>
           <div
             className={cn([
@@ -268,7 +303,10 @@ export default function Index() {
                   { value: "60" },
                 ]}
                 value={String(size)}
-                onValueChange={(value) => setSize(Number(value))}
+                onValueChange={(value) => {
+                  void setSize(Number(value));
+                  void setPage(1);
+                }}
               />
             </Field>
           </div>

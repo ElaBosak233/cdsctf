@@ -1,5 +1,4 @@
-export type Email = {
+export type EmailView = {
   email: string;
-  user_id: number;
   verified: boolean;
 };

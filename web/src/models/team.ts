@@ -1,16 +1,17 @@
-export type Team = {
-  id?: number;
-  game_id?: number;
-  name?: string;
-  email?: string;
-  slogan?: string;
-  avatar_hash?: string;
-  has_writeup?: boolean;
-  writeup_submitted_at?: number;
-  writeup_updated_at?: number;
+export type TeamView = {
+  id: number;
+  game_id: number;
+  name: string;
+  email: string | null;
+  slogan: string | null;
+  avatar_hash: string | null;
+  has_writeup: boolean;
+  state: State;
+  pts: number;
+  rank: number;
+};
 
-  state?: State;
-
+export type PlayerTeamView = Omit<TeamView, "pts" | "rank"> & {
   pts?: number;
   rank?: number;
 };

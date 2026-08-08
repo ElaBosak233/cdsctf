@@ -1,13 +1,13 @@
 import { create } from "zustand";
 
-import type { Submission } from "@/models/submission";
+import type { SubmissionSummary } from "@/models/submission";
 
 type CheckerState = {
   loading: boolean;
   setLoading: (loading: boolean) => void;
 
-  submissions: Array<Submission>;
-  add: (submission: Submission) => void;
+  submissions: Array<SubmissionSummary>;
+  add: (submission: SubmissionSummary) => void;
   pop: (id: number) => void;
 };
 

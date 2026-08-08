@@ -96,24 +96,22 @@ pub async fn upload_media(
     let token_10m = format!("media:upload:10m:{}", operator.id);
     let token_24h = format!("media:upload:24h:{}", operator.id);
 
-    if let Some(limit) = s.cache.get::<i32>(&token_10m).await? {
-        if limit >= 10 {
-            return Err(WebError::TooManyRequests(json!("upload_media_10m")));
-        } else {
-            s.cache.incr(&token_10m).await?;
-        }
-    } else {
-        s.cache.set_ex(&token_10m, 1, 600).await?;
+    if !s
+        .cache
+        .fixed_window(&token_10m, 10, std::time::Duration::from_secs(600))
+        .await?
+        .allowed
+    {
+        return Err(WebError::TooManyRequests(json!("upload_media_10m")));
     }
 
-    if let Some(limit) = s.cache.get::<i32>(&token_24h).await? {
-        if limit >= 50 {
-            return Err(WebError::TooManyRequests(json!("upload_media_24h")));
-        } else {
-            s.cache.incr(&token_24h).await?;
-        }
-    } else {
-        s.cache.set_ex(&token_24h, 1, 86400).await?;
+    if !s
+        .cache
+        .fixed_window(&token_24h, 50, std::time::Duration::from_secs(86400))
+        .await?
+        .allowed
+    {
+        return Err(WebError::TooManyRequests(json!("upload_media_24h")));
     }
 
     let data = handle_multipart(multipart, mime::IMAGE).await?;

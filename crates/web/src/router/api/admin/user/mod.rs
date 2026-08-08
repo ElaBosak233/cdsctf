@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    Email, User,
+    EmailView, UserAccountView,
     sea_orm::ActiveValue::Set,
     user::{FindUserOptions, Group},
 };
@@ -48,7 +48,7 @@ pub struct GetUsersRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminUsersListResponse {
-    pub users: Vec<User>,
+    pub users: Vec<UserAccountView>,
     pub total: u64,
 }
 
@@ -122,7 +122,7 @@ pub async fn create_user(
 
     let hashed_password = crate::util::crypto::hash_password(body.password);
 
-    let user = cds_db::user::create::<User>(
+    let user = cds_db::user::create::<UserAccountView>(
         &s.db.conn,
         cds_db::user::ActiveModel {
             name: Set(body.name),
@@ -134,7 +134,7 @@ pub async fn create_user(
     )
     .await?;
 
-    let _ = cds_db::email::create::<Email>(
+    let _ = cds_db::email::create::<EmailView>(
         &s.db.conn,
         cds_db::email::ActiveModel {
             user_id: Set(user.id),

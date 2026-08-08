@@ -1,5 +1,14 @@
 _: 使用者
 empty: 目前尚無使用者。
+result_count: "{{count}} 位使用者"
+list:
+  columns:
+    user: 使用者
+    status: 帳號狀態
+    created_at: 註冊時間
+  verified:
+    "true": 已驗證
+    "false": 未驗證
 edit:
   _: 編輯使用者
   info: 基本資訊
@@ -151,6 +160,7 @@ delete_account:
     intro: 你即將刪除帳號。帳號不會立即實體刪除，而會永久進入軟刪除狀態，且無法復原！
     username: 你的使用者名稱會以特殊格式修改並儲存。之後可使用原本的使用者名稱註冊新的帳號。
     email: 你的電子郵件地址會解除綁定並清除。之後可使用原本的電子郵件地址註冊新的帳號。
+    idp: 所有第三方認證綁定都會被釋放，之後可用於其他帳號。
     data: 所有與你相關的比賽、團隊及送出紀錄仍會保留。但刪除帳號後，不再有資訊可證明這些資料屬於你。
     irreversible: 請再次注意，你接下來的操作是不可逆的！請三思而後行！
     confirm: 請仔細閱讀上述內容。若確定要刪除帳號，請在下方輸入完整使用者名稱與密碼，然後點選確認。
@@ -171,6 +181,8 @@ delete_account:
       success: 帳號已刪除。
 idp:
   _: 第三方認證服務
+  source:
+    registration: 註冊身分
   actions:
     bind: 綁定
     unbind: 解除綁定

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/item";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import type { Email } from "@/models/email";
+import type { EmailView } from "@/models/email";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { parseRouteNumericId } from "@/utils/query";
@@ -38,7 +38,7 @@ export default function Emails() {
   const [deleteTarget, setDeleteTarget] = useState<string>();
   const [updatingEmail, setUpdatingEmail] = useState<string>();
 
-  const { data: emails = [], refetch } = useQuery<Array<Email>>({
+  const { data: emails = [], refetch } = useQuery<Array<EmailView>>({
     queryKey: ["admin", "users", userId, "emails", sharedStore.refresh],
     queryFn: async () => {
       const res = await getEmails({

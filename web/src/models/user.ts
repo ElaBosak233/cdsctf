@@ -1,16 +1,13 @@
-import type { Team } from "./team";
-
-export type User = {
-  id?: number;
-  name?: string;
-  username?: string;
-  verified?: boolean;
-  group?: Group;
-  description?: string;
-  avatar_hash?: string;
-  teams?: Array<Team>;
-  created_at?: string;
-  updated_at?: string;
+export type UserAccountView = {
+  id: number;
+  name: string;
+  username: string;
+  verified: boolean | null;
+  group: Group;
+  description: string | null;
+  avatar_hash: string | null;
+  created_at: number;
+  updated_at: number;
 };
 
 export enum Group {
@@ -20,9 +17,18 @@ export enum Group {
   Admin = 3,
 }
 
-export type UserMini = {
-  id?: number;
-  name?: string;
-  username?: string;
-  avatar_hash?: string;
+export type UserSummary = {
+  id: number;
+  name: string;
+  username: string;
+  avatar_hash: string | null;
+};
+
+export type UserProfile = {
+  id: number;
+  name: string;
+  username: string;
+  description: string | null;
+  avatar_hash: string | null;
+  created_at: number;
 };

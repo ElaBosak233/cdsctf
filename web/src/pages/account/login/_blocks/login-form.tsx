@@ -10,7 +10,7 @@ import {
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 import { login } from "@/api/users";
@@ -26,14 +26,15 @@ import {
 } from "@/components/ui/form";
 import { TextField } from "@/components/ui/text-field";
 import { Captcha, type CaptchaRef } from "@/components/widgets/captcha";
-import { useAuthStore } from "@/storages/auth";
+import { setAuthenticatedUser } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
+import { getSafeRedirect } from "@/utils/redirect";
 
-function LoginForm() {
+function LoginForm({ onAuthenticated }: { onAuthenticated?: () => void }) {
   const configStore = useConfigStore();
-  const authStore = useAuthStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
 
   const captchaRef = useRef<CaptchaRef>(null);
@@ -66,7 +67,8 @@ function LoginForm() {
         ...values,
       });
 
-      authStore.setUser(res.user);
+      onAuthenticated?.();
+      setAuthenticatedUser(res.user);
 
       if (res.user?.verified) {
         toast.success(t("account:login.success._"), {
@@ -75,7 +77,9 @@ function LoginForm() {
             name: res.user?.name,
           }),
         });
-        navigate("/");
+        navigate(getSafeRedirect(searchParams.get("redirect")), {
+          replace: true,
+        });
       } else {
         toast.warning(t("account:login.warning.not_verified"), {
           id: "verify",

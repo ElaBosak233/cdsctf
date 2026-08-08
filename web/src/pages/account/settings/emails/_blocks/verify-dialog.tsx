@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
-import { useAuthStore } from "@/storages/auth";
+import { patchAuthenticatedUser, useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { formatApiMsg, parseErrorResponse } from "@/utils/query";
@@ -24,7 +24,7 @@ function VerifyDialog(props: VerifyDialogProps) {
   const { email, bump, onClose } = props;
   const { t } = useTranslation();
 
-  const authStore = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const configStore = useConfigStore();
 
   const [code, setCode] = useState<string>("");
@@ -54,10 +54,9 @@ function VerifyDialog(props: VerifyDialogProps) {
       });
 
       toast.success(t("user:emails.actions.verify.success", { email }));
-      authStore.setUser({
-        ...authStore.user,
-        verified: true,
-      });
+      if (user) {
+        patchAuthenticatedUser({ verified: true });
+      }
       onClose();
       bump();
     } catch (error) {

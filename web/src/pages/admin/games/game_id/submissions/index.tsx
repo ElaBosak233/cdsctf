@@ -1,14 +1,4 @@
 import {
-  type ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getExpandedRowModel,
-  getFilteredRowModel,
-  type SortingState,
-  useReactTable,
-  type VisibilityState,
-} from "@tanstack/react-table";
-import {
   FlagIcon,
   HashIcon,
   ListOrderedIcon,
@@ -34,9 +24,16 @@ import {
 } from "@/components/ui/table";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Status, type Submission } from "@/models/submission";
+import { Status, type SubmissionView } from "@/models/submission";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import {
+  type ColumnFiltersState,
+  type ColumnVisibilityState,
+  flexRender,
+  type SortingState,
+  useDataTable,
+} from "@/hooks/use-data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./_blocks/columns";
@@ -51,17 +48,18 @@ export default function Index() {
   const { game } = useContext(Context);
 
   const [total, setTotal] = useState<number>(0);
-  const [submissions, setSubmissions] = useState<Array<Submission>>([]);
+  const [submissions, setSubmissions] = useState<Array<SubmissionView>>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(10);
 
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    team_id: false,
-    challenge_id: false,
-  });
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({
+      team_id: false,
+      challenge_id: false,
+    });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     {
       id: "status",
@@ -72,15 +70,12 @@ export default function Index() {
 
   const columns = useColumns();
 
-  const table = useReactTable<Submission>({
+  const table = useDataTable<SubmissionView>({
     data: submissions,
     columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     rowCount: total,
     manualFiltering: true,
-    getFilteredRowModel: getFilteredRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     manualSorting: true,
@@ -93,12 +88,13 @@ export default function Index() {
   });
 
   const statusOptions = [
-    { id: Status.Pending.toString(), name: t("submission:status.pending") },
-    { id: Status.Correct.toString(), name: t("submission:status.correct") },
-    { id: Status.Incorrect.toString(), name: t("submission:status.incorrect") },
-    { id: Status.Cheat.toString(), name: t("submission:status.cheat") },
-    { id: Status.Expired.toString(), name: t("submission:status.expired") },
-    { id: Status.Duplicate.toString(), name: t("submission:status.duplicate") },
+    { id: Status.Queued, name: t("submission:status.queued") },
+    { id: Status.Processing, name: t("submission:status.processing") },
+    { id: Status.Correct, name: t("submission:status.correct") },
+    { id: Status.Incorrect, name: t("submission:status.incorrect") },
+    { id: Status.Cheat, name: t("submission:status.cheat") },
+    { id: Status.Expired, name: t("submission:status.expired") },
+    { id: Status.Duplicate, name: t("submission:status.duplicate") },
   ];
 
   useEffect(() => {
@@ -113,10 +109,9 @@ export default function Index() {
     const rawStatus = debouncedColumnFilters.find(
       (c) => c.id === "status"
     )?.value;
-    const parsedStatus =
-      rawStatus !== undefined && rawStatus !== null && rawStatus !== "all"
-        ? Number(rawStatus)
-        : undefined;
+    const status = Object.values(Status).includes(rawStatus as Status)
+      ? (rawStatus as Status)
+      : undefined;
 
     getSubmissions({
       game_id: gid,
@@ -125,7 +120,7 @@ export default function Index() {
         ?.value as number,
       challenge_id: debouncedColumnFilters.find((c) => c.id === "challenge_id")
         ?.value as number,
-      status: Number.isFinite(parsedStatus) ? parsedStatus : undefined,
+      status,
       sorts: "-created_at",
       page,
       size,

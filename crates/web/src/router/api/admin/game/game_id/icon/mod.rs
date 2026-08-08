@@ -7,7 +7,7 @@ use axum::{
     extract::{DefaultBodyLimit, Multipart, State},
 };
 use cds_db::{
-    Game,
+    GameDetail,
     sea_orm::{Set, Unchanged},
 };
 use serde_json::json;
@@ -60,7 +60,7 @@ pub async fn save_game_icon(
 
     s.media.save("media".to_owned(), hash.clone(), data).await?;
 
-    let _ = cds_db::game::update::<Game>(
+    let _ = cds_db::game::update::<GameDetail>(
         &s.db.conn,
         cds_db::game::ActiveModel {
             id: Unchanged(game_id),
@@ -91,7 +91,7 @@ pub async fn delete_game_icon(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let game = cds_db::game::find_by_id::<cds_db::Game>(&s.db.conn, game_id)
+    let game = cds_db::game::find_by_id::<cds_db::GameDetail>(&s.db.conn, game_id)
         .await?
         .ok_or(WebError::NotFound(json!("game_not_found")))?;
 
@@ -99,7 +99,7 @@ pub async fn delete_game_icon(
         s.media.delete("media".to_owned(), hash).await?;
     }
 
-    let _ = cds_db::game::update::<Game>(
+    let _ = cds_db::game::update::<GameDetail>(
         &s.db.conn,
         cds_db::game::ActiveModel {
             id: Unchanged(game_id),

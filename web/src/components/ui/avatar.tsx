@@ -30,7 +30,7 @@ const avatarVariants = cva(
 
 type AvatarProps = React.ComponentProps<typeof RadixAvatar.Root> &
   VariantProps<typeof avatarVariants> & {
-    src?: string | false;
+    src?: string | false | null;
     fallback?: React.ReactNode;
     fit?: "cover" | "contain" | "fill" | "none" | "scale-down";
     aspect?: "square" | "video";

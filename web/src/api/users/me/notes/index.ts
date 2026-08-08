@@ -1,4 +1,4 @@
-import type { Note } from "@/models/note";
+import type { NoteView } from "@/models/note";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetNotesRequest = {
@@ -13,7 +13,7 @@ export async function getMyNotes(request: GetNotesRequest) {
     .get(`users/me/notes`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ notes: Note[]; total: number }>();
+    .json<{ notes: NoteView[]; total: number }>();
 }
 
 export type SaveNoteRequest = {
@@ -23,5 +23,7 @@ export type SaveNoteRequest = {
 };
 
 export async function saveMyNote(request: SaveNoteRequest) {
-  return api.post(`users/me/notes`, { json: request }).json<{ note: Note }>();
+  return api
+    .post(`users/me/notes`, { json: request })
+    .json<{ note: NoteView }>();
 }

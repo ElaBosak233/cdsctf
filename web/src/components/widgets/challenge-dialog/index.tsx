@@ -9,8 +9,8 @@ import { MarkdownRender } from "@/components/ui/markdown-render";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
-import type { ChallengeMini } from "@/models/challenge";
-import type { Team } from "@/models/team";
+import type { ChallengeSummary } from "@/models/challenge";
+import type { PlayerTeamView } from "@/models/team";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { AttachmentSection } from "./attachment-section";
@@ -20,9 +20,9 @@ import { InstanceSection } from "./instance-section";
 import { SubmitSection } from "./submit-section";
 
 type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
-  digest?: ChallengeMini;
-  gameTeam?: Team;
-  frozenAt?: number;
+  digest?: Pick<ChallengeSummary, "id" | "title" | "category">;
+  gameTeam?: PlayerTeamView;
+  frozenAt?: number | null;
   debug?: boolean;
   cheated?: boolean;
 };

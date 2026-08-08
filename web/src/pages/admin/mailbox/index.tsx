@@ -23,7 +23,7 @@ import { NumberField } from "@/components/ui/number-field";
 import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
-import type { Config } from "@/models/config";
+import type { AdminConfig } from "@/models/config";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
@@ -31,7 +31,7 @@ export default function Index() {
   const { t } = useTranslation();
 
   const { config: globalConfig } = useConfigStore();
-  const [config, setConfig] = useState<Config>();
+  const [config, setConfig] = useState<AdminConfig>();
 
   const [verifyBody, setVerifyBody] = useState<string>();
   const [forgetBody, setForgetBody] = useState<string>();

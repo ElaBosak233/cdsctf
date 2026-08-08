@@ -17,7 +17,7 @@ use std::sync::Arc;
 use axum::{Json, Router, extract::State};
 use cds_db::sea_orm::{
     ActiveValue::{Set, Unchanged},
-    NotSet,
+    NotSet, TransactionTrait,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -65,7 +65,7 @@ pub async fn get_user_profile(
     Extension(ext): Extension<AuthPrincipal>,
 ) -> Result<Json<UserResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-    let user = cds_db::user::find_by_id::<cds_db::User>(&s.db.conn, operator.id)
+    let user = cds_db::user::find_by_id::<cds_db::UserAccountView>(&s.db.conn, operator.id)
         .await?
         .ok_or(WebError::NotFound(json!("")))?;
     Ok(Json(UserResponse { user }))
@@ -97,7 +97,7 @@ pub async fn update_user_profile(
 ) -> Result<Json<UserResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let user = cds_db::user::update::<cds_db::User>(
+    let user = cds_db::user::update::<cds_db::UserAccountView>(
         &s.db.conn,
         cds_db::user::ActiveModel {
             id: Unchanged(operator.id),
@@ -155,7 +155,9 @@ pub async fn delete_user_profile(
         return Err(WebError::BadRequest(json!("password_invalid")));
     }
 
-    cds_db::user::delete(&s.db.conn, operator.id).await?;
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
+    cds_db::user::delete(&transaction, operator.id).await?;
+    transaction.commit().await.map_err(cds_db::DbError::from)?;
 
     Ok(Json(EmptyJson::default()))
 }

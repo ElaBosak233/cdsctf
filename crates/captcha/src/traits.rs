@@ -7,6 +7,8 @@ use thiserror::Error;
 pub struct CaptchaChallenge {
     pub id: String,
     pub challenge: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(ignore)]
     pub criteria: Option<String>,
 }
 
@@ -17,6 +19,26 @@ impl CaptchaChallenge {
             criteria: None,
             ..self
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CaptchaChallenge;
+
+    #[test]
+    fn public_challenge_omits_internal_criteria() {
+        let challenge = CaptchaChallenge {
+            id: "id".to_owned(),
+            challenge: "2#challenge".to_owned(),
+            criteria: Some("challenge".to_owned()),
+        };
+
+        let value = serde_json::to_value(challenge.desensitize()).unwrap();
+        assert_eq!(
+            value,
+            serde_json::json!({"id": "id", "challenge": "2#challenge"})
+        );
     }
 }
 

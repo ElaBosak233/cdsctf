@@ -1,8 +1,9 @@
 import { StatusCodes } from "http-status-codes";
 import ky, { HTTPError, TimeoutError } from "ky";
 import { toast } from "sonner";
-import { useAuthStore } from "@/storages/auth";
+import { clearAuthenticatedUser } from "@/storages/auth";
 import type { ErrorResponse } from "@/types";
+import i18n from "@/utils/i18n";
 
 type PendingEntry = {
   controller: AbortController;
@@ -26,7 +27,7 @@ const api = ky.extend({
         if (existing) {
           // A request is already in-flight — share its response instead of
           // making a duplicate call to the server.
-          return existing.responsePromise;
+          return existing.responsePromise.then((response) => response.clone());
         }
 
         let resolve: (response: Response) => void;
@@ -71,19 +72,21 @@ const api = ky.extend({
         if (!(error instanceof HTTPError)) return error;
 
         if (error.response.status === StatusCodes.UNAUTHORIZED) {
-          useAuthStore?.getState()?.clear();
+          clearAuthenticatedUser();
 
           if (!error.request.headers.get("Ignore-Unauthorized")) {
-            toast.error("Please sign in to continue", {
+            toast.error(i18n.t("account:guard.login_required"), {
               id: "please-login-first",
             });
           }
         }
 
         if (error.response.status === StatusCodes.BAD_GATEWAY) {
-          toast.error("Service unavailable", {
+          toast.error(i18n.t("common:errors.service_unavailable"), {
             id: "502-backend-offline",
-            description: "The server could not complete the request.",
+            description: i18n.t(
+              "common:errors.service_unavailable_description"
+            ),
           });
         }
 
@@ -92,7 +95,7 @@ const api = ky.extend({
       async ({ error }) => {
         if (!(error instanceof TimeoutError)) return error as unknown as Error;
 
-        toast.error("Request timed out", {
+        toast.error(i18n.t("common:errors.timeout"), {
           id: "timeout",
         });
 

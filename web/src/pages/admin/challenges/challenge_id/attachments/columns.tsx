@@ -1,4 +1,3 @@
-import type { ColumnDef, Row } from "@tanstack/react-table";
 import { TrashIcon } from "lucide-react";
 import prettyBytes from "pretty-bytes";
 import { useContext, useMemo, useState } from "react";
@@ -11,6 +10,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { Metadata } from "@/models/media";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import { Context } from "../context";
 
 function ActionsCell({ row }: { row: Row<Metadata> }) {

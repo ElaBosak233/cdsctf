@@ -21,6 +21,8 @@ pub struct IdentityPayload {
 pub enum IdpError {
     #[error("missing idp field: {0}")]
     MissingField(String),
+    #[error("invalid idp field: {0}")]
+    InvalidField(String),
     #[error("script error: {0}")]
     ScriptError(String),
     #[error("engine error: {0}")]
@@ -93,6 +95,9 @@ impl Idp {
             .get("auth_key")
             .cloned()
             .ok_or_else(|| IdpError::MissingField("auth_key".to_owned()))?;
+        if auth_key.is_empty() || auth_key.len() > 255 {
+            return Err(IdpError::InvalidField("auth_key".to_owned()));
+        }
         Ok(IdentityPayload { auth_key, data })
     }
 }
@@ -119,6 +124,17 @@ mod tests {
         .unwrap();
         assert_eq!(payload.auth_key, "42");
         assert_eq!(payload.data["username"], "ela");
+    }
+
+    #[test]
+    fn rejects_invalid_auth_keys() {
+        assert!(
+            Idp::decode_payload(HashMap::from([("auth_key".to_owned(), "".to_owned())])).is_err()
+        );
+        assert!(
+            Idp::decode_payload(HashMap::from([("auth_key".to_owned(), "x".repeat(256),)]))
+                .is_err()
+        );
     }
 
     #[tokio::test]

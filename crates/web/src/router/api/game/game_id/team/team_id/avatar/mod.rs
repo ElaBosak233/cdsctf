@@ -33,7 +33,7 @@ pub async fn get_team_avatar(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<impl IntoResponse, WebError> {
-    let team = cds_db::team::find_by_id::<cds_db::Team>(&s.db.conn, team_id, game_id)
+    let team = cds_db::team::find_by_id::<cds_db::TeamView>(&s.db.conn, team_id, game_id)
         .await?
         .ok_or(WebError::NotFound(json!("team_not_found")))?;
     match team.avatar_hash {

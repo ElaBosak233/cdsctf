@@ -1,156 +1,112 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { EditIcon, IdCardIcon, PlusCircleIcon, TrashIcon } from "lucide-react";
-import { useOptimistic, useState, useTransition } from "react";
-import { Trans, useTranslation } from "react-i18next";
-import { Link } from "react-router";
+import { IdCardIcon, PlusCircleIcon, UserRoundPlusIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { deleteAdminIdp, getAdminIdps, updateAdminIdp } from "@/api/admin/idps";
-import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { getConfigs, updateConfig } from "@/api/admin/configs";
+import { getAdminIdps } from "@/api/admin/idps";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollableNav } from "@/components/ui/scrollable-nav";
 import { Switch } from "@/components/ui/switch";
-import type { Idp } from "@/models/idp";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import type { AdminConfig } from "@/models/config";
+import type { IdpView } from "@/models/idp";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import {
+  flexRender,
+  type SortingState,
+  useDataTable,
+} from "@/hooks/use-data-table";
+import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
-
-function IdpCard({ idp }: { idp: Idp }) {
-  const { t } = useTranslation();
-  const sharedStore = useSharedStore();
-
-  const [enabled, setEnabled] = useState(idp.enabled);
-  const [_, startTransition] = useTransition();
-  const [optimisticEnabled, setOptimisticEnabled] = useOptimistic(enabled);
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  async function handleToggleEnabled() {
-    const newValue = !optimisticEnabled;
-    setOptimisticEnabled(newValue);
-    startTransition(async () => {
-      await updateAdminIdp(idp.id!, { ...idp, enabled: newValue });
-      setEnabled(newValue);
-      toast.success(
-        newValue
-          ? t("admin:idp.actions.enable.success", { name: idp.name })
-          : t("admin:idp.actions.disable.success", { name: idp.name })
-      );
-    });
-  }
-
-  async function handleDelete() {
-    await deleteAdminIdp(idp.id!);
-    toast.success(t("admin:idp.actions.delete.success", { name: idp.name }));
-    setDeleteDialogOpen(false);
-    sharedStore.setRefresh();
-  }
-
-  return (
-    <Card className={cn(["p-4", "flex", "items-center", "gap-4"])}>
-      <Avatar
-        square
-        className={cn(["size-11", "border", "bg-transparent", "border-none"])}
-        src={idp.avatar_hash && `/api/media?hash=${idp.avatar_hash}`}
-        fallback={idp.name?.charAt(0)}
-      />
-      <div className={cn(["flex-1", "min-w-0"])}>
-        <div className={cn(["font-medium", "truncate"])}>{idp.name}</div>
-        <div className={cn(["text-sm", "text-secondary-foreground"])}>
-          #{idp.id}
-        </div>
-      </div>
-      <Badge variant={optimisticEnabled ? "solid" : "tonal"}>
-        {optimisticEnabled
-          ? t("admin:idp.enabled.true")
-          : t("admin:idp.enabled.false")}
-      </Badge>
-      <Switch
-        checked={optimisticEnabled}
-        onCheckedChange={handleToggleEnabled}
-      />
-      <Button variant="ghost" size="sm" square icon={<EditIcon />} asChild>
-        <Link to={`/admin/idps/${idp.id}`} />
-      </Button>
-      <Button
-        variant="ghost"
-        level="error"
-        size="sm"
-        square
-        icon={<TrashIcon />}
-        onClick={() => setDeleteDialogOpen(true)}
-      />
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <Card
-            className={cn([
-              "w-full",
-              "max-w-xl",
-              "rounded-elevated",
-              "shadow-lg",
-              "overflow-hidden",
-              "flex",
-              "flex-col",
-            ])}
-          >
-            <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-              <div className={cn(["flex", "items-center", "gap-3"])}>
-                <div
-                  className={cn([
-                    "flex items-center justify-center",
-                    "size-10 rounded-badge",
-                    "bg-error/10 text-error",
-                    "shrink-0",
-                  ])}
-                >
-                  <TrashIcon className={cn(["size-5"])} />
-                </div>
-                <h3 className={cn(["text-base", "font-semibold"])}>
-                  {t("admin:idp.actions.delete._")}
-                </h3>
-              </div>
-              <p className={cn(["text-sm"])}>
-                <Trans
-                  i18nKey={"admin:idp.actions.delete.message"}
-                  values={{ name: idp.name }}
-                  components={{
-                    muted: <span className={cn(["text-muted-foreground"])} />,
-                  }}
-                />
-              </p>
-              <div className={cn(["flex", "justify-end"])}>
-                <Button
-                  level={"error"}
-                  variant={"solid"}
-                  size={"sm"}
-                  onClick={handleDelete}
-                >
-                  {t("common:actions.confirm")}
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </DialogContent>
-      </Dialog>
-    </Card>
-  );
-}
 
 export default function Index() {
   const { t } = useTranslation();
-  const { config } = useConfigStore();
+  const { config, setConfig } = useConfigStore();
   const sharedStore = useSharedStore();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [adminConfig, setAdminConfig] = useState<AdminConfig>();
+  const [configSaving, setConfigSaving] = useState(false);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "updated_at", desc: true },
+  ]);
+
+  useEffect(() => {
+    getConfigs().then((response) => setAdminConfig(response.config));
+  }, []);
+
+  async function setLocalRegistrationEnabled(enabled: boolean) {
+    if (!adminConfig) return;
+    setConfigSaving(true);
+    try {
+      const response = await updateConfig({
+        ...adminConfig,
+        auth: {
+          ...adminConfig.auth,
+          local_registration_enabled: enabled,
+        },
+      });
+      setAdminConfig(response.config);
+      setConfig({
+        ...config,
+        auth: response.config.auth,
+      });
+      toast.success(t("admin:idp.local_registration.updated"));
+    } catch {
+      toast.error(t("common:errors.default"));
+    } finally {
+      setConfigSaving(false);
+    }
+  }
+
+  const renderLocalRegistrationControl = (compact = false) => (
+    <div
+      className={cn(
+        buttonVariants({ variant: "ghost", size: compact ? "sm" : "md" }),
+        "justify-start",
+        "text-muted-foreground",
+        compact ? "shrink-0" : "w-full"
+      )}
+    >
+      <UserRoundPlusIcon className="size-4" />
+      <span className="flex-1 whitespace-nowrap">
+        {t("admin:idp.local_registration._")}
+      </span>
+      <Switch
+        checked={adminConfig?.auth?.local_registration_enabled ?? false}
+        disabled={!adminConfig || configSaving}
+        onCheckedChange={setLocalRegistrationEnabled}
+        aria-label={t("admin:idp.local_registration._")}
+      />
+    </div>
+  );
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "idps", sharedStore.refresh],
     queryFn: getAdminIdps,
     select: (response) => response.idps ?? [],
     placeholderData: keepPreviousData,
+  });
+
+  const columns = useColumns();
+  const table = useDataTable<IdpView>({
+    data: data ?? [],
+    columns,
+    onSortingChange: setSorting,
+    state: { sorting },
   });
 
   return (
@@ -164,44 +120,57 @@ export default function Index() {
       <div
         className={cn([
           "flex",
+          "flex-1",
+          "min-h-0",
+          "min-w-0",
           "flex-col",
           "xl:flex-row",
           "xl:min-h-(--app-content-height)",
-          "flex-1",
-          "min-h-0",
           "xl:pl-64",
         ])}
       >
+        <ScrollableNav className="xl:hidden">
+          <Button
+            icon={<PlusCircleIcon className="size-4" />}
+            variant="solid"
+            size="sm"
+            className="shrink-0"
+            onClick={() => setCreateDialogOpen(true)}
+          >
+            {t("common:actions.add")}
+          </Button>
+          {renderLocalRegistrationControl(true)}
+        </ScrollableNav>
         <aside
           className={cn([
             "hidden",
-            "xl:flex",
             "xl:fixed",
             "xl:left-16",
             "xl:top-16",
             "xl:z-10",
+            "xl:flex",
             "xl:h-(--app-content-height)",
             "xl:w-64",
             "xl:flex-col",
+            "xl:gap-4",
             "xl:border-r",
             "xl:bg-card/30",
+            "xl:px-4",
+            "xl:py-5",
             "xl:backdrop-blur-sm",
-            "py-5",
-            "px-4",
-            "gap-4",
-            "overflow-y-auto",
+            "xl:overflow-y-auto",
           ])}
         >
           <div
             className={cn([
               "flex",
+              "shrink-0",
               "items-center",
               "gap-2",
               "px-2",
               "text-sm",
               "font-medium",
               "text-muted-foreground",
-              "shrink-0",
             ])}
           >
             <IdCardIcon className="size-4" />
@@ -210,74 +179,163 @@ export default function Index() {
           <Button
             icon={<PlusCircleIcon className="size-4" />}
             variant="solid"
-            className={cn(["justify-start", "w-full", "shrink-0"])}
+            className={cn(["w-full", "shrink-0", "justify-start"])}
             onClick={() => setCreateDialogOpen(true)}
           >
             {t("common:actions.add")}
           </Button>
+          <div className={cn(["mt-auto", "border-t", "pt-4"])}>
+            {renderLocalRegistrationControl()}
+          </div>
         </aside>
         <Card
           className={cn([
-            "h-(--app-content-height)",
+            "flex",
             "flex-1",
             "min-h-0",
             "min-w-0",
-            "border-y-0",
-            "rounded-none",
-            "flex",
             "flex-col",
+            "rounded-none",
+            "border-y-0",
+            "xl:h-(--app-content-height)",
             "xl:rounded-l-none",
           ])}
         >
           <div
             className={cn([
-              "xl:hidden",
               "flex",
-              "items-center",
-              "justify-between",
-              "gap-3",
-              "p-3",
-              "border-b",
-              "bg-card/30",
-              "shrink-0",
+              "h-full",
+              "min-h-0",
+              "flex-col",
+              "gap-4",
+              "overflow-hidden",
+              "px-4",
+              "py-4",
+              "sm:px-6",
+              "sm:py-6",
+              "lg:px-8",
+              "lg:py-8",
             ])}
           >
-            <div
-              className={cn(["flex", "items-center", "gap-2", "font-medium"])}
+            <ScrollArea
+              className={cn([
+                "w-full",
+                "max-w-full",
+                "flex-1",
+                "min-h-0",
+                "overflow-hidden",
+                "rounded-lg",
+                "border",
+                "ring-1",
+                "ring-border/50",
+                "shadow-sm",
+              ])}
             >
-              <IdCardIcon className="size-4" />
-              {t("admin:idp._")}
-            </div>
-            <Button
-              icon={<PlusCircleIcon />}
-              variant="solid"
-              size="sm"
-              onClick={() => setCreateDialogOpen(true)}
-            >
-              {t("common:actions.add")}
-            </Button>
-          </div>
-          <ScrollArea className={cn(["flex-1", "min-h-0"])}>
-            <LoadingOverlay loading={isLoading} />
-            <div className={cn(["grid", "gap-3", "p-6"])}>
-              {data?.map((idp) => (
-                <IdpCard key={idp.id} idp={idp} />
-              ))}
-              {!isLoading && data?.length === 0 && (
-                <div
+              <LoadingOverlay loading={isLoading} />
+              <Table
+                className={cn([
+                  "w-full",
+                  "min-w-192",
+                  "table-fixed",
+                  "text-foreground",
+                ])}
+              >
+                <TableHeader
                   className={cn([
-                    "h-40",
-                    "flex",
-                    "items-center",
-                    "justify-center",
-                    "text-muted-foreground",
+                    "sticky",
+                    "top-0",
+                    "z-2",
+                    "border-b",
+                    "bg-muted/80",
+                    "backdrop-blur-sm",
                   ])}
                 >
-                  {t("admin:idp.empty")}
-                </div>
-              )}
-            </div>
-          </ScrollArea>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          className={cn([
+                            "bg-muted/95",
+                            header.column.id === "status" && ["w-64"],
+                            header.column.id === "updated_at" && ["w-48"],
+                            header.column.id === "actions" && [
+                              "sticky",
+                              "right-0",
+                              "z-3",
+                              "w-24",
+                            ],
+                          ])}
+                        >
+                          {!header.isPlaceholder &&
+                            flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <RowProvider key={row.original.id} idp={row.original}>
+                        <TableRow
+                          data-state={
+                            row.getIsSelected() ? "selected" : undefined
+                          }
+                          className={cn([
+                            "group",
+                            "transition-colors",
+                            "hover:bg-transparent",
+                          ])}
+                        >
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell
+                              key={cell.id}
+                              className={cn([
+                                "py-3",
+                                "transition-colors",
+                                "group-hover:bg-muted/50",
+                                cell.column.id === "actions" && [
+                                  "sticky",
+                                  "right-0",
+                                  "z-1",
+                                  "bg-card",
+                                ],
+                              ])}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      </RowProvider>
+                    ))
+                  ) : !isLoading ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className={cn([
+                          "h-40",
+                          "text-center",
+                          "text-muted-foreground",
+                        ])}
+                      >
+                        {t("admin:idp.empty")}
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+            <p className={cn(["shrink-0", "text-sm", "text-muted-foreground"])}>
+              {t("admin:idp.result_count", { count: data?.length ?? 0 })}
+            </p>
+          </div>
         </Card>
       </div>
     </>

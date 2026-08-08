@@ -15,10 +15,6 @@ platform:
     error: Logo upload failed.
   logo_reset:
     success: Logo reset successfully.
-  auth:
-    registration_enabled:
-      "true": "Yes"
-      "false": "No"
   form:
     meta:
       _: Meta
@@ -32,10 +28,6 @@ platform:
         placeholder: I don't like hacking you at all!
       footer:
         _: Footer
-    auth:
-      _: Authentication
-      registration_enabled:
-        _: Enable Registration
   actions:
     update:
       _: Update Platform Settings
@@ -116,6 +108,18 @@ captcha:
 idp:
   _: IdP
   empty: No IdP configured
+  result_count: "{{count}} IdPs"
+  local_registration:
+    _: Local account registration
+    updated: Local account registration setting updated.
+  status:
+    service: Service
+    registration: Registration
+  list:
+    columns:
+      idp: Identity Provider
+      status: Status
+      updated_at: Updated
   enabled:
     "true": Enabled
     "false": Disabled
@@ -145,15 +149,21 @@ idp:
         oauth: OAuth 2.0
         cas: CAS
   actions:
+    _: Actions
     create:
       _: Create IdP
       success: "{{name}} created successfully."
     update:
+      _: Edit IdP
       success: "{{name}} updated successfully."
     enable:
       success: "{{name}} enabled."
     disable:
       success: "{{name}} disabled."
+    registration_enable:
+      success: "{{name}} now allows new user registration."
+    registration_disable:
+      success: "{{name}} no longer allows new user registration."
     delete:
       _: Delete IdP
       message: "Are you sure you want to delete <muted>{{name}}</muted>?"

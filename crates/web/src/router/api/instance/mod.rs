@@ -7,7 +7,7 @@ mod instance_id;
 use std::{collections::BTreeMap, sync::Arc};
 
 use axum::{Json, Router, extract::State, http::StatusCode};
-use cds_db::{TeamUser, team_user::FindTeamUserOptions};
+use cds_db::{TeamUserView, team_user::FindTeamUserOptions};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -56,6 +56,7 @@ pub struct ListInstancesResponse {
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 403, description = "Forbidden", body = crate::traits::ErrorResponse),
+        (status = 423, description = "Game paused", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
         (status = 429, description = "Too many instances", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
@@ -79,6 +80,8 @@ pub async fn list_instances(
             map.insert("cds/user_id".to_owned(), format!("{}", user_id));
         }
         (_, Some(team_id), Some(game_id)) => {
+            let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+            crate::util::loader::ensure_game_not_paused(&game)?;
             let team =
                 crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
             if team.id != team_id {
@@ -139,6 +142,7 @@ pub struct CreateInstanceResponse {
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 403, description = "Forbidden", body = crate::traits::ErrorResponse),
+        (status = 423, description = "Game paused", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
         (status = 429, description = "Too many instances", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
@@ -155,7 +159,19 @@ pub async fn create_instance(
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
-    if !cds_db::util::can_user_access_challenge(&s.db.conn, operator.id, challenge.id).await? {
+    if let Some(game_id) = body.game_id {
+        let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+        if !game.enabled {
+            return Err(WebError::NotFound(json!("game_not_found")));
+        }
+        crate::util::loader::ensure_game_not_paused(&game)?;
+        crate::util::loader::ensure_game_ongoing(
+            &game,
+            time::OffsetDateTime::now_utc().unix_timestamp(),
+        )?;
+    }
+
+    if !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge.id).await? {
         return Err(WebError::NotFound(json!("challenge_not_found")));
     }
 
@@ -173,11 +189,11 @@ pub async fn create_instance(
         let _ =
             crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge.id).await?;
 
-        if !cds_db::util::is_user_in_team(&s.db.conn, operator.id, team_id).await? {
+        if !cds_db::team_user::contains_user(&s.db.conn, team_id, operator.id).await? {
             return Err(WebError::Forbidden(json!("team_not_found")));
         }
 
-        let (_, member_count) = cds_db::team_user::find::<TeamUser>(
+        let (_, member_count) = cds_db::team_user::find::<TeamUserView>(
             &s.db.conn,
             FindTeamUserOptions {
                 team_id: Some(team_id),

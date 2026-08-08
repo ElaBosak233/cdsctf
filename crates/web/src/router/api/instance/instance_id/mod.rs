@@ -42,6 +42,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 403, description = "Forbidden", body = crate::traits::ErrorResponse),
+        (status = 423, description = "Game paused", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -74,11 +75,22 @@ pub async fn renew_instance(
         .unwrap_or_default()
         .parse::<i64>()
         .unwrap_or_default();
+    let game_id = labels
+        .get("cds/game_id")
+        .map(|s| s.to_string())
+        .unwrap_or_default()
+        .parse::<i64>()
+        .unwrap_or_default();
 
     if !(operator.id == user_id
-        || cds_db::util::is_user_in_team(&s.db.conn, operator.id, team_id).await?)
+        || cds_db::team_user::contains_user(&s.db.conn, team_id, operator.id).await?)
     {
         return Err(WebError::Forbidden(json!("")));
+    }
+
+    if game_id != 0 {
+        let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+        crate::util::loader::ensure_game_not_paused(&game)?;
     }
 
     // SAFETY: the creation_timestamp could be safely unwrapped.
@@ -160,7 +172,7 @@ pub async fn stop_instance(
         .unwrap_or_default();
 
     if !(operator.id == user_id
-        || cds_db::util::is_user_in_team(&s.db.conn, operator.id, team_id).await?)
+        || cds_db::team_user::contains_user(&s.db.conn, team_id, operator.id).await?)
     {
         return Err(WebError::Forbidden(json!("")));
     }
@@ -189,6 +201,7 @@ pub struct WsrxRequest {
         (status = 101, description = "WebSocket upgrade"),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
+        (status = 423, description = "Game paused", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -201,6 +214,18 @@ pub async fn wsrx(
     ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {
     let port = query.port;
+    let pod = s.cluster.get_pod(&instance_id).await?;
+    let game_id = pod
+        .metadata
+        .labels
+        .unwrap_or_default()
+        .get("cds/game_id")
+        .and_then(|value| value.parse::<i64>().ok())
+        .unwrap_or_default();
+    if game_id != 0 {
+        let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+        crate::util::loader::ensure_game_not_paused(&game)?;
+    }
 
     Ok(ws.on_upgrade(move |socket| async move {
         let result = s.cluster.wsrx(&instance_id, port as u16, socket).await;

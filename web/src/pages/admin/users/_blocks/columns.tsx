@@ -1,4 +1,3 @@
-import type { Column, ColumnDef, Row } from "@tanstack/react-table";
 import {
   AlertCircleIcon,
   ArrowDownIcon,
@@ -37,38 +36,119 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { Group, type User } from "@/models/user";
+import { Group, type UserAccountView } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 
-function IdCell({ row }: { row: Row<User> }) {
-  const id = row.original.id;
+function UserCell({ row }: { row: Row<UserAccountView> }) {
+  const user = row.original;
   const { t } = useTranslation();
   const { isCopied, copyToClipboard } = useClipboard();
 
   return (
-    <div className={cn(["flex", "items-center", "gap-2"])}>
-      <Badge className={cn(["font-mono"])}># {id}</Badge>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
-            square
-            size={"sm"}
-            onClick={() => copyToClipboard(String(id))}
-          />
-        </TooltipTrigger>
-        <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
-      </Tooltip>
+    <div className={cn(["flex", "min-w-0", "items-center", "gap-3"])}>
+      <Avatar
+        src={user.avatar_hash && `/api/media?hash=${user.avatar_hash}`}
+        fallback={user.username?.charAt(0)}
+        className="size-9 shrink-0"
+      />
+      <div className={cn(["min-w-0", "flex-1"])}>
+        <div className="truncate text-sm font-semibold">{user.username}</div>
+        <div
+          className={cn([
+            "mt-0.5",
+            "flex",
+            "min-w-0",
+            "items-center",
+            "gap-1.5",
+            "text-xs",
+            "text-muted-foreground",
+          ])}
+        >
+          <span className="shrink-0 font-mono">#{user.id}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
+                square
+                size="sm"
+                variant="ghost"
+                className={cn(["size-6", "shrink-0", "text-muted-foreground"])}
+                aria-label={t("common:tooltip.copy")}
+                onClick={() => copyToClipboard(String(user.id))}
+              />
+            </TooltipTrigger>
+            <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
+          </Tooltip>
+          {user.name && (
+            <>
+              <span className="shrink-0">·</span>
+              <span className="truncate">{user.name}</span>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-function CreatedAtHeader({ column }: { column: Column<User> }) {
+function AccountStatusCell({ row }: { row: Row<UserAccountView> }) {
   const { t } = useTranslation();
+  const groupConfig = {
+    [Group.Guest]: {
+      name: t("user:group.guest"),
+      icon: UserRoundIcon,
+      className: "text-muted-foreground",
+    },
+    [Group.Banned]: {
+      name: t("user:group.banned"),
+      icon: UserRoundXIcon,
+      className: "border-error/20 bg-error/10 text-error",
+    },
+    [Group.User]: {
+      name: t("user:group.user"),
+      icon: UserRoundCheckIcon,
+      className: "border-success/20 bg-success/10 text-success",
+    },
+    [Group.Admin]: {
+      name: t("user:group.admin"),
+      icon: ShieldIcon,
+      className: "border-info/20 bg-info/10 text-info",
+    },
+  };
+  const config =
+    groupConfig[row.original.group as Group] ?? groupConfig[Group.Guest];
+  const Icon = config.icon;
 
+  return (
+    <div className={cn(["flex", "flex-wrap", "items-center", "gap-1.5"])}>
+      <Badge variant="outline" className={config.className}>
+        <Icon />
+        {config.name}
+      </Badge>
+      <Badge
+        variant="outline"
+        className={cn(
+          row.original.verified
+            ? ["border-success/20", "bg-success/10", "text-success"]
+            : ["text-warning"]
+        )}
+      >
+        {row.original.verified ? <CircleCheckIcon /> : <AlertCircleIcon />}
+        {t(
+          row.original.verified
+            ? "user:list.verified.true"
+            : "user:list.verified.false"
+        )}
+      </Badge>
+    </div>
+  );
+}
+
+function CreatedAtHeader({ column }: { column: Column<UserAccountView> }) {
+  const { t } = useTranslation();
   const sort = column.getIsSorted();
-
   const icon = useMemo(() => {
     switch (sort) {
       case "asc":
@@ -81,60 +161,77 @@ function CreatedAtHeader({ column }: { column: Column<User> }) {
   }, [sort]);
 
   return (
-    <div className={cn(["flex", "gap-1", "items-center"])}>
-      {t("user:created_at")}
-      <Button
-        icon={icon}
-        square
-        size={"sm"}
-        onClick={() => column.toggleSorting()}
-      />
-    </div>
+    <Button
+      icon={icon}
+      variant="ghost"
+      size="sm"
+      className={cn(["-ml-3", "px-3", "text-muted-foreground"])}
+      onClick={() => column.toggleSorting()}
+    >
+      {t("user:list.columns.created_at")}
+    </Button>
   );
 }
 
-function ActionsCell({ row }: { row: Row<User> }) {
-  const { t } = useTranslation();
+function CreatedAtCell({
+  row,
+  formatter,
+}: {
+  row: Row<UserAccountView>;
+  formatter: Intl.DateTimeFormat;
+}) {
+  return (
+    <span className="whitespace-nowrap text-sm text-secondary-foreground">
+      {formatter.format(new Date(row.original.created_at * 1000))}
+    </span>
+  );
+}
 
+function ActionsCell({ row }: { row: Row<UserAccountView> }) {
+  const { t } = useTranslation();
   const id = row.original.id;
   const username = row.original.username;
-
   const sharedStore = useSharedStore();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
-
-  function handleDelete() {
-    deleteUser({
-      id: id!,
-    })
-      .then(() => {
-        toast.success(t("user:actions.delete.success", { username }));
-        setDeleteDialogOpen(false);
-      })
-      .finally(() => {
-        sharedStore?.setRefresh();
-      });
+  async function handleDelete() {
+    await deleteUser({ id: id! });
+    toast.success(t("user:actions.delete.success", { username }));
+    setDeleteDialogOpen(false);
+    sharedStore?.setRefresh();
   }
 
   return (
     <div className={cn(["flex", "items-center", "justify-center", "gap-2"])}>
-      <Button variant={"ghost"} size={"sm"} square icon={<EditIcon />} asChild>
-        <Link to={`/admin/users/${id}`} />
-      </Button>
-
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            square
+            icon={<EditIcon />}
+            aria-label={t("user:actions.update._")}
+            asChild
+          >
+            <Link to={`/admin/users/${id}`} />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{t("user:actions.update._")}</TooltipContent>
+      </Tooltip>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             square
-            size={"sm"}
-            variant={"ghost"}
+            size="sm"
+            variant="ghost"
             icon={<EllipsisIcon />}
+            aria-label={t("user:actions._")}
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem
             onClick={() => setDeleteDialogOpen(true)}
-            className={cn(["text-error"])}
+            className="text-error"
             disabled={row.original.group === Group.Admin}
           >
             <TrashIcon />
@@ -142,50 +239,53 @@ function ActionsCell({ row }: { row: Row<User> }) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <Card
             className={cn([
+              "flex",
               "w-full",
               "max-w-xl",
+              "flex-col",
+              "overflow-hidden",
               "rounded-elevated",
               "shadow-lg",
-              "overflow-hidden",
-              "flex",
-              "flex-col",
             ])}
           >
-            <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
+            <div className={cn(["flex", "flex-col", "gap-5", "p-5"])}>
               <div className={cn(["flex", "items-center", "gap-3"])}>
                 <div
                   className={cn([
-                    "flex items-center justify-center",
-                    "size-10 rounded-badge",
-                    "bg-error/10 text-error",
+                    "flex",
+                    "size-10",
                     "shrink-0",
+                    "items-center",
+                    "justify-center",
+                    "rounded-badge",
+                    "bg-error/10",
+                    "text-error",
                   ])}
                 >
-                  <TrashIcon className={cn(["size-5"])} />
+                  <TrashIcon className="size-5" />
                 </div>
-                <h3 className={cn(["text-base", "font-semibold"])}>
+                <h3 className="text-base font-semibold">
                   {t("user:actions.delete._")}
                 </h3>
               </div>
-              <p className={cn(["text-sm"])}>
+              <p className="text-sm">
                 <Trans
-                  i18nKey={"user:actions.delete.message"}
-                  values={{ username: row.original.username }}
+                  i18nKey="user:actions.delete.message"
+                  values={{ username }}
                   components={{
-                    muted: <span className={cn(["text-muted-foreground"])} />,
+                    muted: <span className="text-muted-foreground" />,
                   }}
                 />
               </p>
-              <div className={cn(["flex", "justify-end"])}>
+              <div className="flex justify-end">
                 <Button
-                  level={"error"}
-                  variant={"solid"}
-                  size={"sm"}
+                  level="error"
+                  variant="solid"
+                  size="sm"
                   onClick={handleDelete}
                 >
                   {t("common:actions.confirm")}
@@ -200,112 +300,49 @@ function ActionsCell({ row }: { row: Row<User> }) {
 }
 
 function useColumns() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage ?? i18n.language;
+  const formatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(language, {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    [language]
+  );
 
-  const columns: Array<ColumnDef<User>> = useMemo(() => {
-    return [
+  return useMemo<Array<ColumnDef<UserAccountView>>>(
+    () => [
       {
-        accessorKey: "id",
-        id: "id",
-        header: t("user:id"),
-        cell: IdCell,
+        id: "user",
+        accessorFn: (user) => user.username,
+        header: () => t("user:list.columns.user"),
+        cell: UserCell,
       },
       {
-        accessorKey: "username",
-        id: "username",
-        header: t("user:username"),
-        cell: ({ row }) => (
-          <div className={cn(["flex", "items-center", "gap-3"])}>
-            <Avatar
-              src={
-                row.original.avatar_hash &&
-                `/api/media?hash=${row.original.avatar_hash}`
-              }
-              fallback={row.original.username?.charAt(0)}
-            />
-            {row.original.username}
-            {row.original.verified ? (
-              <CircleCheckIcon className={cn(["text-success", "size-3.5"])} />
-            ) : (
-              <AlertCircleIcon className={cn(["text-warning", "size-3.5"])} />
-            )}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "name",
-        id: "name",
-        header: t("user:name"),
-        cell: ({ row }) => row.original.name || "-",
-      },
-      {
-        accessorKey: "group",
-        header: t("user:group._"),
-        cell: ({ row }) => {
-          const groupId = row.original.group;
-
-          const groupConfig = {
-            [Group.Guest]: {
-              name: t("user:group.guest"),
-              icon: UserRoundIcon,
-              className: "bg-secondary text-secondary-foreground",
-            },
-            [Group.Banned]: {
-              name: t("user:group.banned"),
-              icon: UserRoundXIcon,
-              className: "bg-destructive text-destructive-foreground",
-            },
-            [Group.User]: {
-              name: t("user:group.user"),
-              icon: UserRoundCheckIcon,
-              className: "bg-primary text-primary-foreground",
-            },
-            [Group.Admin]: {
-              name: t("user:group.admin"),
-              icon: ShieldIcon,
-              className: "bg-info text-info-foreground",
-            },
-          };
-
-          const config =
-            groupConfig[groupId as Group] || groupConfig[Group.Guest];
-          const Icon = config.icon;
-
-          return (
-            <div className={cn(["flex", "gap-2", "items-center"])}>
-              <Badge className={config.className}>
-                <div className="flex items-center gap-1">
-                  <Icon className="size-3.5" />
-                  <span>{config.name}</span>
-                </div>
-              </Badge>
-            </div>
-          );
-        },
+        id: "status",
+        header: () => t("user:list.columns.status"),
+        cell: AccountStatusCell,
       },
       {
         accessorKey: "created_at",
         id: "created_at",
         header: CreatedAtHeader,
-        cell: ({ row }) => (
-          <span className={cn(["text-sm", "text-secondary-foreground"])}>
-            {new Date(Number(row.original.created_at) * 1000).toLocaleString()}
-          </span>
-        ),
+        cell: ({ row }) => <CreatedAtCell row={row} formatter={formatter} />,
       },
       {
         id: "actions",
         header: () => (
-          <div className={cn(["justify-self-center"])}>
-            {t("user:actions._")}
-          </div>
+          <div className="justify-self-center">{t("user:actions._")}</div>
         ),
         cell: ActionsCell,
       },
-    ];
-  }, [t]);
-
-  return columns;
+    ],
+    [formatter, t]
+  );
 }
 
 export { useColumns };

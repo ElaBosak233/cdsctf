@@ -1,4 +1,3 @@
-import type { ColumnDef, Row } from "@tanstack/react-table";
 import {
   ClipboardCheckIcon,
   ClipboardCopyIcon,
@@ -31,15 +30,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
-import type { GameChallenge } from "@/models/game_challenge";
+import type { GameChallengeView } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 import { EditDialog } from "./edit-dialog";
 
-function IsEnabledCell({ row }: { row: Row<GameChallenge> }) {
+function IsEnabledCell({ row }: { row: Row<GameChallengeView> }) {
   const { t } = useTranslation();
   const { game_id } = useParams<{ game_id: string }>();
   const routeGameId = parseRouteNumericId(game_id);
@@ -83,7 +83,7 @@ function IsEnabledCell({ row }: { row: Row<GameChallenge> }) {
   );
 }
 
-function ChallengeIdCell({ row }: { row: Row<GameChallenge> }) {
+function ChallengeIdCell({ row }: { row: Row<GameChallengeView> }) {
   const id = row.original.challenge_id!;
   const { t } = useTranslation();
   const { isCopied, copyToClipboard } = useClipboard();
@@ -105,7 +105,7 @@ function ChallengeIdCell({ row }: { row: Row<GameChallenge> }) {
   );
 }
 
-function ActionsCell({ row }: { row: Row<GameChallenge> }) {
+function ActionsCell({ row }: { row: Row<GameChallengeView> }) {
   const { t } = useTranslation();
 
   const { game_id } = useParams<{ game_id: string }>();
@@ -227,7 +227,7 @@ function ActionsCell({ row }: { row: Row<GameChallenge> }) {
 function useColumns() {
   const { t } = useTranslation();
 
-  const columns: Array<ColumnDef<GameChallenge>> = useMemo(() => {
+  const columns: Array<ColumnDef<GameChallengeView>> = useMemo(() => {
     return [
       {
         accessorKey: "game_id",

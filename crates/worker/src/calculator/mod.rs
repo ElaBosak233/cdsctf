@@ -1,249 +1,335 @@
-//! JetStream consumer for subject **`cds.game.recalc`**: recomputes
-//! **per-submission points**, **challenge leaderboard snapshots**, and **team
-//! totals / ranks** after new correct solves.
+//! Coalesced, transactional score recomputation for `cds.game.recalc`.
 //!
-//! # Flow
-//!
-//! 1. A message arrives as JSON [`Payload`] (optional `game_id`).
-//! 2. [`calculate`] loads all **correct** submissions for the game, groups them
-//!    by challenge, and applies [`math::curve`] so base points decay as more
-//!    teams solve (difficulty parameter `d`).
-//! 3. Each submission row gets updated `pts` + `rank` within its challenge;
-//!    `game_challenge.pts` stores the **current base** for that challenge on
-//!    the scoreboard.
-//! 4. Teams in `Passed` state are sorted by total points (tie-break: earlier
-//!    last solve time) and receive updated `pts` + `rank`.
+//! The queue consumer runs at most one calculation per game locally, marks
+//! messages that arrive during a run for one follow-up calculation, and runs
+//! different games with bounded concurrency. PostgreSQL advisory transaction
+//! locks extend the same-game exclusion across application instances.
 
-/// Defines the `math` submodule (see sibling `*.rs` files).
 mod math;
+mod plan;
+mod scheduler;
 
-/// Defines the `payload` submodule (see sibling `*.rs` files).
+/// Defines the calculator queue payload.
 pub mod payload;
 
-use std::{collections::HashMap, sync::Arc};
-
-use cds_db::{
-    DB, Game, GameChallenge, Submission,
-    game::FindGameOptions,
-    game_challenge::FindGameChallengeOptions,
-    sea_orm::{Set, Unchanged},
-    submission::{FindSubmissionsOptions, Status},
-    team::{FindTeamOptions, State, Team},
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
 };
-use cds_queue::Queue;
-use futures_util::{StreamExt as _, future::join_all};
+
+use cds_db::{DB, game, game_challenge, sea_orm, submission, team};
+use cds_queue::{Queue, async_nats::jetstream::Message};
+use futures_util::StreamExt as _;
 pub use payload::Payload;
-use tracing::{debug, error, info};
+use plan::ScorePlan;
+use scheduler::{ScheduleAction, Scheduler};
+use sea_orm::{ConnectionTrait, TransactionTrait};
+use tokio::sync::{Semaphore, mpsc};
+use tracing::{debug, error, info, warn};
 
 /// JetStream subject name for score / rank recomputation jobs.
 pub const SUBJECT: &str = "cds.game.recalc";
 
-/// Rebuilds scoring state for one competition (`game_id`) from the database.
-#[tracing::instrument(skip_all, fields(game_id = game_id))]
-async fn calculate(db: &DB, game_id: i64) -> Result<(), anyhow::Error> {
-    info!(game_id, "score calculation started");
+const MAX_PARALLEL_GAMES: usize = 4;
+const DIRTY_RECONCILE_INTERVAL: Duration = Duration::from_secs(10);
+const MAX_REVISION_PASSES: usize = 2;
 
-    // Closure avoids duplicating the "load correct submissions" query in multiple
-    // phases.
-    let submissions = async || -> Result<Vec<Submission>, anyhow::Error> {
-        let (submissions, _) = cds_db::submission::find(
-            &db.conn,
-            FindSubmissionsOptions {
-                game_id: Some(Some(game_id)),
-                status: Some(Status::Correct),
-                sorts: Some("created_at".to_string()),
-                ..Default::default()
-            },
-        )
-        .await?;
+type JobKey = Option<i64>;
 
-        Ok(submissions)
-    };
+fn needs_score_calculation(force: bool, revision: i64) -> bool {
+    force || revision != 0
+}
 
-    // challenge_id -> ordered list of correct submissions (sorted by `created_at`
-    // from the query).
-    let mut sc: HashMap<i64, Vec<Submission>> = HashMap::new();
-    for s in submissions().await? {
-        sc.entry(s.challenge_id).or_default().push(s);
-    }
-    debug!(
-        game_id,
-        solved_challenges = sc.len(),
-        "loaded correct submissions for scoring"
-    );
+#[derive(Debug, Default)]
+struct AppliedScores {
+    revision: i64,
+    caught_up: bool,
+    submissions: u64,
+    challenges: u64,
+    teams: u64,
+}
 
-    let sc = Arc::new(sc);
+#[derive(Debug)]
+struct JobResult {
+    key: JobKey,
+    result: Result<(), anyhow::Error>,
+}
 
-    let (game_challenges, _) = cds_db::game_challenge::find(
-        &db.conn,
-        FindGameChallengeOptions {
-            game_id: Some(game_id),
-            ..Default::default()
-        },
-    )
-    .await?;
+/// Rebuilds one game's score snapshot and persists it atomically.
+#[tracing::instrument(skip_all, fields(game_id))]
+async fn calculate(db: &DB, game_id: i64, mut force: bool) -> Result<(), anyhow::Error> {
+    let mut passes = 0;
+    loop {
+        let started_at = Instant::now();
+        let transaction = db.conn.begin().await?;
 
-    let futures = game_challenges
-        .into_iter()
-        .map(|game_challenge: GameChallenge| {
-            let sc = Arc::clone(&sc);
-            async move {
-                let challenge_submissions = sc
-                    .get(&game_challenge.challenge_id)
-                    .cloned()
-                    .unwrap_or_default();
-
-                // `curve` lowers the base from `max_pts` toward `min_pts` as solve count `x`
-                // grows.
-                let base_pts = math::curve(
-                    game_challenge.max_pts,
-                    game_challenge.min_pts,
-                    game_challenge.difficulty,
-                    challenge_submissions.len() as i64,
-                );
-
-                let futures = challenge_submissions
-                    .iter()
-                    .enumerate()
-                    .map(|(rank, submission)| {
-                        let bonus = game_challenge.bonus_ratios.get(rank).cloned().unwrap_or(0);
-                        let pts = base_pts * (100 + bonus) / 100;
-
-                        async move {
-                            let model = cds_db::submission::ActiveModel {
-                                id: Unchanged(submission.id),
-                                pts: Set(pts),
-                                rank: Set(rank as i64 + 1),
-                                ..Default::default()
-                            };
-                            let _ = cds_db::submission::update::<Submission>(&db.conn, model)
-                                .await
-                                .map_err(|e| error!("{:?}", e));
-                        }
-                    });
-
-                join_all(futures).await;
-
-                // `bonus_ratios` may define an extra percentage when solve count hits index
-                // `len` (e.g. bonus after everyone has solved).
-                let pts = base_pts
-                    * (100
-                        + game_challenge
-                            .bonus_ratios
-                            .get(challenge_submissions.len())
-                            .unwrap_or(&0))
-                    / 100;
-
-                if pts == game_challenge.pts {
-                    return;
-                }
-
-                let _ = cds_db::game_challenge::update::<GameChallenge>(
-                    &db.conn,
-                    cds_db::game_challenge::ActiveModel {
-                        game_id: Unchanged(game_challenge.game_id),
-                        challenge_id: Unchanged(game_challenge.challenge_id),
-                        pts: Set(pts),
-                        ..Default::default()
-                    },
-                )
-                .await
-                .map_err(|e| error!("{:?}", e));
-            }
-        });
-
-    join_all(futures).await;
-    debug!(game_id, "challenge scores updated");
-
-    // --- Team leaderboard: sum submission points per team, then rank teams ---
-    let (mut teams, _) = cds_db::team::find::<Team>(
-        &db.conn,
-        FindTeamOptions {
-            game_id: Some(game_id),
-            state: Some(State::Passed),
-            ..Default::default()
-        },
-    )
-    .await?;
-
-    let mut team_score_map: HashMap<i64, (i64, Option<i64>)> = HashMap::new();
-    for submission in submissions().await? {
-        if let Some(team_id) = submission.team_id {
-            let entry = team_score_map.entry(team_id).or_insert((0, None));
-            entry.0 += submission.pts;
-            entry.1 = Some(submission.created_at);
-        }
-    }
-
-    teams.sort_by(|a, b| {
-        let (a_pts, a_time) = team_score_map.get(&a.id).unwrap_or(&(0, None));
-        let (b_pts, b_time) = team_score_map.get(&b.id).unwrap_or(&(0, None));
-
-        // Higher points first; on a tie, earlier `created_at` (smaller timestamp) wins.
-        b_pts.cmp(a_pts).then_with(|| a_time.cmp(b_time))
-    });
-
-    let futures = teams.iter().enumerate().map(|(rank, team)| {
-        let pts = team_score_map.get(&team.id).map(|v| v.0).unwrap_or(0);
-
-        async move {
-            let team_model = cds_db::team::ActiveModel {
-                id: Set(team.id),
-                pts: Set(pts),
-                rank: Set(rank as i64 + 1),
-                ..Default::default()
+        let result = async {
+            game::lock_score_recalculation(&transaction, game_id).await?;
+            let Some(revision) = game::find_score_revision(&transaction, game_id).await? else {
+                return Ok(None);
             };
+            if !needs_score_calculation(force, revision) {
+                return Ok(None);
+            }
 
-            let _ = cds_db::team::update::<Team>(&db.conn, team_model)
-                .await
-                .map_err(|e| error!("{:?}", e));
+            let plan = load_score_plan(&transaction, game_id).await?;
+            let mut applied = apply_score_plan(&transaction, game_id, plan).await?;
+            applied.revision = revision;
+            applied.caught_up =
+                game::mark_score_recalculation_applied(&transaction, game_id, revision).await?;
+            Ok(Some(applied))
         }
-    });
+        .await;
 
-    join_all(futures).await;
+        match result {
+            Ok(None) => {
+                transaction.commit().await?;
+                debug!(
+                    game_id,
+                    "score calculation skipped; revision already applied"
+                );
+                return Ok(());
+            }
+            Ok(Some(applied)) => {
+                transaction.commit().await?;
+                passes += 1;
+                info!(
+                    game_id,
+                    revision = applied.revision,
+                    caught_up = applied.caught_up,
+                    elapsed_ms = started_at.elapsed().as_millis(),
+                    submissions = applied.submissions,
+                    challenges = applied.challenges,
+                    teams = applied.teams,
+                    "score calculation completed"
+                );
+                if applied.caught_up {
+                    return Ok(());
+                }
+                if passes >= MAX_REVISION_PASSES {
+                    debug!(
+                        game_id,
+                        revision = applied.revision,
+                        "score remains dirty after bounded follow-up"
+                    );
+                    return Ok(());
+                }
+                force = false;
+            }
+            Err(err) => {
+                if let Err(rollback_err) = transaction.rollback().await {
+                    error!(game_id, error = ?rollback_err, "score transaction rollback failed");
+                }
+                return Err(err);
+            }
+        }
+    }
+}
 
-    info!(game_id, teams = teams.len(), "score calculation completed");
+async fn load_score_plan(
+    conn: &impl ConnectionTrait,
+    game_id: i64,
+) -> Result<ScorePlan, anyhow::Error> {
+    plan::build(
+        submission::find_score_inputs(conn, game_id).await?,
+        game_challenge::find_score_inputs(conn, game_id).await?,
+        team::find_score_inputs(conn, game_id).await?,
+    )
+}
 
+async fn apply_score_plan(
+    conn: &impl ConnectionTrait,
+    game_id: i64,
+    plan: ScorePlan,
+) -> Result<AppliedScores, anyhow::Error> {
+    Ok(AppliedScores {
+        revision: 0,
+        caught_up: false,
+        submissions: submission::update_scores(conn, game_id, &plan.submissions).await?,
+        challenges: game_challenge::update_scores(conn, game_id, &plan.challenges).await?,
+        teams: team::update_scores(conn, game_id, &plan.teams).await?,
+    })
+}
+
+async fn calculate_scope(db: &DB, key: JobKey) -> Result<(), anyhow::Error> {
+    if let Some(game_id) = key {
+        return calculate(db, game_id, false).await;
+    }
+
+    let games = game::find_ids(&db.conn).await?;
+    info!(games = games.len(), "calculator full rebuild requested");
+    for game_id in games {
+        calculate(db, game_id, true).await?;
+    }
     Ok(())
 }
 
-/// Pull loop: parse [`Payload`], then either recompute one game or **all**
-/// games.
+fn spawn_calculation(
+    db: DB,
+    key: JobKey,
+    semaphore: Arc<Semaphore>,
+    completion_tx: mpsc::UnboundedSender<JobResult>,
+) {
+    tokio::spawn(async move {
+        let result = match semaphore.acquire_owned().await {
+            Ok(_permit) => calculate_scope(&db, key).await,
+            Err(err) => Err(anyhow::anyhow!(err)),
+        };
+        completion_tx.send(JobResult { key, result }).ok();
+    });
+}
+
+/// Dispatches queue messages without blocking ingestion while scores calculate.
 #[tracing::instrument(skip_all, fields(subject = SUBJECT))]
 async fn run(db: DB, queue: Queue) -> Result<(), anyhow::Error> {
     let mut messages = queue.subscribe(SUBJECT, None).await?;
-    while let Some(Ok(message)) = messages.next().await {
-        let payload = String::from_utf8(message.payload.to_vec())?;
-        let calculator_payload = serde_json::from_str::<Payload>(&payload)?;
-        debug!(payload = %payload, "calculator message received");
+    let mut scheduler = Scheduler::<JobKey, Option<Message>>::default();
+    let semaphore = Arc::new(Semaphore::new(MAX_PARALLEL_GAMES));
+    let (completion_tx, mut completion_rx) = mpsc::unbounded_channel::<JobResult>();
+    let mut reconcile = tokio::time::interval(DIRTY_RECONCILE_INTERVAL);
+    reconcile.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
-        if let Some(game_id) = calculator_payload.game_id {
-            calculate(&db, game_id).await?;
-        } else {
-            let (games, _) =
-                cds_db::game::find::<Game>(&db.conn, FindGameOptions::default()).await?;
-            info!(games = games.len(), "calculator full rebuild requested");
-            for game in games {
-                calculate(&db, game.id).await?;
+    loop {
+        tokio::select! {
+            maybe_message = messages.next() => {
+                let Some(result) = maybe_message else {
+                    return Ok(());
+                };
+                let message = match result {
+                    Ok(message) => message,
+                    Err(err) => {
+                        error!(error = ?err, "calculator message receive failed");
+                        continue;
+                    }
+                };
+                let payload = match serde_json::from_slice::<Payload>(&message.payload) {
+                    Ok(payload) => payload,
+                    Err(err) => {
+                        warn!(error = ?err, "invalid calculator payload skipped");
+                        message.double_ack().await.ok();
+                        continue;
+                    }
+                };
+                let key = payload.game_id;
+                debug!(game_id = key, "calculator message received");
+                if scheduler.schedule(key, Some(message)) == ScheduleAction::Start {
+                    spawn_calculation(
+                        db.clone(),
+                        key,
+                        Arc::clone(&semaphore),
+                        completion_tx.clone(),
+                    );
+                }
+            }
+            maybe_completion = completion_rx.recv() => {
+                let Some(JobResult { key, result }) = maybe_completion else {
+                    return Ok(());
+                };
+                let succeeded = result.is_ok();
+                let Some(completion) = scheduler.complete(&key, succeeded) else {
+                    warn!(game_id = key, "calculator completion had no scheduled job");
+                    continue;
+                };
+
+                if let Err(err) = result {
+                    error!(
+                        game_id = key,
+                        messages = completion.discarded.len(),
+                        error = ?err,
+                        "score calculation failed; messages left unacknowledged"
+                    );
+                } else {
+                    for message in completion.acknowledged.into_iter().flatten() {
+                        if let Err(err) = message.double_ack().await {
+                            warn!(game_id = key, error = ?err, "calculator message ack failed");
+                        }
+                    }
+                }
+
+                if completion.rerun {
+                    spawn_calculation(
+                        db.clone(),
+                        key,
+                        Arc::clone(&semaphore),
+                        completion_tx.clone(),
+                    );
+                }
+            }
+            _ = reconcile.tick() => {
+                match game::find_dirty_score_ids(&db.conn).await {
+                    Ok(game_ids) => {
+                        for game_id in game_ids {
+                            let key = Some(game_id);
+                            if scheduler.schedule(key, None) == ScheduleAction::Start {
+                                spawn_calculation(
+                                    db.clone(),
+                                    key,
+                                    Arc::clone(&semaphore),
+                                    completion_tx.clone(),
+                                );
+                            }
+                        }
+                    }
+                    Err(err) => error!(error = ?err, "dirty score reconciliation failed"),
+                }
             }
         }
-
-        message.double_ack().await.ok();
     }
+}
 
+/// Marks a game dirty before publishing its calculator wake-up message.
+pub async fn request(
+    conn: &impl ConnectionTrait,
+    queue: &Queue,
+    game_id: i64,
+) -> Result<(), anyhow::Error> {
+    game::request_score_recalculation(conn, game_id).await?;
+    notify(queue, game_id).await;
     Ok(())
 }
 
-/// Spawns a Tokio task that subscribes to [`SUBJECT`] and runs [`run`].
+/// Publishes a wake-up for a game already marked dirty in the database.
+pub async fn notify(queue: &Queue, game_id: i64) {
+    if let Err(err) = queue
+        .publish(
+            SUBJECT,
+            Payload {
+                game_id: Some(game_id),
+            },
+        )
+        .await
+    {
+        warn!(game_id, error = ?err, "score wake-up publish failed; dirty scan will retry");
+    }
+}
+
+/// Spawns the coalescing calculator dispatcher.
 #[tracing::instrument(skip_all, fields(handler = "spawn"))]
 pub async fn spawn(db: &DB, queue: &Queue) {
     let db = db.clone();
     let queue = queue.clone();
     tokio::spawn(async move {
         if let Err(err) = run(db, queue).await {
-            error!("{:?}", err);
+            error!(error = ?err, "calculator consumer stopped");
         }
     });
 
-    info!(subject = SUBJECT, "queue consumer spawned");
+    info!(
+        subject = SUBJECT,
+        concurrency = MAX_PARALLEL_GAMES,
+        "queue consumer spawned"
+    );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn score_revision_skips_duplicates_but_allows_forced_rebuilds() {
+        assert!(!needs_score_calculation(false, 0));
+        assert!(needs_score_calculation(false, 1));
+        assert!(needs_score_calculation(true, 0));
+        assert_eq!(MAX_REVISION_PASSES, 2);
+    }
 }

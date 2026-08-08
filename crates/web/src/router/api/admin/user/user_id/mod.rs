@@ -14,7 +14,7 @@ use axum::{Json, Router, extract::State};
 use cds_db::{
     sea_orm::{
         ActiveValue::{Set, Unchanged},
-        NotSet,
+        NotSet, TransactionTrait,
     },
     user::Group,
 };
@@ -136,6 +136,8 @@ pub async fn delete_user(
     State(s): State<Arc<AppState>>,
     Path(user_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    cds_db::user::delete(&s.db.conn, user_id).await?;
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
+    cds_db::user::delete(&transaction, user_id).await?;
+    transaction.commit().await.map_err(cds_db::DbError::from)?;
     Ok(Json(EmptyJson::default()))
 }

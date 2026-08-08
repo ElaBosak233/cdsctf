@@ -4,16 +4,17 @@
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
+use cds_db::UserProfile;
 use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
 
-use super::UserResponse;
+use super::UserPublicResponse;
 use crate::{
-    extract::{Extension, Path},
-    traits::{AppState, AuthPrincipal, WebError},
+    extract::Path,
+    traits::{AppState, WebError},
 };
 
 /// Defines the `avatar` submodule (see sibling `*.rs` files).
@@ -40,8 +41,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         ("user_id" = i64, Path, description = "User id"),
     ),
     responses(
-        (status = 200, description = "User profile", body = UserResponse),
-        (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 200, description = "User profile", body = UserPublicResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -49,12 +49,12 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[tracing::instrument(skip_all, fields(handler = "get_user"))]
 pub async fn get_user(
     State(s): State<Arc<AppState>>,
-    Extension(ext): Extension<AuthPrincipal>,
     Path(user_id): Path<i64>,
-) -> Result<Json<UserResponse>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-    let user = cds_db::user::find_by_id::<cds_db::User>(&s.db.conn, user_id)
+) -> Result<Json<UserPublicResponse>, WebError> {
+    let user = cds_db::user::find_by_id::<cds_db::UserAccountView>(&s.db.conn, user_id)
         .await?
         .ok_or(WebError::NotFound(json!("")))?;
-    Ok(Json(UserResponse { user }))
+    Ok(Json(UserPublicResponse {
+        user: UserProfile::from(&user),
+    }))
 }

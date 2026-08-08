@@ -4,39 +4,18 @@ use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::{team, user};
-
+#[sea_orm::model]
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "team_users")]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    #[sea_orm(primary_key, auto_increment = false)]
     pub team_id: i64,
-    #[sea_orm(primary_key)]
+    #[sea_orm(primary_key, auto_increment = false)]
     pub user_id: i64,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    User,
-    Team,
-}
-
-impl RelationTrait for Relation {
-    /// Returns the [`RelationDef`] for this relation variant.
-    fn def(&self) -> RelationDef {
-        match self {
-            Self::User => Entity::belongs_to(user::Entity)
-                .from(Column::UserId)
-                .to(user::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-            Self::Team => Entity::belongs_to(team::Entity)
-                .from(Column::TeamId)
-                .to(team::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-        }
-    }
+    #[sea_orm(belongs_to, from = "team_id", to = "id", on_delete = "Cascade")]
+    pub team: BelongsTo<super::team::Entity>,
+    #[sea_orm(belongs_to, from = "user_id", to = "id", on_delete = "Cascade")]
+    pub user: BelongsTo<super::user::Entity>,
 }
 
 #[async_trait]

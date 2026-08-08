@@ -8,11 +8,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Team } from "@/models/team";
+import type { TeamView } from "@/models/team";
 import { cn } from "@/utils";
 
 export interface ExpandedCardProps {
-  team: Team;
+  team: TeamView;
 }
 
 function ExpandedCard(props: ExpandedCardProps) {

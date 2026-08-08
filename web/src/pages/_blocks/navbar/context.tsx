@@ -46,6 +46,7 @@ export function useOptions() {
             icon: <StarIcon />,
             disabled:
               selfTeam?.state !== State.Passed ||
+              currentGame?.paused ||
               new Date(Number(currentGame?.ended_at) * 1000) < new Date() ||
               new Date(Number(currentGame?.started_at) * 1000) > new Date(),
           },
@@ -85,6 +86,7 @@ export function useOptions() {
     currentGame?.id,
     currentGame?.started_at,
     currentGame?.ended_at,
+    currentGame?.paused,
     selfTeam?.id,
     selfTeam?.state,
     t,

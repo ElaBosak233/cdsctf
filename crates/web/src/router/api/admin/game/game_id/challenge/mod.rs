@@ -5,11 +5,11 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    GameChallenge,
+    GameChallengeView,
     game_challenge::FindGameChallengeOptions,
-    sea_orm::{ActiveValue::Set, NotSet},
+    sea_orm::{ActiveValue::Set, NotSet, TransactionTrait},
 };
-use cds_worker::calculator::{Payload, SUBJECT};
+use cds_worker::calculator;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -44,7 +44,7 @@ pub struct GetGameChallengeRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminGameChallengesListResponse {
-    pub challenges: Vec<GameChallenge>,
+    pub challenges: Vec<GameChallengeView>,
     pub total: u64,
 }
 
@@ -98,7 +98,7 @@ pub struct CreateGameChallengeRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct GameChallengeResponse {
-    pub game_challenge: GameChallenge,
+    pub game_challenge: GameChallengeView,
 }
 
 /// Creates game challenge.
@@ -126,12 +126,13 @@ pub async fn create_game_challenge(
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
-    if cds_db::util::is_challenge_in_game(&s.db.conn, challenge.id, game.id).await? {
+    if cds_db::game_challenge::exists(&s.db.conn, game.id, challenge.id).await? {
         return Err(WebError::Conflict(json!("challenge_already_in_game")));
     }
 
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
     let game_challenge = cds_db::game_challenge::create(
-        &s.db.conn,
+        &transaction,
         cds_db::game_challenge::ActiveModel {
             game_id: Set(game.id),
             challenge_id: Set(challenge.id),
@@ -145,15 +146,9 @@ pub async fn create_game_challenge(
         },
     )
     .await?;
-
-    s.queue
-        .publish(
-            SUBJECT,
-            Payload {
-                game_id: Some(game.id),
-            },
-        )
-        .await?;
+    cds_db::game::request_score_recalculation(&transaction, game.id).await?;
+    transaction.commit().await.map_err(cds_db::DbError::from)?;
+    calculator::notify(&s.queue, game.id).await;
 
     Ok(Json(GameChallengeResponse { game_challenge }))
 }

@@ -1,7 +1,8 @@
 import { createBrowserRouter } from "react-router";
-
 import { ErrorBoundary } from "@/components/utils/error-boundary";
 import { HydrateFallback } from "@/components/utils/hydrate-fallback";
+import type { AccessPolicy } from "@/components/utils/route-access-boundary";
+import { Group } from "@/models/user";
 
 const router = createBrowserRouter([
   {
@@ -39,6 +40,9 @@ const router = createBrowserRouter([
       },
       {
         path: "playground",
+        handle: {
+          access: { authenticated: true } satisfies AccessPolicy,
+        },
         children: [
           {
             index: true,
@@ -86,6 +90,9 @@ const router = createBrowserRouter([
               },
               {
                 path: "team",
+                handle: {
+                  access: { authenticated: true } satisfies AccessPolicy,
+                },
                 lazy: async () => ({
                   Component: (await import("@/pages/games/game_id/team/layout"))
                     .default,
@@ -118,6 +125,9 @@ const router = createBrowserRouter([
               },
               {
                 path: "challenges",
+                handle: {
+                  access: { authenticated: true } satisfies AccessPolicy,
+                },
                 lazy: async () => ({
                   Component: (await import("@/pages/games/game_id/challenges"))
                     .default,
@@ -170,6 +180,9 @@ const router = createBrowserRouter([
           },
           {
             path: "settings",
+            handle: {
+              access: { authenticated: true } satisfies AccessPolicy,
+            },
             lazy: async () => ({
               Component: (await import("@/pages/account/settings/layout"))
                 .default,
@@ -215,6 +228,12 @@ const router = createBrowserRouter([
       },
       {
         path: "admin",
+        handle: {
+          access: {
+            authenticated: true,
+            minGroup: Group.Admin,
+          } satisfies AccessPolicy,
+        },
         lazy: async () => ({
           Component: (await import("@/pages/admin/layout")).default,
         }),

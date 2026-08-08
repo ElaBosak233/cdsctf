@@ -108,7 +108,7 @@ export default function Index() {
   });
 
   useEffect(() => {
-    form.reset(challenge?.instance);
+    form.reset(challenge?.instance ?? undefined);
   }, [challenge?.instance, form]);
 
   const handleAddContainer = () => {

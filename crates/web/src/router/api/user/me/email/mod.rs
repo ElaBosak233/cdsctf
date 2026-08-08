@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    Email,
+    EmailView,
     sea_orm::{Set, Unchanged},
 };
 use cds_media::config::email::EmailType;
@@ -38,7 +38,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct EmailsListResponse {
-    pub emails: Vec<Email>,
+    pub emails: Vec<EmailView>,
     pub total: u64,
 }
 
@@ -90,7 +90,7 @@ pub async fn add_email(
 ) -> Result<Json<EmptyJson>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let _ = cds_db::email::create::<Email>(
+    let _ = cds_db::email::create::<EmailView>(
         &s.db.conn,
         cds_db::email::ActiveModel {
             user_id: Set(operator.id),
@@ -161,9 +161,10 @@ pub async fn verify_email(
 ) -> Result<Json<EmptyJson>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let email = cds_db::email::find_by_email::<Email>(&s.db.conn, email.to_lowercase())
-        .await?
-        .ok_or(WebError::BadRequest(json!("email_not_found")))?;
+    let email =
+        cds_db::email::find_by_email::<cds_db::email::Model>(&s.db.conn, email.to_lowercase())
+            .await?
+            .ok_or(WebError::BadRequest(json!("email_not_found")))?;
 
     if email.user_id != operator.id {
         return Err(WebError::Forbidden(json!("email_not_found")));
@@ -186,11 +187,11 @@ pub async fn verify_email(
 
         let _ = s
             .cache
-            .get_del::<String>(format!("mailbox:{}:code", email.email.to_owned()))
+            .take::<String>(format!("mailbox:{}:code", email.email.to_owned()))
             .await?;
     }
 
-    let _ = cds_db::email::update::<Email>(
+    let _ = cds_db::email::update::<EmailView>(
         &s.db.conn,
         cds_db::email::ActiveModel {
             email: Unchanged(email.email.to_owned()),
@@ -230,9 +231,10 @@ pub async fn send_verify_email(
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
 
-    let email: Email = cds_db::email::find_by_email(&s.db.conn, email.to_lowercase())
-        .await?
-        .ok_or(WebError::BadRequest(json!("email_not_found")))?;
+    let email: cds_db::email::Model =
+        cds_db::email::find_by_email(&s.db.conn, email.to_lowercase())
+            .await?
+            .ok_or(WebError::BadRequest(json!("email_not_found")))?;
 
     if email.user_id != operator.id {
         return Err(WebError::Forbidden(json!("email_not_found")));
@@ -252,10 +254,10 @@ pub async fn send_verify_email(
 
     let code = nanoid!();
     s.cache
-        .set_ex(
+        .set_with_ttl(
             format!("mailbox:{}:code", email.email.to_owned()),
             code.to_owned(),
-            60 * 60,
+            std::time::Duration::from_secs(60 * 60),
         )
         .await?;
 
@@ -282,7 +284,11 @@ pub async fn send_verify_email(
         .await?;
 
     s.cache
-        .set_ex(format!("mailbox:{}:buffer", email.email.to_owned()), 1, 60)
+        .set_with_ttl(
+            format!("mailbox:{}:buffer", email.email.to_owned()),
+            1,
+            std::time::Duration::from_secs(60),
+        )
         .await?;
 
     Ok(Json(EmptyJson::default()))

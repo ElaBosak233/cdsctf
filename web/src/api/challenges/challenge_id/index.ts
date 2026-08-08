@@ -1,4 +1,4 @@
-import type { Challenge } from "@/models/challenge";
+import type { ChallengeView } from "@/models/challenge";
 import { api } from "@/utils/query";
 
 export type GetChallengeRequest = {
@@ -6,5 +6,7 @@ export type GetChallengeRequest = {
 };
 
 export async function getChallenge(request: GetChallengeRequest) {
-  return api.get(`challenges/${request.id}`).json<{ challenge: Challenge }>();
+  return api
+    .get(`challenges/${request.id}`)
+    .json<{ challenge: ChallengeView }>();
 }

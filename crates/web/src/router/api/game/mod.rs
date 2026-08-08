@@ -6,7 +6,7 @@ pub mod game_id;
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::{GameMini, game::FindGameOptions};
+use cds_db::{GameSummary, game::FindGameOptions};
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -37,7 +37,7 @@ pub struct ListGamesRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct GamesListResponse {
-    pub games: Vec<GameMini>,
+    pub games: Vec<GameSummary>,
     pub total: u64,
 }
 

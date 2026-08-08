@@ -1,7 +1,7 @@
 import { createContext } from "react";
 
-import type { Challenge } from "@/models/challenge";
+import type { ChallengeView } from "@/models/challenge";
 
 export const Context = createContext<{
-  challenge?: Challenge;
+  challenge?: ChallengeView;
 }>({});

@@ -80,13 +80,29 @@ export default function Index() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: user,
+    defaultValues: {
+      username: user?.username ?? "",
+      name: user?.name ?? "",
+      group: user?.group ?? Group.Guest,
+      description: user?.description ?? null,
+      verified: user?.verified ?? false,
+    },
   });
 
   useEffect(() => {
-    form.reset(user, {
-      keepDefaultValues: false,
-    });
+    if (!user) return;
+    form.reset(
+      {
+        username: user.username,
+        name: user.name,
+        group: user.group,
+        description: user.description,
+        verified: user.verified ?? false,
+      },
+      {
+        keepDefaultValues: false,
+      }
+    );
   }, [user, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {

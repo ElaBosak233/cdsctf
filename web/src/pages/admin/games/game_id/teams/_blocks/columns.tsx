@@ -1,4 +1,3 @@
-import type { ColumnDef } from "@tanstack/react-table";
 import {
   BanIcon,
   CheckCheckIcon,
@@ -20,13 +19,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { State, type Team } from "@/models/team";
+import { State, type TeamView } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import type { ColumnDef } from "@/hooks/use-data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 
-function useColumns(): Array<ColumnDef<Team>> {
+function useColumns(): Array<ColumnDef<TeamView>> {
   const { t } = useTranslation();
 
   const sharedStore = useSharedStore();
@@ -158,7 +158,7 @@ function useColumns(): Array<ColumnDef<Team>> {
                 </div>
               );
             },
-          } satisfies ColumnDef<Team>,
+          } satisfies ColumnDef<TeamView>,
         ]
       : []),
     {

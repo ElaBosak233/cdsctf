@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::GameNotice;
+use cds_db::GameNoticeView;
 use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -25,7 +25,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
 pub struct GameNoticesListResponse {
-    pub notices: Vec<GameNotice>,
+    pub notices: Vec<GameNoticeView>,
     pub total: u64,
 }
 

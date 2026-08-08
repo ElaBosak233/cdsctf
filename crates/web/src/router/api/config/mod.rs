@@ -10,7 +10,7 @@ mod logo;
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::Config;
+use cds_db::PublicConfig;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -39,7 +39,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct ConfigResponse {
-    pub config: Config,
+    pub config: PublicConfig,
 }
 
 /// Returns config.
@@ -56,7 +56,7 @@ pub struct ConfigResponse {
 #[tracing::instrument(skip_all, fields(handler = "get_config"))]
 pub async fn get_config(State(s): State<Arc<AppState>>) -> Result<Json<ConfigResponse>, WebError> {
     Ok(Json(ConfigResponse {
-        config: cds_db::get_config(&s.db.conn).await.desensitize(),
+        config: PublicConfig::from(&cds_db::get_config(&s.db.conn).await),
     }))
 }
 

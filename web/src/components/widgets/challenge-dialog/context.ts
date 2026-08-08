@@ -1,11 +1,12 @@
 import { createContext } from "react";
 
-import type { Challenge } from "@/models/challenge";
-import type { Team } from "@/models/team";
+import type { ChallengeView } from "@/models/challenge";
+import type { PlayerTeamView } from "@/models/team";
 
 export const Context = createContext<{
-  challenge?: Challenge;
-  team?: Team;
+  challenge?: Partial<ChallengeView> &
+    Pick<ChallengeView, "id" | "title" | "category">;
+  team?: PlayerTeamView;
   debug?: boolean;
   cheated?: boolean;
 }>({});

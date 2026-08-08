@@ -48,7 +48,11 @@ pub async fn create_token(
 
     let token = nanoid!(16);
     s.cache
-        .set_ex(format!("team:{}:invite", team.id), token.clone(), 60 * 60)
+        .set_with_ttl(
+            format!("team:{}:invite", team.id),
+            token.clone(),
+            std::time::Duration::from_secs(60 * 60),
+        )
         .await?;
 
     Ok(Json(InviteTokenResponse { token: Some(token) }))
@@ -104,7 +108,7 @@ pub async fn delete_token(
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
     let token = s
         .cache
-        .get_del::<String>(format!("team:{}:invite", team.id))
+        .take::<String>(format!("team:{}:invite", team.id))
         .await?;
 
     Ok(Json(InviteTokenResponse { token }))

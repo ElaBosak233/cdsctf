@@ -1,4 +1,4 @@
-import type { Challenge } from "@/models/challenge";
+import type { ChallengeDetail } from "@/models/challenge";
 import { api } from "@/utils/query";
 
 export type GetChallengeRequest = {
@@ -8,7 +8,7 @@ export type GetChallengeRequest = {
 export async function getChallenge(request: GetChallengeRequest) {
   return api
     .get(`admin/challenges/${request.id}`)
-    .json<{ challenge: Challenge }>();
+    .json<{ challenge: ChallengeDetail }>();
 }
 
 export type UpdateChallengeRequest = {
@@ -25,7 +25,7 @@ export type UpdateChallengeRequest = {
 export async function updateChallenge(request: UpdateChallengeRequest) {
   return api
     .put(`admin/challenges/${request?.id}`, { json: request })
-    .json<{ challenge: Challenge }>();
+    .json<{ challenge: ChallengeDetail }>();
 }
 
 export type DeleteChallengeRequest = {

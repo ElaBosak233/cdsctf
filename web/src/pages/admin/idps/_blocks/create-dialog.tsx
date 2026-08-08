@@ -3,7 +3,6 @@ import { CheckIcon, IdCardIcon, TypeIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 import { createAdminIdp } from "@/api/admin/idps";
@@ -31,7 +30,6 @@ interface CreateDialogProps {
 function CreateDialog(props: CreateDialogProps) {
   const { onClose } = props;
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const sharedStore = useSharedStore();
   const [loading, setLoading] = useState(false);
 
@@ -53,6 +51,7 @@ function CreateDialog(props: CreateDialogProps) {
     createAdminIdp({
       name: values.name,
       enabled: false,
+      registration_enabled: false,
       portal: null,
       script: defaultScript,
     })
@@ -61,9 +60,6 @@ function CreateDialog(props: CreateDialogProps) {
           t("admin:idp.actions.create.success", { name: res.idp?.name })
         );
         onClose();
-        if (res.idp?.id != null) {
-          navigate(`/admin/idps/${res.idp.id}`);
-        }
       })
       .finally(() => {
         sharedStore.setRefresh();

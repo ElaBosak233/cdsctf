@@ -1,4 +1,4 @@
-import type { UserMini } from "@/models/user";
+import type { UserSummary } from "@/models/user";
 import { api } from "@/utils/query";
 
 export type GetTeamUserRequest = {
@@ -9,7 +9,7 @@ export type GetTeamUserRequest = {
 export async function getTeamUser(request: GetTeamUserRequest) {
   return api
     .get(`admin/games/${request.game_id}/teams/${request.team_id}/users`)
-    .json<{ users: UserMini[]; total: number }>();
+    .json<{ users: UserSummary[]; total: number }>();
 }
 
 export type CreateTeamUserRequest = {

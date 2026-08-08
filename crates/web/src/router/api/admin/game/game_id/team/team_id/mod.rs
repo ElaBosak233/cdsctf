@@ -14,14 +14,14 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    Team,
+    TeamView,
     sea_orm::{
         ActiveValue::{Set, Unchanged},
-        NotSet,
+        NotSet, TransactionTrait,
     },
     team::State as TState,
 };
-use cds_worker::calculator::{Payload, SUBJECT};
+use cds_worker::calculator;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -31,7 +31,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Json as ReqJson, Path},
-    router::api::game::game_id::team::TeamResponse,
+    router::api::admin::game::game_id::team::AdminTeamResponse,
     traits::{AppState, EmptyJson, WebError},
 };
 
@@ -66,7 +66,7 @@ pub struct UpdateTeamRequest {
     ),
     request_body = UpdateTeamRequest,
     responses(
-        (status = 200, description = "Updated team", body = TeamResponse),
+        (status = 200, description = "Updated team", body = AdminTeamResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -75,11 +75,12 @@ pub async fn update_team(
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,
     ReqJson(body): ReqJson<UpdateTeamRequest>,
-) -> Result<Json<TeamResponse>, WebError> {
+) -> Result<Json<AdminTeamResponse>, WebError> {
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
-    let new_team = cds_db::team::update::<Team>(
-        &s.db.conn,
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
+    let new_team = cds_db::team::update::<TeamView>(
+        &transaction,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),
             game_id: Unchanged(team.game_id),
@@ -92,18 +93,17 @@ pub async fn update_team(
     )
     .await?;
 
-    if team.state != new_team.state {
-        s.queue
-            .publish(
-                SUBJECT,
-                Payload {
-                    game_id: Some(game_id),
-                },
-            )
-            .await?;
+    let score_changed = team.state != new_team.state;
+    if score_changed {
+        cds_db::game::request_score_recalculation(&transaction, game_id).await?;
+    }
+    transaction.commit().await.map_err(cds_db::DbError::from)?;
+
+    if score_changed {
+        calculator::notify(&s.queue, game_id).await;
     }
 
-    Ok(Json(TeamResponse { team: new_team }))
+    Ok(Json(AdminTeamResponse { team: new_team }))
 }
 
 /// Deletes team.

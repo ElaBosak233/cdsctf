@@ -5,7 +5,7 @@ use std::sync::Arc;
 use axum::{Json, Router, extract::State};
 use cds_checker::traits::CheckerError;
 use cds_db::{
-    Challenge,
+    ChallengeDetail,
     sea_orm::{NotSet, Set, Unchanged},
 };
 use cds_engine::traits::{DiagnosticMarker, EngineError};
@@ -57,7 +57,7 @@ pub async fn update_checker(
 ) -> Result<Json<EmptyJson>, WebError> {
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
-    let _ = cds_db::challenge::update::<Challenge>(
+    let _ = cds_db::challenge::update::<ChallengeDetail>(
         &s.db.conn,
         cds_db::challenge::ActiveModel {
             id: Unchanged(challenge_id),

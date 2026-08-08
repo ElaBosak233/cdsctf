@@ -16,14 +16,15 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    TeamUser,
+    TeamUserView,
     sea_orm::{
         ActiveValue::{Set, Unchanged},
-        NotSet,
+        NotSet, TransactionTrait,
     },
     team::State as TState,
     team_user::FindTeamUserOptions,
 };
+use cds_worker::calculator;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -72,9 +73,10 @@ pub async fn get_team(
     Path(game_id): Path<i64>,
 ) -> Result<Json<TeamResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
-    Ok(Json(TeamResponse { team }))
+    Ok(Json(TeamResponse::new(team, game.blacked_out)))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
@@ -109,6 +111,7 @@ pub async fn update_team(
 ) -> Result<Json<TeamResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
     let team = cds_db::team::update(
@@ -124,7 +127,7 @@ pub async fn update_team(
     )
     .await?;
 
-    Ok(Json(TeamResponse { team }))
+    Ok(Json(TeamResponse::new(team, game.blacked_out)))
 }
 
 /// Deletes team.
@@ -191,7 +194,7 @@ pub async fn set_team_ready(
         return Err(WebError::BadRequest(json!("team_not_preparing")));
     }
 
-    let (_, team_users) = cds_db::team_user::find::<TeamUser>(
+    let (_, team_users) = cds_db::team_user::find::<TeamUserView>(
         &s.db.conn,
         FindTeamUserOptions {
             team_id: Some(team.id),
@@ -204,8 +207,9 @@ pub async fn set_team_ready(
         return Err(WebError::BadRequest(json!("member_limit_not_satisfied")));
     }
 
-    let team = cds_db::team::update(
-        &s.db.conn,
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
+    let team: cds_db::TeamView = cds_db::team::update(
+        &transaction,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),
             game_id: Unchanged(team.game_id),
@@ -219,5 +223,15 @@ pub async fn set_team_ready(
     )
     .await?;
 
-    Ok(Json(TeamResponse { team }))
+    let score_changed = team.state == TState::Passed;
+    if score_changed {
+        cds_db::game::request_score_recalculation(&transaction, game.id).await?;
+    }
+    transaction.commit().await.map_err(cds_db::DbError::from)?;
+
+    if score_changed {
+        calculator::notify(&s.queue, game.id).await;
+    }
+
+    Ok(Json(TeamResponse::new(team, game.blacked_out)))
 }

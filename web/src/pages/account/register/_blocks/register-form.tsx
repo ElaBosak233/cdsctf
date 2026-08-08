@@ -11,7 +11,7 @@ import {
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 import { register } from "@/api/users";
@@ -30,10 +30,12 @@ import { Captcha, type CaptchaRef } from "@/components/widgets/captcha";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import { getSafeRedirect, withRedirect } from "@/utils/redirect";
 
 function RegisterForm() {
   const configStore = useConfigStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
 
   const captchaRef = useRef<CaptchaRef>(null);
@@ -87,7 +89,12 @@ function RegisterForm() {
         id: "register-success",
         description: t("account:register.toast.success.desc"),
       });
-      navigate("/account/login");
+      navigate(
+        withRedirect(
+          "/account/login",
+          getSafeRedirect(searchParams.get("redirect"))
+        )
+      );
     } catch (error) {
       if (!(error instanceof HTTPError)) throw error;
       const status = error.response.status;

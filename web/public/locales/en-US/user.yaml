@@ -1,5 +1,14 @@
 _: User
 empty: But nobody came.
+result_count: "{{count}} users"
+list:
+  columns:
+    user: User
+    status: Account Status
+    created_at: Registered
+  verified:
+    "true": Verified
+    "false": Unverified
 edit:
   _: Edit User
   info: Info
@@ -155,6 +164,7 @@ delete_account:
     intro: You are deleting your account. Your account will not be truly deleted, but will be permanently soft-deleted and cannot be recovered.
     username: Your username will be modified and saved in a special form. You can register a new account with your original username.
     email: Your email will be unbound and cleared. You can register a new account with your original email.
+    idp: All identity provider bindings will be released and can be used by another account.
     data: All your related competition, team, and submission data will still be retained. However, after deletion, no information can prove that this data belongs to you.
     irreversible: Please note again, the following operation is irreversible! Think twice before proceeding!
     confirm: Please read and confirm the above content carefully! If you really want to delete your account, enter your full username and password below and click confirm.
@@ -175,6 +185,8 @@ delete_account:
       success: Account deleted successfully.
 idp:
   _: Identity Provider
+  source:
+    registration: Registration identity
   actions:
     bind: Bind
     unbind: Unbind

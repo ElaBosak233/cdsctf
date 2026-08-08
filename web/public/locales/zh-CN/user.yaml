@@ -1,5 +1,14 @@
 _: 用户
 empty: 但是谁也没有来。
+result_count: "{{count}} 个用户"
+list:
+  columns:
+    user: 用户
+    status: 账号状态
+    created_at: 注册时间
+  verified:
+    "true": 已验证
+    "false": 未验证
 edit:
   _: 编辑用户
   info: 基本信息
@@ -151,6 +160,7 @@ delete_account:
     intro: 你正在注销你的账号。但是你的账号不会被真正地删除，而是将永久处于软删除状态。且无法恢复！
     username: 你的用户名会以一种特别的形式修改并保存。你可以使用原先的用户名注册新的账号。
     email: 你的邮箱会被全部解绑并清除。你可以使用原先的邮箱注册新的账号。
+    idp: 所有第三方认证绑定都会被释放，之后可以用于其他账号。
     data: 所有与你相关的比赛、团队、提交等数据仍然会被留存。但在注销账号后，没有任何信息可以证明这些数据属于你。
     irreversible: 请再次注意，你接下来的操作是不可逆的！请三思而后行！
     confirm: 请认真阅读并确定上述内容！如果你真的确定要注销账号，请在下方输入你的完整用户名、密码并点击确认。
@@ -171,6 +181,8 @@ delete_account:
       success: 注销成功
 idp:
   _: 第三方认证服务
+  source:
+    registration: 注册身份
   actions:
     bind: 绑定
     unbind: 解除绑定

@@ -13,7 +13,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    Email, User,
+    EmailView, UserAccountView, UserProfile,
     sea_orm::ActiveValue::Set,
     user::{FindUserOptions, Group},
 };
@@ -47,7 +47,12 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct UserResponse {
-    pub user: User,
+    pub user: UserAccountView,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct UserPublicResponse {
+    pub user: UserProfile,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
@@ -89,7 +94,7 @@ pub async fn user_login(
 
     body.account = body.account.to_lowercase();
 
-    let user: User = cds_db::user::find_by_account(&s.db.conn, body.account)
+    let user: UserAccountView = cds_db::user::find_by_account(&s.db.conn, body.account)
         .await?
         .ok_or(WebError::BadRequest(json!("invalid")))?;
 
@@ -144,7 +149,7 @@ pub async fn user_register(
     if !cds_db::get_config(&s.db.conn)
         .await
         .auth
-        .registration_enabled
+        .local_registration_enabled
     {
         return Err(WebError::BadRequest(json!("registration_disabled")));
     }
@@ -172,14 +177,14 @@ pub async fn user_register(
 
     let hashed_password = util::crypto::hash_password(body.password);
 
-    let user = cds_db::user::create::<User>(
+    let user = cds_db::user::create::<UserAccountView>(
         &s.db.conn,
         cds_db::user::ActiveModel {
             username: Set(body.username),
             name: Set(body.name),
             hashed_password: Set(hashed_password),
             group: Set(
-                if cds_db::user::find::<User>(&s.db.conn, FindUserOptions::default())
+                if cds_db::user::find::<UserAccountView>(&s.db.conn, FindUserOptions::default())
                     .await?
                     .1
                     == 0
@@ -194,7 +199,7 @@ pub async fn user_register(
     )
     .await?;
 
-    let _ = cds_db::email::create::<Email>(
+    let _ = cds_db::email::create::<EmailView>(
         &s.db.conn,
         cds_db::email::ActiveModel {
             user_id: Set(user.id),

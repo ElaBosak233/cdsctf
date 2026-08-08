@@ -26,7 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { Typography } from "@/components/ui/typography";
 import { Captcha } from "@/components/widgets/captcha";
-import { useAuthStore } from "@/storages/auth";
+import { clearAuthenticatedUser, useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { formatApiMsg, parseErrorResponse } from "@/utils/query";
@@ -35,7 +35,7 @@ export default function Index() {
   const { t } = useTranslation();
 
   const configStore = useConfigStore();
-  const authStore = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
 
   const formSchema = z
@@ -53,7 +53,7 @@ export default function Index() {
         })
         .nullish(),
     })
-    .refine((data) => data.username === authStore?.user?.username, {
+    .refine((data) => data.username === user?.username, {
       message: t("user:delete_account.form.username.messages.match"),
       path: ["username"],
     });
@@ -68,7 +68,7 @@ export default function Index() {
         ...values,
       });
       toast.success(t("user:delete_account.actions.delete.success"));
-      authStore?.clear();
+      clearAuthenticatedUser();
       navigate("/");
     } catch (error) {
       if (!(error instanceof HTTPError)) throw error;
@@ -117,6 +117,7 @@ export default function Index() {
           <ul>
             <li>{t("user:delete_account.warnings.username")}</li>
             <li>{t("user:delete_account.warnings.email")}</li>
+            <li>{t("user:delete_account.warnings.idp")}</li>
             <li>{t("user:delete_account.warnings.data")}</li>
           </ul>
           <p className={cn(["font-bold"])}>
@@ -145,10 +146,7 @@ export default function Index() {
                       <FieldIcon>
                         <UserRoundIcon />
                       </FieldIcon>
-                      <TextField
-                        {...field}
-                        placeholder={authStore?.user?.username}
-                      />
+                      <TextField {...field} placeholder={user?.username} />
                     </Field>
                     <FormMessage />
                   </FormItem>

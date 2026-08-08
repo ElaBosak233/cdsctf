@@ -60,7 +60,7 @@ fn install_level(
 fn create_log_function(lua: &Lua, level: Level, budget: Arc<AtomicU32>) -> mlua::Result<Function> {
     lua.create_function(move |_lua, values: MultiValue| {
         if budget
-            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |count| {
+            .try_update(Ordering::Relaxed, Ordering::Relaxed, |count| {
                 (count < MAX_LOG_ENTRIES).then_some(count + 1)
             })
             .is_err()

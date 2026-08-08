@@ -1,4 +1,4 @@
-import type { State, Team } from "@/models/team";
+import type { State, TeamView } from "@/models/team";
 import { api } from "@/utils/query";
 
 export type UpdateTeamRequest = {
@@ -16,7 +16,7 @@ export async function updateTeam(request: UpdateTeamRequest) {
     .put(`admin/games/${request.game_id}/teams/${request.team_id}`, {
       json: request,
     })
-    .json<{ team: Team }>();
+    .json<{ team: TeamView }>();
 }
 
 export type DeleteTeamRequest = {

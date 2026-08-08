@@ -16,6 +16,10 @@ login:
     already_logged_in: You are already logged in
     not_verified: You are not verified yet
     verify_email: Please verify your email first
+guard:
+  login_required: Please sign in to continue
+  unavailable: Unable to verify your sign-in status. Please try again.
+  forbidden: You do not have permission to access this page.
 register:
   _: Register
   not_yet: No account yet? Register!
@@ -87,11 +91,14 @@ idp:
     success_desc: You have been signed in
     failed: Registration failed
     conflict: Username or email already exists
+    expired: The third-party login session expired. Please choose the provider again.
   bind:
     success: IdP bound
   login:
     success: Signed in
+    verifying: Verifying your third-party account...
     error: IdP request failed
+    registration_disabled: This provider does not accept new registrations. Sign in to an existing account before binding it.
   unbind:
     success: IdP unbound
   third_party: Third-party Login

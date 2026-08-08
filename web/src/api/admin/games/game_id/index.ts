@@ -1,4 +1,4 @@
-import type { Game } from "@/models/game";
+import type { GameDetail } from "@/models/game";
 import { api } from "@/utils/query";
 
 export type GetGameRequest = {
@@ -6,7 +6,7 @@ export type GetGameRequest = {
 };
 
 export async function getGame(request: GetGameRequest) {
-  return api.get(`admin/games/${request.id}`).json<{ game: Game }>();
+  return api.get(`admin/games/${request.id}`).json<{ game: GameDetail }>();
 }
 
 export type UpdateGameBody = {
@@ -15,6 +15,8 @@ export type UpdateGameBody = {
   description?: string | null;
   enabled?: boolean;
   public?: boolean;
+  paused?: boolean;
+  blacked_out?: boolean;
   writeup_required?: boolean;
   member_limit_min?: number;
   member_limit_max?: number;
@@ -29,7 +31,9 @@ export type UpdateGameRequest = UpdateGameBody & {
 
 export async function updateGame(request: UpdateGameRequest) {
   const { id, ...body } = request;
-  return api.put(`admin/games/${id}`, { json: body }).json<{ game: Game }>();
+  return api
+    .put(`admin/games/${id}`, { json: body })
+    .json<{ game: GameDetail }>();
 }
 
 export type DeleteGameRequest = {

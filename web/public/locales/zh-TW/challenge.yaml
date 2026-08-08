@@ -1,6 +1,17 @@
 _: 題目
 playground: 練習場
 empty: 目前尚無題目。
+result_count: "{{count}} 道題目"
+list:
+  columns:
+    challenge: 題目
+    classification: 分類
+    status: 狀態與能力
+    time: 時間
+  visibility:
+    public: 公開
+    private: 不公開
+  created_at: "建立 {{time}}"
 edit:
   _: 編輯題目
   info: 基本資訊

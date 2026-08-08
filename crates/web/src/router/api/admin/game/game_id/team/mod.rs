@@ -8,7 +8,7 @@ use std::sync::Arc;
 use axum::{Json, Router, extract::State};
 use cds_db::{
     sea_orm::ActiveValue::Set,
-    team::{FindTeamOptions, State as TState, Team},
+    team::{FindTeamOptions, State as TState, TeamView},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -19,7 +19,6 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Json as ReqJson, Path, Query},
-    router::api::game::game_id::team::TeamResponse,
     traits::{AppState, AuthPrincipal, WebError},
 };
 
@@ -47,8 +46,13 @@ pub struct GetTeamRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminTeamsListResponse {
-    pub teams: Vec<Team>,
+    pub teams: Vec<TeamView>,
     pub total: u64,
+}
+
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct AdminTeamResponse {
+    pub team: TeamView,
 }
 
 /// Returns team.
@@ -111,7 +115,7 @@ pub struct CreateTeamRequest {
     ),
     request_body = CreateTeamRequest,
     responses(
-        (status = 200, description = "Team created", body = TeamResponse),
+        (status = 200, description = "Team created", body = AdminTeamResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -120,7 +124,7 @@ pub async fn create_team(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
     ReqJson(body): ReqJson<CreateTeamRequest>,
-) -> Result<Json<TeamResponse>, WebError> {
+) -> Result<Json<AdminTeamResponse>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     let team = cds_db::team::create(
@@ -136,5 +140,5 @@ pub async fn create_team(
     )
     .await?;
 
-    Ok(Json(TeamResponse { team }))
+    Ok(Json(AdminTeamResponse { team }))
 }

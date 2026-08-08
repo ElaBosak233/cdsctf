@@ -29,7 +29,12 @@ import { Label } from "@/components/ui/label";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
-import { useAuthStore } from "@/storages/auth";
+import type { UserAccountView } from "@/models/user";
+import {
+  patchAuthenticatedUser,
+  setAuthenticatedUser,
+  useAuthStore,
+} from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -38,7 +43,7 @@ import { uploadFile } from "@/utils/file";
 export default function Index() {
   const { t } = useTranslation();
 
-  const authStore = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const sharedStore = useSharedStore();
   const configStore = useConfigStore();
   const [loading, setLoading] = useState<boolean>(false);
@@ -56,7 +61,7 @@ export default function Index() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: authStore?.user,
+    defaultValues: user ?? undefined,
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -66,7 +71,7 @@ export default function Index() {
         ...values,
       });
 
-      authStore?.setUser(res.user);
+      setAuthenticatedUser(res.user);
       toast.success(t("user:settings.profile_update_success"));
     } finally {
       setLoading(false);
@@ -96,7 +101,7 @@ export default function Index() {
     );
 
     try {
-      const res = await uploadFile(
+      const res = await uploadFile<{ user: UserAccountView }>(
         "/api/users/me/avatar",
         [file],
         ({ percent }) => {
@@ -110,13 +115,7 @@ export default function Index() {
           );
         }
       );
-      const data = res as { hash?: string } | undefined;
-      if (data?.hash && authStore?.user) {
-        authStore?.setUser({
-          ...authStore.user,
-          avatar_hash: data.hash,
-        });
-      }
+      setAuthenticatedUser(res.user);
       toast.success(t("user:settings.avatar_upload.success"), {
         id: "user-avatar-upload",
       });
@@ -128,13 +127,10 @@ export default function Index() {
   }
 
   async function handleAvatarDelete() {
-    if (!authStore?.user) return;
+    if (!user) return;
 
     await deleteUserAvatar();
-    authStore?.setUser({
-      ...authStore.user,
-      avatar_hash: undefined,
-    });
+    patchAuthenticatedUser({ avatar_hash: null });
     setHasAvatar(false);
     toast.success(t("user:settings.avatar_delete_success"));
     sharedStore.setRefresh();
@@ -269,13 +265,12 @@ export default function Index() {
                     "border",
                   ])}
                   src={
-                    authStore?.user?.avatar_hash &&
-                    `/api/media?hash=${authStore?.user?.avatar_hash}`
+                    user?.avatar_hash && `/api/media?hash=${user.avatar_hash}`
                   }
                   onLoadingStatusChange={(status) =>
                     setHasAvatar(status === "loaded")
                   }
-                  fallback={authStore?.user?.name?.charAt(0)}
+                  fallback={user?.name?.charAt(0)}
                 >
                   <Button
                     className={cn([

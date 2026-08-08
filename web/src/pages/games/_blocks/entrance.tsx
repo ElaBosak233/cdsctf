@@ -5,11 +5,11 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { Image } from "@/components/ui/image";
 import { DefaultLogo } from "@/components/widgets/default-logo";
-import type { GameMini } from "@/models/game";
+import type { GameSummary } from "@/models/game";
 import { cn } from "@/utils";
 
 interface EntranceProps {
-  game?: GameMini;
+  game?: GameSummary;
   onFinish?: () => void;
 }
 

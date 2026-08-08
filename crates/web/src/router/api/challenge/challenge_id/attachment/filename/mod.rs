@@ -58,7 +58,7 @@ pub async fn get_attachment(
         .then_some(())
         .ok_or_else(|| WebError::NotFound(json!("challenge_has_not_attachment")))?;
 
-    if !cds_db::util::can_user_access_challenge(&s.db.conn, operator.id, challenge_id).await? {
+    if !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge_id).await? {
         return Err(WebError::Forbidden(json!("")));
     }
 

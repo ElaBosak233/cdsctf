@@ -23,7 +23,7 @@ use cds_db::sea_orm::{
     ActiveValue::{Set, Unchanged},
     NotSet,
 };
-use cds_worker::calculator::{Payload, SUBJECT};
+use cds_worker::calculator;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -33,7 +33,7 @@ use validator::Validate;
 
 use crate::{
     extract::{Path, VJson},
-    router::api::game::game_id::GameDetailResponse,
+    router::api::admin::game::AdminGameDetailResponse,
     traits::{AppState, EmptyJson, WebError},
 };
 
@@ -61,7 +61,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         ("game_id" = i64, Path, description = "Game id"),
     ),
     responses(
-        (status = 200, description = "Game", body = GameDetailResponse),
+        (status = 200, description = "Game", body = AdminGameDetailResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -69,9 +69,9 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 pub async fn get_game(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
-) -> Result<Json<GameDetailResponse>, WebError> {
+) -> Result<Json<AdminGameDetailResponse>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
-    Ok(Json(GameDetailResponse { game }))
+    Ok(Json(AdminGameDetailResponse { game }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
@@ -81,6 +81,8 @@ pub struct UpdateGameRequest {
     pub description: Option<String>,
     pub enabled: Option<bool>,
     pub public: Option<bool>,
+    pub paused: Option<bool>,
+    pub blacked_out: Option<bool>,
     pub member_limit_min: Option<i64>,
     pub member_limit_max: Option<i64>,
     pub writeup_required: Option<bool>,
@@ -100,7 +102,7 @@ pub struct UpdateGameRequest {
     ),
     request_body = UpdateGameRequest,
     responses(
-        (status = 200, description = "Updated game", body = GameDetailResponse),
+        (status = 200, description = "Updated game", body = AdminGameDetailResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -109,7 +111,7 @@ pub async fn update_game(
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
     VJson(body): VJson<UpdateGameRequest>,
-) -> Result<Json<GameDetailResponse>, WebError> {
+) -> Result<Json<AdminGameDetailResponse>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     let game = cds_db::game::update(
@@ -121,6 +123,8 @@ pub async fn update_game(
             description: body.description.map_or(NotSet, |v| Set(Some(v))),
             enabled: body.enabled.map_or(NotSet, Set),
             public: body.public.map_or(NotSet, Set),
+            paused: body.paused.map_or(NotSet, Set),
+            blacked_out: body.blacked_out.map_or(NotSet, Set),
             writeup_required: body.writeup_required.map_or(NotSet, Set),
 
             member_limit_min: body.member_limit_min.map_or(NotSet, Set),
@@ -135,7 +139,7 @@ pub async fn update_game(
     )
     .await?;
 
-    Ok(Json(GameDetailResponse { game }))
+    Ok(Json(AdminGameDetailResponse { game }))
 }
 
 /// Deletes game.
@@ -181,14 +185,7 @@ pub async fn calculate_game(
 ) -> Result<Json<EmptyJson>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    s.queue
-        .publish(
-            SUBJECT,
-            Payload {
-                game_id: Some(game.id),
-            },
-        )
-        .await?;
+    calculator::request(&s.db.conn, &s.queue, game.id).await?;
 
     Ok(Json(EmptyJson::default()))
 }

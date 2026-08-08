@@ -4,8 +4,7 @@ use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::user;
-
+#[sea_orm::model]
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "emails")]
 pub struct Model {
@@ -13,31 +12,8 @@ pub struct Model {
     pub email: String,
     pub verified: bool,
     pub user_id: i64,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    User,
-}
-
-impl RelationTrait for Relation {
-    /// Returns the [`RelationDef`] for this relation variant.
-    fn def(&self) -> RelationDef {
-        match self {
-            Self::User => Entity::belongs_to(user::Entity)
-                .from(Column::UserId)
-                .to(user::Column::Id)
-                .on_delete(ForeignKeyAction::Cascade)
-                .into(),
-        }
-    }
-}
-
-impl Related<user::Entity> for Entity {
-    /// Returns the [`RelationDef`] linking to the related [`Entity`].
-    fn to() -> RelationDef {
-        Relation::User.def()
-    }
+    #[sea_orm(belongs_to, from = "user_id", to = "id", on_delete = "Cascade")]
+    pub user: BelongsTo<super::user::Entity>,
 }
 
 #[async_trait]

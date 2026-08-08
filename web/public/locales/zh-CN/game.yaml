@@ -4,6 +4,15 @@ result_count: "{{count}} 场比赛"
 filter:
   all: ALL
   pts: 分
+list:
+  columns:
+    game: 比赛
+    status: 状态
+    schedule: 赛程
+  visibility:
+    public: 公开
+    private: 非公开
+  freeze_at: "冻结 {{time}}"
 edit:
   _: 编辑比赛
   info: 基本信息
@@ -27,6 +36,7 @@ enabled:
     success: "比赛 {{title}} 状态更新成功。"
 scoreboard:
   _: 积分榜
+  blackout: 黑夜模式封榜
   empty: 但是谁也没有来。
   columns:
     user: 用户
@@ -80,6 +90,14 @@ form:
     _: 是否为公开赛（免审核）
     "true": 是
     "false": 否
+  paused:
+    _: 暂停比赛
+    "true": 已暂停
+    "false": 正常进行
+  blacked_out:
+    _: 黑灯模式
+    "true": 已封榜
+    "false": 实时公开
   writeup_required:
     _: 是否需要提交 Write-up
     "true": 是
@@ -119,6 +137,9 @@ actions:
     success: "比赛 {{title}} 更新成功。"
 challenges:
   no_permission: 你没有权限查看本场比赛的题目。
+paused:
+  title: 比赛已暂停
+  description: 管理员恢复比赛后可以继续答题。
 challenge:
   empty: 哎呀，这个比赛好像还没有题目呢。
   pts: 当前分值

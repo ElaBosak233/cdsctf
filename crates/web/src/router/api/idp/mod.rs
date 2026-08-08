@@ -6,7 +6,7 @@ mod idp_id;
 use std::{collections::HashMap, sync::Arc};
 
 use axum::{Json, Router, extract::State};
-use cds_db::Idp;
+use cds_db::IdpSummary;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -23,7 +23,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct IdpsResponse {
-    pub idps: Vec<Idp>,
+    pub idps: Vec<IdpSummary>,
 }
 
 #[derive(Clone, Debug, Deserialize, utoipa::ToSchema)]
@@ -40,10 +40,6 @@ pub struct IdpAuthRequest {
 )]
 #[tracing::instrument(skip_all, fields(handler = "list_idps"))]
 pub async fn list_idps(State(s): State<Arc<AppState>>) -> Result<Json<IdpsResponse>, WebError> {
-    let idps = cds_db::idp::find_public_idps::<Idp>(&s.db.conn)
-        .await?
-        .into_iter()
-        .map(Idp::desensitize)
-        .collect();
+    let idps = cds_db::idp::find_public_idps::<IdpSummary>(&s.db.conn).await?;
     Ok(Json(IdpsResponse { idps }))
 }
