@@ -226,6 +226,7 @@ fn execution_environment(lua: &Lua) -> mlua::Result<Table> {
         "utf8",
         "log",
         "regex",
+        "time",
     ]
     .into_iter()
     .map(str::to_owned)
@@ -644,5 +645,21 @@ mod tests {
             .unwrap();
         assert_eq!(first, 101);
         assert_eq!(second, 101);
+    }
+
+    #[tokio::test]
+    async fn exposes_time_module_during_execution() {
+        clear_cache();
+        preload(
+            "test/time-module",
+            "function pause() time.sleep(0) return type(time.sleep) end",
+            None,
+        )
+        .await
+        .unwrap();
+        let result: String = execute("test/time-module", "pause", (), configure())
+            .await
+            .unwrap();
+        assert_eq!(result, "function");
     }
 }

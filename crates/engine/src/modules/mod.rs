@@ -4,6 +4,7 @@ pub mod crypto;
 pub mod http;
 pub mod json;
 pub mod regex;
+pub mod time;
 
 use mlua::Lua;
 
@@ -14,5 +15,6 @@ pub(crate) fn install(lua: &Lua) -> Result<(), EngineError> {
     http::install(lua)?;
     json::install(lua)?;
     regex::install(lua)?;
+    time::install(lua)?;
     Ok(())
 }
