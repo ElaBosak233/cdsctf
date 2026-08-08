@@ -20,7 +20,7 @@ export type AddEmailRequest = {
 export async function addEmail(request: AddEmailRequest) {
   return api
     .post(`admin/users/${request.user_id}/emails`, {
-      json: request,
+      json: { email: request.email, verified: request.verified },
     })
     .json<{ email: EmailView }>();
 }
@@ -36,7 +36,7 @@ export async function updateEmail(request: UpdateEmailRequest) {
     .put(
       `admin/users/${request.user_id}/emails/${encodeURIComponent(request.email)}`,
       {
-        json: request,
+        json: { verified: request.verified },
       }
     )
     .json<{ email: EmailView }>();

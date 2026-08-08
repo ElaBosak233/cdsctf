@@ -27,6 +27,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_email).with_state(state.clone()))
         .routes(routes!(add_email).with_state(state.clone()))
+        .routes(routes!(update_email).with_state(state.clone()))
         .routes(routes!(delete_email).with_state(state.clone()))
         .routes(routes!(verify_email).with_state(state.clone()))
 }
@@ -64,6 +65,7 @@ pub async fn get_email(
 pub struct AdminAddEmailRequest {
     #[validate(email)]
     pub email: String,
+    pub verified: Option<bool>,
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
@@ -96,7 +98,57 @@ pub async fn add_email(
         cds_db::email::ActiveModel {
             user_id: Set(user_id),
             email: Set(body.email.to_lowercase()),
-            verified: Set(true),
+            verified: Set(body.verified.unwrap_or(true)),
+        },
+    )
+    .await?;
+
+    Ok(Json(AdminEmailResponse { email }))
+}
+
+#[derive(Clone, Debug, Deserialize, utoipa::ToSchema)]
+pub struct AdminUpdateEmailRequest {
+    pub verified: bool,
+}
+
+/// Updates an email address associated with a user.
+#[utoipa::path(
+    put,
+    path = "/{mailbox}",
+    tag = "admin-user",
+    params(
+        ("user_id" = i64, Path, description = "User id"),
+        ("mailbox" = String, Path, description = "Email"),
+    ),
+    request_body = AdminUpdateEmailRequest,
+    responses(
+        (status = 200, description = "Updated", body = AdminEmailResponse),
+        (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
+        (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
+    )
+)]
+#[tracing::instrument(skip_all, fields(handler = "update_email"))]
+pub async fn update_email(
+    State(s): State<Arc<AppState>>,
+    Path((user_id, email)): Path<(i64, String)>,
+    ReqJson(body): ReqJson<AdminUpdateEmailRequest>,
+) -> Result<Json<AdminEmailResponse>, WebError> {
+    let email =
+        cds_db::email::find_by_email::<cds_db::email::Model>(&s.db.conn, email.to_lowercase())
+            .await?
+            .ok_or(WebError::BadRequest(json!("email_not_found")))?;
+
+    if email.user_id != user_id {
+        return Err(WebError::Forbidden(json!("email_not_found")));
+    }
+
+    let email = cds_db::email::update::<EmailView>(
+        &s.db.conn,
+        cds_db::email::ActiveModel {
+            email: Unchanged(email.email),
+            user_id: Unchanged(email.user_id),
+            verified: Set(body.verified),
+            ..Default::default()
         },
     )
     .await?;
