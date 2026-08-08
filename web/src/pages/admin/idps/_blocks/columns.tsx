@@ -1,4 +1,3 @@
-import type { Column, ColumnDef, Row } from "@tanstack/react-table";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -43,6 +42,7 @@ import {
 import type { IdpView } from "@/models/idp";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import type { Column, ColumnDef, Row } from "@/utils/data-table";
 
 const RowContext = createContext<{
   optimisticEnabled: boolean;

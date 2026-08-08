@@ -1,4 +1,3 @@
-import type { ColumnDef } from "@tanstack/react-table";
 import { BanIcon, XIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -14,6 +13,7 @@ import {
 import { Status, type SubmissionView } from "@/models/submission";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import type { ColumnDef } from "@/utils/data-table";
 
 function useColumns(): Array<ColumnDef<SubmissionView>> {
   const { t } = useTranslation();

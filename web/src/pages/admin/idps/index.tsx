@@ -1,11 +1,4 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  type SortingState,
-  useReactTable,
-} from "@tanstack/react-table";
 import { IdCardIcon, PlusCircleIcon, UserRoundPlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -32,6 +25,11 @@ import type { IdpView } from "@/models/idp";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import {
+  flexRender,
+  type SortingState,
+  useDataTable,
+} from "@/utils/data-table";
 import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
 
@@ -104,11 +102,9 @@ export default function Index() {
   });
 
   const columns = useColumns();
-  const table = useReactTable<IdpView>({
+  const table = useDataTable<IdpView>({
     data: data ?? [],
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
     state: { sorting },
   });

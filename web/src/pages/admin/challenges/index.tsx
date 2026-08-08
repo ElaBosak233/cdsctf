@@ -1,10 +1,4 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-  flexRender,
-  getCoreRowModel,
-  type SortingState,
-  useReactTable,
-} from "@tanstack/react-table";
 import { ListOrderedIcon } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useContext, useState } from "react";
@@ -32,6 +26,11 @@ import type { ChallengeDetail } from "@/models/challenge";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import {
+  flexRender,
+  type SortingState,
+  useDataTable,
+} from "@/utils/data-table";
 import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
 import { ChallengeListContext } from "./context";
@@ -107,10 +106,9 @@ export default function Index() {
   });
 
   const columns = useColumns();
-  const table = useReactTable<ChallengeDetail>({
+  const table = useDataTable<ChallengeDetail>({
     data: challengesData?.challenges || [],
     columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     rowCount: challengesData?.total,
     manualFiltering: true,

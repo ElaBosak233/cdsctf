@@ -91,15 +91,18 @@ export default function Index() {
 
   useEffect(() => {
     if (!user) return;
-    form.reset({
-      username: user.username,
-      name: user.name,
-      group: user.group,
-      description: user.description,
-      verified: user.verified ?? false,
-    }, {
-      keepDefaultValues: false,
-    });
+    form.reset(
+      {
+        username: user.username,
+        name: user.name,
+        group: user.group,
+        description: user.description,
+        verified: user.verified ?? false,
+      },
+      {
+        keepDefaultValues: false,
+      }
+    );
   }, [user, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {

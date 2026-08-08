@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
     plugins: [React(), tailwindcss(), viteCompression()],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        "@": path.resolve(import.meta.dirname, "./src"),
       },
     },
     assetsInclude: ["**/*.lua"],

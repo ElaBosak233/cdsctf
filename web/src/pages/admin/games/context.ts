@@ -1,5 +1,5 @@
-import type { ColumnFiltersState } from "@tanstack/react-table";
 import { createContext } from "react";
+import type { ColumnFiltersState } from "@/utils/data-table";
 
 export type GameListContextValue = {
   createDialogOpen: boolean;

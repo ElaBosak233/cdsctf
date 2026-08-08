@@ -1,14 +1,4 @@
 import {
-  type ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getExpandedRowModel,
-  getFilteredRowModel,
-  type SortingState,
-  useReactTable,
-  type VisibilityState,
-} from "@tanstack/react-table";
-import {
   FlagIcon,
   HashIcon,
   ListOrderedIcon,
@@ -37,6 +27,13 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { Status, type SubmissionView } from "@/models/submission";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import {
+  type ColumnFiltersState,
+  type ColumnVisibilityState,
+  flexRender,
+  type SortingState,
+  useDataTable,
+} from "@/utils/data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./_blocks/columns";
@@ -58,10 +55,11 @@ export default function Index() {
   const [size, setSize] = useState<number>(10);
 
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    team_id: false,
-    challenge_id: false,
-  });
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({
+      team_id: false,
+      challenge_id: false,
+    });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     {
       id: "status",
@@ -72,15 +70,12 @@ export default function Index() {
 
   const columns = useColumns();
 
-  const table = useReactTable<SubmissionView>({
+  const table = useDataTable<SubmissionView>({
     data: submissions,
     columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     rowCount: total,
     manualFiltering: true,
-    getFilteredRowModel: getFilteredRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     manualSorting: true,

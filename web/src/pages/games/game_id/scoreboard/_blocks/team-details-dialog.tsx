@@ -1,11 +1,4 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
 import { StarIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -25,10 +18,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Status, type SubmissionSummary } from "@/models/submission";
 import type { ScoreboardTeam } from "@/models/game";
+import { Status, type SubmissionSummary } from "@/models/submission";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
+import { type ColumnDef, flexRender, useDataTable } from "@/utils/data-table";
 
 interface TeamDetailsDialogProps {
   team: ScoreboardTeam;
@@ -119,14 +113,12 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
     },
   ];
 
-  const table = useReactTable<SubmissionSummary>({
+  const table = useDataTable<SubmissionSummary>({
     data: submissionData?.submissions || [],
     columns: columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     rowCount: submissionData?.total,
     manualFiltering: true,
-    getFilteredRowModel: getFilteredRowModel(),
     manualSorting: true,
   });
 

@@ -6,5 +6,7 @@ export type GetChallengeRequest = {
 };
 
 export async function getChallenge(request: GetChallengeRequest) {
-  return api.get(`challenges/${request.id}`).json<{ challenge: ChallengeView }>();
+  return api
+    .get(`challenges/${request.id}`)
+    .json<{ challenge: ChallengeView }>();
 }

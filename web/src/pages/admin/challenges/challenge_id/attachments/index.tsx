@@ -1,9 +1,3 @@
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
 import { CloudUploadIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,6 +22,7 @@ import {
 import type { Metadata } from "@/models/media";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { flexRender, useDataTable } from "@/utils/data-table";
 import { uploadFile } from "@/utils/file";
 import { Context } from "../context";
 import { useColumns } from "./columns";
@@ -101,13 +96,11 @@ export default function Index() {
   });
 
   const columns = useColumns();
-  const table = useReactTable<Metadata>({
+  const table = useDataTable<Metadata>({
     data: metadata,
     columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     manualFiltering: true,
-    getFilteredRowModel: getFilteredRowModel(),
     manualSorting: true,
   });
 

@@ -1,10 +1,4 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-  flexRender,
-  getCoreRowModel,
-  type SortingState,
-  useReactTable,
-} from "@tanstack/react-table";
 import { ListOrderedIcon } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useContext, useState } from "react";
@@ -29,6 +23,11 @@ import type { Group, UserAccountView } from "@/models/user";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import {
+  flexRender,
+  type SortingState,
+  useDataTable,
+} from "@/utils/data-table";
 import { useColumns } from "./_blocks/columns";
 import { CreateUserDialog } from "./_blocks/create-dialog";
 import { UserListContext } from "./context";
@@ -95,10 +94,9 @@ export default function Index() {
   });
 
   const columns = useColumns();
-  const table = useReactTable<UserAccountView>({
+  const table = useDataTable<UserAccountView>({
     data: usersData?.users || [],
     columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     rowCount: usersData?.total,
     manualFiltering: true,

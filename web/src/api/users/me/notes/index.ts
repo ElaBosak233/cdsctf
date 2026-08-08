@@ -23,5 +23,7 @@ export type SaveNoteRequest = {
 };
 
 export async function saveMyNote(request: SaveNoteRequest) {
-  return api.post(`users/me/notes`, { json: request }).json<{ note: NoteView }>();
+  return api
+    .post(`users/me/notes`, { json: request })
+    .json<{ note: NoteView }>();
 }

@@ -1,4 +1,3 @@
-import type { ColumnDef, Row } from "@tanstack/react-table";
 import { TrashIcon } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -13,6 +12,7 @@ import { ContentDialog } from "@/components/widgets/content-dialog";
 import type { GameNoticeView } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import type { ColumnDef, Row } from "@/utils/data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 

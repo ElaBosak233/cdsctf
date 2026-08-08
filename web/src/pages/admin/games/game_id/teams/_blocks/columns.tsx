@@ -1,4 +1,3 @@
-import type { ColumnDef } from "@tanstack/react-table";
 import {
   BanIcon,
   CheckCheckIcon,
@@ -23,6 +22,7 @@ import {
 import { State, type TeamView } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import type { ColumnDef } from "@/utils/data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 

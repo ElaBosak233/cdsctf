@@ -1,4 +1,3 @@
-import type { Column, ColumnDef, Row } from "@tanstack/react-table";
 import {
   AlertCircleIcon,
   ArrowDownIcon,
@@ -40,6 +39,7 @@ import { useClipboard } from "@/hooks/use-clipboard";
 import { Group, type UserAccountView } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import type { Column, ColumnDef, Row } from "@/utils/data-table";
 
 function UserCell({ row }: { row: Row<UserAccountView> }) {
   const user = row.original;

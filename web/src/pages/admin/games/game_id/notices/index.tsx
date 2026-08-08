@@ -1,12 +1,3 @@
-import {
-  type ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  type SortingState,
-  useReactTable,
-  type VisibilityState,
-} from "@tanstack/react-table";
 import { MessageCircleIcon, PlusCircleIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,6 +19,13 @@ import { useDebounce } from "@/hooks/use-debounce";
 import type { GameNoticeView } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import {
+  type ColumnFiltersState,
+  type ColumnVisibilityState,
+  flexRender,
+  type SortingState,
+  useDataTable,
+} from "@/utils/data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./_blocks/columns";
@@ -49,21 +47,20 @@ export default function Index() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    game_id: false,
-  });
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({
+      game_id: false,
+    });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
   const columns = useColumns();
-  const table = useReactTable<GameNoticeView>({
+  const table = useDataTable<GameNoticeView>({
     data: notices,
     columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     rowCount: total,
     manualFiltering: true,
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     manualSorting: true,

@@ -1,4 +1,3 @@
-import type { Column, ColumnDef, Row } from "@tanstack/react-table";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -51,6 +50,7 @@ import { useClipboard } from "@/hooks/use-clipboard";
 import type { GameDetail } from "@/models/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import type { Column, ColumnDef, Row } from "@/utils/data-table";
 
 const RowContext = createContext<{
   optimisticEnabled: boolean;

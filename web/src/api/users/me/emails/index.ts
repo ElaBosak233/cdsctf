@@ -2,7 +2,9 @@ import type { EmailView } from "@/models/email";
 import { api } from "@/utils/query";
 
 export async function getEmails() {
-  return api.get(`users/me/emails`).json<{ emails: EmailView[]; total: number }>();
+  return api
+    .get(`users/me/emails`)
+    .json<{ emails: EmailView[]; total: number }>();
 }
 
 export type AddEmailRequest = {

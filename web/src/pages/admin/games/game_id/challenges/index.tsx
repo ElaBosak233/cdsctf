@@ -1,12 +1,3 @@
-import {
-  type ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  type SortingState,
-  useReactTable,
-  type VisibilityState,
-} from "@tanstack/react-table";
 import { HashIcon, LibraryIcon, PlusCircleIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -32,6 +23,13 @@ import type { GameChallengeView } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
+import {
+  type ColumnFiltersState,
+  type ColumnVisibilityState,
+  flexRender,
+  type SortingState,
+  useDataTable,
+} from "@/utils/data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./_blocks/columns";
@@ -52,9 +50,10 @@ export default function Index() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    game_id: false,
-  });
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({
+      game_id: false,
+    });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     {
       id: "challenge_category",
@@ -64,13 +63,11 @@ export default function Index() {
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
   const columns = useColumns();
-  const table = useReactTable<GameChallengeView>({
+  const table = useDataTable<GameChallengeView>({
     data: challenges,
     columns,
-    getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     manualFiltering: true,
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     manualSorting: true,

@@ -1,4 +1,3 @@
-import type { ColumnFiltersState } from "@tanstack/react-table";
 import {
   FilterIcon,
   HashIcon,
@@ -18,6 +17,7 @@ import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { Group } from "@/models/user";
 import { cn } from "@/utils";
+import type { ColumnFiltersState } from "@/utils/data-table";
 import { UserListContext } from "./context";
 
 function setFilter(

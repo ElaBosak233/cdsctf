@@ -1,4 +1,3 @@
-import type { ColumnFiltersState } from "@tanstack/react-table";
 import {
   EyeIcon,
   FilterIcon,
@@ -18,6 +17,7 @@ import { ScrollableNav } from "@/components/ui/scrollable-nav";
 import { Select } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
+import type { ColumnFiltersState } from "@/utils/data-table";
 import { GameListContext } from "./context";
 
 function setFilter(
