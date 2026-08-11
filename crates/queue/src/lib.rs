@@ -5,6 +5,8 @@
 //! `cds.game.recalc`, `cds.mail.send`, or `cds.event.broadcast`. Each subject
 //! maps to a JetStream stream (created if absent) with a durable consumer name.
 
+use std::time::Duration;
+
 /// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
 
@@ -58,6 +60,28 @@ impl Queue {
         subject: &str,
         durable_name: Option<&str>,
     ) -> Result<async_nats::jetstream::consumer::pull::Stream, QueueError> {
+        self.subscribe_inner(subject, durable_name, None).await
+    }
+
+    /// Subscribes with an explicit unacknowledged-message redelivery deadline.
+    /// Existing durable consumers are updated so the requested deadline takes
+    /// effect after deployment.
+    pub async fn subscribe_with_ack_wait(
+        &self,
+        subject: &str,
+        durable_name: Option<&str>,
+        ack_wait: Duration,
+    ) -> Result<async_nats::jetstream::consumer::pull::Stream, QueueError> {
+        self.subscribe_inner(subject, durable_name, Some(ack_wait))
+            .await
+    }
+
+    async fn subscribe_inner(
+        &self,
+        subject: &str,
+        durable_name: Option<&str>,
+        ack_wait: Option<Duration>,
+    ) -> Result<async_nats::jetstream::consumer::pull::Stream, QueueError> {
         let stream = self
             .jet_stream
             .get_or_create_stream(async_nats::jetstream::stream::Config {
@@ -68,18 +92,15 @@ impl Queue {
             })
             .await?;
 
-        // Consumer name doubles as the durable name so restarts resume unacknowledged
-        // messages.
-        let subscriber = stream
-            .get_or_create_consumer(
-                &subject.replace(['.', '_'], "-"),
-                async_nats::jetstream::consumer::pull::Config {
-                    filter_subject: subject.to_owned(),
-                    durable_name: Some(durable_name.unwrap_or("worker").to_owned()),
-                    ..Default::default()
-                },
-            )
-            .await?;
+        let durable_name = durable_name.unwrap_or("worker");
+        let config = pull_consumer_config(subject, durable_name, ack_wait);
+        let subscriber = if ack_wait.is_some() {
+            // create_consumer is create-or-update, which applies a changed
+            // ack_wait to a durable consumer that already exists.
+            stream.create_consumer(config).await?
+        } else {
+            stream.get_or_create_consumer(durable_name, config).await?
+        };
 
         let messages = subscriber
             .stream()
@@ -97,5 +118,36 @@ impl Queue {
 
         self.client.drain().await?;
         Ok(())
+    }
+}
+
+fn pull_consumer_config(
+    subject: &str,
+    durable_name: &str,
+    ack_wait: Option<Duration>,
+) -> async_nats::jetstream::consumer::pull::Config {
+    async_nats::jetstream::consumer::pull::Config {
+        filter_subject: subject.to_owned(),
+        durable_name: Some(durable_name.to_owned()),
+        ack_wait: ack_wait.unwrap_or_default(),
+        ..Default::default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn builds_consumer_with_explicit_ack_wait() {
+        let config = pull_consumer_config(
+            "cds.submission.check",
+            "worker",
+            Some(Duration::from_secs(16)),
+        );
+
+        assert_eq!(config.filter_subject, "cds.submission.check");
+        assert_eq!(config.durable_name.as_deref(), Some("worker"));
+        assert_eq!(config.ack_wait, Duration::from_secs(16));
     }
 }

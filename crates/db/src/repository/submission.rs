@@ -21,7 +21,7 @@ pub use crate::{
     entity::submission::{ActiveModel, Status},
 };
 
-const PROCESSING_LEASE_SECONDS: i64 = 10;
+pub const PROCESSING_LEASE_SECONDS: i64 = 15;
 
 impl TryFrom<crate::entity::submission::ModelEx> for SubmissionView {
     type Error = DbError;
@@ -355,22 +355,15 @@ pub async fn find_by_id(
         .transpose()?)
 }
 
-/// Atomically claims a queued submission for one checker worker.
-
-pub async fn claim_queued_by_id(
+/// Atomically claims a queued submission or takes over an expired processing
+/// lease.
+pub async fn claim_queued_or_stale_by_id(
     conn: &impl ConnectionTrait,
     submission_id: i64,
 ) -> Result<Option<SubmissionView>, DbError> {
     let now = time::OffsetDateTime::now_utc().unix_timestamp();
-    let result = Entity::update_many()
-        .set(ActiveModel {
-            status: Set(Status::Processing),
-            processing_at: Set(Some(now)),
-            checked_at: Set(None),
-            ..Default::default()
-        })
-        .filter(Column::Id.eq(submission_id))
-        .filter(Column::Status.eq(Status::Queued))
+    let cutoff = now.saturating_sub(PROCESSING_LEASE_SECONDS);
+    let result = claimable_submission_query(submission_id, now, cutoff)
         .exec(conn)
         .await?;
 
@@ -379,6 +372,32 @@ pub async fn claim_queued_by_id(
     }
 
     find_by_id(conn, submission_id).await
+}
+
+fn claimable_submission_query(
+    submission_id: i64,
+    now: i64,
+    cutoff: i64,
+) -> sea_orm::UpdateMany<Entity> {
+    Entity::update_many()
+        .set(ActiveModel {
+            status: Set(Status::Processing),
+            processing_at: Set(Some(now)),
+            checked_at: Set(None),
+            ..Default::default()
+        })
+        .filter(Column::Id.eq(submission_id))
+        .filter(
+            Condition::any().add(Column::Status.eq(Status::Queued)).add(
+                Condition::all()
+                    .add(Column::Status.eq(Status::Processing))
+                    .add(
+                        Condition::any()
+                            .add(Column::ProcessingAt.is_null())
+                            .add(Column::ProcessingAt.lte(cutoff)),
+                    ),
+            ),
+        )
 }
 
 /// Returns a claimed submission to the queue after a transient checker failure.
@@ -672,8 +691,9 @@ mod score_tests {
     }
 
     #[test]
-    fn stale_processing_reset_uses_the_ten_second_lease_cutoff() {
-        let statement = stale_processing_reset_query(990).build(DbBackend::Postgres);
+    fn stale_processing_reset_uses_the_fifteen_second_lease_cutoff() {
+        let cutoff = 1_000 - PROCESSING_LEASE_SECONDS;
+        let statement = stale_processing_reset_query(cutoff).build(DbBackend::Postgres);
 
         assert!(statement.sql.starts_with("UPDATE \"submissions\""));
         assert!(statement.sql.contains("\"status\" = $4"));
@@ -686,9 +706,33 @@ mod score_tests {
                 Option::<i64>::None.into(),
                 Option::<i64>::None.into(),
                 Status::Processing.into(),
+                985_i64.into(),
+            ]
+        );
+        assert_eq!(PROCESSING_LEASE_SECONDS, 15);
+    }
+
+    #[test]
+    fn claim_query_accepts_only_queued_or_stale_processing_rows() {
+        let statement = claimable_submission_query(7, 1_000, 990).build(DbBackend::Postgres);
+
+        assert!(statement.sql.starts_with("UPDATE \"submissions\""));
+        assert!(statement.sql.contains("\"id\" = $4"));
+        assert!(statement.sql.contains("\"status\" = $5"));
+        assert!(statement.sql.contains("\"status\" = $6"));
+        assert!(statement.sql.contains("\"processing_at\" IS NULL"));
+        assert!(statement.sql.contains("\"processing_at\" <= $7"));
+        assert_eq!(
+            statement.values.unwrap().0,
+            vec![
+                Status::Processing.into(),
+                Some(1_000_i64).into(),
+                Option::<i64>::None.into(),
+                7_i64.into(),
+                Status::Queued.into(),
+                Status::Processing.into(),
                 990_i64.into(),
             ]
         );
-        assert_eq!(PROCESSING_LEASE_SECONDS, 10);
     }
 }

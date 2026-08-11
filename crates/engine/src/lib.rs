@@ -60,6 +60,7 @@ struct LuaPool {
 struct LuaLease {
     lua: Option<Lua>,
     pool: Arc<LuaPool>,
+    reusable: bool,
     _permit: OwnedSemaphorePermit,
 }
 
@@ -96,6 +97,7 @@ impl LuaPool {
         Ok(LuaLease {
             lua: Some(lua),
             pool: self.clone(),
+            reusable: false,
             _permit: permit,
         })
     }
@@ -113,14 +115,16 @@ impl LuaLease {
         self.lua.as_ref().expect("lua lease already released")
     }
 
-    fn discard(&mut self) {
-        self.lua.take();
+    fn mark_reusable(&mut self) {
+        self.reusable = true;
     }
 }
 
 impl Drop for LuaLease {
     fn drop(&mut self) {
-        if let Some(lua) = self.lua.take() {
+        if self.reusable
+            && let Some(lua) = self.lua.take()
+        {
             self.pool.release(lua);
         }
     }
@@ -148,7 +152,7 @@ pub fn create_lua() -> Result<Lua, EngineError> {
 
     let instruction_batches = Arc::new(AtomicU32::new(0));
     lua.set_app_data(InstructionBudget(instruction_batches.clone()));
-    lua.set_hook(
+    lua.set_global_hook(
         HookTriggers::new().every_nth_instruction(LUA_INSTRUCTION_BATCH),
         move |lua, _debug| {
             let instruction_batches = lua
@@ -460,11 +464,10 @@ where
             .await
             .map_err(|_| EngineError::Timeout)?
             .map_err(EngineError::from);
-    if result.is_err() {
-        lease.discard();
-    }
     let value = result?;
-    Ok(lease.lua().from_value(value)?)
+    let output = lease.lua().from_value(value)?;
+    lease.mark_reusable();
+    Ok(output)
 }
 
 /// Executes a function with JSON values as multiple Lua arguments.
@@ -503,11 +506,10 @@ where
             .await
             .map_err(|_| EngineError::Timeout)?
             .map_err(EngineError::from);
-    if result.is_err() {
-        lease.discard();
-    }
     let value = result?;
-    Ok(lease.lua().from_value(value)?)
+    let output = lease.lua().from_value(value)?;
+    lease.mark_reusable();
+    Ok(output)
 }
 
 pub fn from_lua<T>(lua: &Lua, value: Value) -> Result<T, EngineError>
@@ -528,10 +530,20 @@ pub fn clear_cache() {
 
 #[cfg(test)]
 mod tests {
+    use std::{
+        sync::{
+            Arc,
+            atomic::{AtomicUsize, Ordering},
+        },
+        time::Duration,
+    };
+
     use mlua::Lua;
 
     use super::{ConfigureLua, clear_cache, execute, lint, preload};
     use crate::traits::EngineError;
+
+    static ENGINE_TEST_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
     fn configure() -> &'static ConfigureLua {
         &|_lua| Ok(())
@@ -570,6 +582,204 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn limits_instructions_in_async_execution_and_recovers() {
+        let _guard = ENGINE_TEST_LOCK.lock().await;
+        let key = "test/runtime-instruction-limit";
+        preload(
+            key,
+            r#"
+                function spin()
+                    while true do end
+                end
+                function value()
+                    return 7
+                end
+            "#,
+            None,
+        )
+        .await
+        .unwrap();
+
+        let error = execute::<_, i64>(key, "spin", (), configure())
+            .await
+            .unwrap_err();
+        assert!(error.to_string().contains("instruction limit"));
+
+        let value: i64 = execute(key, "value", (), configure()).await.unwrap();
+        assert_eq!(value, 7);
+    }
+
+    #[tokio::test]
+    async fn drops_cancelled_lua_states_instead_of_reusing_them() {
+        let _guard = ENGINE_TEST_LOCK.lock().await;
+        let key = "test/cancelled-state";
+        let created = Arc::new(AtomicUsize::new(0));
+        let created_by_configure = Arc::clone(&created);
+        let configure = move |_lua: &Lua| {
+            created_by_configure.fetch_add(1, Ordering::Relaxed);
+            Ok(())
+        };
+        preload(
+            key,
+            r#"
+                function pause()
+                    time.sleep(60)
+                    return 0
+                end
+                function value()
+                    return 7
+                end
+            "#,
+            None,
+        )
+        .await
+        .unwrap();
+
+        let cancelled = tokio::time::timeout(
+            Duration::from_millis(10),
+            execute::<_, i64>(key, "pause", (), &configure),
+        )
+        .await;
+        assert!(cancelled.is_err());
+
+        let value: i64 = execute(key, "value", (), &configure).await.unwrap();
+        assert_eq!(value, 7);
+        assert_eq!(created.load(Ordering::Relaxed), 2);
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+    #[ignore = "candidate extreme validation"]
+    async fn candidate_extreme_recovers_after_concurrent_instruction_exhaustion() {
+        let _guard = ENGINE_TEST_LOCK.lock().await;
+        let key = "test/extreme-instruction-limit";
+        preload(
+            key,
+            r#"
+                function spin()
+                    while true do end
+                end
+                function value()
+                    return 7
+                end
+            "#,
+            None,
+        )
+        .await
+        .unwrap();
+
+        let attempts = std::thread::available_parallelism()
+            .map(usize::from)
+            .unwrap_or(1)
+            .min(16)
+            * 4;
+        let run = async {
+            let mut tasks = tokio::task::JoinSet::new();
+            for _ in 0..attempts {
+                tasks.spawn(async move {
+                    execute::<_, i64>(key, "spin", (), configure())
+                        .await
+                        .unwrap_err()
+                        .to_string()
+                });
+            }
+            while let Some(result) = tasks.join_next().await {
+                assert!(result.unwrap().contains("instruction limit"));
+            }
+
+            for _ in 0..attempts {
+                let value: i64 = execute(key, "value", (), configure()).await.unwrap();
+                assert_eq!(value, 7);
+            }
+        };
+        tokio::time::timeout(Duration::from_secs(30), run)
+            .await
+            .expect("concurrent instruction exhaustion did not terminate");
+    }
+
+    #[tokio::test]
+    #[ignore = "candidate extreme validation"]
+    async fn candidate_extreme_discards_repeatedly_cancelled_states() {
+        let _guard = ENGINE_TEST_LOCK.lock().await;
+        let key = "test/extreme-cancelled-state";
+        let created = Arc::new(AtomicUsize::new(0));
+        let created_by_configure = Arc::clone(&created);
+        let configure = move |_lua: &Lua| {
+            created_by_configure.fetch_add(1, Ordering::Relaxed);
+            Ok(())
+        };
+        preload(
+            key,
+            r#"
+                function pause()
+                    time.sleep(60)
+                    return 0
+                end
+                function value()
+                    return 7
+                end
+            "#,
+            None,
+        )
+        .await
+        .unwrap();
+
+        for _ in 0..64 {
+            let cancelled = tokio::time::timeout(
+                Duration::from_millis(5),
+                execute::<_, i64>(key, "pause", (), &configure),
+            )
+            .await;
+            assert!(cancelled.is_err());
+        }
+        assert_eq!(created.load(Ordering::Relaxed), 64);
+
+        for _ in 0..64 {
+            let value: i64 = execute(key, "value", (), &configure).await.unwrap();
+            assert_eq!(value, 7);
+        }
+        assert_eq!(created.load(Ordering::Relaxed), 65);
+    }
+
+    #[tokio::test]
+    #[ignore = "candidate extreme validation"]
+    async fn candidate_extreme_recovers_after_repeated_memory_exhaustion() {
+        let _guard = ENGINE_TEST_LOCK.lock().await;
+        let key = "test/extreme-memory-limit";
+        preload(
+            key,
+            r#"
+                function exhaust()
+                    local values = {}
+                    while true do
+                        values[#values + 1] = string.rep("x", 1024 * 1024)
+                    end
+                end
+                function value()
+                    return 7
+                end
+            "#,
+            None,
+        )
+        .await
+        .unwrap();
+
+        let run = async {
+            for _ in 0..16 {
+                let error = execute::<_, i64>(key, "exhaust", (), configure())
+                    .await
+                    .unwrap_err();
+                assert!(error.to_string().to_ascii_lowercase().contains("memory"));
+
+                let value: i64 = execute(key, "value", (), configure()).await.unwrap();
+                assert_eq!(value, 7);
+            }
+        };
+        tokio::time::timeout(Duration::from_secs(30), run)
+            .await
+            .expect("repeated memory exhaustion did not terminate");
+    }
+
+    #[tokio::test]
     async fn marks_runtime_errors_across_the_reported_line() {
         let error = lint(
             "local value = nil + 1\nfunction check() end",
@@ -602,6 +812,7 @@ mod tests {
 
     #[tokio::test]
     async fn refreshes_cache_when_source_changes() {
+        let _guard = ENGINE_TEST_LOCK.lock().await;
         clear_cache();
         preload("test/cache", "function value() return 1 end", None)
             .await
@@ -617,6 +828,7 @@ mod tests {
 
     #[tokio::test]
     async fn isolates_globals_between_pooled_executions() {
+        let _guard = ENGINE_TEST_LOCK.lock().await;
         clear_cache();
         let configure: &ConfigureLua = &|lua: &Lua| {
             let state = super::module(lua, "checker", "state")?;
@@ -649,6 +861,7 @@ mod tests {
 
     #[tokio::test]
     async fn exposes_time_module_during_execution() {
+        let _guard = ENGINE_TEST_LOCK.lock().await;
         clear_cache();
         preload(
             "test/time-module",

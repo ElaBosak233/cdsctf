@@ -19,10 +19,10 @@ use cds_checker::Checker;
 use cds_db::{
     DB, GameChallengeView, GameDetail, SubmissionView, TeamView, UserAccountView,
     sea_orm::{ActiveValue::Unchanged, IntoActiveModel, Set, TransactionTrait},
-    submission::{FindSubmissionsOptions, Status},
+    submission::{FindSubmissionsOptions, PROCESSING_LEASE_SECONDS, Status},
     team::{Model, State},
 };
-use cds_queue::Queue;
+use cds_queue::{Queue, async_nats::jetstream::AckKind};
 use futures_util::StreamExt as _;
 use tracing::{debug, error, info, warn};
 
@@ -37,10 +37,30 @@ const MAX_IN_FLIGHT: usize = 16;
 /// Maximum wall-clock time allowed for one checker invocation.
 const CHECK_TIMEOUT: Duration = Duration::from_secs(10);
 
+/// Redelivers an unacknowledged checker message shortly after its database
+/// processing lease expires.
+const CHECKER_ACK_WAIT: Duration = Duration::from_secs(PROCESSING_LEASE_SECONDS as u64 + 1);
+
+const TRANSIENT_RETRY_DELAY: Duration = Duration::from_secs(1);
+
 async fn enforce_check_timeout<F: Future>(
     future: F,
 ) -> Result<F::Output, tokio::time::error::Elapsed> {
     tokio::time::timeout(CHECK_TIMEOUT, future).await
+}
+
+fn processing_retry_after_at(processing_at: Option<i64>, now: i64) -> Duration {
+    let expires_at = processing_at
+        .unwrap_or(now)
+        .saturating_add(PROCESSING_LEASE_SECONDS);
+    Duration::from_secs(expires_at.saturating_sub(now).max(1) as u64)
+}
+
+fn processing_retry_after(processing_at: Option<i64>) -> Duration {
+    processing_retry_after_at(
+        processing_at,
+        time::OffsetDateTime::now_utc().unix_timestamp(),
+    )
 }
 
 /// Shared handles for one consumer instance (cloned into async jobs).
@@ -334,7 +354,10 @@ async fn recover_queued(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
 /// Pulls messages and runs at most [`MAX_IN_FLIGHT`] checker jobs concurrently.
 #[tracing::instrument(skip_all, fields(subject = SUBJECT))]
 async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
-    let messages = ctx.queue.subscribe(SUBJECT, None).await?;
+    let messages = ctx
+        .queue
+        .subscribe_with_ack_wait(SUBJECT, None, CHECKER_ACK_WAIT)
+        .await?;
     messages
         .for_each_concurrent(Some(MAX_IN_FLIGHT), |result| {
             let ctx = Arc::clone(&ctx);
@@ -358,14 +381,47 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
                 debug!(submission_id = id, "checker message received");
 
                 let submission =
-                    match cds_db::submission::claim_queued_by_id(&ctx.db.conn, id).await {
+                    match cds_db::submission::claim_queued_or_stale_by_id(&ctx.db.conn, id).await {
                         Ok(Some(submission)) => submission,
                         Ok(None) => {
-                            debug!(
-                                submission_id = id,
-                                "submission is not queued; message skipped"
-                            );
-                            message.double_ack().await.ok();
+                            match cds_db::submission::find_by_id(&ctx.db.conn, id).await {
+                                Ok(Some(submission))
+                                    if matches!(submission.status, Status::Queued) =>
+                                {
+                                    debug!(submission_id = id, "queued submission claim raced");
+                                    message
+                                        .ack_with(AckKind::Nak(Some(TRANSIENT_RETRY_DELAY)))
+                                        .await
+                                        .ok();
+                                }
+                                Ok(Some(submission))
+                                    if matches!(submission.status, Status::Processing) =>
+                                {
+                                    let retry_after =
+                                        processing_retry_after(submission.processing_at);
+                                    debug!(
+                                        submission_id = id,
+                                        processing_at = submission.processing_at,
+                                        retry_after_ms = retry_after.as_millis(),
+                                        "submission lease is active; message delayed"
+                                    );
+                                    message.ack_with(AckKind::Nak(Some(retry_after))).await.ok();
+                                }
+                                Ok(_) => {
+                                    debug!(
+                                        submission_id = id,
+                                        "submission is terminal or missing; message skipped"
+                                    );
+                                    message.double_ack().await.ok();
+                                }
+                                Err(err) => {
+                                    error!(
+                                        submission_id = id,
+                                        error = ?err,
+                                        "submission state lookup failed"
+                                    );
+                                }
+                            }
                             return;
                         }
                         Err(err) => {
@@ -390,19 +446,22 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
                     "submission claimed"
                 );
 
-                let mut acknowledge = true;
                 if let Err(err) = check(Arc::clone(&ctx), submission, processing_at).await {
                     let released =
                         cds_db::submission::release_processing(&ctx.db.conn, id, processing_at)
                             .await
                             .unwrap_or(false);
-                    acknowledge = !released;
                     error!(submission_id = id, released, error = ?err, "submission check failed");
+                    if released {
+                        message
+                            .ack_with(AckKind::Nak(Some(TRANSIENT_RETRY_DELAY)))
+                            .await
+                            .ok();
+                        return;
+                    }
                 }
 
-                if acknowledge {
-                    message.double_ack().await.ok();
-                }
+                message.double_ack().await.ok();
             }
         })
         .await;
@@ -441,5 +500,27 @@ mod tests {
         let started_at = tokio::time::Instant::now();
         assert!(enforce_check_timeout(pending::<()>()).await.is_err());
         assert_eq!(started_at.elapsed(), Duration::from_secs(10));
+    }
+
+    #[test]
+    fn processing_retry_waits_until_the_lease_expires() {
+        assert_eq!(
+            processing_retry_after_at(Some(90), 100),
+            Duration::from_secs(5)
+        );
+        assert_eq!(
+            processing_retry_after_at(Some(85), 100),
+            Duration::from_secs(1)
+        );
+        assert_eq!(
+            processing_retry_after_at(None, 100),
+            Duration::from_secs(PROCESSING_LEASE_SECONDS as u64)
+        );
+    }
+
+    #[test]
+    fn checker_ack_wait_exceeds_the_processing_lease() {
+        assert_eq!(CHECKER_ACK_WAIT, Duration::from_secs(16));
+        assert!(CHECKER_ACK_WAIT.as_secs() > PROCESSING_LEASE_SECONDS as u64);
     }
 }
