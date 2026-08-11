@@ -43,6 +43,12 @@ const CHECKER_ACK_WAIT: Duration = Duration::from_secs(PROCESSING_LEASE_SECONDS 
 
 const TRANSIENT_RETRY_DELAY: Duration = Duration::from_secs(1);
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum CheckOutcome {
+    Committed,
+    LeaseLost,
+}
+
 async fn enforce_check_timeout<F: Future>(
     future: F,
 ) -> Result<F::Output, tokio::time::error::Elapsed> {
@@ -106,10 +112,10 @@ async fn prepare_game_challenge(
 /// Runs a claimed submission, applies game rules, and notifies the calculator.
 #[tracing::instrument(skip_all, fields(submission_id = submission.id))]
 async fn check(
-    ctx: Arc<Context>,
+    ctx: &Context,
     submission: SubmissionView,
     processing_at: i64,
-) -> Result<(), anyhow::Error> {
+) -> Result<CheckOutcome, anyhow::Error> {
     let user = if let Some(user) =
         cds_db::user::find_by_id::<UserAccountView>(&ctx.db.conn, submission.user_id).await?
     {
@@ -146,7 +152,7 @@ async fn check(
             cds_checker::Status::Correct => Status::Correct,
             cds_checker::Status::Incorrect => Status::Incorrect,
             cds_checker::Status::Cheat(peer_team_id) => {
-                handle_cheat(ctx.clone(), &submission, peer_team_id)
+                handle_cheat(ctx, &submission, peer_team_id)
                     .await
                     .unwrap_or_else(|_| Status::Incorrect)
             }
@@ -250,7 +256,7 @@ async fn check(
             submission_id = submission.id,
             "submission status changed while checker was running"
         );
-        return Ok(());
+        return Ok(CheckOutcome::LeaseLost);
     };
 
     let score_game_id = if let (Some(game_id), Status::Correct) = (submission.game_id, &status) {
@@ -272,7 +278,7 @@ async fn check(
         );
     }
 
-    Ok(())
+    Ok(CheckOutcome::Committed)
 }
 
 /// Marks both the submitting team and the `peer_team_id` as **Banned** when
@@ -284,7 +290,7 @@ async fn check(
     peer_team_id = peer_team_id
 ))]
 async fn handle_cheat(
-    ctx: Arc<Context>,
+    ctx: &Context,
     submission: &SubmissionView,
     peer_team_id: i64,
 ) -> Result<Status, anyhow::Error> {
@@ -446,22 +452,44 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
                     "submission claimed"
                 );
 
-                if let Err(err) = check(Arc::clone(&ctx), submission, processing_at).await {
-                    let released =
-                        cds_db::submission::release_processing(&ctx.db.conn, id, processing_at)
-                            .await
-                            .unwrap_or(false);
-                    error!(submission_id = id, released, error = ?err, "submission check failed");
-                    if released {
-                        message
-                            .ack_with(AckKind::Nak(Some(TRANSIENT_RETRY_DELAY)))
-                            .await
-                            .ok();
-                        return;
+                match check(&ctx, submission, processing_at).await {
+                    Ok(CheckOutcome::Committed) => {
+                        message.double_ack().await.ok();
+                    }
+                    Ok(CheckOutcome::LeaseLost) => {
+                        debug!(
+                            submission_id = id,
+                            "submission lease lost; message left unacknowledged"
+                        );
+                    }
+                    Err(err) => {
+                        let released = match cds_db::submission::release_processing(
+                            &ctx.db.conn,
+                            id,
+                            processing_at,
+                        )
+                        .await
+                        {
+                            Ok(released) => released,
+                            Err(release_err) => {
+                                error!(
+                                    submission_id = id,
+                                    error = ?err,
+                                    release_error = ?release_err,
+                                    "submission check and lease release failed; message left unacknowledged"
+                                );
+                                return;
+                            }
+                        };
+                        error!(submission_id = id, released, error = ?err, "submission check failed");
+                        if released {
+                            message
+                                .ack_with(AckKind::Nak(Some(TRANSIENT_RETRY_DELAY)))
+                                .await
+                                .ok();
+                        }
                     }
                 }
-
-                message.double_ack().await.ok();
             }
         })
         .await;
