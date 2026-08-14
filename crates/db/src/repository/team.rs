@@ -256,6 +256,27 @@ pub async fn contains_user_in_game(
         > 0)
 }
 
+/// Updates only the policy state of one team in the requested game.
+///
+/// The game predicate prevents a stale or cross-game identifier from changing
+/// an unrelated team. Callers can use the Boolean result as a transactional
+/// precondition for a larger policy transition.
+pub async fn set_state_in_game(
+    conn: &impl ConnectionTrait,
+    team_id: i64,
+    game_id: i64,
+    state: State,
+) -> Result<bool, DbError> {
+    Ok(Entity::update_many()
+        .col_expr(Column::State, Expr::value(state))
+        .filter(Column::Id.eq(team_id))
+        .filter(Column::GameId.eq(game_id))
+        .exec(conn)
+        .await?
+        .rows_affected
+        == 1)
+}
+
 fn user_game_membership_query(
     game_id: i64,
     user_id: i64,

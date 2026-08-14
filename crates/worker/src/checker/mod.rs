@@ -12,20 +12,21 @@
 //! [`spawn`] returns expired `Processing` rows to `Queued` and
 //! re-publishes every queued submission so no job is lost after a restart.
 
+mod finalizer;
+
 use std::{future::Future, sync::Arc, time::Duration};
 
 use anyhow::anyhow;
 use cds_checker::Checker;
 use cds_db::{
-    DB, GameChallengeView, GameDetail, SubmissionView, TeamView, UserAccountView,
-    sea_orm::{ActiveValue::Unchanged, IntoActiveModel, Set, TransactionTrait},
+    DB, SubmissionView, UserAccountView,
     submission::{FindSubmissionsOptions, PROCESSING_LEASE_SECONDS, Status},
-    team::{Model, State},
 };
 use cds_queue::{Queue, async_nats::jetstream::AckKind};
 use futures_util::StreamExt as _;
 use tracing::{debug, error, info, warn};
 
+use self::finalizer::{FinalizeOutcome, Verdict};
 use crate::calculator;
 
 /// JetStream subject for asynchronous submission verification.
@@ -88,27 +89,6 @@ impl Context {
     }
 }
 
-/// Loads a [`GameDetail`] row or fails with `game_not_found`.
-#[tracing::instrument(skip_all, fields(game_id = game_id))]
-async fn prepare_game(db: &cds_db::DB, game_id: i64) -> Result<GameDetail, anyhow::Error> {
-    cds_db::game::find_by_id(&db.conn, game_id)
-        .await?
-        .ok_or_else(|| anyhow!("game_not_found"))
-}
-
-/// Loads the join row between a game and a challenge
-/// (`game_challenge_not_found` on miss).
-#[tracing::instrument(skip_all, fields(game_id = game_id, challenge_id = challenge_id))]
-async fn prepare_game_challenge(
-    db: &cds_db::DB,
-    game_id: i64,
-    challenge_id: i64,
-) -> Result<GameChallengeView, anyhow::Error> {
-    cds_db::game_challenge::find_by_id(&db.conn, game_id, challenge_id)
-        .await?
-        .ok_or_else(|| anyhow!("game_challenge_not_found"))
-}
-
 /// Runs a claimed submission, applies game rules, and notifies the calculator.
 #[tracing::instrument(skip_all, fields(submission_id = submission.id))]
 async fn check(
@@ -147,15 +127,11 @@ async fn check(
         &submission.content,
     ))
     .await;
-    let mut status = match checker_result {
+    let verdict = match checker_result {
         Ok(Ok(c_status)) => match c_status {
-            cds_checker::Status::Correct => Status::Correct,
-            cds_checker::Status::Incorrect => Status::Incorrect,
-            cds_checker::Status::Cheat(peer_team_id) => {
-                handle_cheat(ctx, &submission, peer_team_id)
-                    .await
-                    .unwrap_or_else(|_| Status::Incorrect)
-            }
+            cds_checker::Status::Correct => Verdict::Correct,
+            cds_checker::Status::Incorrect => Verdict::Incorrect,
+            cds_checker::Status::Cheat(peer_team_id) => Verdict::Cheat { peer_team_id },
         },
         Ok(Err(err)) => {
             warn!(
@@ -164,7 +140,7 @@ async fn check(
                 error = ?err,
                 "checker script failed"
             );
-            Status::Incorrect
+            Verdict::Incorrect
         }
         Err(_) => {
             warn!(
@@ -173,64 +149,21 @@ async fn check(
                 timeout_seconds = CHECK_TIMEOUT.as_secs(),
                 "checker invocation timed out"
             );
-            Status::Incorrect
+            Verdict::Incorrect
         }
     };
 
-    if status == Status::Correct {
-        // Second (or later) correct flag for the same challenge scope becomes
-        // Duplicate.
-        let is_already_correct =
-            if let (Some(game_id), Some(team_id)) = (submission.game_id, submission.team_id) {
-                cds_db::submission::find(
-                    &ctx.db.conn,
-                    FindSubmissionsOptions {
-                        challenge_id: Some(submission.challenge_id),
-                        game_id: Some(Some(game_id)),
-                        team_id: Some(Some(team_id)),
-                        status: Some(Status::Correct),
-                        ..Default::default()
-                    },
-                )
-                .await?
-                .1 > 0
-            } else {
-                cds_db::submission::find(
-                    &ctx.db.conn,
-                    FindSubmissionsOptions {
-                        challenge_id: Some(submission.challenge_id),
-                        user_id: Some(submission.user_id),
-                        status: Some(Status::Correct),
-                        team_id: Some(None),
-                        game_id: Some(None),
-                        ..Default::default()
-                    },
-                )
-                .await?
-                .1 > 0
-            };
-
-        if is_already_correct {
-            status = Status::Duplicate;
-        }
-
-        if let (Some(game_id), Some(_team_id)) = (submission.game_id, submission.team_id) {
-            let game = prepare_game(&ctx.db, game_id).await?;
-            let game_challenge = prepare_game_challenge(&ctx.db, game_id, challenge.id).await?;
-
-            // Late solves after global or per-challenge freeze windows downgrade to
-            // Expired.
-            let now = time::OffsetDateTime::now_utc().unix_timestamp();
-            if now > game.frozen_at || now > game.ended_at {
-                status = Status::Expired;
-            }
-            if let Some(frozen_at) = game_challenge.frozen_at {
-                if now > frozen_at {
-                    status = Status::Expired;
-                }
-            }
-        }
-    }
+    let FinalizeOutcome::Committed {
+        status,
+        score_game_id,
+    } = finalizer::finalize(&ctx.db, &submission, processing_at, verdict).await?
+    else {
+        warn!(
+            submission_id = submission.id,
+            "submission status changed while checker was running"
+        );
+        return Ok(CheckOutcome::LeaseLost);
+    };
 
     info!(
         submission_id = submission.id,
@@ -243,29 +176,17 @@ async fn check(
         "submission checked"
     );
 
-    let transaction = ctx.db.conn.begin().await?;
-    let Some(submission) = cds_db::submission::finish_processing(
-        &transaction,
-        submission.id,
-        processing_at,
-        status.clone(),
-    )
-    .await?
-    else {
+    if let (Status::Cheat, Verdict::Cheat { peer_team_id }, Some(game_id)) =
+        (&status, verdict, score_game_id)
+    {
         warn!(
             submission_id = submission.id,
-            "submission status changed while checker was running"
+            game_id,
+            team_id = submission.team_id,
+            peer_team_id,
+            "teams banned by cheat detection"
         );
-        return Ok(CheckOutcome::LeaseLost);
-    };
-
-    let score_game_id = if let (Some(game_id), Status::Correct) = (submission.game_id, &status) {
-        cds_db::game::request_score_recalculation(&transaction, game_id).await?;
-        Some(game_id)
-    } else {
-        None
-    };
-    transaction.commit().await?;
+    }
 
     if let Some(game_id) = score_game_id {
         // Fan-out score recompute for the affected competition only.
@@ -279,51 +200,6 @@ async fn check(
     }
 
     Ok(CheckOutcome::Committed)
-}
-
-/// Marks both the submitting team and the `peer_team_id` as **Banned** when
-/// cheat is detected.
-#[tracing::instrument(skip_all, fields(
-    submission_id = submission.id,
-    game_id = submission.game_id,
-    team_id = submission.team_id,
-    peer_team_id = peer_team_id
-))]
-async fn handle_cheat(
-    ctx: &Context,
-    submission: &SubmissionView,
-    peer_team_id: i64,
-) -> Result<Status, anyhow::Error> {
-    let (Some(game_id), Some(team_id)) = (submission.game_id, submission.team_id) else {
-        return Ok(Status::Incorrect);
-    };
-
-    if let (Some(team), Some(peer_team)) = (
-        cds_db::team::find_by_id::<Model>(&ctx.db.conn, team_id, game_id).await?,
-        cds_db::team::find_by_id::<Model>(&ctx.db.conn, peer_team_id, game_id).await?,
-    ) {
-        let transaction = ctx.db.conn.begin().await?;
-        for t in &[team, peer_team] {
-            warn!(
-                team_id = t.id,
-                game_id, peer_team_id, "team banned by cheat detection"
-            );
-            let _ = cds_db::team::update::<TeamView>(
-                &transaction,
-                cds_db::team::ActiveModel {
-                    id: Unchanged(t.id),
-                    state: Set(State::Banned),
-                    ..t.clone().into_active_model()
-                },
-            )
-            .await?;
-        }
-        cds_db::game::request_score_recalculation(&transaction, game_id).await?;
-        transaction.commit().await?;
-        calculator::notify(&ctx.queue, game_id).await;
-    }
-
-    Ok(Status::Cheat)
 }
 
 /// Re-publishes historical `Queued` rows so they are checked after deploys /
