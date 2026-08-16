@@ -6,8 +6,9 @@ use axum::{Json, Router, extract::State};
 use cds_db::{
     SubmissionView,
     sea_orm::{
+        AccessMode,
         ActiveValue::{self, NotSet, Set, Unchanged},
-        TransactionTrait,
+        IsolationLevel, TransactionTrait,
     },
     submission::{ActiveModel, Status},
 };
@@ -51,6 +52,23 @@ fn status_timestamps(
     }
 }
 
+fn status_scores(previous: &Status, next: &Status) -> (ActiveValue<i64>, ActiveValue<i64>) {
+    if previous == &Status::Correct && next == &Status::Correct {
+        (NotSet, NotSet)
+    } else {
+        (Set(0), Set(0))
+    }
+}
+
+fn score_recalculation_game_id(
+    game_id: Option<i64>,
+    previous: &Status,
+    next: &Status,
+) -> Option<i64> {
+    game_id
+        .filter(|_| previous != next && (previous == &Status::Correct || next == &Status::Correct))
+}
+
 /// Updates the status of a submission.
 #[utoipa::path(
     put,
@@ -62,6 +80,7 @@ fn status_timestamps(
     request_body = UpdateSubmissionStatusRequest,
     responses(
         (status = 200, description = "Updated submission", body = SubmissionView),
+        (status = 409, description = "Correct submission already exists", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -73,14 +92,46 @@ pub async fn update_submission_status(
     Path(submission_id): Path<i64>,
     ReqJson(body): ReqJson<UpdateSubmissionStatusRequest>,
 ) -> Result<Json<SubmissionView>, WebError> {
-    let previous = cds_db::submission::find_by_id(&s.db.conn, submission_id)
+    let transaction =
+        s.db.conn
+            .begin_with_config(
+                Some(IsolationLevel::ReadCommitted),
+                Some(AccessMode::ReadWrite),
+            )
+            .await
+            .map_err(cds_db::DbError::from)?;
+    let initial = cds_db::submission::find_by_id(&transaction, submission_id)
+        .await?
+        .ok_or_else(|| WebError::NotFound(json!("")))?;
+    cds_db::submission::lock_solve_owner(&transaction, &initial).await?;
+    let previous = cds_db::submission::find_by_id(&transaction, submission_id)
         .await?
         .ok_or_else(|| WebError::NotFound(json!("")))?;
 
+    if body.status == Status::Correct
+        && previous.status != Status::Correct
+        && cds_db::submission::has_other_correct_in_scope(&transaction, &previous).await?
+    {
+        transaction
+            .rollback()
+            .await
+            .map_err(cds_db::DbError::from)?;
+        return Err(WebError::Conflict(json!(
+            "correct_submission_already_exists"
+        )));
+    }
+
     let now = time::OffsetDateTime::now_utc().unix_timestamp();
     let (processing_at, checked_at) = status_timestamps(&previous.status, &body.status, now);
+    let (pts, rank) = status_scores(&previous.status, &body.status);
+    let score_game_id =
+        score_recalculation_game_id(previous.game_id, &previous.status, &body.status);
+    if let Some(game_id) = score_game_id {
+        // The calculator may already have read this Correct row. Lock before
+        // changing it so an old score plan cannot write points back afterward.
+        cds_db::game::lock_score_recalculation(&transaction, game_id).await?;
+    }
 
-    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
     let submission = cds_db::submission::update(
         &transaction,
         ActiveModel {
@@ -88,20 +139,16 @@ pub async fn update_submission_status(
             status: Set(body.status),
             processing_at,
             checked_at,
+            pts,
+            rank,
             ..Default::default()
         },
     )
     .await?;
 
-    let score_game_id = if let Some(game_id) = submission.game_id
-        && previous.status != submission.status
-        && (previous.status == Status::Correct || submission.status == Status::Correct)
-    {
+    if let Some(game_id) = score_game_id {
         cds_db::game::request_score_recalculation(&transaction, game_id).await?;
-        Some(game_id)
-    } else {
-        None
-    };
+    }
     transaction.commit().await.map_err(cds_db::DbError::from)?;
 
     if let Some(game_id) = score_game_id {
@@ -137,18 +184,32 @@ pub async fn delete_submission(
 
     Path(submission_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let submission = cds_db::submission::find_by_id(&s.db.conn, submission_id)
+    let transaction =
+        s.db.conn
+            .begin_with_config(
+                Some(IsolationLevel::ReadCommitted),
+                Some(AccessMode::ReadWrite),
+            )
+            .await
+            .map_err(cds_db::DbError::from)?;
+    let initial = cds_db::submission::find_by_id(&transaction, submission_id)
         .await?
         .ok_or_else(|| WebError::NotFound(json!("")))?;
-    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
-    cds_db::submission::delete(&transaction, submission_id).await?;
-    let score_game_id =
-        if let (Some(game_id), Status::Correct) = (submission.game_id, submission.status) {
-            cds_db::game::request_score_recalculation(&transaction, game_id).await?;
+    cds_db::submission::lock_solve_owner(&transaction, &initial).await?;
+    let submission = cds_db::submission::find_by_id(&transaction, submission_id)
+        .await?
+        .ok_or_else(|| WebError::NotFound(json!("")))?;
+    let score_game_id = match (submission.game_id, &submission.status) {
+        (Some(game_id), Status::Correct) => {
+            cds_db::game::lock_score_recalculation(&transaction, game_id).await?;
             Some(game_id)
-        } else {
-            None
-        };
+        }
+        _ => None,
+    };
+    cds_db::submission::delete(&transaction, submission_id).await?;
+    if let Some(game_id) = score_game_id {
+        cds_db::game::request_score_recalculation(&transaction, game_id).await?;
+    }
     transaction.commit().await.map_err(cds_db::DbError::from)?;
 
     if let Some(game_id) = score_game_id {
@@ -191,6 +252,42 @@ mod tests {
         assert_eq!(
             status_timestamps(&Status::Correct, &Status::Incorrect, 42),
             (NotSet, NotSet)
+        );
+    }
+
+    #[test]
+    fn status_change_clears_persisted_score_fields() {
+        assert_eq!(
+            status_scores(&Status::Correct, &Status::Incorrect),
+            (Set(0), Set(0))
+        );
+        assert_eq!(
+            status_scores(&Status::Correct, &Status::Correct),
+            (NotSet, NotSet)
+        );
+        assert_eq!(
+            status_scores(&Status::Incorrect, &Status::Incorrect),
+            (Set(0), Set(0))
+        );
+    }
+
+    #[test]
+    fn score_recalculation_tracks_only_game_correct_transitions() {
+        assert_eq!(
+            score_recalculation_game_id(Some(7), &Status::Correct, &Status::Incorrect),
+            Some(7)
+        );
+        assert_eq!(
+            score_recalculation_game_id(Some(7), &Status::Incorrect, &Status::Correct),
+            Some(7)
+        );
+        assert_eq!(
+            score_recalculation_game_id(Some(7), &Status::Correct, &Status::Correct),
+            None
+        );
+        assert_eq!(
+            score_recalculation_game_id(None, &Status::Correct, &Status::Incorrect),
+            None
         );
     }
 }

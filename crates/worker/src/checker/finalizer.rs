@@ -2,16 +2,17 @@
 //!
 //! Checker execution stays outside the database transaction. This module owns
 //! the smaller durable transition that follows it: the terminal submission
-//! status and any score or policy effect. Ordinary results use only the
-//! submission lease transaction. A valid in-game cheat additionally takes the
-//! same per-game advisory lock used by the calculator before changing team
-//! state and the score revision.
+//! status and any score or policy effect. Correct results serialize
+//! solved-state policy by team or standalone user before inspecting prior
+//! solves. A valid in-game cheat additionally takes the same per-game advisory
+//! lock used by the calculator before changing team state and the score
+//! revision.
 
 use anyhow::{Context as _, anyhow};
 use cds_db::{
     DB, GameDetail, SubmissionView,
-    sea_orm::{ConnectionTrait, TransactionTrait},
-    submission::{FindSubmissionsOptions, Status},
+    sea_orm::{AccessMode, ConnectionTrait, IsolationLevel, TransactionTrait},
+    submission::Status,
     team::State,
 };
 
@@ -50,7 +51,14 @@ pub(crate) async fn finalize(
     processing_at: i64,
     verdict: Verdict,
 ) -> Result<FinalizeOutcome, anyhow::Error> {
-    let transaction = db.conn.begin().await?;
+    let transaction = db
+        .conn
+        .begin_with_config(
+            Some(IsolationLevel::ReadCommitted),
+            Some(AccessMode::ReadWrite),
+        )
+        .await?;
+
     let (status, cheat) = resolve_status(&transaction, submission, verdict).await?;
 
     // The calculator takes this lock before reading or writing any score
@@ -122,41 +130,6 @@ async fn resolve_correct_status(
     transaction: &impl ConnectionTrait,
     submission: &SubmissionView,
 ) -> Result<Status, anyhow::Error> {
-    let is_already_correct =
-        if let (Some(game_id), Some(team_id)) = (submission.game_id, submission.team_id) {
-            cds_db::submission::find(
-                transaction,
-                FindSubmissionsOptions {
-                    challenge_id: Some(submission.challenge_id),
-                    game_id: Some(Some(game_id)),
-                    team_id: Some(Some(team_id)),
-                    status: Some(Status::Correct),
-                    ..Default::default()
-                },
-            )
-            .await?
-            .1 > 0
-        } else {
-            cds_db::submission::find(
-                transaction,
-                FindSubmissionsOptions {
-                    challenge_id: Some(submission.challenge_id),
-                    user_id: Some(submission.user_id),
-                    status: Some(Status::Correct),
-                    team_id: Some(None),
-                    game_id: Some(None),
-                    ..Default::default()
-                },
-            )
-            .await?
-            .1 > 0
-        };
-    let mut status = if is_already_correct {
-        Status::Duplicate
-    } else {
-        Status::Correct
-    };
-
     if let (Some(game_id), Some(_team_id)) = (submission.game_id, submission.team_id) {
         let game = cds_db::game::find_by_id::<GameDetail>(transaction, game_id)
             .await?
@@ -172,11 +145,16 @@ async fn resolve_correct_status(
                 .frozen_at
                 .is_some_and(|frozen_at| now > frozen_at)
         {
-            status = Status::Expired;
+            return Ok(Status::Expired);
         }
     }
 
-    Ok(status)
+    cds_db::submission::lock_solve_owner(transaction, submission).await?;
+    if cds_db::submission::has_other_correct_in_scope(transaction, submission).await? {
+        Ok(Status::Duplicate)
+    } else {
+        Ok(Status::Correct)
+    }
 }
 
 async fn apply_cheat_policy(
@@ -222,7 +200,13 @@ async fn apply_cheat_policy(
 
 #[cfg(test)]
 mod tests {
+    use std::{
+        sync::Arc,
+        time::{SystemTime, UNIX_EPOCH},
+    };
+
     use cds_db::sea_orm::{ConnectOptions, ConnectionTrait, Database, DbBackend, Statement};
+    use tokio::sync::Barrier;
 
     use super::*;
 
@@ -308,6 +292,101 @@ mod tests {
         DB { conn }
     }
 
+    async fn schema_db(database_url: &str, schema: &str) -> DB {
+        let mut options = ConnectOptions::new(database_url);
+        options
+            .max_connections(8)
+            .min_connections(1)
+            .set_schema_search_path(format!("{schema},public"));
+        DB {
+            conn: Database::connect(options).await.unwrap(),
+        }
+    }
+
+    async fn concurrent_test_dbs() -> (cds_db::sea_orm::DatabaseConnection, DB, DB, String) {
+        let database_url = std::env::var("CDS_TEST_DATABASE_URL")
+            .expect("CDS_TEST_DATABASE_URL must point to a migrated CdsCTF PostgreSQL database");
+        let control = Database::connect(&database_url).await.unwrap();
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let schema = format!("cds_finalizer_{}_{}", std::process::id(), nonce);
+
+        control
+            .execute_unprepared(&format!(
+                r#"
+                    CREATE SCHEMA {schema};
+                    CREATE TABLE {schema}.users
+                        (LIKE public.users INCLUDING ALL);
+                    CREATE TABLE {schema}.challenges
+                        (LIKE public.challenges INCLUDING ALL);
+                    CREATE TABLE {schema}.games
+                        (LIKE public.games INCLUDING ALL);
+                    CREATE TABLE {schema}.teams
+                        (LIKE public.teams INCLUDING ALL);
+                    CREATE TABLE {schema}.game_challenges
+                        (LIKE public.game_challenges INCLUDING ALL);
+                    CREATE TABLE {schema}.submissions
+                        (LIKE public.submissions INCLUDING ALL);
+
+                    INSERT INTO {schema}.users (
+                        id, name, username, description, "group", hashed_password,
+                        avatar_hash, deleted_at, created_at, updated_at
+                    ) VALUES
+                        (1, 'Team user', 'team-user', NULL, 2, '', NULL, NULL, 0, 0),
+                        (2, 'Standalone user', 'standalone-user', NULL, 2, '', NULL, NULL, 0, 0);
+                    INSERT INTO {schema}.challenges (
+                        id, title, description, category, tags, has_instance,
+                        has_attachment, has_writeup, public, instance, checker,
+                        writeup, deleted_at, created_at, updated_at
+                    ) VALUES (
+                        10, 'Challenge', '', 0, ARRAY[]::TEXT[], FALSE, FALSE,
+                        FALSE, TRUE, NULL, NULL, NULL, NULL, 0, 0
+                    );
+                    INSERT INTO {schema}.games (
+                        id, title, sketch, description, enabled, public, paused,
+                        blacked_out, member_limit_min, member_limit_max,
+                        writeup_required, timeslots, started_at, frozen_at,
+                        ended_at, icon_hash, poster_hash, score_revision, created_at
+                    ) VALUES (
+                        7, 'Game', NULL, NULL, TRUE, TRUE, FALSE, FALSE, 1, 5,
+                        FALSE, '[]'::JSONB, 0, 4102444800, 4102444800, NULL,
+                        NULL, 0, 0
+                    );
+                    INSERT INTO {schema}.teams (
+                        id, game_id, name, email, slogan, avatar_hash, has_writeup,
+                        state, pts, rank
+                    ) VALUES (100, 7, 'Team', NULL, NULL, NULL, FALSE, 3, 0, 0);
+                    INSERT INTO {schema}.game_challenges (
+                        game_id, challenge_id, difficulty, max_pts, min_pts,
+                        bonus_ratios, enabled, frozen_at, pts
+                    ) VALUES (7, 10, 10, 1000, 100, ARRAY[10, 0]::BIGINT[], TRUE, NULL, 0);
+
+                    INSERT INTO {schema}.submissions (
+                        id, content, status, challenge_id, user_id, team_id,
+                        game_id, created_at, processing_at, checked_at, pts, rank
+                    )
+                    SELECT id, 'flag', 'processing', 10, 1, 100, 7, id,
+                           {PROCESSING_AT}, NULL, 0, 0
+                    FROM generate_series(1000, 1009) AS id;
+                    INSERT INTO {schema}.submissions (
+                        id, content, status, challenge_id, user_id, team_id,
+                        game_id, created_at, processing_at, checked_at, pts, rank
+                    )
+                    SELECT id, 'flag', 'processing', 10, 2, NULL, NULL, id,
+                           {PROCESSING_AT}, NULL, 0, 0
+                    FROM generate_series(2000, 2009) AS id;
+                "#
+            ))
+            .await
+            .unwrap();
+
+        let first = schema_db(&database_url, &schema).await;
+        let second = schema_db(&database_url, &schema).await;
+        (control, first, second, schema)
+    }
+
     fn submission(id: i64, team_id: Option<i64>, game_id: Option<i64>) -> SubmissionView {
         SubmissionView {
             id,
@@ -357,6 +436,40 @@ mod tests {
             .unwrap()
             .try_get("", "value")
             .unwrap()
+    }
+
+    async fn assert_terminal_counts(
+        db: &DB,
+        user_id: i64,
+        team_id: Option<i64>,
+        correct: i64,
+        duplicate: i64,
+    ) {
+        let scope = match team_id {
+            Some(team_id) => format!("team_id = {team_id} AND game_id = {GAME_ID}"),
+            None => format!("user_id = {user_id} AND team_id IS NULL AND game_id IS NULL"),
+        };
+        let row = db
+            .conn
+            .query_one_raw(Statement::from_string(
+                DbBackend::Postgres,
+                format!(
+                    r#"
+                        SELECT
+                            COUNT(*) FILTER (WHERE status = 'correct') AS correct,
+                            COUNT(*) FILTER (WHERE status = 'duplicate') AS duplicate,
+                            COUNT(*) FILTER (WHERE status = 'processing') AS processing
+                        FROM submissions
+                        WHERE challenge_id = 10 AND {scope}
+                    "#
+                ),
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(row.try_get::<i64>("", "correct").unwrap(), correct);
+        assert_eq!(row.try_get::<i64>("", "duplicate").unwrap(), duplicate);
+        assert_eq!(row.try_get::<i64>("", "processing").unwrap(), 0);
     }
 
     #[tokio::test]
@@ -562,5 +675,71 @@ mod tests {
             .await,
             2
         );
+    }
+
+    #[tokio::test]
+    #[ignore = "requires CDS_TEST_DATABASE_URL pointing to PostgreSQL"]
+    async fn concurrent_correct_finalization_is_unique_across_connections() {
+        let (control, first, second, schema) = concurrent_test_dbs().await;
+
+        let barrier = Arc::new(Barrier::new(20));
+        let mut tasks = Vec::new();
+        for index in 0..10_i64 {
+            let db = if index % 2 == 0 {
+                first.clone()
+            } else {
+                second.clone()
+            };
+            let barrier = Arc::clone(&barrier);
+            tasks.push(tokio::spawn(async move {
+                barrier.wait().await;
+                finalize(
+                    &db,
+                    &game_submission(1000 + index, 100),
+                    PROCESSING_AT,
+                    Verdict::Correct,
+                )
+                .await
+            }));
+        }
+        for index in 0..10_i64 {
+            let db = if index % 2 == 0 {
+                second.clone()
+            } else {
+                first.clone()
+            };
+            let barrier = Arc::clone(&barrier);
+            tasks.push(tokio::spawn(async move {
+                let mut standalone = submission(2000 + index, None, None);
+                standalone.user_id = 2;
+                barrier.wait().await;
+                finalize(&db, &standalone, PROCESSING_AT, Verdict::Correct).await
+            }));
+        }
+
+        for task in tasks {
+            assert!(matches!(
+                task.await.unwrap().unwrap(),
+                FinalizeOutcome::Committed { .. }
+            ));
+        }
+
+        assert_terminal_counts(&first, 1, Some(100), 1, 9).await;
+        assert_terminal_counts(&first, 2, None, 1, 9).await;
+        assert_eq!(
+            scalar_i64(
+                &first,
+                "SELECT score_revision AS value FROM games WHERE id = 7"
+            )
+            .await,
+            1
+        );
+
+        first.conn.close().await.unwrap();
+        second.conn.close().await.unwrap();
+        control
+            .execute_unprepared(&format!("DROP SCHEMA {schema} CASCADE"))
+            .await
+            .unwrap();
     }
 }

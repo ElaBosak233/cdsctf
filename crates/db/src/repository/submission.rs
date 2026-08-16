@@ -6,7 +6,8 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityLoaderTrait, EntityTrait,
     FromQueryResult, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
     sea_query::{
-        Alias, Condition, Expr, ExprTrait, IntoIden, Query, TableRef, UpdateStatement, ValueTuple,
+        Alias, Condition, Expr, ExprTrait, Func, IntoIden, Query, TableRef, UpdateStatement,
+        ValueTuple,
     },
 };
 use tracing::info;
@@ -22,6 +23,100 @@ pub use crate::{
 };
 
 pub const PROCESSING_LEASE_SECONDS: i64 = 15;
+
+const TEAM_SOLVE_LOCK_NAMESPACE: i64 = 0x4344_5310_0000_0000;
+const USER_SOLVE_LOCK_NAMESPACE: i64 = 0x4344_5320_0000_0000;
+
+/// Authenticated principal whose solved-challenge state is serialized during
+/// correct-result finalization.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum SolveOwner {
+    Team(i64),
+    User(i64),
+}
+
+impl SolveOwner {
+    fn lock_key(self) -> i64 {
+        match self {
+            Self::Team(team_id) => TEAM_SOLVE_LOCK_NAMESPACE.wrapping_add(team_id),
+            Self::User(user_id) => USER_SOLVE_LOCK_NAMESPACE.wrapping_add(user_id),
+        }
+    }
+}
+
+impl TryFrom<&SubmissionView> for SolveOwner {
+    type Error = DbError;
+
+    fn try_from(submission: &SubmissionView) -> Result<Self, Self::Error> {
+        match (submission.game_id, submission.team_id) {
+            (Some(_), Some(team_id)) => Ok(Self::Team(team_id)),
+            (None, None) => Ok(Self::User(submission.user_id)),
+            _ => Err(DbError::BadRequest(format!(
+                "submission_{}_has_invalid_solve_scope",
+                submission.id
+            ))),
+        }
+    }
+}
+
+/// Serializes solved-challenge policy for one team or standalone user across
+/// every application instance. The lock is released with the transaction.
+pub async fn lock_solve_owner(
+    conn: &impl ConnectionTrait,
+    submission: &SubmissionView,
+) -> Result<(), DbError> {
+    let owner = SolveOwner::try_from(submission)?;
+    conn.query_one(&solve_owner_lock_query(owner)).await?;
+    Ok(())
+}
+
+fn solve_owner_lock_query(owner: SolveOwner) -> sea_orm::sea_query::SelectStatement {
+    Query::select()
+        .expr(Func::cust(Alias::new("pg_advisory_xact_lock")).arg(owner.lock_key()))
+        .to_owned()
+}
+
+/// Checks whether the same team/game/challenge or standalone user/challenge
+/// scope has another correct submission.
+pub async fn has_other_correct_in_scope(
+    conn: &impl ConnectionTrait,
+    submission: &SubmissionView,
+) -> Result<bool, DbError> {
+    Ok(other_correct_in_scope_query(submission)?
+        .into_tuple::<i64>()
+        .one(conn)
+        .await?
+        .is_some())
+}
+
+fn other_correct_in_scope_query(
+    submission: &SubmissionView,
+) -> Result<sea_orm::Select<Entity>, DbError> {
+    let mut query = Entity::find()
+        .select_only()
+        .column(Column::Id)
+        .filter(Column::Id.ne(submission.id))
+        .filter(Column::ChallengeId.eq(submission.challenge_id))
+        .filter(Column::Status.eq(Status::Correct));
+
+    query = match (submission.game_id, submission.team_id) {
+        (Some(game_id), Some(team_id)) => query
+            .filter(Column::GameId.eq(game_id))
+            .filter(Column::TeamId.eq(team_id)),
+        (None, None) => query
+            .filter(Column::GameId.is_null())
+            .filter(Column::TeamId.is_null())
+            .filter(Column::UserId.eq(submission.user_id)),
+        _ => {
+            return Err(DbError::BadRequest(format!(
+                "submission_{}_has_invalid_solve_scope",
+                submission.id
+            )));
+        }
+    };
+
+    Ok(query)
+}
 
 impl TryFrom<crate::entity::submission::ModelEx> for SubmissionView {
     type Error = DbError;
@@ -499,12 +594,11 @@ pub async fn find_correct_by_team_ids_and_game_id(
         .collect::<Result<Vec<_>, _>>()?)
 }
 
-/// Looks up correct by challenge ids and optional team game.
-
-pub async fn find_correct_by_challenge_ids_and_optional_team_game(
+/// Looks up correct submissions for challenge status aggregation, either in
+/// one game or in the standalone scope.
+pub async fn find_correct_by_challenge_ids_and_game_id(
     conn: &impl ConnectionTrait,
     challenge_ids: Vec<i64>,
-    team_id: Option<i64>,
     game_id: Option<i64>,
 ) -> Result<Vec<SubmissionView>, DbError> {
     let mut loader = Entity::load()
@@ -512,9 +606,10 @@ pub async fn find_correct_by_challenge_ids_and_optional_team_game(
         .with(crate::entity::challenge::Entity)
         .with(crate::entity::team::Entity)
         .with(crate::entity::game::Entity)
-        .filter(Column::ChallengeId.is_in(challenge_ids));
+        .filter(Column::ChallengeId.is_in(challenge_ids))
+        .filter(Column::Status.eq(Status::Correct));
 
-    if let (Some(_), Some(game_id)) = (team_id, game_id) {
+    if let Some(game_id) = game_id {
         loader = loader.filter(Column::GameId.eq(game_id));
     } else {
         loader = loader
@@ -523,7 +618,6 @@ pub async fn find_correct_by_challenge_ids_and_optional_team_game(
     }
 
     let submissions = loader
-        .filter(Column::Status.eq(Status::Correct))
         .order_by_asc(Column::CreatedAt)
         .all(conn)
         .await?
@@ -651,6 +745,96 @@ mod score_tests {
     use sea_orm::{DbBackend, QueryTrait};
 
     use super::*;
+
+    fn submission(
+        id: i64,
+        user_id: i64,
+        team_id: Option<i64>,
+        game_id: Option<i64>,
+    ) -> SubmissionView {
+        SubmissionView {
+            id,
+            content: "flag".to_owned(),
+            status: Status::Processing,
+            user_id,
+            user_name: "User".to_owned(),
+            user_avatar_hash: None,
+            team_id,
+            team_name: team_id.map(|_| "Team".to_owned()),
+            team_avatar_hash: None,
+            game_id,
+            game_title: game_id.map(|_| "Game".to_owned()),
+            challenge_id: 10,
+            challenge_title: "Challenge".to_owned(),
+            challenge_category: 0,
+            created_at: 0,
+            processing_at: Some(1),
+            checked_at: None,
+            pts: 0,
+            rank: 0,
+        }
+    }
+
+    #[test]
+    fn solve_owner_locks_are_namespaced_and_built_by_sea_query() {
+        assert_ne!(
+            SolveOwner::Team(1).lock_key(),
+            SolveOwner::Team(2).lock_key()
+        );
+        assert_ne!(
+            SolveOwner::User(1).lock_key(),
+            SolveOwner::User(2).lock_key()
+        );
+        assert_ne!(
+            SolveOwner::Team(1).lock_key(),
+            SolveOwner::User(1).lock_key()
+        );
+
+        let statement = DbBackend::Postgres.build(&solve_owner_lock_query(SolveOwner::Team(7)));
+        assert_eq!(statement.sql, "SELECT pg_advisory_xact_lock($1)");
+        assert_eq!(statement.values.unwrap().0.len(), 1);
+    }
+
+    #[test]
+    fn solve_owner_requires_a_complete_game_scope_or_a_standalone_scope() {
+        assert_eq!(
+            SolveOwner::try_from(&submission(1, 9, Some(3), Some(7))).unwrap(),
+            SolveOwner::Team(3)
+        );
+        assert_eq!(
+            SolveOwner::try_from(&submission(2, 9, None, None)).unwrap(),
+            SolveOwner::User(9)
+        );
+        assert!(SolveOwner::try_from(&submission(3, 9, Some(3), None)).is_err());
+        assert!(SolveOwner::try_from(&submission(4, 9, None, Some(7))).is_err());
+    }
+
+    #[test]
+    fn correct_scope_query_excludes_the_current_submission() {
+        let team = other_correct_in_scope_query(&submission(5, 9, Some(3), Some(7)))
+            .unwrap()
+            .build(DbBackend::Postgres);
+        assert!(team.sql.contains("\"submissions\".\"id\" <> $1"));
+        assert!(team.sql.contains("\"submissions\".\"challenge_id\" = $2"));
+        assert!(team.sql.contains("\"submissions\".\"status\" = $3"));
+        assert!(team.sql.contains("\"submissions\".\"game_id\" = $4"));
+        assert!(team.sql.contains("\"submissions\".\"team_id\" = $5"));
+
+        let standalone = other_correct_in_scope_query(&submission(6, 9, None, None))
+            .unwrap()
+            .build(DbBackend::Postgres);
+        assert!(
+            standalone
+                .sql
+                .contains("\"submissions\".\"game_id\" IS NULL")
+        );
+        assert!(
+            standalone
+                .sql
+                .contains("\"submissions\".\"team_id\" IS NULL")
+        );
+        assert!(standalone.sql.contains("\"submissions\".\"user_id\" = $4"));
+    }
 
     #[test]
     fn score_updates_are_chunked_and_built_with_bound_values() {

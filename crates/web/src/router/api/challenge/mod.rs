@@ -117,6 +117,13 @@ pub struct ChallengeStatusesResponse {
     pub statuses: HashMap<i64, ChallengeStatusResponse>,
 }
 
+fn valid_status_scope(user_id: Option<i64>, team_id: Option<i64>, game_id: Option<i64>) -> bool {
+    matches!(
+        (user_id, team_id, game_id),
+        (Some(_), None, None) | (None, Some(_), Some(_))
+    )
+}
+
 /// Batch query for solve status and score hints. Uses POST so `challenge_ids`
 /// can be a JSON array.
 #[utoipa::path(
@@ -140,7 +147,7 @@ pub async fn query_challenge_status(
 ) -> Result<Json<ChallengeStatusesResponse>, WebError> {
     let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
 
-    if body.user_id.is_some() && (body.team_id.is_some() || body.game_id.is_some()) {
+    if !valid_status_scope(body.user_id, body.team_id, body.game_id) {
         return Err(WebError::BadRequest(json!("either_user_or_team")));
     }
 
@@ -149,10 +156,9 @@ pub async fn query_challenge_status(
         crate::util::loader::ensure_game_not_paused(&game)?;
     }
 
-    let submissions = cds_db::submission::find_correct_by_challenge_ids_and_optional_team_game(
+    let submissions = cds_db::submission::find_correct_by_challenge_ids_and_game_id(
         &s.db.conn,
         body.challenge_ids.clone(),
-        body.team_id,
         body.game_id,
     )
     .await?;
@@ -229,4 +235,20 @@ pub async fn query_challenge_status(
     }
 
     Ok(Json(ChallengeStatusesResponse { statuses: result }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::valid_status_scope;
+
+    #[test]
+    fn challenge_status_requires_one_complete_subject_scope() {
+        assert!(valid_status_scope(Some(1), None, None));
+        assert!(valid_status_scope(None, Some(2), Some(3)));
+
+        assert!(!valid_status_scope(None, None, None));
+        assert!(!valid_status_scope(None, Some(2), None));
+        assert!(!valid_status_scope(None, None, Some(3)));
+        assert!(!valid_status_scope(Some(1), Some(2), Some(3)));
+    }
 }
