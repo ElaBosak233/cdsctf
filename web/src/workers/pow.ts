@@ -1,4 +1,5 @@
-import CryptoJS from "crypto-js";
+import { sha256 } from "@noble/hashes/sha256.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 
 self.onmessage = async (e) => {
   const { c, d } = e.data;
@@ -7,7 +8,7 @@ self.onmessage = async (e) => {
 
   while (!result.startsWith("0".repeat(d + 1))) {
     nonce++;
-    result = CryptoJS.SHA256(c + nonce.toString(16)).toString();
+    result = bytesToHex(sha256(c + nonce.toString(16)));
   }
 
   postMessage(c + nonce.toString(16));

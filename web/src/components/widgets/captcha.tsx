@@ -1,6 +1,5 @@
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { Turnstile } from "@marsidev/react-turnstile";
-import CryptoJS from "crypto-js";
 import { BotIcon, ImageIcon, RefreshCcwIcon } from "lucide-react";
 import {
   createContext,
@@ -21,6 +20,7 @@ import { useApperanceStore } from "@/storages/appearance";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { encodeBase64 } from "@/utils/crypto";
 
 export const Context = createContext<{
   refresh: number;
@@ -202,7 +202,7 @@ function ImageCaptcha(props: CaptchaProps) {
         />
       </Field>
       <img
-        src={`data:image/svg+xml;base64,${CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(String(challenge)))}`}
+        src={`data:image/svg+xml;base64,${encodeBase64(String(challenge))}`}
         alt={"captcha"}
         onClick={() => setRefresh?.()}
         draggable={false}

@@ -1,4 +1,5 @@
-import CryptoJS from "crypto-js";
+import { sha256 } from "@noble/hashes/sha256.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -26,15 +27,17 @@ function getNoticeScopeKey(userId: number, gameId: number) {
 }
 
 function getNoticeFingerprint(notice: GameNoticeView) {
-  return CryptoJS.SHA256(
-    JSON.stringify([
-      notice.game_id ?? null,
-      notice.id ?? null,
-      notice.created_at ?? null,
-      notice.title ?? "",
-      notice.content ?? "",
-    ])
-  ).toString();
+  return bytesToHex(
+    sha256(
+      JSON.stringify([
+        notice.game_id ?? null,
+        notice.id ?? null,
+        notice.created_at ?? null,
+        notice.title ?? "",
+        notice.content ?? "",
+      ])
+    )
+  );
 }
 
 function getNoticeFingerprints(notices: Array<GameNoticeView>) {
