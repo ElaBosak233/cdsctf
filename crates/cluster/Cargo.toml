@@ -24,9 +24,9 @@ nanoid       = { workspace = true }
 serde        = { workspace = true }
 serde_json   = { workspace = true }
 thiserror    = { workspace = true }
-utoipa       = { workspace = true }
 tokio        = { workspace = true }
 tokio-util   = { workspace = true }
 tracing      = { workspace = true }
+utoipa       = { workspace = true }
 uuid         = { workspace = true }
 wsrx         = { workspace = true }

@@ -11,25 +11,26 @@ rust-version = { workspace = true }
 version      = { workspace = true }
 
 [dependencies]
-cds-cache    = { workspace = true }
-cds-captcha  = { workspace = true }
-cds-checker  = { workspace = true }
-cds-cluster  = { workspace = true }
-cds-db       = { workspace = true }
-cds-engine   = { workspace = true }
-cds-env      = { workspace = true }
-cds-event    = { workspace = true }
-cds-idp      = { workspace = true }
-cds-mailbox  = { workspace = true }
-cds-media    = { workspace = true }
-cds-observe  = { workspace = true }
-cds-queue    = { workspace = true }
-cds-worker   = { workspace = true }
+cds-cache   = { workspace = true }
+cds-captcha = { workspace = true }
+cds-checker = { workspace = true }
+cds-cluster = { workspace = true }
+cds-db      = { workspace = true }
+cds-engine  = { workspace = true }
+cds-env     = { workspace = true }
+cds-event   = { workspace = true }
+cds-idp     = { workspace = true }
+cds-mailbox = { workspace = true }
+cds-media   = { workspace = true }
+cds-observe = { workspace = true }
+cds-queue   = { workspace = true }
+cds-worker  = { workspace = true }
 
 anyhow         = { workspace = true }
 argon2         = { workspace = true }
 axum           = { workspace = true }
 futures-util   = { workspace = true }
+garde          = { workspace = true }
 hex            = { workspace = true }
 mime           = { workspace = true }
 nanoid         = { workspace = true }
@@ -43,13 +44,12 @@ thiserror      = { workspace = true }
 time           = { workspace = true }
 tokio          = { workspace = true }
 tower-http     = { workspace = true }
-utoipa         = { workspace = true }
-utoipa-axum    = { workspace = true }
-utoipa-scalar  = { workspace = true }
 tower-sessions = { workspace = true }
 tower_governor = { workspace = true }
 tracing        = { workspace = true }
-validator      = { workspace = true }
+utoipa         = { workspace = true }
+utoipa-axum    = { workspace = true }
+utoipa-scalar  = { workspace = true }
 
 [lib]
 path = "src/lib.rs"

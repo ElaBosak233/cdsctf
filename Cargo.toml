@@ -9,7 +9,7 @@ homepage     = "https://cdsctf.e23.dev"
 publish      = false
 repository   = "https://github.com/elabosak233/cdsctf"
 rust-version = "1.95.0"
-version      = "1.10.2"
+version      = "1.11.0"
 
 [workspace.dependencies]
 # Local Libraries
@@ -62,7 +62,7 @@ wsrx           = { version = "0.5", features = ["server"] }
 
 # Security
 aes    = { version = "0.9" }
-argon2 = { version = "0.5" }
+argon2 = { version = "0.6" }
 hex    = { version = "0.4" }
 ring   = { version = "0.17" }
 rustls = { version = "0.23", features = ["ring"] }
@@ -76,11 +76,11 @@ rmp-serde  = { version = "1.3" }
 serde      = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 serde_repr = { version = "0.1" }
-serde_with = { version = "3.21" }
+serde_with = { version = "3.23" }
 time       = { version = "0.3", features = ["serde", "macros", "local-offset"] }
 toml       = { version = "1.1" }
-uuid       = { version = "1.24", features = ["v4", "fast-rng", "macro-diagnostics"] }
 url        = { version = "2.5" }
+uuid       = { version = "1.26", features = ["v4", "fast-rng", "macro-diagnostics"] }
 
 # Error Handling
 anyhow    = { version = "1.0" }
@@ -106,7 +106,7 @@ tracing-subscriber = { version = "0.3", features = [
 ] }
 
 # Database
-sea-orm = { version = "2.0.1", features = [
+sea-orm = { version = "2.0.2", features = [
   "sqlx-postgres",
   "debug-print",
   "with-uuid",
@@ -114,13 +114,13 @@ sea-orm = { version = "2.0.1", features = [
   "with-json",
   "runtime-tokio-rustls",
 ] }
-sea-orm-migration = { version = "2.0.1" }
+sea-orm-migration = { version = "2.0.2" }
 
 # Message Queue
 async-nats = { version = "0.50" }
 
 # Cache
-redis = { version = "1.5", features = [
+redis = { version = "1.7", features = [
   "acl",
   "bloom",
   "cluster-async",
@@ -147,11 +147,19 @@ kube = { version = "4.2", features = [
 
 # Script Engine
 full_moon = { version = "2.2", default-features = false, features = ["lua54"] }
-mlua = { version = "0.12", features = ["lua54", "vendored", "async", "send", "serde", "error-send"] }
+mlua = { version = "0.12", features = [
+  "lua54",
+  "vendored",
+  "async",
+  "send",
+  "serde",
+  "error-send",
+] }
 
 # Miscellaneous
 biosvg = { version = "0.1" }
 dashmap = { version = "6.2" }
+garde = { version = "0.23", features = ["derive", "email", "serde"] }
 image = { version = "0.25.10" }
 lettre = { version = "0.11", features = [
   "tokio1-rustls-tls",
@@ -171,7 +179,6 @@ rust-s3 = { version = "0.37", default-features = false, features = [
 ] }
 scraper = { version = "0.27" }
 shadow-rs = { version = "2.0" }
-validator = { version = "0.21", features = ["derive"] }
 webp = { version = "0.3.1", features = ["image"] }
 
 # Allocator

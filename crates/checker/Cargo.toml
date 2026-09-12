@@ -15,7 +15,7 @@ cds-db     = { workspace = true }
 cds-engine = { workspace = true }
 cds-media  = { workspace = true }
 
-mlua       = { workspace = true }
+mlua = { workspace = true }
 
 aes       = { workspace = true }
 anyhow    = { workspace = true }
