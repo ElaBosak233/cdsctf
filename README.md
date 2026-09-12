@@ -31,10 +31,6 @@ Thanks to everyone who has contributed to the project! Without you, CdsCTF would
 
 ![Contributors of CdsCTF](https://contrib.rocks/image?repo=elabosak233/cdsctf)
 
-### Stars
-
-![Stars of CdsCTF](https://starchart.cc/elabosak233/cdsctf.svg?variant=adaptive)
-
 ## License
 
 This project is licensed under the [GNU Affero General Public License v3.0](./LICENSE).
