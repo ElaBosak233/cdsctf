@@ -32,3 +32,20 @@ git reset --hard upstream/main
 And then force push your local changes to your remote repository.
 
 Of course, we can do it easier, delete your fork and fork again when you need.
+
+## Releases
+
+Pull requests are validated by building the Dockerfile's final image before they can be merged. A push to `main` builds the final image and publishes it with the `dev` and `sha-*` tags. It does not change the versioned image tags.
+
+To publish a release:
+
+1. Update `[workspace.package].version` in `Cargo.toml`.
+2. Merge that change into `main`.
+3. Create and push a matching annotated tag, for example:
+
+```bash
+git tag -a v1.11.0 -m "Release v1.11.0"
+git push origin v1.11.0
+```
+
+The publish workflow verifies that the tag matches the workspace version before publishing `1.11.0`, `1.11`, and `latest` to GHCR. Docker Hub is published as well when the repository has a `DOCKER_TOKEN` secret configured. Both `v1.11.0` and the legacy `1.11.0` tag format are accepted.
