@@ -14,7 +14,7 @@ use axum::{
 };
 use serde::de::DeserializeOwned;
 use serde_json::json;
-use validator::Validate;
+use garde::Validate;
 
 use crate::traits::WebError;
 
@@ -75,13 +75,13 @@ where
     }
 }
 
-/// JSON body plus `validator::Validate` (422 on validation errors).
+/// JSON body plus `garde::Validate` (422 on validation errors).
 #[derive(Debug, Clone, Copy, Default)]
 pub struct VJson<T>(pub T);
 
 impl<S, T> FromRequest<S> for VJson<T>
 where
-    T: Validate + DeserializeOwned,
+    T: Validate<Context = ()> + DeserializeOwned,
     S: Send + Sync,
 {
     type Rejection = WebError;

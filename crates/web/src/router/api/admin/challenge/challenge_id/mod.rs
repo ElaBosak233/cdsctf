@@ -25,7 +25,7 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use validator::Validate;
+use garde::Validate;
 
 use super::AdminChallengeResponse;
 use crate::{
@@ -69,6 +69,7 @@ pub async fn get_challenge(
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
 pub struct UpdateChallengeRequest {
     pub title: Option<String>,
     pub description: Option<String>,
@@ -146,6 +147,7 @@ pub async fn delete_challenge(
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
 pub struct UpdateChallengeInstanceRequest {
     pub instance: Option<cds_db::challenge::Instance>,
 }

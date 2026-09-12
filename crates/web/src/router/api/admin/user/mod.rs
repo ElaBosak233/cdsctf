@@ -18,7 +18,7 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use validator::Validate;
+use garde::Validate;
 
 use crate::{
     extract::{Query, VJson},
@@ -88,11 +88,12 @@ pub async fn get_users(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
 pub struct CreateUserRequest {
     pub name: String,
-    #[validate(length(min = 3, max = 20))]
+    #[garde(length(min = 3, max = 20))]
     pub username: String,
-    #[validate(email)]
+    #[garde(email)]
     pub email: String,
     pub password: String,
     pub group: Group,

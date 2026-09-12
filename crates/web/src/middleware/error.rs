@@ -7,8 +7,8 @@ use tower_governor::GovernorError;
 
 use crate::traits::WebError;
 
-/// Placeholder for validator integration hooks (currently a no-op response).
-pub async fn validation_error(_err: validator::ValidationError) -> impl IntoResponse {}
+/// Placeholder for garde integration hooks (currently a no-op response).
+pub async fn validation_error(_err: garde::Error) -> impl IntoResponse {}
 
 /// Maps unexpected boxed Axum errors to a generic 500 [`WebError`].
 pub async fn box_error(err: axum::BoxError) -> WebError {

@@ -9,7 +9,7 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use validator::Validate;
+use garde::Validate;
 
 use super::AdminChallengeResponse;
 use crate::{
@@ -25,6 +25,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
 pub struct UpdateWriteupRequest {
     pub writeup: String,
 }

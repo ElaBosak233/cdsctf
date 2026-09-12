@@ -23,7 +23,7 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use validator::Validate;
+use garde::Validate;
 
 use crate::{
     extract::{Extension, Json as ReqJson},
@@ -166,12 +166,13 @@ struct PendingIdentityState {
 }
 
 #[derive(Clone, Debug, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
 pub struct IdpRegisterRequest {
     pub token: String,
-    #[validate(length(min = 3, max = 20))]
+    #[garde(length(min = 3, max = 20))]
     pub username: String,
     pub name: String,
-    #[validate(email)]
+    #[garde(email)]
     pub email: String,
     pub password: String,
 }

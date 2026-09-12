@@ -15,7 +15,7 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use validator::Validate;
+use garde::Validate;
 
 use crate::{
     extract::{Path, VJson},
@@ -31,6 +31,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
 pub struct UpdateCheckerRequest {
     pub checker: Option<String>,
 }
@@ -71,6 +72,7 @@ pub async fn update_checker(
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
 pub struct LintCheckerRequest {
     pub checker: Option<String>,
 }

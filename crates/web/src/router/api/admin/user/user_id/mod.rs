@@ -6,10 +6,7 @@ mod email;
 
 use std::sync::Arc;
 
-use argon2::{
-    Argon2, PasswordHasher,
-    password_hash::{SaltString, rand_core::OsRng},
-};
+use argon2::{Argon2, PasswordHasher};
 use axum::{Json, Router, extract::State};
 use cds_db::{
     sea_orm::{
@@ -23,7 +20,7 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use validator::Validate;
+use garde::Validate;
 
 use crate::{
     extract::{Path, VJson},
@@ -65,6 +62,7 @@ pub async fn get_user(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
 pub struct UpdateUserRequest {
     pub name: Option<String>,
     pub password: Option<String>,
@@ -96,7 +94,7 @@ pub async fn update_user(
 
     if let Some(password) = body.password {
         let hashed_password = Argon2::default()
-            .hash_password(password.as_bytes(), &SaltString::generate(&mut OsRng))
+            .hash_password(password.as_bytes())
             .unwrap()
             .to_string();
         body.password = Some(hashed_password);

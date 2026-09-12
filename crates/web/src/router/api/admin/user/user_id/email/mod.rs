@@ -14,7 +14,7 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use validator::Validate;
+use garde::Validate;
 
 use crate::{
     extract::{Json as ReqJson, Path},
@@ -62,8 +62,9 @@ pub async fn get_email(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
 pub struct AdminAddEmailRequest {
-    #[validate(email)]
+    #[garde(email)]
     pub email: String,
     pub verified: Option<bool>,
 }

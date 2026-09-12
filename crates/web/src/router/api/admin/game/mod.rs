@@ -17,7 +17,7 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use validator::Validate;
+use garde::Validate;
 
 use crate::{
     extract::{Query, VJson},
@@ -91,6 +91,7 @@ pub async fn get_games(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
 pub struct CreateGameRequest {
     pub title: String,
     pub sketch: Option<String>,

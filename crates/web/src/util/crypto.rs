@@ -1,15 +1,11 @@
 //! Web utility — `crypto` (shared HTTP helpers).
 
-use argon2::{
-    PasswordHasher, PasswordVerifier,
-    password_hash::{SaltString, rand_core::OsRng},
-};
+use argon2::{PasswordHasher, PasswordVerifier};
 
 /// Hashes a password with Argon2 for storage.
 pub fn hash_password(password: String) -> String {
-    let salt = SaltString::generate(&mut OsRng);
     let argon2 = argon2::Argon2::default();
-    let hash = argon2.hash_password(password.as_bytes(), &salt).unwrap();
+    let hash = argon2.hash_password(password.as_bytes()).unwrap();
 
     hash.to_string()
 }

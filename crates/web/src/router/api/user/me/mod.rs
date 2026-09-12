@@ -25,7 +25,7 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use validator::Validate;
+use garde::Validate;
 
 use super::UserResponse;
 use crate::{
@@ -72,6 +72,7 @@ pub async fn get_user_profile(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
 pub struct UpdateUserProfileRequest {
     pub name: Option<String>,
     pub description: Option<String>,
@@ -163,6 +164,7 @@ pub async fn delete_user_profile(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
 pub struct UpdateUserProfilePasswordRequest {
     pub old_password: String,
     pub new_password: String,

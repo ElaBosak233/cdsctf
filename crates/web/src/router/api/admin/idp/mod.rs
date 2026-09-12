@@ -22,7 +22,7 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use validator::Validate;
+use garde::Validate;
 
 use crate::{
     extract::Json as ReqJson,
@@ -56,8 +56,9 @@ pub struct AdminIdpResponse {
 }
 
 #[derive(Clone, Debug, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
 pub struct AdminIdpRequest {
-    #[validate(length(min = 1, max = 127))]
+    #[garde(length(min = 1, max = 127))]
     pub name: String,
     #[serde(default = "default_true")]
     pub enabled: bool,
