@@ -90,7 +90,7 @@
   translate: 0 0;
 }
 
-[aria-pressed="false"] .theme-switch-stars-bg {
+.theme-switch[aria-pressed="false"] .theme-switch-stars-bg {
   transition-timing-function: cubic-bezier(0.2, -0.6, 0.7, 1.6);
 }
 
