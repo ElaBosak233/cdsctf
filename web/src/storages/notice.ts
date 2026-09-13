@@ -1,5 +1,5 @@
 import { sha256 } from "@noble/hashes/sha2.js";
-import { bytesToHex } from "@noble/hashes/utils.js";
+import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -29,13 +29,15 @@ function getNoticeScopeKey(userId: number, gameId: number) {
 function getNoticeFingerprint(notice: GameNoticeView) {
   return bytesToHex(
     sha256(
-      JSON.stringify([
-        notice.game_id ?? null,
-        notice.id ?? null,
-        notice.created_at ?? null,
-        notice.title ?? "",
-        notice.content ?? "",
-      ])
+      utf8ToBytes(
+        JSON.stringify([
+          notice.game_id ?? null,
+          notice.id ?? null,
+          notice.created_at ?? null,
+          notice.title ?? "",
+          notice.content ?? "",
+        ])
+      )
     )
   );
 }
