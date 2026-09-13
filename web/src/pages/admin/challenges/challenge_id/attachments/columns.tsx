@@ -7,10 +7,10 @@ import { deleteChallengeAttachment } from "@/api/admin/challenges/challenge_id/a
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import type { Metadata } from "@/models/media";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import { Context } from "../context";
 
 function ActionsCell({ row }: { row: Row<Metadata> }) {
@@ -37,7 +37,15 @@ function ActionsCell({ row }: { row: Row<Metadata> }) {
   }
 
   return (
-    <div className={cn(["flex", "items-center", "justify-center", "gap-2"])}>
+    <div
+      className={cn([
+        "flex",
+        "items-center",
+        "justify-center",
+        "gap-2",
+        "[&>*]:shrink-0",
+      ])}
+    >
       <Button
         level={"error"}
         variant={"ghost"}

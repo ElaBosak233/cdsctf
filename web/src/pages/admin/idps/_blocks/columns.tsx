@@ -39,10 +39,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 import type { IdpView } from "@/models/idp";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 
 const RowContext = createContext<{
   optimisticEnabled: boolean;
@@ -290,7 +290,15 @@ function ActionsCell({ row }: { row: Row<IdpView> }) {
   }
 
   return (
-    <div className={cn(["flex", "items-center", "justify-center", "gap-2"])}>
+    <div
+      className={cn([
+        "flex",
+        "items-center",
+        "justify-center",
+        "gap-2",
+        "[&>*]:shrink-0",
+      ])}
+    >
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

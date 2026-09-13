@@ -36,10 +36,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
+import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 import { Group, type UserAccountView } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 
 function UserCell({ row }: { row: Row<UserAccountView> }) {
   const user = row.original;
@@ -202,7 +202,15 @@ function ActionsCell({ row }: { row: Row<UserAccountView> }) {
   }
 
   return (
-    <div className={cn(["flex", "items-center", "justify-center", "gap-2"])}>
+    <div
+      className={cn([
+        "flex",
+        "items-center",
+        "justify-center",
+        "gap-2",
+        "[&>*]:shrink-0",
+      ])}
+    >
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

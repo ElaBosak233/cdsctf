@@ -51,11 +51,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
+import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 import type { ChallengeDetail } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
-import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 
 const RowContext = createContext<{
   optimisticPublic: boolean;
@@ -314,7 +314,15 @@ function ActionsCell({ row }: { row: Row<ChallengeDetail> }) {
   }
 
   return (
-    <div className={cn(["flex", "items-center", "justify-center", "gap-2"])}>
+    <div
+      className={cn([
+        "flex",
+        "items-center",
+        "justify-center",
+        "gap-2",
+        "[&>*]:shrink-0",
+      ])}
+    >
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

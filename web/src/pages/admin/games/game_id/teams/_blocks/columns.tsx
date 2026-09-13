@@ -19,10 +19,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { ColumnDef } from "@/hooks/use-data-table";
 import { State, type TeamView } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import type { ColumnDef } from "@/hooks/use-data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 
@@ -194,7 +194,13 @@ function useColumns(): Array<ColumnDef<TeamView>> {
 
         return (
           <div
-            className={cn(["flex", "items-center", "justify-center", "gap-2"])}
+            className={cn([
+              "flex",
+              "items-center",
+              "justify-center",
+              "gap-2",
+              "[&>*]:shrink-0",
+            ])}
           >
             <Tooltip>
               <TooltipTrigger asChild>

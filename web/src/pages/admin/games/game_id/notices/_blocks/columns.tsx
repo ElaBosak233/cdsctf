@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ContentDialog } from "@/components/widgets/content-dialog";
+import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import type { GameNoticeView } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 
@@ -48,7 +48,15 @@ function ActionsCell({ row }: { row: Row<GameNoticeView> }) {
   }
 
   return (
-    <div className={cn(["flex", "items-center", "justify-center", "gap-2"])}>
+    <div
+      className={cn([
+        "flex",
+        "items-center",
+        "justify-center",
+        "gap-2",
+        "[&>*]:shrink-0",
+      ])}
+    >
       <Button
         level={"error"}
         variant={"ghost"}

@@ -10,10 +10,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { ColumnDef } from "@/hooks/use-data-table";
 import { Status, type SubmissionView } from "@/models/submission";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import type { ColumnDef } from "@/hooks/use-data-table";
 
 function useColumns(): Array<ColumnDef<SubmissionView>> {
   const { t } = useTranslation();
@@ -214,7 +214,13 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
 
         return (
           <div
-            className={cn(["flex", "items-center", "justify-center", "gap-2"])}
+            className={cn([
+              "flex",
+              "items-center",
+              "justify-center",
+              "gap-2",
+              "[&>*]:shrink-0",
+            ])}
           >
             <Tooltip>
               <TooltipTrigger asChild>

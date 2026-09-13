@@ -21,16 +21,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useDebounce } from "@/hooks/use-debounce";
-import type { ChallengeDetail } from "@/models/challenge";
-import { useConfigStore } from "@/storages/config";
-import { useSharedStore } from "@/storages/shared";
-import { cn } from "@/utils";
 import {
   flexRender,
   type SortingState,
   useDataTable,
 } from "@/hooks/use-data-table";
+import { useDebounce } from "@/hooks/use-debounce";
+import type { ChallengeDetail } from "@/models/challenge";
+import { useConfigStore } from "@/storages/config";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
 import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
 import { ChallengeListContext } from "./context";
@@ -193,7 +193,7 @@ export default function Index() {
                           "sticky",
                           "right-0",
                           "z-3",
-                          "w-24",
+                          "w-28",
                         ],
                       ])}
                     >

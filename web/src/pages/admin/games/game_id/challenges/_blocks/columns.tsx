@@ -30,11 +30,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
+import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import type { GameChallengeView } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
-import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 import { EditDialog } from "./edit-dialog";
@@ -141,7 +141,15 @@ function ActionsCell({ row }: { row: Row<GameChallengeView> }) {
   }
 
   return (
-    <div className={cn(["flex", "items-center", "justify-center", "gap-2"])}>
+    <div
+      className={cn([
+        "flex",
+        "items-center",
+        "justify-center",
+        "gap-2",
+        "[&>*]:shrink-0",
+      ])}
+    >
       <Button
         variant={"ghost"}
         size={"sm"}
