@@ -1,17 +1,8 @@
-import { type ClassValue, clsx } from "clsx";
-import { extendTailwindMerge } from "tailwind-merge";
+import { createCn } from "cn/config";
 
-const twMerge = extendTailwindMerge({
-  extend: {
-    classGroups: {
-      rounded: ["rounded-elevated", "rounded-badge"],
-    },
-  },
+export const cn = createCn({
+  extend: { classGroups: { rounded: ["rounded-elevated", "rounded-badge"] } },
 });
-
-export function cn(...inputs: Array<ClassValue>) {
-  return twMerge(clsx(inputs));
-}
 
 export function stripIndent(str: string): string {
   const lines = str.replace(/^\n/, "").split("\n");
