@@ -1,4 +1,4 @@
-import { sha256 } from "@noble/hashes/sha256.js";
+import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
