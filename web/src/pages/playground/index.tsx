@@ -112,7 +112,7 @@ export default function Index() {
           "sm:p-7",
           "mx-auto",
           "w-full",
-          "max-w-[1440px]",
+          "max-w-360",
           "flex",
           "flex-col",
           "gap-5",
@@ -331,7 +331,7 @@ export default function Index() {
                 "select-none",
               ])}
             >
-              <PackageOpenIcon className={cn(["size-8"])} />
+              <PackageOpenIcon className={cn(["size-8", "opacity-50"])} />
               {t("challenge:empty")}
             </div>
           )}

@@ -7,6 +7,7 @@ import { getUser } from "@/api/admin/users/user_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";
+import { Sidebar } from "@/components/ui/sidebar";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -64,7 +65,7 @@ export default function Layout() {
             "xl:min-h-(--app-content-height)",
             "flex-1",
             "min-h-0",
-            "xl:pl-64",
+            "xl:items-stretch",
           ])}
         >
           <ScrollableNav className={cn(["xl:hidden"])}>
@@ -81,16 +82,18 @@ export default function Layout() {
               </Button>
             ))}
           </ScrollableNav>
-          <aside
+          <Sidebar
+            collapsible="none"
             className={cn([
               "hidden",
               "xl:flex",
-              "xl:fixed",
-              "xl:left-16",
-              "xl:top-16",
-              "xl:z-10",
+              "xl:relative",
+              "xl:top-auto",
+              "xl:left-auto",
+              "xl:z-auto",
               "xl:h-(--app-content-height)",
               "xl:w-64",
+              "xl:shrink-0",
               "xl:flex-col",
               "xl:border-r",
               "xl:bg-card/30",
@@ -131,7 +134,7 @@ export default function Layout() {
                 </Button>
               ))}
             </nav>
-          </aside>
+          </Sidebar>
           <Card
             className={cn([
               "flex-1",

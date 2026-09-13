@@ -14,10 +14,11 @@ import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";
 import { Select } from "@/components/ui/select";
+import { Sidebar } from "@/components/ui/sidebar";
 import { TextField } from "@/components/ui/text-field";
+import type { ColumnFiltersState } from "@/hooks/use-data-table";
 import { Group } from "@/models/user";
 import { cn } from "@/utils";
-import type { ColumnFiltersState } from "@/hooks/use-data-table";
 import { UserListContext } from "./context";
 
 function setFilter(
@@ -151,7 +152,7 @@ export default function Layout() {
           "flex-1",
           "min-h-0",
           "min-w-0",
-          "xl:pl-64",
+          "xl:items-stretch",
         ])}
       >
         <ScrollableNav className={cn(["xl:hidden"])}>
@@ -173,16 +174,18 @@ export default function Layout() {
             setColumnFilters={setColumnFilters}
           />
         </ScrollableNav>
-        <aside
+        <Sidebar
+          collapsible="none"
           className={cn([
             "hidden",
             "xl:flex",
-            "xl:fixed",
-            "xl:left-16",
-            "xl:top-16",
-            "xl:z-10",
+            "xl:relative",
+            "xl:top-auto",
+            "xl:left-auto",
+            "xl:z-auto",
             "xl:h-(--app-content-height)",
             "xl:w-64",
+            "xl:shrink-0",
             "xl:flex-col",
             "xl:border-r",
             "xl:bg-card/30",
@@ -235,7 +238,7 @@ export default function Layout() {
               setColumnFilters={setColumnFilters}
             />
           </div>
-        </aside>
+        </Sidebar>
         <Card
           className={cn([
             "flex-1",

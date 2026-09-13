@@ -11,6 +11,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";
+import { Sidebar } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import {
   Table,
@@ -20,16 +21,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { AdminConfig } from "@/models/config";
-import type { IdpView } from "@/models/idp";
-import { useConfigStore } from "@/storages/config";
-import { useSharedStore } from "@/storages/shared";
-import { cn } from "@/utils";
 import {
   flexRender,
   type SortingState,
   useDataTable,
 } from "@/hooks/use-data-table";
+import type { AdminConfig } from "@/models/config";
+import type { IdpView } from "@/models/idp";
+import { useConfigStore } from "@/storages/config";
+import { useSharedStore } from "@/storages/shared";
+import { cn } from "@/utils";
 import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
 
@@ -126,7 +127,7 @@ export default function Index() {
           "flex-col",
           "xl:flex-row",
           "xl:min-h-(--app-content-height)",
-          "xl:pl-64",
+          "xl:items-stretch",
         ])}
       >
         <ScrollableNav className="xl:hidden">
@@ -141,16 +142,18 @@ export default function Index() {
           </Button>
           {renderLocalRegistrationControl(true)}
         </ScrollableNav>
-        <aside
+        <Sidebar
+          collapsible="none"
           className={cn([
             "hidden",
-            "xl:fixed",
-            "xl:left-16",
-            "xl:top-16",
-            "xl:z-10",
+            "xl:relative",
+            "xl:top-auto",
+            "xl:left-auto",
+            "xl:z-auto",
             "xl:flex",
             "xl:h-(--app-content-height)",
             "xl:w-64",
+            "xl:shrink-0",
             "xl:flex-col",
             "xl:gap-4",
             "xl:border-r",
@@ -187,7 +190,7 @@ export default function Index() {
           <div className={cn(["mt-auto", "border-t", "pt-4"])}>
             {renderLocalRegistrationControl()}
           </div>
-        </aside>
+        </Sidebar>
         <Card
           className={cn([
             "flex",
@@ -263,7 +266,7 @@ export default function Index() {
                               "sticky",
                               "right-0",
                               "z-3",
-                              "w-24",
+                              "w-28",
                             ],
                           ])}
                         >

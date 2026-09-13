@@ -13,11 +13,17 @@ import { Link, Outlet, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/utils";
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { isSubRoute } from "@/utils/route";
 
 export default function Layout() {
@@ -70,63 +76,46 @@ export default function Layout() {
   ];
 
   return (
-    <div className={cn(["flex", "flex-1", "min-h-0"])}>
-      <div
-        className={cn([
-          "hidden",
-          "lg:flex",
-          "w-16",
-          "h-(--app-content-height)",
-          "sticky",
-          "top-16",
-          "bg-card/30",
-          "border-r",
-          "p-4",
-          "flex-col",
-          "items-center",
-          "gap-4",
-        ])}
-      >
-        {options?.map((option) => {
-          return (
-            <Tooltip key={option.link}>
-              <TooltipTrigger>
-                <Button
-                  icon={option.icon}
-                  square
-                  size={"sm"}
-                  variant={
-                    isSubRoute(option.link, pathname, "/admin")
-                      ? "tonal"
-                      : "ghost"
-                  }
-                  asChild
-                >
-                  <Link to={option.link} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side={"right"}>{option.name}</TooltipContent>
-            </Tooltip>
-          );
-        })}
-      </div>
-      <div
-        className={cn([
-          "flex-1",
-          "min-w-0",
-          "flex",
-          "flex-col",
-          "min-h-0",
-          "min-h-(--app-content-height)",
-        ])}
-      >
-        <ScrollableNav className={cn(["lg:hidden"])}>
+    <SidebarProvider
+      defaultOpen={false}
+      className="min-h-(--app-content-height)"
+    >
+      <Sidebar collapsible="icon" className="top-16 h-(--app-content-height)">
+        <SidebarContent className="p-[14px]">
+          <SidebarGroup className="p-0">
+            <SidebarMenu>
+              {options.map((option) => (
+                <SidebarMenuItem key={option.link}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isSubRoute(option.link, pathname, "/admin")}
+                    className="h-9 justify-start px-2.5 [&>span]:group-data-[collapsible=icon]:hidden"
+                  >
+                    <Link to={option.link}>
+                      {option.icon}
+                      <span>{option.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter className="p-[14px]">
+          <SidebarTrigger
+            aria-label="Toggle administration navigation"
+            className="w-full justify-start px-2.5"
+          />
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset className="min-h-(--app-content-height)">
+        <ScrollableNav className="lg:hidden">
           {options.map((option) => (
             <Button
               key={option.link}
               icon={option.icon}
               size="sm"
-              className={cn(["shrink-0"])}
+              className="shrink-0"
               variant={
                 isSubRoute(option.link, pathname, "/admin") ? "tonal" : "ghost"
               }
@@ -137,7 +126,7 @@ export default function Layout() {
           ))}
         </ScrollableNav>
         <Outlet />
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

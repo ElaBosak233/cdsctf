@@ -15,9 +15,10 @@ import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";
 import { Select } from "@/components/ui/select";
+import { Sidebar, SidebarContent, SidebarInset } from "@/components/ui/sidebar";
 import { TextField } from "@/components/ui/text-field";
-import { cn } from "@/utils";
 import type { ColumnFiltersState } from "@/hooks/use-data-table";
+import { cn } from "@/utils";
 import { GameListContext } from "./context";
 
 function setFilter(
@@ -138,47 +139,19 @@ export default function Layout() {
         setColumnFilters,
       }}
     >
-      <div
-        className={cn([
-          "flex",
-          "flex-col",
-          "xl:flex-row",
-          "xl:min-h-(--app-content-height)",
-          "flex-1",
-          "min-h-0",
-          "min-w-0",
-          "xl:pl-64",
-        ])}
-      >
-        <ScrollableNav className={cn(["xl:hidden"])}>
-          <Button
-            icon={<PlusCircleIcon className="size-4" />}
-            variant="solid"
-            size="sm"
-            className={cn(["shrink-0"])}
-            onClick={() => setCreateDialogOpen(true)}
-          >
-            {t("common:actions.add")}
-          </Button>
-          <div
-            className={cn(["mx-1", "h-6", "w-px", "shrink-0", "bg-border"])}
-          />
-          <FilterFields
-            compact
-            columnFilters={columnFilters}
-            setColumnFilters={setColumnFilters}
-          />
-        </ScrollableNav>
-        <aside
+      <div className="flex min-h-(--app-content-height) flex-1 min-w-0">
+        <Sidebar
+          collapsible="none"
           className={cn([
             "hidden",
             "xl:flex",
-            "xl:fixed",
-            "xl:left-16",
-            "xl:top-16",
-            "xl:z-10",
+            "xl:relative",
+            "xl:top-auto",
+            "xl:left-auto",
+            "xl:z-auto",
             "xl:h-(--app-content-height)",
             "xl:w-64",
+            "xl:shrink-0",
             "xl:flex-col",
             "xl:border-r",
             "xl:bg-card/30",
@@ -231,22 +204,43 @@ export default function Layout() {
               setColumnFilters={setColumnFilters}
             />
           </div>
-        </aside>
-        <Card
-          className={cn([
-            "flex-1",
-            "min-h-0",
-            "min-w-0",
-            "border-y-0",
-            "rounded-none",
-            "flex",
-            "flex-col",
-            "xl:h-(--app-content-height)",
-            "xl:rounded-l-none",
-          ])}
-        >
-          <Outlet />
-        </Card>
+        </Sidebar>
+        <SidebarInset className="min-h-(--app-content-height) flex flex-col flex-1 min-w-0">
+          <ScrollableNav className={cn(["xl:hidden"])}>
+            <Button
+              icon={<PlusCircleIcon className="size-4" />}
+              variant="solid"
+              size="sm"
+              className={cn(["shrink-0"])}
+              onClick={() => setCreateDialogOpen(true)}
+            >
+              {t("common:actions.add")}
+            </Button>
+            <div
+              className={cn(["mx-1", "h-6", "w-px", "shrink-0", "bg-border"])}
+            />
+            <FilterFields
+              compact
+              columnFilters={columnFilters}
+              setColumnFilters={setColumnFilters}
+            />
+          </ScrollableNav>
+          <Card
+            className={cn([
+              "flex-1",
+              "min-h-0",
+              "min-w-0",
+              "border-y-0",
+              "rounded-none",
+              "flex",
+              "flex-col",
+              "xl:h-(--app-content-height)",
+              "xl:rounded-l-none",
+            ])}
+          >
+            <Outlet />
+          </Card>
+        </SidebarInset>
       </div>
     </GameListContext.Provider>
   );
