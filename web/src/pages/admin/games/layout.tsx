@@ -15,7 +15,7 @@ import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";
 import { Select } from "@/components/ui/select";
-import { Sidebar, SidebarContent, SidebarInset } from "@/components/ui/sidebar";
+import { Sidebar, SidebarInset } from "@/components/ui/sidebar";
 import { TextField } from "@/components/ui/text-field";
 import type { ColumnFiltersState } from "@/hooks/use-data-table";
 import { cn } from "@/utils";

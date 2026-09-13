@@ -18,15 +18,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { ScoreboardTeam } from "@/models/game";
-import { Status, type SubmissionSummary } from "@/models/submission";
-import { useGameStore } from "@/storages/game";
-import { cn } from "@/utils";
 import {
   type ColumnDef,
   flexRender,
   useDataTable,
 } from "@/hooks/use-data-table";
+import type { ScoreboardTeam } from "@/models/game";
+import { Status, type SubmissionSummary } from "@/models/submission";
+import { useGameStore } from "@/storages/game";
+import { cn } from "@/utils";
 
 interface TeamDetailsDialogProps {
   team: ScoreboardTeam;
