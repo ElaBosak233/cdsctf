@@ -4,3 +4,6 @@ minimumReleaseAgeExclude:
   - "@types/node@26.2.0"
   - lucide-react@1.45.0
   - react-hook-form@7.88.0
+  - cn@0.3.0
+  - js-yaml@5.4.2
+  - zod@4.6.4
