@@ -49,6 +49,7 @@ export default function Index() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] =
     useState<ColumnVisibilityState>({
+      id: false,
       game_id: false,
     });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -96,12 +97,19 @@ export default function Index() {
   return (
     <div
       className={cn([
-        "container",
-        "mx-auto",
         "h-full",
+        "w-full",
+        "min-w-0",
         "min-h-0",
         "flex",
         "flex-col",
+        "gap-4",
+        "px-4",
+        "py-4",
+        "sm:px-6",
+        "sm:py-6",
+        "lg:px-8",
+        "lg:py-8",
       ])}
     >
       <div
@@ -109,8 +117,8 @@ export default function Index() {
           "flex",
           "justify-between",
           "items-center",
-          "mb-6",
-          "gap-10",
+          "shrink-0",
+          "gap-6",
           "shrink-0",
         ])}
       >
@@ -153,30 +161,52 @@ export default function Index() {
       <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
         <ScrollArea
           className={cn([
-            "rounded-md",
-            "border",
-            "bg-card",
-            "h-full",
+            "flex-1",
             "min-h-0",
+            "min-w-0",
+            "w-full",
             "overflow-hidden",
+            "rounded-lg",
+            "border",
+            "ring-1",
+            "ring-border/50",
+            "shadow-sm",
           ])}
         >
           <LoadingOverlay loading={loading} />
-          <Table className={cn(["text-foreground"])}>
+          <Table
+            className={cn([
+              "w-full",
+              "min-w-full",
+              "table-auto",
+              "max-w-none",
+              "text-foreground",
+            ])}
+          >
             <TableHeader
               className={cn([
                 "sticky",
                 "top-0",
                 "z-2",
-                "bg-muted/70",
-                "backdrop-blur-md",
+                "bg-muted/80",
+                "backdrop-blur-sm",
+                "border-b",
               ])}
             >
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead
+                        key={header.id}
+                        className={cn([
+                          "bg-muted/95",
+                          header.column.id === "title" && "min-w-64",
+                          header.column.id === "content" && "min-w-80",
+                          header.column.id === "created_at" && "w-48 min-w-48",
+                          header.column.id === "actions" && "w-24 min-w-24",
+                        ])}
+                      >
                         {!header.isPlaceholder &&
                           flexRender(
                             header.column.columnDef.header,
@@ -194,9 +224,22 @@ export default function Index() {
                     <TableRow
                       key={row.getValue("id")}
                       data-state={row.getIsSelected() && "selected"}
+                      className={cn([
+                        "group",
+                        "transition-colors",
+                        "hover:bg-transparent",
+                      ])}
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
+                        <TableCell
+                          key={cell.id}
+                          className={cn([
+                            "py-3",
+                            "transition-colors",
+                            "group-hover:bg-muted/50",
+                            cell.column.id === "actions" && "w-24",
+                          ])}
+                        >
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()

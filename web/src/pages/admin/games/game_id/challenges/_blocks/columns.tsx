@@ -19,7 +19,6 @@ import {
   deleteGameChallenge,
   updateGameChallenge,
 } from "@/api/admin/games/game_id/challenges/challenge_id";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -83,24 +82,61 @@ function IsEnabledCell({ row }: { row: Row<GameChallengeView> }) {
   );
 }
 
-function ChallengeIdCell({ row }: { row: Row<GameChallengeView> }) {
-  const id = row.original.challenge_id!;
+function ChallengeCell({ row }: { row: Row<GameChallengeView> }) {
+  const challenge = row.original;
+  const id = challenge.challenge_id!;
+  const category = getCategory(challenge.challenge_category);
+  const CategoryIcon = category.icon!;
   const { t } = useTranslation();
   const { isCopied, copyToClipboard } = useClipboard();
   return (
-    <div className={cn(["flex", "items-center", "gap-2"])}>
-      <Badge className={cn(["font-mono"])}>{id}</Badge>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
-            square
-            size={"sm"}
-            onClick={() => copyToClipboard(String(id))}
-          />
-        </TooltipTrigger>
-        <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
-      </Tooltip>
+    <div className={cn(["flex", "min-w-0", "items-center", "gap-3"])}>
+      <div
+        className={cn([
+          "flex",
+          "size-9",
+          "shrink-0",
+          "items-center",
+          "justify-center",
+          "rounded-md",
+          "bg-muted",
+          "text-muted-foreground",
+        ])}
+      >
+        <CategoryIcon className="size-4" />
+      </div>
+      <div className={cn(["min-w-0", "flex-1"])}>
+        <div className={cn(["truncate", "text-sm", "font-semibold"])}>
+          {challenge.challenge_title || "-"}
+        </div>
+        <div
+          className={cn([
+            "mt-0.5",
+            "flex",
+            "min-w-0",
+            "items-center",
+            "gap-1.5",
+            "text-xs",
+            "text-muted-foreground",
+          ])}
+        >
+          <span className={cn(["shrink-0", "font-mono"])}>#{id}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
+                square
+                size="sm"
+                variant="ghost"
+                className={cn(["size-6", "shrink-0", "text-muted-foreground"])}
+                aria-label={t("common:tooltip.copy")}
+                onClick={() => copyToClipboard(String(id))}
+              />
+            </TooltipTrigger>
+            <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
+          </Tooltip>
+        </div>
+      </div>
     </div>
   );
 }
@@ -147,7 +183,7 @@ function ActionsCell({ row }: { row: Row<GameChallengeView> }) {
         "items-center",
         "justify-center",
         "gap-2",
-        "[&>*]:shrink-0",
+        "*:shrink-0",
       ])}
     >
       <Button
@@ -248,13 +284,8 @@ function useColumns() {
       },
       {
         id: "challenge_id",
-        header: t("challenge:form.id._"),
-        cell: ChallengeIdCell,
-      },
-      {
-        id: "challenge_title",
         header: t("challenge:title"),
-        cell: ({ row }) => row.original.challenge_title || "-",
+        cell: ChallengeCell,
       },
       {
         id: "challenge_category",

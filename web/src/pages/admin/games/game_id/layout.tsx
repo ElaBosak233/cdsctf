@@ -273,11 +273,9 @@ export default function Layout() {
           <Card
             className={cn([
               "flex-1",
+              "w-full",
               "min-w-0",
               "min-h-0",
-              "p-4",
-              "sm:p-6",
-              "xl:p-10",
               "border-y-0",
               "rounded-none",
               "flex",

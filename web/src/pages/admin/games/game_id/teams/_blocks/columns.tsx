@@ -40,14 +40,7 @@ function useColumns(): Array<ColumnDef<TeamView>> {
       accessorKey: "id",
       id: "id",
       header: t("team:id"),
-      cell: function IdCell({ row }) {
-        const id = row.original.id;
-        return (
-          <div className={cn(["flex", "items-center", "gap-2"])}>
-            <Badge># {id}</Badge>
-          </div>
-        );
-      },
+      enableHiding: true,
     },
     {
       accessorKey: "name",
@@ -56,15 +49,41 @@ function useColumns(): Array<ColumnDef<TeamView>> {
       cell: ({ row }) => {
         const name = row.original.name!;
         return (
-          <div className={cn(["flex", "gap-2", "items-center"])}>
+          <div className={cn(["flex", "min-w-0", "items-center", "gap-3"])}>
             <Avatar
+              className={cn(["size-9", "shrink-0"])}
               src={
                 row.original.avatar_hash &&
                 `/api/media?hash=${row.original.avatar_hash}`
               }
               fallback={name.charAt(0)}
             />
-            <span>{name}</span>
+            <div className={cn(["min-w-0", "flex-1"])}>
+              <div className={cn(["truncate", "text-sm", "font-semibold"])}>
+                {name}
+              </div>
+              <div
+                className={cn([
+                  "mt-0.5",
+                  "flex",
+                  "min-w-0",
+                  "items-center",
+                  "gap-1.5",
+                  "text-xs",
+                  "text-muted-foreground",
+                ])}
+              >
+                <span className={cn(["shrink-0", "font-mono"])}>
+                  #{row.original.id}
+                </span>
+                {row.original.slogan && (
+                  <>
+                    <span className="shrink-0">·</span>
+                    <span className="truncate">{row.original.slogan}</span>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         );
       },
@@ -199,7 +218,7 @@ function useColumns(): Array<ColumnDef<TeamView>> {
               "items-center",
               "justify-center",
               "gap-2",
-              "[&>*]:shrink-0",
+              "*:shrink-0",
             ])}
           >
             <Tooltip>
