@@ -128,8 +128,8 @@ export default function Layout() {
             className={cn([
               "hidden",
               "xl:flex",
-              "xl:relative",
-              "xl:top-auto",
+              "xl:sticky",
+              "xl:top-16",
               "xl:left-auto",
               "xl:z-auto",
               "xl:h-(--app-content-height)",

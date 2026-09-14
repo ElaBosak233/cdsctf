@@ -146,8 +146,8 @@ export default function Index() {
           collapsible="none"
           className={cn([
             "hidden",
-            "xl:relative",
-            "xl:top-auto",
+            "xl:sticky",
+            "xl:top-16",
             "xl:left-auto",
             "xl:z-auto",
             "xl:flex",
