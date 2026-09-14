@@ -14,13 +14,47 @@ type SelectProps = Omit<
   onValueChange?: (value: string) => void;
 };
 
-function Select({ onValueChange, ...props }: SelectProps) {
+type SelectItemOption = {
+  value: unknown;
+  label: React.ReactNode;
+};
+
+function collectSelectItems(children: React.ReactNode): SelectItemOption[] {
+  const items: SelectItemOption[] = [];
+
+  React.Children.forEach(children, (child) => {
+    if (!React.isValidElement(child)) return;
+
+    if (child.type === SelectItem) {
+      const props = child.props as React.ComponentProps<typeof BaseSelect.Item>;
+      if (props.value !== undefined) {
+        items.push({ value: props.value, label: props.children });
+      }
+      return;
+    }
+
+    items.push(
+      ...collectSelectItems(
+        (child.props as { children?: React.ReactNode }).children
+      )
+    );
+  });
+
+  return items;
+}
+
+function Select({ onValueChange, children, items, ...props }: SelectProps) {
+  const derivedItems = collectSelectItems(children);
+
   return (
     <BaseSelect.Root
       data-slot="select"
+      items={items ?? (derivedItems.length > 0 ? derivedItems : undefined)}
       {...props}
       onValueChange={(value) => onValueChange?.(String(value ?? ""))}
-    />
+    >
+      {children}
+    </BaseSelect.Root>
   );
 }
 
