@@ -11,12 +11,16 @@ function Popover(props: React.ComponentProps<typeof BasePopover.Root>) {
 function PopoverTrigger({
   asChild,
   children,
+  nativeButton,
   ...props
 }: React.ComponentProps<typeof BasePopover.Trigger> & { asChild?: boolean }) {
+  const renderedTrigger =
+    asChild && React.isValidElement(children) ? children : undefined;
   return (
     <BasePopover.Trigger
       data-slot="popover-trigger"
-      render={asChild && React.isValidElement(children) ? children : undefined}
+      render={renderedTrigger}
+      nativeButton={nativeButton ?? (renderedTrigger ? false : undefined)}
       {...props}
     >
       {asChild ? undefined : children}

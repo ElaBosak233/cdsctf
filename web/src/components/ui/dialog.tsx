@@ -12,17 +12,22 @@ function Dialog(props: DialogProps) {
 }
 
 function DialogTrigger({
+  nativeButton,
   ...props
 }: React.ComponentProps<typeof BaseDialog.Trigger> & { asChild?: boolean }) {
   const { asChild, children, render, ...rest } = props;
   const child = React.isValidElement(children) ? children : undefined;
+  const renderedTrigger = render ?? child;
 
   return (
     <BaseDialog.Trigger
       data-slot="dialog-trigger"
       // Base UI's render prop replaces the trigger element. This also keeps
       // Button/Card triggers from becoming invalid nested interactive elements.
-      render={render ?? child}
+      render={renderedTrigger}
+      // Custom components (for example Button or Card) are valid render
+      // targets, but Base UI cannot inspect their eventual DOM tag.
+      nativeButton={nativeButton ?? (renderedTrigger ? false : undefined)}
       {...rest}
     >
       {render || child || asChild ? undefined : children}
