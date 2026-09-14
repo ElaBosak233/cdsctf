@@ -77,6 +77,7 @@ pub async fn get_users(
             id: params.id,
             name: params.name,
             group: params.group,
+            game_id: None,
             sorts: params.sorts,
             page: Some(page),
             size: Some(size),

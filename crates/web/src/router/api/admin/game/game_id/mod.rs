@@ -16,6 +16,9 @@ mod poster;
 /// Defines the `team` submodule (see sibling `*.rs` files).
 mod team;
 
+/// Defines the game-scoped `user` submodule.
+mod user;
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -47,6 +50,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(calculate_game).with_state(state.clone()))
         .nest("/challenges", challenge::router(state.clone()))
         .nest("/teams", team::router(state.clone()))
+        .nest("/users", user::router(state.clone()))
         .nest("/notices", notice::router(state.clone()))
         .nest("/icon", icon::router(state.clone()))
         .nest("/poster", poster::router(state.clone()))

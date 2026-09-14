@@ -23,6 +23,7 @@ pub struct FindUserOptions {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub group: Option<Group>,
+    pub game_id: Option<i64>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -62,6 +63,7 @@ pub async fn find<T>(
         id,
         name,
         group,
+        game_id,
         page,
         size,
         sorts,
@@ -85,6 +87,13 @@ where
 
     if let Some(group) = group {
         sql = sql.filter(Column::Group.eq(group));
+    }
+
+    if let Some(game_id) = game_id {
+        sql = sql
+            .inner_join(crate::entity::team::Entity)
+            .filter(crate::entity::team::Column::GameId.eq(game_id))
+            .distinct();
     }
 
     sql = sql.filter(Column::DeletedAt.is_null());

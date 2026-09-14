@@ -4,6 +4,7 @@ import { api, toSearchParams } from "@/utils/query";
 export type GetSubmissionsRequest = {
   game_id: number;
   id?: number;
+  user_id?: number;
   team_id?: number;
   challenge_id?: number;
   status?: Status;
