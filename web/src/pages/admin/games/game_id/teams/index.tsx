@@ -1,3 +1,4 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   HashIcon,
   ListOrderedIcon,
@@ -5,7 +6,7 @@ import {
   TypeIcon,
   UsersRoundIcon,
 } from "lucide-react";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { getTeams } from "@/api/admin/games/game_id/teams";
@@ -13,7 +14,13 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -26,6 +33,7 @@ import { TextField } from "@/components/ui/text-field";
 import {
   type ColumnFiltersState,
   type ColumnVisibilityState,
+  type ExpandedState,
   flexRender,
   type SortingState,
   useDataTable,
@@ -48,14 +56,11 @@ export default function Index() {
   const routeGameId = parseRouteNumericId(game_id);
   const { game } = useContext(Context);
 
-  const [total, setTotal] = useState<number>(0);
-  const [teams, setTeams] = useState<Array<TeamView>>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(10);
 
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [expanded, setExpanded] = useState<ExpandedState>({});
   const [columnVisibility, setColumnVisibility] =
     useState<ColumnVisibilityState>({
       id: false,
@@ -69,6 +74,41 @@ export default function Index() {
   ]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
+  const gameId = routeGameId ?? game?.id;
+  const teamQuery = useQuery({
+    queryKey: [
+      "admin",
+      "game-teams",
+      gameId,
+      page,
+      size,
+      sorting,
+      debouncedColumnFilters,
+      sharedStore.refresh,
+    ],
+    queryFn: () =>
+      getTeams({
+        game_id: gameId!,
+        id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
+        name: debouncedColumnFilters.find((c) => c.id === "name")
+          ?.value as string,
+        state:
+          debouncedColumnFilters.find((c) => c.id === "state")?.value !== "all"
+            ? Number(
+                debouncedColumnFilters.find((c) => c.id === "state")?.value
+              )
+            : undefined,
+        sorts: "rank",
+        page,
+        size,
+      }),
+    enabled: gameId != null,
+    placeholderData: keepPreviousData,
+  });
+  const teams = teamQuery.data?.teams ?? [];
+  const total = teamQuery.data?.total ?? 0;
+  const loading = teamQuery.isFetching;
+
   const columns = useColumns();
 
   const table = useDataTable<TeamView>({
@@ -81,10 +121,13 @@ export default function Index() {
     onColumnVisibilityChange: setColumnVisibility,
     manualSorting: true,
     onSortingChange: setSorting,
+    getRowCanExpand: () => true,
+    onExpandedChange: setExpanded,
     state: {
       sorting,
       columnVisibility,
       columnFilters,
+      expanded,
     },
   });
 
@@ -94,44 +137,6 @@ export default function Index() {
     { id: State.Pending.toString(), name: t("team:state.pending") },
     { id: State.Passed.toString(), name: t("team:state.passed") },
   ];
-
-  useEffect(() => {
-    void sorting;
-    void sharedStore.refresh;
-
-    const gid = routeGameId ?? game?.id;
-    if (gid == null) return;
-
-    setLoading(true);
-    getTeams({
-      game_id: gid,
-      id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
-      name: debouncedColumnFilters.find((c) => c.id === "name")
-        ?.value as string,
-      state:
-        debouncedColumnFilters.find((c) => c.id === "state")?.value !== "all"
-          ? Number(debouncedColumnFilters.find((c) => c.id === "state")?.value)
-          : undefined,
-      sorts: "rank",
-      page,
-      size,
-    })
-      .then((res) => {
-        setTotal(res?.total || 0);
-        setTeams(res?.teams || []);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [
-    page,
-    size,
-    sorting,
-    debouncedColumnFilters,
-    sharedStore.refresh,
-    game,
-    routeGameId,
-  ]);
 
   return (
     <div
@@ -212,33 +217,25 @@ export default function Index() {
               <SatelliteIcon />
             </FieldIcon>
             <Select
-              options={[
-                {
-                  value: "all",
-                  content: (
-                    <div className={cn(["flex", "gap-2", "items-center"])}>
-                      {t("common:all")}
-                    </div>
-                  ),
-                },
-                ...stateOptions.map((state) => {
-                  return {
-                    value: String(state?.id),
-                    content: (
-                      <div className={cn(["flex", "gap-2", "items-center"])}>
-                        {state?.name}
-                      </div>
-                    ),
-                  };
-                }),
-              ]}
-              onValueChange={(value) =>
-                table.getColumn("state")?.setFilterValue(value)
-              }
               value={
                 (table.getColumn("state")?.getFilterValue() as string) ?? ""
               }
-            />
+              onValueChange={(value) =>
+                table.getColumn("state")?.setFilterValue(value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("common:all")}</SelectItem>
+                {stateOptions.map((state) => (
+                  <SelectItem key={state.id} value={String(state.id)}>
+                    {state.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
         </div>
       </div>
@@ -386,15 +383,20 @@ export default function Index() {
               <ListOrderedIcon />
             </FieldIcon>
             <Select
-              options={[
-                { value: "10" },
-                { value: "20" },
-                { value: "40" },
-                { value: "60" },
-              ]}
               value={String(size)}
               onValueChange={(value) => setSize(Number(value))}
-            />
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[10, 20, 40, 60].map((value) => (
+                  <SelectItem key={value} value={String(value)}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
 
           <Pagination

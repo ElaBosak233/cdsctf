@@ -23,7 +23,6 @@ pub struct FindUserOptions {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub group: Option<Group>,
-    pub game_id: Option<i64>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -59,15 +58,35 @@ fn base_find() -> sea_orm::Select<Entity> {
 /// Queries rows using filter options and returns `(rows, total_count)`.
 pub async fn find<T>(
     conn: &impl ConnectionTrait,
+    options: FindUserOptions,
+) -> Result<(Vec<T>, u64), DbError>
+where
+    T: FromQueryResult, {
+    find_scoped(conn, options, None).await
+}
+
+/// Queries users who belong to at least one team in a game.
+pub async fn find_by_game_id<T>(
+    conn: &impl ConnectionTrait,
+    game_id: i64,
+    options: FindUserOptions,
+) -> Result<(Vec<T>, u64), DbError>
+where
+    T: FromQueryResult, {
+    find_scoped(conn, options, Some(game_id)).await
+}
+
+async fn find_scoped<T>(
+    conn: &impl ConnectionTrait,
     FindUserOptions {
         id,
         name,
         group,
-        game_id,
         page,
         size,
         sorts,
     }: FindUserOptions,
+    game_id: Option<i64>,
 ) -> Result<(Vec<T>, u64), DbError>
 where
     T: FromQueryResult, {

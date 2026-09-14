@@ -1,5 +1,6 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { HashIcon, LibraryIcon, PlusCircleIcon } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { getGameChallenges } from "@/api/admin/games/game_id/challenges";
@@ -8,7 +9,13 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -46,9 +53,6 @@ export default function Index() {
 
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
 
-  const [challenges, setChallenges] = useState<Array<GameChallengeView>>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] =
     useState<ColumnVisibilityState>({
@@ -61,6 +65,34 @@ export default function Index() {
     },
   ]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
+  const gameId = routeGameId ?? game?.id;
+  const challengeQuery = useQuery({
+    queryKey: [
+      "admin",
+      "game-challenges",
+      gameId,
+      sorting,
+      debouncedColumnFilters,
+      sharedStore.refresh,
+    ],
+    queryFn: () =>
+      getGameChallenges({
+        game_id: gameId!,
+        challenge_id: debouncedColumnFilters.find(
+          (c) => c.id === "challenge_id"
+        )?.value as number,
+        category:
+          (debouncedColumnFilters.find((c) => c.id === "challenge_category")
+            ?.value as string) !== "all"
+            ? (debouncedColumnFilters.find((c) => c.id === "challenge_category")
+                ?.value as number)
+            : undefined,
+      }),
+    enabled: gameId != null,
+    placeholderData: keepPreviousData,
+  });
+  const challenges = challengeQuery.data?.challenges ?? [];
+  const loading = challengeQuery.isFetching;
 
   const columns = useColumns();
   const table = useDataTable<GameChallengeView>({
@@ -78,32 +110,6 @@ export default function Index() {
       columnFilters,
     },
   });
-
-  useEffect(() => {
-    void sharedStore.refresh;
-
-    const gid = routeGameId ?? game?.id;
-    if (gid == null) return;
-
-    setLoading(true);
-    getGameChallenges({
-      game_id: gid,
-      challenge_id: debouncedColumnFilters.find((c) => c.id === "challenge_id")
-        ?.value as number,
-      category:
-        (debouncedColumnFilters.find((c) => c.id === "challenge_category")
-          ?.value as string) !== "all"
-          ? (debouncedColumnFilters.find((c) => c.id === "challenge_category")
-              ?.value as number)
-          : undefined,
-    })
-      .then((res) => {
-        setChallenges(res?.challenges || []);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [debouncedColumnFilters, sharedStore.refresh, game, routeGameId]);
 
   return (
     <div
@@ -173,38 +179,31 @@ export default function Index() {
               <LibraryIcon />
             </FieldIcon>
             <Select
-              options={[
-                {
-                  value: "all",
-                  content: (
-                    <div className={cn(["flex", "gap-2", "items-center"])}>
-                      {t("common:all")}
-                    </div>
-                  ),
-                },
-                ...(categories || []).map((category) => {
-                  const Icon = category.icon!;
-
-                  return {
-                    value: String(category?.id),
-                    content: (
-                      <div className={cn(["flex", "gap-2", "items-center"])}>
-                        <Icon />
-                        {category?.name?.toUpperCase()}
-                      </div>
-                    ),
-                  };
-                }),
-              ]}
-              onValueChange={(value) =>
-                table.getColumn("challenge_category")?.setFilterValue(value)
-              }
               value={
                 (table
                   .getColumn("challenge_category")
                   ?.getFilterValue() as string) ?? ""
               }
-            />
+              onValueChange={(value) =>
+                table.getColumn("challenge_category")?.setFilterValue(value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("common:all")}</SelectItem>
+                {(categories || []).map((category) => {
+                  const Icon = category.icon!;
+                  return (
+                    <SelectItem key={category.id} value={String(category.id)}>
+                      <Icon />
+                      {category.name?.toUpperCase()}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           </Field>
 
           <Button
@@ -241,7 +240,7 @@ export default function Index() {
           <Table
             className={cn([
               "w-full",
-              "min-w-224",
+              "min-w-4xl",
               "table-fixed",
               "text-foreground",
             ])}
@@ -270,12 +269,12 @@ export default function Index() {
                             "z-3",
                             "bg-muted/95",
                           ],
-                          header.column.id === "enabled" && "w-16 px-2",
+                          header.column.id === "enabled" && "w-1 px-2",
                           header.column.id === "challenge_id" && "w-24",
                           header.column.id === "challenge_title" && "min-w-64",
                           header.column.id === "challenge_category" && "w-44",
                           header.column.id === "pts" && "w-24",
-                          header.column.id === "actions" && "w-28",
+                          header.column.id === "actions" && "w-12",
                         ])}
                       >
                         {!header.isPlaceholder &&

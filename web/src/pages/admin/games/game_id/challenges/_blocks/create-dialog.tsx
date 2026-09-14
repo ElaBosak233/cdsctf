@@ -1,5 +1,6 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { CheckIcon, LibraryIcon } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { toast } from "sonner";
@@ -39,17 +40,15 @@ function CreateDialog(props: CreateDialogProps) {
 
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query.trim(), 150);
-  const [challenges, setChallenges] = useState<Array<ChallengeDetail>>([]);
   const [selectedChallenge, setSelectedChallenge] =
     useState<ChallengeDetail | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const numericId = /^\d+$/.test(debouncedQuery)
-      ? Number(debouncedQuery)
-      : undefined;
-
-    async function fetchChallenges() {
+  const challengeQuery = useQuery({
+    queryKey: ["admin", "game-challenge-options", debouncedQuery],
+    queryFn: async () => {
+      const numericId = /^\d+$/.test(debouncedQuery)
+        ? Number(debouncedQuery)
+        : undefined;
       const [exactIdResult, titleResult] = await Promise.all([
         numericId != null
           ? getChallenges({
@@ -68,25 +67,19 @@ function CreateDialog(props: CreateDialogProps) {
         }),
       ]);
 
-      if (cancelled) return;
-
       const seen = new Set<number>();
-      const merged = [...exactIdResult.challenges, ...titleResult.challenges]
+      return [...exactIdResult.challenges, ...titleResult.challenges]
         .filter((challenge) => {
           if (seen.has(challenge.id)) return false;
           seen.add(challenge.id);
           return true;
         })
         .slice(0, 10);
-
-      setChallenges(merged);
-    }
-
-    void fetchChallenges();
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedQuery]);
+    },
+    enabled: true,
+    placeholderData: keepPreviousData,
+  });
+  const challenges = challengeQuery.data ?? [];
 
   function handleCreateGameChallenge(challenge: ChallengeDetail) {
     const gid = routeGameId ?? game?.id;

@@ -1,5 +1,6 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { MessageCircleIcon, PlusCircleIcon } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { getGameNotice } from "@/api/games/game_id/notices";
@@ -42,10 +43,6 @@ export default function Index() {
 
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
 
-  const [total, setTotal] = useState<number>(0);
-  const [notices, setNotices] = useState<Array<GameNoticeView>>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] =
     useState<ColumnVisibilityState>({
@@ -54,6 +51,23 @@ export default function Index() {
     });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
+  const gameId = routeGameId ?? game?.id;
+  const noticesQuery = useQuery({
+    queryKey: [
+      "admin",
+      "game-notices",
+      gameId,
+      sorting,
+      debouncedColumnFilters,
+      sharedStore.refresh,
+    ],
+    queryFn: () => getGameNotice({ game_id: gameId! }),
+    enabled: gameId != null,
+    placeholderData: keepPreviousData,
+  });
+  const notices = noticesQuery.data?.notices ?? [];
+  const total = noticesQuery.data?.total ?? 0;
+  const loading = noticesQuery.isFetching;
 
   const columns = useColumns();
   const table = useDataTable<GameNoticeView>({
@@ -72,27 +86,6 @@ export default function Index() {
       columnFilters,
     },
   });
-
-  useEffect(() => {
-    void debouncedColumnFilters;
-    void sorting;
-    void sharedStore.refresh;
-
-    const gid = routeGameId ?? game?.id;
-    if (gid == null) return;
-
-    setLoading(true);
-    getGameNotice({
-      game_id: gid,
-    })
-      .then((res) => {
-        setTotal(res?.total || 0);
-        setNotices(res?.notices || []);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [sorting, debouncedColumnFilters, sharedStore.refresh, game, routeGameId]);
 
   return (
     <div

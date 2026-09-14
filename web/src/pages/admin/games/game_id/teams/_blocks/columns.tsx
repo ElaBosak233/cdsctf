@@ -222,45 +222,51 @@ function useColumns(): Array<ColumnDef<TeamView>> {
             ])}
           >
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  disabled={state === State.Preparing}
-                  variant={"ghost"}
-                  size={"sm"}
-                  level={"info"}
-                  square
-                  icon={<Undo2Icon />}
-                  onClick={() => handleStateChange(State.Preparing)}
-                />
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <Button
+                    disabled={state === State.Preparing}
+                    variant={"ghost"}
+                    size={"sm"}
+                    level={"info"}
+                    square
+                    icon={<Undo2Icon />}
+                    onClick={() => handleStateChange(State.Preparing)}
+                  />
+                }
+              />
               <TooltipContent>{t("game:team.actions.refuse")}</TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  disabled={state === State.Banned}
-                  variant={"ghost"}
-                  size={"sm"}
-                  level={"error"}
-                  square
-                  icon={<BanIcon />}
-                  onClick={() => handleStateChange(State.Banned)}
-                />
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <Button
+                    disabled={state === State.Banned}
+                    variant={"ghost"}
+                    size={"sm"}
+                    level={"error"}
+                    square
+                    icon={<BanIcon />}
+                    onClick={() => handleStateChange(State.Banned)}
+                  />
+                }
+              />
               <TooltipContent>{t("game:team.actions.ban")}</TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  disabled={state === State.Passed}
-                  variant={"ghost"}
-                  size={"sm"}
-                  level={"success"}
-                  square
-                  icon={<CheckCheckIcon />}
-                  onClick={() => handleStateChange(State.Passed)}
-                />
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <Button
+                    disabled={state === State.Passed}
+                    variant={"ghost"}
+                    size={"sm"}
+                    level={"success"}
+                    square
+                    icon={<CheckCheckIcon />}
+                    onClick={() => handleStateChange(State.Passed)}
+                  />
+                }
+              />
               <TooltipContent>{t("game:team.actions.pass")}</TooltipContent>
             </Tooltip>
           </div>

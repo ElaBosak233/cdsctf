@@ -51,7 +51,7 @@ function TooltipContent({
   return (
     <BaseTooltip.Portal>
       <BaseTooltip.Positioner
-              align={align}
+        align={align}
         alignOffset={alignOffset}
         side={side}
         sideOffset={sideOffset}

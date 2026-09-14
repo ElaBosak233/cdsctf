@@ -34,6 +34,26 @@ export default function GameLayout() {
 
   const { data: game } = useGameQuery(gameId);
 
+  const teamProfileQuery = useQuery({
+    queryKey: ["game", "team-profile", gameId, sharedStore?.refresh],
+    queryFn: () => getTeamProfile({ game_id: gameId! }),
+    enabled: gameId != null && authStatus === "authenticated" && !!user,
+    retry: false,
+  });
+
+  const teamMembersQuery = useQuery({
+    queryKey: [
+      "game",
+      "team-members",
+      gameId,
+      selfTeam?.id,
+      sharedStore?.refresh,
+    ],
+    queryFn: () => getTeamMembers({ game_id: gameId!, team_id: selfTeam!.id }),
+    enabled: gameId != null && selfTeam?.id != null,
+    retry: false,
+  });
+
   useEffect(() => {
     if (game_id !== useGameStore.getState().currentGame?.id) {
       setCurrentGame(undefined);
@@ -43,8 +63,6 @@ export default function GameLayout() {
   }, [game_id, game, setCurrentGame]);
 
   useEffect(() => {
-    void sharedStore?.refresh;
-
     if (game?.blacked_out) {
       const currentTeam = useGameStore.getState().selfTeam;
       if (
@@ -54,51 +72,33 @@ export default function GameLayout() {
         setSelfTeam({ ...currentTeam, pts: undefined, rank: undefined });
       }
     }
-
-    if (gameId == null) {
-      setGtLoaded(true);
-      return;
-    }
-
-    if (authStatus !== "authenticated" || !user) return;
-
-    (async () => {
-      try {
-        const res = await getTeamProfile({
-          game_id: gameId,
-        });
-        setSelfTeam(res.team);
-      } catch (error) {
-        if (!(error instanceof HTTPError)) return;
-
-        if (error.response.status === StatusCodes.NOT_FOUND) {
-          setSelfTeam(undefined);
-        }
-      } finally {
-        setGtLoaded(true);
-      }
-    })();
-  }, [
-    sharedStore?.refresh,
-    gameId,
-    game?.blacked_out,
-    setSelfTeam,
-    authStatus,
-    user,
-  ]);
+  }, [game?.blacked_out, setSelfTeam]);
 
   useEffect(() => {
-    void sharedStore?.refresh;
+    if (teamProfileQuery.data?.team) {
+      setSelfTeam(teamProfileQuery.data.team);
+    } else if (
+      teamProfileQuery.error instanceof HTTPError &&
+      teamProfileQuery.error.response.status === StatusCodes.NOT_FOUND
+    ) {
+      setSelfTeam(undefined);
+    }
+  }, [teamProfileQuery.data, teamProfileQuery.error, setSelfTeam]);
 
-    if (!selfTeam?.id || gameId == null) return;
+  useEffect(() => {
+    setGtLoaded(
+      gameId == null ||
+        authStatus !== "authenticated" ||
+        !user ||
+        teamProfileQuery.isFetched
+    );
+  }, [authStatus, gameId, teamProfileQuery.isFetched, user]);
 
-    getTeamMembers({
-      game_id: gameId,
-      team_id: selfTeam.id,
-    }).then((res) => {
-      setMembers(res.users);
-    });
-  }, [sharedStore?.refresh, selfTeam, gameId, setMembers]);
+  useEffect(() => {
+    if (teamMembersQuery.data) {
+      setMembers(teamMembersQuery.data.users);
+    }
+  }, [setMembers, teamMembersQuery.data]);
 
   return (
     <Context.Provider value={{ gtLoaded }}>

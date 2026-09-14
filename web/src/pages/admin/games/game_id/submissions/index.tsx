@@ -1,3 +1,4 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   FlagIcon,
   HashIcon,
@@ -6,7 +7,7 @@ import {
   UserRoundIcon,
   UsersRoundIcon,
 } from "lucide-react";
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { getGameChallenges } from "@/api/admin/games/game_id/challenges";
@@ -26,7 +27,13 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -63,10 +70,6 @@ export default function Index() {
   const routeGameId = parseRouteNumericId(game_id);
   const { game } = useContext(Context);
 
-  const [total, setTotal] = useState<number>(0);
-  const [submissions, setSubmissions] = useState<Array<SubmissionView>>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(10);
 
@@ -89,9 +92,6 @@ export default function Index() {
   const [userQuery, setUserQuery] = useState("");
   const debouncedTeamQuery = useDebounce(teamQuery.trim(), 150);
   const debouncedUserQuery = useDebounce(userQuery.trim(), 150);
-  const [teamOptions, setTeamOptions] = useState<TeamView[]>([]);
-  const [gameChallenges, setGameChallenges] = useState<GameChallengeView[]>([]);
-  const [userOptions, setUserOptions] = useState<UserAccountView[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<TeamView | null>(null);
   const [selectedChallenge, setSelectedChallenge] =
     useState<GameChallengeView | null>(null);
@@ -99,57 +99,44 @@ export default function Index() {
     null
   );
 
-  useEffect(() => {
-    const gameId = routeGameId ?? game?.id;
-    if (gameId == null) return;
-    const numericId = /^\d+$/.test(debouncedTeamQuery)
-      ? Number(debouncedTeamQuery)
-      : undefined;
-    let cancelled = false;
-    Promise.all([
-      numericId == null
-        ? Promise.resolve({ teams: [] as TeamView[] })
-        : getTeams({ game_id: gameId, id: numericId, size: 5, page: 1 }),
-      getTeams({
-        game_id: gameId,
-        name: debouncedTeamQuery || undefined,
-        size: 10,
-        page: 1,
-      }),
-    ]).then(([exact, named]) => {
-      if (cancelled) return;
+  const gameId = routeGameId ?? game?.id;
+  const teamOptionsQuery = useQuery({
+    queryKey: ["admin", "game-team-options", gameId, debouncedTeamQuery],
+    queryFn: async () => {
+      const numericId = /^\d+$/.test(debouncedTeamQuery)
+        ? Number(debouncedTeamQuery)
+        : undefined;
+      const [exact, named] = await Promise.all([
+        numericId == null
+          ? Promise.resolve({ teams: [] as TeamView[] })
+          : getTeams({ game_id: gameId!, id: numericId, size: 5, page: 1 }),
+        getTeams({
+          game_id: gameId!,
+          name: debouncedTeamQuery || undefined,
+          size: 10,
+          page: 1,
+        }),
+      ]);
       const seen = new Set<number>();
-      setTeamOptions(
-        [...exact.teams, ...named.teams]
-          .filter((item) => {
-            if (seen.has(item.id)) return false;
-            seen.add(item.id);
-            return true;
-          })
-          .slice(0, 10)
-      );
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedTeamQuery, game, routeGameId]);
+      return [...exact.teams, ...named.teams]
+        .filter((item) => {
+          if (seen.has(item.id)) return false;
+          seen.add(item.id);
+          return true;
+        })
+        .slice(0, 10);
+    },
+    enabled: gameId != null,
+    placeholderData: keepPreviousData,
+  });
+  const teamOptions = teamOptionsQuery.data ?? [];
 
-  useEffect(() => {
-    const gameId = routeGameId ?? game?.id;
-    if (gameId == null) {
-      setGameChallenges([]);
-      return;
-    }
-
-    let cancelled = false;
-    getGameChallenges({ game_id: gameId }).then((response) => {
-      if (!cancelled) setGameChallenges(response.challenges);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [game, routeGameId]);
+  const challengesQuery = useQuery({
+    queryKey: ["admin", "game-challenge-options", gameId],
+    queryFn: () => getGameChallenges({ game_id: gameId! }),
+    enabled: gameId != null,
+  });
+  const gameChallenges = challengesQuery.data?.challenges ?? [];
 
   const challengeOptions = useMemo(() => {
     const query = challengeQuery.trim();
@@ -171,40 +158,78 @@ export default function Index() {
     return [...exact, ...titleMatches].slice(0, 10);
   }, [challengeQuery, gameChallenges]);
 
-  useEffect(() => {
-    const numericId = /^\d+$/.test(debouncedUserQuery)
-      ? Number(debouncedUserQuery)
-      : undefined;
-    const gameId = routeGameId ?? game?.id;
-    if (gameId == null) return;
-    let cancelled = false;
-    Promise.all([
-      numericId == null
-        ? Promise.resolve({ users: [] as UserAccountView[] })
-        : getGameUsers({ game_id: gameId, id: numericId, size: 1, page: 1 }),
-      getGameUsers({
-        game_id: gameId,
-        name: debouncedUserQuery || undefined,
-        size: 10,
-        page: 1,
-      }),
-    ]).then(([exact, named]) => {
-      if (cancelled) return;
+  const userOptionsQuery = useQuery({
+    queryKey: ["admin", "game-user-options", gameId, debouncedUserQuery],
+    queryFn: async () => {
+      const numericId = /^\d+$/.test(debouncedUserQuery)
+        ? Number(debouncedUserQuery)
+        : undefined;
+      const [exact, named] = await Promise.all([
+        numericId == null
+          ? Promise.resolve({ users: [] as UserAccountView[] })
+          : getGameUsers({ game_id: gameId!, id: numericId, size: 1, page: 1 }),
+        getGameUsers({
+          game_id: gameId!,
+          name: debouncedUserQuery || undefined,
+          size: 10,
+          page: 1,
+        }),
+      ]);
       const seen = new Set<number>();
-      setUserOptions(
-        [...exact.users, ...named.users]
-          .filter((item) => {
-            if (seen.has(item.id)) return false;
-            seen.add(item.id);
-            return true;
-          })
-          .slice(0, 10)
-      );
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedUserQuery, game, routeGameId]);
+      return [...exact.users, ...named.users]
+        .filter((item) => {
+          if (seen.has(item.id)) return false;
+          seen.add(item.id);
+          return true;
+        })
+        .slice(0, 10);
+    },
+    enabled: gameId != null,
+    placeholderData: keepPreviousData,
+  });
+  const userOptions = userOptionsQuery.data ?? [];
+
+  const submissionsQuery = useQuery({
+    queryKey: [
+      "admin",
+      "game-submissions",
+      gameId,
+      page,
+      size,
+      sorting,
+      debouncedColumnFilters,
+      sharedStore.refresh,
+    ],
+    queryFn: () => {
+      const rawStatus = debouncedColumnFilters.find(
+        (c) => c.id === "status"
+      )?.value;
+      const status = Object.values(Status).includes(rawStatus as Status)
+        ? (rawStatus as Status)
+        : undefined;
+
+      return getSubmissions({
+        game_id: gameId!,
+        id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
+        user_id: debouncedColumnFilters.find((c) => c.id === "user_id")
+          ?.value as number,
+        team_id: debouncedColumnFilters.find((c) => c.id === "team_id")
+          ?.value as number,
+        challenge_id: debouncedColumnFilters.find(
+          (c) => c.id === "challenge_id"
+        )?.value as number,
+        status,
+        sorts: "-created_at",
+        page,
+        size,
+      });
+    },
+    enabled: gameId != null,
+    placeholderData: keepPreviousData,
+  });
+  const submissions = submissionsQuery.data?.submissions ?? [];
+  const total = submissionsQuery.data?.total ?? 0;
+  const loading = submissionsQuery.isFetching;
 
   const columns = useColumns();
 
@@ -234,53 +259,6 @@ export default function Index() {
     { id: Status.Expired, name: t("submission:status.expired") },
     { id: Status.Duplicate, name: t("submission:status.duplicate") },
   ];
-
-  useEffect(() => {
-    void sorting;
-    void sharedStore.refresh;
-
-    const gid = routeGameId ?? game?.id;
-    if (gid == null) return;
-
-    setLoading(true);
-
-    const rawStatus = debouncedColumnFilters.find(
-      (c) => c.id === "status"
-    )?.value;
-    const status = Object.values(Status).includes(rawStatus as Status)
-      ? (rawStatus as Status)
-      : undefined;
-
-    getSubmissions({
-      game_id: gid,
-      id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
-      user_id: debouncedColumnFilters.find((c) => c.id === "user_id")
-        ?.value as number,
-      team_id: debouncedColumnFilters.find((c) => c.id === "team_id")
-        ?.value as number,
-      challenge_id: debouncedColumnFilters.find((c) => c.id === "challenge_id")
-        ?.value as number,
-      status,
-      sorts: "-created_at",
-      page,
-      size,
-    })
-      .then((res) => {
-        setTotal(res?.total || 0);
-        setSubmissions(res?.submissions || []);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [
-    page,
-    size,
-    sorting,
-    debouncedColumnFilters,
-    sharedStore.refresh,
-    game,
-    routeGameId,
-  ]);
 
   return (
     <div
@@ -471,9 +449,9 @@ export default function Index() {
               value={selectedUser}
               options={userOptions.map((user) => ({
                 value: user,
-                content: `#${user.id} ${user.username}`,
+                content: `#${user.id} ${user.name}`,
               }))}
-              itemToStringLabel={(user) => `#${user.id} ${user.username}`}
+              itemToStringLabel={(user) => `#${user.id} ${user.name}`}
               isItemEqualToValue={(item, value) => item.id === value.id}
               filter={null}
               onInputValueChange={(value, details) => {
@@ -522,7 +500,7 @@ export default function Index() {
                         #{user.id}
                       </span>
                       <span className="truncate">
-                        {user.username || user.name}
+                        {user.name || user.username}
                       </span>
                     </ComboboxItem>
                   ))}
@@ -535,33 +513,25 @@ export default function Index() {
               <ListOrderedIcon />
             </FieldIcon>
             <Select
-              options={[
-                {
-                  value: "all",
-                  content: (
-                    <div className={cn(["flex", "gap-2", "items-center"])}>
-                      {t("common:all")}
-                    </div>
-                  ),
-                },
-                ...statusOptions.map((status) => {
-                  return {
-                    value: String(status?.id),
-                    content: (
-                      <div className={cn(["flex", "gap-2", "items-center"])}>
-                        {status?.name}
-                      </div>
-                    ),
-                  };
-                }),
-              ]}
-              onValueChange={(value) =>
-                table.getColumn("status")?.setFilterValue(value)
-              }
               value={
                 (table.getColumn("status")?.getFilterValue() as string) ?? "all"
               }
-            />
+              onValueChange={(value) =>
+                table.getColumn("status")?.setFilterValue(value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("common:all")}</SelectItem>
+                {statusOptions.map((status) => (
+                  <SelectItem key={status.id} value={String(status.id)}>
+                    {status.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
         </div>
       </div>
@@ -702,18 +672,23 @@ export default function Index() {
               <ListOrderedIcon />
             </FieldIcon>
             <Select
-              options={[
-                { value: "10" },
-                { value: "20" },
-                { value: "40" },
-                { value: "60" },
-              ]}
               value={String(size)}
               onValueChange={(value) => {
                 setPage(1);
                 setSize(Number(value));
               }}
-            />
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[10, 20, 40, 60].map((value) => (
+                  <SelectItem key={value} value={String(value)}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
         </div>
       </footer>

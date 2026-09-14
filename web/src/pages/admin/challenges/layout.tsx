@@ -14,7 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Sidebar } from "@/components/ui/sidebar";
 import { TextField } from "@/components/ui/text-field";
 import type { ColumnFiltersState } from "@/hooks/use-data-table";
@@ -91,42 +97,51 @@ function FilterFields({
           <LibraryIcon className="size-4" />
         </FieldIcon>
         <Select
-          options={[
-            { value: "all", content: t("common:all") },
-            ...categories.map((category) => {
-              const Icon = category.icon!;
-              return {
-                value: String(category.id),
-                content: (
-                  <div className={cn(["flex", "items-center", "gap-2"])}>
-                    <Icon className="size-4" />
-                    {category.name?.toUpperCase()}
-                  </div>
-                ),
-              };
-            }),
-          ]}
+          value={categoryValue}
           onValueChange={(value) =>
             setColumnFilters((current) => setFilter(current, "category", value))
           }
-          value={categoryValue}
-        />
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("common:all")}</SelectItem>
+            {categories.map((category) => {
+              const Icon = category.icon!;
+              return (
+                <SelectItem key={category.id} value={String(category.id)}>
+                  <Icon className="size-4" />
+                  {category.name?.toUpperCase()}
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
       </Field>
       <Field size="sm" className={cn(compact && ["w-36", "shrink-0"])}>
         <FieldIcon>
           <EyeIcon className="size-4" />
         </FieldIcon>
         <Select
-          options={[
-            { value: "all", content: t("common:all") },
-            { value: "true", content: t("challenge:search.public.true") },
-            { value: "false", content: t("challenge:search.public.false") },
-          ]}
+          value={publicValue}
           onValueChange={(value) =>
             setColumnFilters((current) => setFilter(current, "public", value))
           }
-          value={publicValue}
-        />
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("common:all")}</SelectItem>
+            <SelectItem value="true">
+              {t("challenge:search.public.true")}
+            </SelectItem>
+            <SelectItem value="false">
+              {t("challenge:search.public.false")}
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </Field>
     </>
   );

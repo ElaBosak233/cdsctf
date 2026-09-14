@@ -13,7 +13,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Sidebar } from "@/components/ui/sidebar";
 import { TextField } from "@/components/ui/text-field";
 import type { ColumnFiltersState } from "@/hooks/use-data-table";
@@ -96,12 +102,22 @@ function FilterFields({
           <UserRoundIcon className="size-4" />
         </FieldIcon>
         <Select
-          options={groupSelectOptions}
+          value={groupValue}
           onValueChange={(value) =>
             setColumnFilters((current) => setFilter(current, "group", value))
           }
-          value={groupValue}
-        />
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {groupSelectOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.content}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Field>
     </>
   );

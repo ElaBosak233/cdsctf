@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { BotIcon, ClockIcon, LockIcon, SaveIcon, SendIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -19,10 +20,15 @@ import {
 } from "@/components/ui/form";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { NumberField } from "@/components/ui/number-field";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
-import type { AdminConfig } from "@/models/config";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
@@ -30,13 +36,11 @@ export default function Index() {
   const { t } = useTranslation();
 
   const { config: globalConfig } = useConfigStore();
-  const [config, setConfig] = useState<AdminConfig>();
-
-  useEffect(() => {
-    getConfigs().then((res) => {
-      setConfig(res.config);
-    });
-  }, []);
+  const { data: config } = useQuery({
+    queryKey: ["admin", "config"],
+    queryFn: getConfigs,
+    select: (response) => response.config,
+  });
 
   const formSchema = z.object({
     provider: z
@@ -126,31 +130,30 @@ export default function Index() {
                       </FieldIcon>
                       <Select
                         {...field}
-                        options={[
-                          {
-                            value: "none",
-                            content: t("admin:captcha.provider.none"),
-                          },
-                          {
-                            value: "pow",
-                            content: t("admin:captcha.provider.pow"),
-                          },
-                          {
-                            value: "image",
-                            content: t("admin:captcha.provider.image"),
-                          },
-                          {
-                            value: "turnstile",
-                            content: t("admin:captcha.provider.turnstile"),
-                          },
-                          {
-                            value: "hcaptcha",
-                            content: t("admin:captcha.provider.hcaptcha"),
-                          },
-                        ]}
                         onValueChange={(value) => field.onChange(value)}
                         value={String(field.value)}
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">
+                            {t("admin:captcha.provider.none")}
+                          </SelectItem>
+                          <SelectItem value="pow">
+                            {t("admin:captcha.provider.pow")}
+                          </SelectItem>
+                          <SelectItem value="image">
+                            {t("admin:captcha.provider.image")}
+                          </SelectItem>
+                          <SelectItem value="turnstile">
+                            {t("admin:captcha.provider.turnstile")}
+                          </SelectItem>
+                          <SelectItem value="hcaptcha">
+                            {t("admin:captcha.provider.hcaptcha")}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </Field>
                   </FormControl>
                   <FormMessage />

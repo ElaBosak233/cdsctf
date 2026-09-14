@@ -185,7 +185,7 @@ function ComboboxContent({
   className,
   children,
   side = "bottom",
-  sideOffset = 4,
+  sideOffset = 6,
   align = "center",
   alignOffset = 0,
   ...props
@@ -231,7 +231,10 @@ function ComboboxList({
   return (
     <BaseCombobox.List
       data-slot="combobox-list"
-      className={cn("h-auto max-h-(--available-height) p-1 empty:hidden", className)}
+      className={cn(
+        "h-auto max-h-(--available-height) p-1 empty:hidden",
+        className
+      )}
       {...props}
     />
   );
@@ -246,7 +249,8 @@ function ComboboxItem({
     <BaseCombobox.Item
       data-slot="combobox-item"
       className={cn(
-        "relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none hover:bg-foreground/5 data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2",
+        "text-sm outline-hidden select-none hover:bg-foreground/5 data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

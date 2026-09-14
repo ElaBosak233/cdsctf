@@ -20,7 +20,13 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { ChallengeCard } from "@/components/widgets/challenge-card";
 import type { ChallengeSummary } from "@/models/challenge";
@@ -179,47 +185,64 @@ export default function Index() {
                 <LibraryIcon />
               </FieldIcon>
               <Select
-                options={[
-                  {
-                    value: "all",
-                    content: (
-                      <div className={cn(["flex", "gap-2", "items-center"])}>
-                        {t("common:all")}
-                      </div>
-                    ),
-                  },
-                  ...(categories || []).map((category) => {
-                    const Icon = category.icon!;
-
-                    return {
-                      value: String(category?.id),
+                value={category}
+                onValueChange={(value) => setCategory(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    {
+                      value: "all",
                       content: (
                         <div className={cn(["flex", "gap-2", "items-center"])}>
-                          <Icon />
-                          {category?.name?.toUpperCase()}
+                          {t("common:all")}
                         </div>
                       ),
-                    };
-                  }),
-                ]}
-                onValueChange={(value) => setCategory(value)}
-                value={category}
-              />
+                    },
+                    ...(categories || []).map((category) => {
+                      const Icon = category.icon!;
+
+                      return {
+                        value: String(category?.id),
+                        content: (
+                          <div
+                            className={cn(["flex", "gap-2", "items-center"])}
+                          >
+                            <Icon />
+                            {category?.name?.toUpperCase()}
+                          </div>
+                        ),
+                      };
+                    }),
+                  ].map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.content ?? option.value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Field size={"sm"} className={cn(["w-48"])}>
               <FieldIcon>
                 <ListOrderedIcon />
               </FieldIcon>
               <Select
-                options={[
-                  { value: "10" },
-                  { value: "20" },
-                  { value: "40" },
-                  { value: "60" },
-                ]}
                 value={String(size)}
                 onValueChange={(value) => setSize(Number(value))}
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[10, 20, 40, 60].map((value) => (
+                    <SelectItem key={value} value={String(value)}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
           </div>
           <div
@@ -247,47 +270,64 @@ export default function Index() {
                 <LibraryIcon />
               </FieldIcon>
               <Select
-                options={[
-                  {
-                    value: "all",
-                    content: (
-                      <div className={cn(["flex", "gap-2", "items-center"])}>
-                        {t("common:all")}
-                      </div>
-                    ),
-                  },
-                  ...(categories || []).map((category) => {
-                    const Icon = category.icon!;
-
-                    return {
-                      value: String(category?.id),
+                value={category}
+                onValueChange={(value) => setCategory(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    {
+                      value: "all",
                       content: (
                         <div className={cn(["flex", "gap-2", "items-center"])}>
-                          <Icon />
-                          {category?.name?.toUpperCase()}
+                          {t("common:all")}
                         </div>
                       ),
-                    };
-                  }),
-                ]}
-                onValueChange={(value) => setCategory(value)}
-                value={category}
-              />
+                    },
+                    ...(categories || []).map((category) => {
+                      const Icon = category.icon!;
+
+                      return {
+                        value: String(category?.id),
+                        content: (
+                          <div
+                            className={cn(["flex", "gap-2", "items-center"])}
+                          >
+                            <Icon />
+                            {category?.name?.toUpperCase()}
+                          </div>
+                        ),
+                      };
+                    }),
+                  ].map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.content ?? option.value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Field size={"sm"} className={cn(["w-full"])}>
               <FieldIcon>
                 <ListOrderedIcon />
               </FieldIcon>
               <Select
-                options={[
-                  { value: "10" },
-                  { value: "20" },
-                  { value: "40" },
-                  { value: "60" },
-                ]}
                 value={String(size)}
                 onValueChange={(value) => setSize(Number(value))}
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[10, 20, 40, 60].map((value) => (
+                    <SelectItem key={value} value={String(value)}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
           </div>
         </div>

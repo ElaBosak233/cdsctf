@@ -61,13 +61,13 @@ pub async fn get_game_users(
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let (users, total) = cds_db::user::find::<UserAccountView>(
+    let (users, total) = cds_db::user::find_by_game_id::<UserAccountView>(
         &s.db.conn,
+        game_id,
         FindUserOptions {
             id: params.id,
             name: params.name,
             group: params.group,
-            game_id: Some(game_id),
             sorts: params.sorts,
             page: Some(page),
             size: Some(size),

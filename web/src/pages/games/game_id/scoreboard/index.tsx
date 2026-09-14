@@ -14,7 +14,13 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { Pagination } from "@/components/ui/pagination";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 
@@ -96,15 +102,20 @@ export default function Index() {
                   <ListOrderedIcon />
                 </FieldIcon>
                 <Select
-                  options={[
-                    { value: "10" },
-                    { value: "20" },
-                    { value: "40" },
-                    { value: "60" },
-                  ]}
                   value={String(size)}
                   onValueChange={(value) => setSize(Number(value))}
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[10, 20, 40, 60].map((value) => (
+                      <SelectItem key={value} value={String(value)}>
+                        {value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
               <Pagination
                 value={page}

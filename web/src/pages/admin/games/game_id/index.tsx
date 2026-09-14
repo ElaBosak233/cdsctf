@@ -36,7 +36,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { NumberField } from "@/components/ui/number-field";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -267,7 +273,7 @@ export default function Index() {
           "w-full",
           "gap-6",
           "sm:gap-8",
-          "p-8"
+          "p-8",
         ])}
       >
         <div
@@ -512,21 +518,23 @@ export default function Index() {
                     </FieldIcon>
                     <Select
                       {...field}
-                      options={[
-                        {
-                          value: String(true),
-                          content: t("game:form.public.true"),
-                        },
-                        {
-                          value: String(false),
-                          content: t("game:form.public.false"),
-                        },
-                      ]}
                       onValueChange={(value) => {
                         field.onChange(value === "true");
                       }}
                       value={String(field.value)}
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">
+                          {t("game:form.public.true")}
+                        </SelectItem>
+                        <SelectItem value="false">
+                          {t("game:form.public.false")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </Field>
                 </FormControl>
                 <FormMessage />
@@ -546,21 +554,23 @@ export default function Index() {
                     </FieldIcon>
                     <Select
                       {...field}
-                      options={[
-                        {
-                          value: String(true),
-                          content: t("game:form.writeup_required.true"),
-                        },
-                        {
-                          value: String(false),
-                          content: t("game:form.writeup_required.false"),
-                        },
-                      ]}
                       onValueChange={(value) =>
                         field.onChange(value === "true")
                       }
                       value={String(field.value)}
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">
+                          {t("game:form.writeup_required.true")}
+                        </SelectItem>
+                        <SelectItem value="false">
+                          {t("game:form.writeup_required.false")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </Field>
                 </FormControl>
                 <FormMessage />

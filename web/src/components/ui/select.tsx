@@ -7,68 +7,20 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/utils";
 import { FieldContext } from "./field";
 
-type SelectProps = {
-  className?: string;
-  placeholder?: string;
-  options?: Array<{ value: string; content?: React.ReactNode }>;
-  value?: string;
-  defaultValue?: string;
-  onValueChange?: (value: any) => void;
-  children?: React.ReactNode;
-  [key: string]: any;
+type SelectProps = Omit<
+  React.ComponentProps<typeof BaseSelect.Root>,
+  "onValueChange"
+> & {
+  onValueChange?: (value: string) => void;
 };
 
-function Select({
-  placeholder,
-  options,
-  className,
-  children,
-  ...props
-}: SelectProps) {
-  const itemToStringLabel = (item: unknown) => {
-    const option = options?.find((candidate) => candidate.value === item);
-    if (!option) return item == null ? "" : String(item);
-
-    const toText = (node: React.ReactNode): string => {
-      if (node == null || typeof node === "boolean") return "";
-      if (typeof node === "string" || typeof node === "number") {
-        return String(node);
-      }
-      if (Array.isArray(node)) return node.map(toText).join("");
-      if (React.isValidElement<{ children?: React.ReactNode }>(node)) {
-        return toText(node.props.children);
-      }
-      return "";
-    };
-
-    return toText(option.content) || option.value;
-  };
-
+function Select({ onValueChange, ...props }: SelectProps) {
   return (
     <BaseSelect.Root
       data-slot="select"
-      itemToStringLabel={itemToStringLabel}
-      {...(props as any)}
-    >
-      {children ?? (
-        <>
-          <SelectTrigger className={className}>
-            <SelectValue
-              placeholder={
-                <span className="text-primary/80">{placeholder}</span>
-              }
-            />
-          </SelectTrigger>
-          <SelectContent>
-            {options?.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.content ?? option.value}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </>
-      )}
-    </BaseSelect.Root>
+      {...props}
+      onValueChange={(value) => onValueChange?.(String(value ?? ""))}
+    />
   );
 }
 
@@ -80,7 +32,15 @@ function SelectValue(props: React.ComponentProps<typeof BaseSelect.Value>) {
 }
 
 const selectTriggerVariants = cva(
-  "flex-1 flex w-0 rounded-md justify-between items-center border bg-input px-3 py-2 text-base ring-offset-input focus:border-input focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm cursor-pointer *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 *:data-[slot=select-value]:truncate [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>span]:line-clamp-1",
+  cn(
+    "flex-1 flex w-0 rounded-md justify-between items-center",
+    "border bg-input px-3 py-2 text-base duration-0",
+    "ring-offset-input data-[popup-open]:border-input data-[popup-open]:outline-hidden",
+    "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
+    "data-[popup-open]:ring-2 data-[popup-open]:ring-ring data-[popup-open]:ring-offset-2",
+    "disabled:cursor-not-allowed disabled:opacity-50",
+    "md:text-sm cursor-pointer *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 *:data-[slot=select-value]:truncate [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&>span]:line-clamp-1"
+  ),
   {
     variants: {
       size: { sm: "h-10", md: "h-12" },
@@ -115,7 +75,7 @@ function SelectContent({
   className,
   children,
   side = "bottom",
-  sideOffset = 4,
+  sideOffset = 6,
   align = "center",
   alignOffset = 0,
   ...props
@@ -137,7 +97,7 @@ function SelectContent({
         <BaseSelect.Popup
           data-slot="select-content"
           className={cn(
-            "bg-input text-input-foreground relative z-50 box-border w-[var(--anchor-width)] max-w-[var(--anchor-width)] max-h-[var(--available-height)] overflow-hidden rounded-md border border-border shadow-md origin-[var(--transform-origin)] transition-[scale,opacity] duration-100 ease-out data-starting-style:scale-[0.98] data-starting-style:opacity-0 data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-[side=none]:translate-y-px data-[side=none]:w-[calc(var(--anchor-width)+1.75rem)] data-[side=none]:max-w-none data-[side=none]:data-starting-style:transition-none data-[side=none]:data-ending-style:transition-none",
+            "bg-input text-input-foreground relative z-50 box-border w-(--anchor-width) max-w-(--anchor-width) max-h-(--available-height) overflow-hidden rounded-md border border-border shadow-md origin-(--transform-origin) transition-[scale,opacity] duration-100 ease-out data-starting-style:scale-[0.98] data-starting-style:opacity-0 data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-[side=none]:translate-y-px data-[side=none]:w-[calc(var(--anchor-width)+1.75rem)] data-[side=none]:max-w-none data-[side=none]:data-starting-style:transition-none data-[side=none]:data-ending-style:transition-none",
             className
           )}
           {...props}
@@ -145,9 +105,9 @@ function SelectContent({
           <ScrollArea
             vertical
             horizontal={false}
-            className="h-full max-h-[var(--available-height)] w-full"
+            className="h-full max-h-(--available-height) w-full"
           >
-            <BaseSelect.List className="h-auto max-h-[var(--available-height)] p-1">
+            <BaseSelect.List className="h-auto max-h-(--available-height) p-1">
               {children}
             </BaseSelect.List>
           </ScrollArea>

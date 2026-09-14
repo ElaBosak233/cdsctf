@@ -65,6 +65,7 @@ export function useDataTable<TData extends RowData>(
 export {
   type ColumnFiltersState,
   type ColumnVisibilityState,
+  type ExpandedState,
   flexRender,
   type SortingState,
 } from "@tanstack/react-table";

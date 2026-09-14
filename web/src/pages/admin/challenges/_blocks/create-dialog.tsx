@@ -17,7 +17,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -143,30 +149,37 @@ function CreateDialog(props: CreateDialogProps) {
                       </FieldIcon>
                       <Select
                         {...field}
-                        options={categories?.map((category) => {
-                          const Icon = category.icon!;
-
-                          return {
-                            value: String(category?.id),
-                            content: (
-                              <div
-                                className={cn([
-                                  "flex",
-                                  "gap-2",
-                                  "items-center",
-                                ])}
-                              >
-                                <Icon />
-                                {category?.name?.toUpperCase()}
-                              </div>
-                            ),
-                          };
-                        })}
                         onValueChange={(value) => {
                           field.onChange(Number(value));
                         }}
                         value={String(field.value)}
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories?.map((category) => {
+                            const Icon = category.icon!;
+                            return (
+                              <SelectItem
+                                key={category.id}
+                                value={String(category.id)}
+                              >
+                                <span
+                                  className={cn([
+                                    "flex",
+                                    "gap-2",
+                                    "items-center",
+                                  ])}
+                                >
+                                  <Icon />
+                                  {category.name?.toUpperCase()}
+                                </span>
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
                     </Field>
                   </FormControl>
                   <FormMessage />

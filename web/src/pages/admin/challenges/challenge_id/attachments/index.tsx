@@ -1,5 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { CloudUploadIcon } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { getChallengeAttachments } from "@/api/admin/challenges/challenge_id/attachments";
@@ -33,22 +34,17 @@ export default function Index() {
   const { challenge } = useContext(Context);
   const sharedStore = useSharedStore();
 
-  const [metadata, setMetadata] = useState<Array<Metadata>>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    void sharedStore.refresh;
-
-    if (!challenge?.id) return;
-    setLoading(true);
-    getChallengeAttachments(challenge.id!)
-      .then((res) => {
-        setMetadata(res.attachments || []);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [challenge?.id, sharedStore.refresh]);
+  const { data: metadata = [], isFetching: loading } = useQuery({
+    queryKey: [
+      "admin",
+      "challenge-attachments",
+      challenge?.id,
+      sharedStore.refresh,
+    ],
+    queryFn: () => getChallengeAttachments(challenge!.id!),
+    select: (response) => response.attachments ?? [],
+    enabled: challenge?.id != null,
+  });
 
   const dropzone = useDropzone({
     onDropFile: async (file) => {

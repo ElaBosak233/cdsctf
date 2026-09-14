@@ -282,7 +282,7 @@ function TimePeriodSelect({
     <div className="flex h-10 items-center">
       <Select
         defaultValue={period}
-        onValueChange={(value: Period) => handleValueChange(value)}
+        onValueChange={(value) => handleValueChange(value as Period)}
       >
         <SelectTrigger
           ref={ref}
@@ -717,34 +717,37 @@ function DateTimePicker({
   return (
     <Popover>
       <div className="relative flex flex-1 w-0 items-center">
-        <PopoverTrigger asChild disabled={disabled}>
-          <Button
-            type="button"
-            disabled={disabled}
-            className={cn(
-              dateTimePickerVariants({
-                size,
-                icon: !!hasIcon,
-                extraBtn: !!hasExtraButton,
-              }),
-              "justify-start w-full",
-              className
-            )}
-            ref={buttonRef}
-          >
-            {displayDate ? (
-              format(
-                displayDate,
-                hourCycle === 24
-                  ? initHourFormat.hour24
-                  : initHourFormat.hour12,
-                { locale: loc as Locale }
-              )
-            ) : (
-              <span>{placeholder}</span>
-            )}
-          </Button>
-        </PopoverTrigger>
+        <PopoverTrigger
+          disabled={disabled}
+          render={
+            <Button
+              type="button"
+              disabled={disabled}
+              className={cn(
+                dateTimePickerVariants({
+                  size,
+                  icon: !!hasIcon,
+                  extraBtn: !!hasExtraButton,
+                }),
+                "justify-start w-full",
+                className
+              )}
+              ref={buttonRef}
+            >
+              {displayDate ? (
+                format(
+                  displayDate,
+                  hourCycle === 24
+                    ? initHourFormat.hour24
+                    : initHourFormat.hour12,
+                  { locale: loc as Locale }
+                )
+              ) : (
+                <span>{placeholder}</span>
+              )}
+            </Button>
+          }
+        />
 
         {clearable && displayDate && (
           <Button

@@ -1,5 +1,6 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { IdCardIcon, LogInIcon, UserRoundPlusIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -26,9 +27,6 @@ import { LoginForm } from "./_blocks/login-form";
 
 export default function Index() {
   const { config } = useConfigStore();
-  const [idps, setIdps] = useState<Awaited<ReturnType<typeof getIdps>>["idps"]>(
-    []
-  );
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { t } = useTranslation();
@@ -50,9 +48,12 @@ export default function Index() {
     });
   }, [navigate, redirect, status, t, user]);
 
-  useEffect(() => {
-    getIdps().then((res) => setIdps(res.idps ?? []));
-  }, []);
+  const { data: idps = [] } = useQuery({
+    queryKey: ["idps"],
+    queryFn: getIdps,
+    select: (response) => response.idps ?? [],
+    placeholderData: keepPreviousData,
+  });
 
   return (
     <>
