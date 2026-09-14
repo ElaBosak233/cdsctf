@@ -114,15 +114,30 @@ function Button(props: ButtonProps) {
   const renderedChildren = childElement
     ? childElement.props.children
     : children;
+  const buttonContent = (
+    <>
+      {(!!icon || loading) && Icon}
+      {renderedChildren}
+    </>
+  );
   const asChildRender =
     asChild && childElement
       ? (renderProps: React.HTMLAttributes<HTMLElement>) =>
-          React.cloneElement(childElement, renderProps)
+          React.cloneElement(childElement, {
+            ...renderProps,
+            children: buttonContent,
+          })
       : undefined;
+  const resolvedRender = React.isValidElement(render)
+    ? React.cloneElement(
+        render as React.ReactElement<{ children?: React.ReactNode }>,
+        { children: buttonContent }
+      )
+    : render;
 
   return useRender({
     defaultTagName: "button",
-    render: render ?? asChildRender,
+    render: resolvedRender ?? asChildRender,
     ref,
     props: {
       type,
@@ -134,12 +149,7 @@ function Button(props: ButtonProps) {
         "--color-button-foreground": `var(--${level}-foreground)`,
       } as CSSProperties,
       ...rest,
-      children: (
-        <>
-          {(!!icon || loading) && Icon}
-          {renderedChildren}
-        </>
-      ),
+      children: buttonContent,
     },
   });
 }
