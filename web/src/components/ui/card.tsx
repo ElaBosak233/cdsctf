@@ -1,35 +1,27 @@
-import { Slot as RadixSlot } from "radix-ui";
-import type * as React from "react";
-
+import { useRender } from "@base-ui/react/use-render";
+import React from "react";
 import { cn } from "@/utils";
 
-type CardProps = React.ComponentProps<"div"> & {
+type CardProps = useRender.ComponentProps<"div"> & {
   asChild?: boolean;
 };
 
 function Card(props: CardProps) {
-  const { className, asChild = false, ref, children, ...rest } = props;
-
-  const Comp = asChild ? RadixSlot.Slot : "div";
-
-  return (
-    <Comp
-      ref={ref}
-      className={cn(
-        [
-          "rounded-lg",
-          "border",
-          "bg-card",
-          "text-card-foreground",
-          "shadow-xs",
-        ],
+  const { className, asChild = false, render, children, ref, ...rest } = props;
+  const child = React.isValidElement(children) ? children : undefined;
+  return useRender({
+    defaultTagName: "div",
+    render: render ?? (asChild ? child : undefined),
+    ref,
+    props: {
+      className: cn(
+        "rounded-lg border bg-card text-card-foreground shadow-xs",
         className
-      )}
-      {...rest}
-    >
-      <RadixSlot.Slottable>{children}</RadixSlot.Slottable>
-    </Comp>
-  );
+      ),
+      ...rest,
+      children: child && asChild ? undefined : children,
+    },
+  });
 }
 
 export { Card };

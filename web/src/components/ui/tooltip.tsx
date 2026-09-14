@@ -1,67 +1,70 @@
-import { Tooltip as RadixTooltip } from "radix-ui";
-import type * as React from "react";
+import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
+import type * as ReactTypes from "react";
+import React from "react";
 
 import { cn } from "@/utils";
 
-type TooltipProps = Omit<
-  React.ComponentProps<typeof RadixTooltip.Provider>,
-  "children"
-> & {
-  children?: React.ComponentProps<typeof RadixTooltip.Root>["children"];
-  slotProps?: {
-    root?: Partial<React.ComponentProps<typeof RadixTooltip.Root>>;
-  };
+type TooltipProps = ReactTypes.ComponentProps<typeof BaseTooltip.Root> & {
+  delayDuration?: number;
+  children?: ReactTypes.ReactNode;
 };
 
-function Tooltip(props: TooltipProps) {
-  const { delayDuration = 0, children, slotProps, ...rest } = props;
-
+function Tooltip({ delayDuration = 0, children, ...props }: TooltipProps) {
   return (
-    <RadixTooltip.Provider
-      data-slot="tooltip-provider"
-      delayDuration={delayDuration}
-      {...rest}
-    >
-      <RadixTooltip.Root data-slot="tooltip" {...slotProps?.root}>
+    <BaseTooltip.Provider delay={delayDuration}>
+      <BaseTooltip.Root data-slot="tooltip" {...props}>
         {children}
-      </RadixTooltip.Root>
-    </RadixTooltip.Provider>
+      </BaseTooltip.Root>
+    </BaseTooltip.Provider>
   );
 }
 
 function TooltipTrigger({
+  asChild,
+  children,
   ...props
-}: React.ComponentProps<typeof RadixTooltip.Trigger>) {
+}: React.ComponentProps<typeof BaseTooltip.Trigger> & { asChild?: boolean }) {
   return (
-    <RadixTooltip.Trigger
+    <BaseTooltip.Trigger
       data-slot="tooltip-trigger"
+      render={asChild && React.isValidElement(children) ? children : undefined}
       {...props}
-      type={"button"}
-    />
+    >
+      {asChild ? undefined : children}
+    </BaseTooltip.Trigger>
   );
 }
 
 function TooltipContent({
   className,
   sideOffset = 0,
+  side,
   children,
   ...props
-}: React.ComponentProps<typeof RadixTooltip.Content>) {
+}: React.ComponentProps<typeof BaseTooltip.Popup> & {
+  sideOffset?: number;
+  side?: React.ComponentProps<typeof BaseTooltip.Positioner>["side"];
+}) {
   return (
-    <RadixTooltip.Portal>
-      <RadixTooltip.Content
-        data-slot="tooltip-content"
+    <BaseTooltip.Portal>
+      <BaseTooltip.Positioner
+        side={side}
         sideOffset={sideOffset}
-        className={cn(
-          "bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit rounded-md px-3 py-1.5 text-xs text-balance",
-          className
-        )}
-        {...props}
+        className="isolate z-50"
       >
-        {children}
-        <RadixTooltip.Arrow className="bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%-2px)] rotate-45 rounded-[2px]" />
-      </RadixTooltip.Content>
-    </RadixTooltip.Portal>
+        <BaseTooltip.Popup
+          data-slot="tooltip-content"
+          className={cn(
+            "bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 z-50 w-fit rounded-md px-3 py-1.5 text-xs text-balance",
+            className
+          )}
+          {...props}
+        >
+          {children}
+          <BaseTooltip.Arrow className="bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%-2px)] rotate-45 rounded-[2px]" />
+        </BaseTooltip.Popup>
+      </BaseTooltip.Positioner>
+    </BaseTooltip.Portal>
   );
 }
 

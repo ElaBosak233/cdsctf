@@ -1,7 +1,6 @@
+import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Slot as RadixSlot } from "radix-ui";
-import type * as React from "react";
-
+import React from "react";
 import { cn } from "@/utils";
 
 const badgeVariants = cva(
@@ -49,23 +48,34 @@ const badgeVariants = cva(
   }
 );
 
-type BadgeProps = React.ComponentProps<"span"> &
+type BadgeProps = useRender.ComponentProps<"span"> &
   VariantProps<typeof badgeVariants> & {
     asChild?: boolean;
   };
 
 function Badge(props: BadgeProps) {
-  const { size, variant, className, asChild, ...rest } = props;
-
-  const Comp = asChild ? RadixSlot.Slot : "span";
-
-  return (
-    <Comp
-      data-slot="badge"
-      className={cn(badgeVariants({ size, variant, className }))}
-      {...rest}
-    />
-  );
+  const {
+    size,
+    variant,
+    className,
+    asChild = false,
+    render,
+    children,
+    ref,
+    ...rest
+  } = props;
+  const child = React.isValidElement(children) ? children : undefined;
+  return useRender({
+    defaultTagName: "span",
+    render: render ?? (asChild ? child : undefined),
+    ref,
+    props: {
+      "data-slot": "badge",
+      className: cn(badgeVariants({ size, variant, className })),
+      ...rest,
+      children: child && asChild ? undefined : children,
+    },
+  });
 }
 
 export { Badge, badgeVariants };

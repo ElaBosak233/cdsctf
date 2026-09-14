@@ -1,8 +1,8 @@
+import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 import { LoaderCircleIcon } from "lucide-react";
-import { Slot as RadixSlot } from "radix-ui";
-import type React from "react";
-import type { ButtonHTMLAttributes, CSSProperties, Ref } from "react";
+import type { CSSProperties, Ref } from "react";
+import React from "react";
 
 import { cn } from "@/utils/index";
 
@@ -76,7 +76,7 @@ const buttonVariants = cva(
   }
 );
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
+type ButtonProps = useRender.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
     icon?: React.ReactNode;
@@ -96,6 +96,7 @@ function Button(props: ButtonProps) {
     disabled = false,
     loading = false,
     asChild = false,
+    render,
     icon,
     children,
     ref,
@@ -107,26 +108,40 @@ function Button(props: ButtonProps) {
   ) : (
     icon!
   );
-  const Comp = asChild ? RadixSlot.Slot : "button";
-  return (
-    <Comp
-      type={type}
-      className={cn(buttonVariants({ variant, size, square, className }))}
-      ref={ref}
-      draggable={false}
-      disabled={disabled || loading}
-      style={
-        {
-          "--color-button": `var(--${level})`,
-          "--color-button-foreground": `var(--${level}-foreground)`,
-        } as CSSProperties
-      }
-      {...rest}
-    >
-      {(!!icon || loading) && Icon}
-      <RadixSlot.Slottable>{children}</RadixSlot.Slottable>
-    </Comp>
-  );
+  const childElement = React.isValidElement(children)
+    ? (children as React.ReactElement<{ children?: React.ReactNode }>)
+    : undefined;
+  const renderedChildren = childElement
+    ? childElement.props.children
+    : children;
+  const asChildRender =
+    asChild && childElement
+      ? (renderProps: React.HTMLAttributes<HTMLElement>) =>
+          React.cloneElement(childElement, renderProps)
+      : undefined;
+
+  return useRender({
+    defaultTagName: "button",
+    render: render ?? asChildRender,
+    ref,
+    props: {
+      type,
+      className: cn(buttonVariants({ variant, size, square, className })),
+      draggable: false,
+      disabled: disabled || loading,
+      style: {
+        "--color-button": `var(--${level})`,
+        "--color-button-foreground": `var(--${level}-foreground)`,
+      } as CSSProperties,
+      ...rest,
+      children: (
+        <>
+          {(!!icon || loading) && Icon}
+          {renderedChildren}
+        </>
+      ),
+    },
+  });
 }
 
 export { Button, type ButtonProps, buttonVariants };

@@ -9,12 +9,17 @@ function HydrateFallback() {
   return (
     <div
       className={cn([
-        "h-screen",
+        "absolute",
+        "inset-0",
+        "z-50",
         "flex",
+        "h-full",
+        "w-full",
         "flex-col",
-        "justify-center",
         "items-center",
+        "justify-center",
         "gap-3",
+        "bg-background",
       ])}
     >
       <LoaderCircleIcon className={cn(["animate-spin", "size-10"])} />

@@ -1,26 +1,39 @@
-import { Dialog as RadixDialog } from "radix-ui";
-import type * as React from "react";
+import { Dialog as BaseDialog } from "@base-ui/react/dialog";
+import React from "react";
 
 import { cn } from "@/utils";
 
-type DialogProps = React.ComponentProps<typeof RadixDialog.Root> & {};
+type DialogProps = React.ComponentProps<typeof BaseDialog.Root> & {};
 
 function Dialog(props: DialogProps) {
   const { ...rest } = props;
 
-  return <RadixDialog.Root data-slot="dialog" {...rest} />;
+  return <BaseDialog.Root data-slot="dialog" {...rest} />;
 }
 
 function DialogTrigger({
   ...props
-}: Omit<React.ComponentProps<typeof RadixDialog.Trigger>, "asChild">) {
-  return <RadixDialog.Trigger data-slot="dialog-trigger" asChild {...props} />;
+}: React.ComponentProps<typeof BaseDialog.Trigger> & { asChild?: boolean }) {
+  const { asChild, children, render, ...rest } = props;
+  const child = React.isValidElement(children) ? children : undefined;
+
+  return (
+    <BaseDialog.Trigger
+      data-slot="dialog-trigger"
+      // Base UI's render prop replaces the trigger element. This also keeps
+      // Button/Card triggers from becoming invalid nested interactive elements.
+      render={render ?? child}
+      {...rest}
+    >
+      {render || child || asChild ? undefined : children}
+    </BaseDialog.Trigger>
+  );
 }
 
-type DialogContentProps = React.ComponentProps<typeof RadixDialog.Content> & {
+type DialogContentProps = React.ComponentProps<typeof BaseDialog.Popup> & {
   size?: "default" | "wide" | "preview";
   slotProps?: {
-    title?: React.ComponentProps<typeof RadixDialog.DialogTitle>;
+    title?: React.ComponentProps<typeof BaseDialog.Title>;
   };
 };
 
@@ -36,16 +49,16 @@ function DialogContent(props: DialogContentProps) {
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
-      <RadixDialog.Content
+      <BaseDialog.Popup
         aria-describedby={undefined}
         data-slot="dialog-content"
         className={cn([
-          "data-[state=open]:animate-in",
-          "data-[state=closed]:animate-out",
-          "data-[state=closed]:fade-out-0",
-          "data-[state=open]:fade-in-0",
-          "data-[state=closed]:zoom-out-95",
-          "data-[state=open]:zoom-in-95",
+          "data-open:animate-in",
+          "data-closed:animate-out",
+          "data-closed:fade-out-0",
+          "data-open:fade-in-0",
+          "data-closed:zoom-out-95",
+          "data-open:zoom-in-95",
           "outline-hidden",
           "fixed",
           "top-1/2",
@@ -61,35 +74,35 @@ function DialogContent(props: DialogContentProps) {
         ])}
         {...rest}
       >
-        <RadixDialog.DialogTitle
+        <BaseDialog.Title
           className={cn(["hidden", slotProps?.title?.className])}
           {...slotProps?.title}
         />
         {children}
-      </RadixDialog.Content>
+      </BaseDialog.Popup>
     </DialogPortal>
   );
 }
 
 function DialogPortal({
   ...props
-}: React.ComponentProps<typeof RadixDialog.Portal>) {
-  return <RadixDialog.Portal data-slot="dialog-portal" {...props} />;
+}: React.ComponentProps<typeof BaseDialog.Portal>) {
+  return <BaseDialog.Portal data-slot="dialog-portal" {...props} />;
 }
 
 function DialogOverlay({
   className,
   ...props
-}: React.ComponentProps<typeof RadixDialog.Overlay>) {
+}: React.ComponentProps<typeof BaseDialog.Backdrop>) {
   return (
-    <RadixDialog.Overlay
+    <BaseDialog.Backdrop
       data-slot="dialog-overlay"
       className={cn(
         [
-          "data-[state=open]:animate-in",
-          "data-[state=closed]:animate-out",
-          "data-[state=closed]:fade-out-0",
-          "data-[state=open]:fade-in-0",
+          "data-open:animate-in",
+          "data-closed:animate-out",
+          "data-closed:fade-out-0",
+          "data-open:fade-in-0",
           "fixed",
           "inset-0",
           "z-50",

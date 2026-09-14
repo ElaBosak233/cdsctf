@@ -34,14 +34,17 @@ function AuthSection() {
   if (user?.id) {
     return (
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button square>
-            <Avatar
-              className={cn("h-8", "w-8")}
-              src={user.avatar_hash && `/api/media?hash=${user.avatar_hash}`}
-              fallback={user.name?.charAt(0)}
-            />
-          </Button>
+        <DropdownMenuTrigger
+          className={cn(
+            "relative inline-flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-md p-1 transition-colors hover:bg-primary/10"
+          )}
+          aria-label={user.name || user.username}
+        >
+          <Avatar
+            className={cn("h-8", "w-8")}
+            src={user.avatar_hash && `/api/media?hash=${user.avatar_hash}`}
+            fallback={user.name?.charAt(0)}
+          />
         </DropdownMenuTrigger>
         <DropdownMenuContent sideOffset={20} className="w-42">
           <DropdownMenuItem
