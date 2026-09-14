@@ -135,69 +135,74 @@ export default function Index() {
               <div className={cn(["flex", "flex-col", "gap-4", "w-full"])}>
                 {scoreboardData.scoreboard.map((record) => (
                   <Dialog key={record.team?.id}>
-                    <DialogTrigger>
-                      <Card
-                        className={cn([
-                          "flex",
-                          "items-center",
-                          "gap-5",
-                          "p-5",
-                          "cursor-pointer",
-                          "hover:bg-muted/50",
-                          "transition-colors",
-                          "w-full",
-                        ])}
-                      >
-                        <Badge>{record.team?.rank}</Badge>
-
-                        <Avatar
-                          className={cn(["size-10", "shrink-0"])}
-                          src={
-                            record.team?.avatar_hash &&
-                            `/api/media?hash=${record.team?.avatar_hash}`
-                          }
-                          fallback={record.team?.name?.charAt(0)}
-                        />
-
-                        <div
+                    <DialogTrigger
+                      nativeButton={false}
+                      render={
+                        <Card
                           className={cn([
                             "flex",
-                            "flex-col",
-                            "flex-1",
-                            "min-w-0",
+                            "items-center",
+                            "gap-5",
+                            "p-5",
+                            "cursor-pointer",
+                            "hover:bg-muted/50",
+                            "transition-colors",
+                            "w-full",
                           ])}
                         >
-                          <span className={cn(["font-semibold", "text-base"])}>
-                            {record.team?.name}
-                          </span>
-                          <span
+                          <Badge>{record.team?.rank}</Badge>
+
+                          <Avatar
+                            className={cn(["size-10", "shrink-0"])}
+                            src={
+                              record.team?.avatar_hash &&
+                              `/api/media?hash=${record.team?.avatar_hash}`
+                            }
+                            fallback={record.team?.name?.charAt(0)}
+                          />
+
+                          <div
                             className={cn([
-                              "text-sm",
-                              "text-muted-foreground",
-                              "truncate",
+                              "flex",
+                              "flex-col",
+                              "flex-1",
+                              "min-w-0",
                             ])}
                           >
-                            {record.team?.slogan}
-                          </span>
-                        </div>
+                            <span
+                              className={cn(["font-semibold", "text-base"])}
+                            >
+                              {record.team?.name}
+                            </span>
+                            <span
+                              className={cn([
+                                "text-sm",
+                                "text-muted-foreground",
+                                "truncate",
+                              ])}
+                            >
+                              {record.team?.slogan}
+                            </span>
+                          </div>
 
-                        <Badge
-                          variant="tonal"
-                          size="md"
-                          className={cn([
-                            "font-mono",
-                            "flex",
-                            "gap-1.5",
-                            "items-center",
-                            "shrink-0",
-                            "px-4",
-                          ])}
-                        >
-                          <StarIcon className={cn(["size-4"])} />
-                          {record.team?.pts}
-                        </Badge>
-                      </Card>
-                    </DialogTrigger>
+                          <Badge
+                            variant="tonal"
+                            size="md"
+                            className={cn([
+                              "font-mono",
+                              "flex",
+                              "gap-1.5",
+                              "items-center",
+                              "shrink-0",
+                              "px-4",
+                            ])}
+                          >
+                            <StarIcon className={cn(["size-4"])} />
+                            {record.team?.pts}
+                          </Badge>
+                        </Card>
+                      }
+                    />
                     <DialogContent size="preview">
                       <TeamDetailsDialog team={record.team!} />
                     </DialogContent>

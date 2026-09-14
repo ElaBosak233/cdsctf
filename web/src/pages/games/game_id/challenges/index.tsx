@@ -338,16 +338,19 @@ export default function Index() {
                   />
                 ) : (
                   <Dialog key={index}>
-                    <DialogTrigger>
-                      <ChallengeCard
-                        digest={{
-                          id: gameChallenge.challenge_id,
-                          title: gameChallenge.challenge_title,
-                          category: gameChallenge.challenge_category,
-                        }}
-                        status={status}
-                      />
-                    </DialogTrigger>
+                    <DialogTrigger
+                      nativeButton={false}
+                      render={
+                        <ChallengeCard
+                          digest={{
+                            id: gameChallenge.challenge_id,
+                            title: gameChallenge.challenge_title,
+                            category: gameChallenge.challenge_category,
+                          }}
+                          status={status}
+                        />
+                      }
+                    />
                     <DialogContent size="preview">
                       <ChallengeDialog
                         digest={{

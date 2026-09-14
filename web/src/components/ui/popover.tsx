@@ -1,6 +1,5 @@
 import { Popover as BasePopover } from "@base-ui/react/popover";
 import type * as ReactTypes from "react";
-import React from "react";
 
 import { cn } from "@/utils";
 
@@ -8,24 +7,10 @@ function Popover(props: React.ComponentProps<typeof BasePopover.Root>) {
   return <BasePopover.Root data-slot="popover" {...props} />;
 }
 
-function PopoverTrigger({
-  asChild,
-  children,
-  nativeButton,
-  ...props
-}: React.ComponentProps<typeof BasePopover.Trigger> & { asChild?: boolean }) {
-  const renderedTrigger =
-    asChild && React.isValidElement(children) ? children : undefined;
-  return (
-    <BasePopover.Trigger
-      data-slot="popover-trigger"
-      render={renderedTrigger}
-      nativeButton={nativeButton ?? (renderedTrigger ? false : undefined)}
-      {...props}
-    >
-      {asChild ? undefined : children}
-    </BasePopover.Trigger>
-  );
+function PopoverTrigger(
+  props: React.ComponentProps<typeof BasePopover.Trigger>
+) {
+  return <BasePopover.Trigger data-slot="popover-trigger" {...props} />;
 }
 
 function PopoverContent({

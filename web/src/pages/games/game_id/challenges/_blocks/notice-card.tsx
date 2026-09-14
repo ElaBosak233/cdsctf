@@ -84,61 +84,66 @@ function NoticeCard() {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <DialogTrigger>
-            <Button
-              className={cn([
-                "relative",
-                "size-9",
-                hasUnreadNotices ? "text-warning" : "text-muted-foreground",
-              ])}
-              size={"sm"}
-              square
-              variant={"ghost"}
-              aria-label={
-                hasUnreadNotices
-                  ? `${t("game:notice.board")} - ${t("game:notice.new")}`
-                  : t("game:notice.board")
-              }
-            >
-              <BellIcon />
-              {hasUnreadNotices && (
-                <span
+        <TooltipTrigger
+          render={
+            <DialogTrigger
+              nativeButton={false}
+              render={
+                <Button
                   className={cn([
-                    "absolute",
-                    "right-1",
-                    "top-1",
-                    "flex",
-                    "size-3",
+                    "relative",
+                    "size-9",
+                    hasUnreadNotices ? "text-warning" : "text-muted-foreground",
                   ])}
-                  aria-hidden="true"
+                  size={"sm"}
+                  square
+                  variant={"ghost"}
+                  aria-label={
+                    hasUnreadNotices
+                      ? `${t("game:notice.board")} - ${t("game:notice.new")}`
+                      : t("game:notice.board")
+                  }
                 >
-                  <span
-                    className={cn([
-                      "absolute",
-                      "inline-flex",
-                      "size-full",
-                      "rounded-full",
-                      "bg-warning/60",
-                      "motion-safe:animate-ping",
-                    ])}
-                  />
-                  <span
-                    className={cn([
-                      "relative",
-                      "inline-flex",
-                      "size-2.5",
-                      "rounded-full",
-                      "bg-warning",
-                      "ring-2",
-                      "ring-card",
-                    ])}
-                  />
-                </span>
-              )}
-            </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
+                  <BellIcon />
+                  {hasUnreadNotices && (
+                    <span
+                      className={cn([
+                        "absolute",
+                        "right-1",
+                        "top-1",
+                        "flex",
+                        "size-3",
+                      ])}
+                      aria-hidden="true"
+                    >
+                      <span
+                        className={cn([
+                          "absolute",
+                          "inline-flex",
+                          "size-full",
+                          "rounded-full",
+                          "bg-warning/60",
+                          "motion-safe:animate-ping",
+                        ])}
+                      />
+                      <span
+                        className={cn([
+                          "relative",
+                          "inline-flex",
+                          "size-2.5",
+                          "rounded-full",
+                          "bg-warning",
+                          "ring-2",
+                          "ring-card",
+                        ])}
+                      />
+                    </span>
+                  )}
+                </Button>
+              }
+            />
+          }
+        />
         <TooltipContent>{t("game:notice.board")}</TooltipContent>
       </Tooltip>
       <DialogContent

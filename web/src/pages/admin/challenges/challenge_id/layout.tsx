@@ -112,12 +112,15 @@ export default function Layout() {
               );
             })}
             <Dialog>
-              <DialogTrigger>
-                <Button variant="ghost" size="sm" className="shrink-0">
-                  <PlayIcon className="size-4" />
-                  {t("challenge:preview")}
-                </Button>
-              </DialogTrigger>
+              <DialogTrigger
+                nativeButton={false}
+                render={
+                  <Button variant="ghost" size="sm" className="shrink-0">
+                    <PlayIcon className="size-4" />
+                    {t("challenge:preview")}
+                  </Button>
+                }
+              />
               <DialogContent size="preview">
                 <ChallengeDialog digest={challenge} debug />
               </DialogContent>
@@ -181,19 +184,22 @@ export default function Layout() {
             </nav>
             <div className={cn(["border-t", "pt-4"])}>
               <Dialog>
-                <DialogTrigger>
-                  <Button
-                    icon={<PlayIcon className="size-4" />}
-                    variant="ghost"
-                    className={cn([
-                      "justify-start",
-                      "w-full",
-                      "text-muted-foreground",
-                    ])}
-                  >
-                    {t("challenge:preview")}
-                  </Button>
-                </DialogTrigger>
+                <DialogTrigger
+                  nativeButton={false}
+                  render={
+                    <Button
+                      icon={<PlayIcon className="size-4" />}
+                      variant="ghost"
+                      className={cn([
+                        "justify-start",
+                        "w-full",
+                        "text-muted-foreground",
+                      ])}
+                    >
+                      {t("challenge:preview")}
+                    </Button>
+                  }
+                />
                 <DialogContent size="preview">
                   <ChallengeDialog digest={challenge} debug />
                 </DialogContent>
