@@ -174,22 +174,15 @@ export default function Layout() {
               {options?.map((option, index) => (
                 <SidebarMenuItem key={index}>
                   <SidebarMenuButton
-                    asChild={!option.disabled}
+                    asChild
                     isActive={pathname === option.link}
                     disabled={option.disabled}
                     className="h-11 justify-start px-8 text-sm"
                   >
-                    {option.disabled ? (
-                      <span>
-                        {option.icon}
-                        {option.name}
-                      </span>
-                    ) : (
-                      <Link to={option.link}>
-                        {option.icon}
-                        <span>{option.name}</span>
-                      </Link>
-                    )}
+                    <Link to={option.link}>
+                      {option.icon}
+                      <span>{option.name}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

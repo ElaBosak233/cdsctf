@@ -267,6 +267,7 @@ export default function Index() {
           "w-full",
           "gap-6",
           "sm:gap-8",
+          "p-8"
         ])}
       >
         <div

@@ -716,8 +716,8 @@ function DateTimePicker({
 
   return (
     <Popover>
-      <PopoverTrigger asChild disabled={disabled}>
-        <div className="relative flex flex-1 w-0 items-center">
+      <div className="relative flex flex-1 w-0 items-center">
+        <PopoverTrigger asChild disabled={disabled}>
           <Button
             type="button"
             disabled={disabled}
@@ -744,22 +744,23 @@ function DateTimePicker({
               <span>{placeholder}</span>
             )}
           </Button>
+        </PopoverTrigger>
 
-          {clearable && displayDate && (
-            <Button
-              variant="ghost"
-              size={"sm"}
-              square
-              className={cn([
-                "absolute right-1 opacity-70 hover:opacity-100 hover:bg-transparent transition-opacity",
-              ])}
-              onClick={handleClear}
-            >
-              <CircleXIcon className="size-4" />
-            </Button>
-          )}
-        </div>
-      </PopoverTrigger>
+        {clearable && displayDate && (
+          <Button
+            type="button"
+            variant="ghost"
+            size={"sm"}
+            square
+            className={cn([
+              "absolute right-1 opacity-70 hover:opacity-100 hover:bg-transparent transition-opacity",
+            ])}
+            onClick={handleClear}
+          >
+            <CircleXIcon className="size-4" />
+          </Button>
+        )}
+      </div>
       <PopoverContent className="w-auto p-0">
         <Calendar
           mode="single"
