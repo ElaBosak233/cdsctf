@@ -5,6 +5,7 @@ team_id: 团队 ID
 challenge_title: 题目
 challenge_id: 题目 ID
 flag: Flag
+user_id: 用户 ID
 user_name: 用户
 created_at: 时间
 processing_duration: 处理时长

@@ -5,15 +5,16 @@ team_id: チームID
 challenge_title: 課題
 challenge_id: 課題 ID
 flag: フラグ
+user_id: ユーザー ID
 user_name: ユーザー
 created_at: 提出日時
 processing_duration: 処理時間
 solved: 解決済み
-solves: '{{count}} 件の正解'
+solves: "{{count}} 件の正解"
 queued_review: チェッカーのキューに入りました...
 empty: 提出はまだありません。
 cheated: この課題には不正行為の記録があるため、提出できません。
-submitted: '#{{id}} {{title}} の解答を提出しました'
+submitted: "#{{id}} {{title}} の解答を提出しました"
 actions:
   submit: 提出
   mark_cheat: チートとしてマーク

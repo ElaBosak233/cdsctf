@@ -176,8 +176,8 @@ challenge:
       _: Add Challenge
       message: >-
         Please search for the challenge using ID or the challenge title. The
-        list will only display the first 10 results. Click on the title to add
-        challenge.
+        list will only display the first 10 results. Select a challenge and
+        click confirm to add it.
       success: "Challenge {{title}} added to this game successfully."
     edit:
       _: Edit Challenge
