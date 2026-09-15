@@ -519,6 +519,10 @@ function TimePicker({
 
 type Granularity = "day" | "hour" | "minute" | "second";
 
+function isValidDate(value: Date | undefined): value is Date {
+  return value != null && !Number.isNaN(value.getTime());
+}
+
 const dateTimePickerVariants = cva(
   [
     "flex-1",
@@ -607,8 +611,13 @@ function DateTimePicker({
   ref,
   ...props
 }: DateTimePickerProps & { ref?: React.Ref<DateTimePickerRef> }) {
-  const [month, setMonth] = useState<Date>(value ?? defaultPopupValue);
-  const [displayDate, setDisplayDate] = useState<Date | undefined>(value);
+  const fallbackPopupValue = isValidDate(defaultPopupValue)
+    ? defaultPopupValue
+    : new Date(new Date().setHours(0, 0, 0, 0));
+  const normalizedValue = isValidDate(value) ? value : undefined;
+  const [month, setMonth] = useState<Date>(normalizedValue ?? fallbackPopupValue);
+  const [displayDate, setDisplayDate] =
+    useState<Date | undefined>(normalizedValue);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const context = React.useContext(FieldContext);
@@ -630,16 +639,19 @@ function DateTimePicker({
    * parent component
    */
   useEffect(() => {
-    if (value) {
-      setDisplayDate(value);
-      setMonth(value);
+    if (normalizedValue) {
+      setDisplayDate(normalizedValue);
+      setMonth(normalizedValue);
+    } else {
+      setDisplayDate(undefined);
+      setMonth(fallbackPopupValue);
     }
-  }, [value]);
+  }, [normalizedValue]);
 
   const handleClear = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setDisplayDate(undefined);
-    setMonth(defaultPopupValue);
+    setMonth(fallbackPopupValue);
     onChange?.(undefined);
   };
 
@@ -651,7 +663,7 @@ function DateTimePicker({
     if (!newDay) {
       return;
     }
-    if (!defaultPopupValue) {
+    if (!isValidDate(defaultPopupValue)) {
       newDay.setHours(
         month?.getHours() ?? 0,
         month?.getMinutes() ?? 0,
@@ -661,9 +673,9 @@ function DateTimePicker({
       setMonth(newDay);
       return;
     }
-    const diff = newDay.getTime() - defaultPopupValue.getTime();
+    const diff = newDay.getTime() - fallbackPopupValue.getTime();
     const diffInDays = diff / (1000 * 60 * 60 * 24);
-    const newDateFull = add(defaultPopupValue, {
+    const newDateFull = add(fallbackPopupValue, {
       days: Math.ceil(diffInDays),
     });
     newDateFull.setHours(

@@ -99,6 +99,8 @@ export default function Index() {
   });
 
   useEffect(() => {
+    if (!game) return;
+
     form.reset(
       {
         ...game,
