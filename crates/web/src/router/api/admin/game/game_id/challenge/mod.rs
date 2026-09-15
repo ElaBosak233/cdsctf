@@ -93,7 +93,8 @@ pub struct CreateGameChallengeRequest {
     pub max_pts: Option<i64>,
     pub min_pts: Option<i64>,
     pub bonus_ratios: Option<Vec<i64>>,
-    pub frozen_at: Option<Option<i64>>,
+    #[serde(with = "cds_db::time_format::double_option")]
+    pub frozen_at: Option<Option<time::OffsetDateTime>>,
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]

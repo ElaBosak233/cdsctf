@@ -150,12 +150,12 @@ mod tests {
                 challenge_id: 30,
                 challenge_title: "challenge".to_owned(),
                 pts: 100,
-                created_at: 1_700_000_000,
+                created_at: time::OffsetDateTime::from_unix_timestamp(1_700_000_000).unwrap(),
             }],
         };
         assert_eq!(
             serde_json::to_value(record).unwrap(),
-            serde_json::json!({"team":{"id":1,"name":"team","slogan":"hello","avatar_hash":"team-avatar","pts":100,"rank":2},"submissions":[{"id":10,"user_id":20,"user_name":"user","user_avatar_hash":"user-avatar","challenge_id":30,"challenge_title":"challenge","pts":100,"created_at":1_700_000_000_i64}]})
+            serde_json::json!({"team":{"id":1,"name":"team","slogan":"hello","avatar_hash":"team-avatar","pts":100,"rank":2},"submissions":[{"id":10,"user_id":20,"user_name":"user","user_avatar_hash":"user-avatar","challenge_id":30,"challenge_title":"challenge","pts":100,"created_at":"2023-11-14T22:13:20Z"}]})
         );
     }
 

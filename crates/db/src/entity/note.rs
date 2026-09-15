@@ -14,8 +14,10 @@ pub struct Model {
     pub public: bool,
     pub user_id: i64,
     pub challenge_id: i64,
-    pub created_at: i64,
-    pub updated_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub updated_at: time::OffsetDateTime,
     #[sea_orm(belongs_to, from = "challenge_id", to = "id", on_delete = "Cascade")]
     pub challenge: BelongsTo<super::challenge::Entity>,
     #[sea_orm(belongs_to, from = "user_id", to = "id", on_delete = "Cascade")]
@@ -28,7 +30,7 @@ impl ActiveModelBehavior for ActiveModel {
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {
-        let ts = time::OffsetDateTime::now_utc().unix_timestamp();
+        let ts = time::OffsetDateTime::now_utc();
         self.updated_at = Set(ts);
 
         if insert {

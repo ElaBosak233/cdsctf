@@ -1,3 +1,4 @@
+import { date } from "@/utils/time";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ClockFadingIcon,
@@ -85,7 +86,7 @@ function EditDialog(props: EditDialogProps) {
       {
         ...gameChallenge,
         frozen_at: gameChallenge.frozen_at
-          ? new Date(Number(gameChallenge.frozen_at) * 1000)
+          ? date(gameChallenge.frozen_at)
           : undefined,
       },
       {
@@ -137,7 +138,7 @@ function EditDialog(props: EditDialogProps) {
       challenge_id: cid,
       ...values,
       frozen_at: values.frozen_at
-        ? Math.floor(values.frozen_at.getTime() / 1000)
+        ? values.frozen_at.toISOString()
         : null,
     }).then(() => {
       toast.success(

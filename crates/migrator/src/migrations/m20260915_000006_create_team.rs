@@ -1,4 +1,4 @@
-//! SeaORM migration `m20260806_000002_create_user` — applies forward/backward
+//! SeaORM migration `m20260915_000006_create_team` — applies forward/backward
 //! schema changes.
 
 use async_trait::async_trait;
@@ -10,7 +10,7 @@ pub struct Migration;
 impl MigrationName for Migration {
     /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260806_000002_create_user"
+        "m20260915_000006_create_team"
     }
 }
 
@@ -23,17 +23,21 @@ impl MigrationTrait for Migration {
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                CREATE TABLE IF NOT EXISTS "users" (
+                CREATE TABLE IF NOT EXISTS "teams" (
                     "id" BIGSERIAL PRIMARY KEY,
+                    "game_id" BIGINT NOT NULL,
                     "name" VARCHAR NOT NULL,
-                    "username" VARCHAR UNIQUE NOT NULL,
-                    "description" TEXT,
-                    "group" INTEGER NOT NULL,
-                    "hashed_password" VARCHAR NOT NULL,
+                    "email" VARCHAR,
+                    "slogan" VARCHAR,
                     "avatar_hash" VARCHAR,
-                    "deleted_at" BIGINT,
-                    "created_at" BIGINT NOT NULL,
-                    "updated_at" BIGINT NOT NULL
+                    "has_writeup" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "state" INT NOT NULL,
+                    "pts" BIGINT NOT NULL DEFAULT 0,
+                    "rank" BIGINT NOT NULL DEFAULT 0,
+                    
+                    CONSTRAINT "fk_teams_game_id"
+                        FOREIGN KEY ("game_id") REFERENCES "games" ("id")
+                        ON DELETE CASCADE
                 );
             "#
             .to_owned(),
@@ -50,7 +54,7 @@ impl MigrationTrait for Migration {
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                DROP TABLE IF EXISTS "users";
+                DROP TABLE IF EXISTS "teams";
             "#
             .to_owned(),
         ))

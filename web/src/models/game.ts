@@ -11,12 +11,12 @@ export type GameDetail = {
   member_limit_min: number;
   member_limit_max: number;
   timeslots: Timeslot[];
-  started_at: number;
-  frozen_at: number;
-  ended_at: number;
+  started_at: string;
+  frozen_at: string;
+  ended_at: string;
   icon_hash: string | null;
   poster_hash: string | null;
-  created_at: number;
+  created_at: string;
 };
 
 export type GameView = Pick<
@@ -37,17 +37,17 @@ export type GameView = Pick<
 
 export type Timeslot = {
   label: string;
-  started_at: number;
-  ended_at: number;
+  started_at: string;
+  ended_at: string;
 };
 
 export type GameSummary = {
   id: number;
   title: string;
   sketch: string | null;
-  started_at: number;
-  frozen_at: number;
-  ended_at: number;
+  started_at: string;
+  frozen_at: string;
+  ended_at: string;
   icon_hash: string | null;
   poster_hash: string | null;
 };
@@ -74,5 +74,5 @@ export type ScoreboardSubmission = {
   challenge_id: number;
   challenge_title: string;
   pts: number;
-  created_at: number;
+  created_at: string;
 };

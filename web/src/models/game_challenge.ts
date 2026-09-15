@@ -8,7 +8,7 @@ export type GameChallengeView = {
   max_pts: number;
   min_pts: number;
   bonus_ratios: number[];
-  frozen_at: number | null;
+  frozen_at: string | null;
   pts: number;
 };
 
@@ -18,5 +18,5 @@ export type GameChallengeSummary = {
   challenge_title: string;
   challenge_category: number;
   pts: number;
-  frozen_at: number | null;
+  frozen_at: string | null;
 };

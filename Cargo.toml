@@ -53,7 +53,7 @@ tower = { version = "0.5" }
 tower-http = { version = "0.7", features = ["cors", "fs", "trace"] }
 tower-sessions = { version = "0.15" }
 tower-sessions-core = { version = "0.15" }
-utoipa = { version = "5.5", features = ["macros"] }
+utoipa = { version = "5.5", features = ["macros", "time"] }
 utoipa-axum = { version = "0.2" }
 utoipa-scalar = { version = "0.3", features = ["axum"] }
 #tower-sessions-redis-store = { version = "0.16" }
@@ -77,7 +77,7 @@ serde      = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 serde_repr = { version = "0.1" }
 serde_with = { version = "3.23" }
-time       = { version = "0.3", features = ["serde", "macros", "local-offset"] }
+time       = { version = "0.3", features = ["serde", "serde-well-known", "macros", "local-offset"] }
 toml       = { version = "1.1" }
 url        = { version = "2.5" }
 uuid       = { version = "1.26", features = ["v4", "fast-rng", "macro-diagnostics"] }
@@ -110,11 +110,12 @@ sea-orm = { version = "2.0.2", features = [
   "sqlx-postgres",
   "debug-print",
   "with-uuid",
+  "with-time",
   "macros",
   "with-json",
   "runtime-tokio-rustls",
 ] }
-sea-orm-migration = { version = "2.0.2" }
+sea-orm-migration = { version = "2.0.2", features = ["with-time"] }
 
 # Message Queue
 async-nats = { version = "0.50" }

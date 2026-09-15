@@ -42,8 +42,11 @@ pub struct UpdateSubmissionStatusRequest {
 fn status_timestamps(
     previous: &Status,
     next: &Status,
-    now: i64,
-) -> (ActiveValue<Option<i64>>, ActiveValue<Option<i64>>) {
+    now: time::OffsetDateTime,
+) -> (
+    ActiveValue<Option<time::OffsetDateTime>>,
+    ActiveValue<Option<time::OffsetDateTime>>,
+) {
     match next {
         Status::Queued => (Set(None), Set(None)),
         Status::Processing => (Set(Some(now)), Set(None)),
@@ -121,7 +124,7 @@ pub async fn update_submission_status(
         )));
     }
 
-    let now = time::OffsetDateTime::now_utc().unix_timestamp();
+    let now = time::OffsetDateTime::now_utc();
     let (processing_at, checked_at) = status_timestamps(&previous.status, &body.status, now);
     let (pts, rank) = status_scores(&previous.status, &body.status);
     let score_game_id =
@@ -225,32 +228,36 @@ mod tests {
 
     #[test]
     fn queued_clears_processing_timestamps() {
+        let now = time::OffsetDateTime::from_unix_timestamp(42).unwrap();
         assert_eq!(
-            status_timestamps(&Status::Processing, &Status::Queued, 42),
+            status_timestamps(&Status::Processing, &Status::Queued, now),
             (Set(None), Set(None))
         );
     }
 
     #[test]
     fn processing_starts_a_new_attempt() {
+        let now = time::OffsetDateTime::from_unix_timestamp(42).unwrap();
         assert_eq!(
-            status_timestamps(&Status::Queued, &Status::Processing, 42),
-            (Set(Some(42)), Set(None))
+            status_timestamps(&Status::Queued, &Status::Processing, now),
+            (Set(Some(now)), Set(None))
         );
     }
 
     #[test]
     fn finishing_processing_records_completion() {
+        let now = time::OffsetDateTime::from_unix_timestamp(42).unwrap();
         assert_eq!(
-            status_timestamps(&Status::Processing, &Status::Incorrect, 42),
-            (NotSet, Set(Some(42)))
+            status_timestamps(&Status::Processing, &Status::Incorrect, now),
+            (NotSet, Set(Some(now)))
         );
     }
 
     #[test]
     fn terminal_status_correction_preserves_checker_timestamps() {
+        let now = time::OffsetDateTime::from_unix_timestamp(42).unwrap();
         assert_eq!(
-            status_timestamps(&Status::Correct, &Status::Incorrect, 42),
+            status_timestamps(&Status::Correct, &Status::Incorrect, now),
             (NotSet, NotSet)
         );
     }

@@ -1,3 +1,4 @@
+import { timestamp } from "@/utils/time";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   InfoIcon,
@@ -40,7 +41,7 @@ export default function Index() {
   const { t } = useTranslation();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const disabled = Date.now() / 1000 > Number(currentGame?.ended_at);
+  const disabled = Date.now() > timestamp(currentGame?.ended_at);
 
   const avatarInput = useRef<HTMLInputElement>(null);
   const [hasAvatar, setHasAvatar] = useState<boolean>(false);

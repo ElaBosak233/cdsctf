@@ -92,7 +92,7 @@ pub async fn save_team_write_up(
     let team = util::loader::prepare_self_team(&s.db.conn, game.id, operator.id).await?;
     let path = format!("games/{}/teams/{}/writeup", game.id, team.id);
 
-    let now = time::OffsetDateTime::now_utc().unix_timestamp();
+    let now = time::OffsetDateTime::now_utc();
     if now > game.ended_at || now < game.started_at {
         return Err(WebError::BadRequest(json!("game_is_not_ongoing")));
     }

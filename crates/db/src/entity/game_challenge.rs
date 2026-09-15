@@ -19,7 +19,8 @@ pub struct Model {
     pub bonus_ratios: Vec<i64>,
     #[sea_orm(default_value = false)]
     pub enabled: bool,
-    pub frozen_at: Option<i64>,
+    #[serde(with = "crate::time_format::option")]
+    pub frozen_at: Option<time::OffsetDateTime>,
 
     #[sea_orm(default_value = 0)]
     pub pts: i64,

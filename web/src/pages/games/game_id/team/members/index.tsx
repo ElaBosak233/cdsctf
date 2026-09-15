@@ -1,3 +1,4 @@
+import { timestamp } from "@/utils/time";
 import { useQuery } from "@tanstack/react-query";
 import { KeyIcon, RefreshCcwIcon, UsersRoundIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -20,7 +21,7 @@ export default function Index() {
   const { tick, bump } = useRefresh();
 
   const disabled =
-    Date.now() > Number(currentGame?.ended_at) * 1000 ||
+    Date.now() > timestamp(currentGame?.ended_at) ||
     selfTeam?.state !== State.Preparing;
 
   const { data: token } = useQuery({

@@ -3,5 +3,5 @@ export type GameNoticeView = {
   game_id: number;
   title: string;
   content: string;
-  created_at: number;
+  created_at: string;
 };

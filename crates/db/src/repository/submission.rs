@@ -247,7 +247,7 @@ pub struct ScoreInput {
     pub id: i64,
     pub challenge_id: i64,
     pub team_id: Option<i64>,
-    pub created_at: i64,
+    pub created_at: time::OffsetDateTime,
     pub pts: i64,
     pub rank: i64,
 }
@@ -456,8 +456,8 @@ pub async fn claim_queued_or_stale_by_id(
     conn: &impl ConnectionTrait,
     submission_id: i64,
 ) -> Result<Option<SubmissionView>, DbError> {
-    let now = time::OffsetDateTime::now_utc().unix_timestamp();
-    let cutoff = now.saturating_sub(PROCESSING_LEASE_SECONDS);
+    let now = time::OffsetDateTime::now_utc();
+    let cutoff = now - time::Duration::seconds(PROCESSING_LEASE_SECONDS);
     let result = claimable_submission_query(submission_id, now, cutoff)
         .exec(conn)
         .await?;
@@ -471,8 +471,8 @@ pub async fn claim_queued_or_stale_by_id(
 
 fn claimable_submission_query(
     submission_id: i64,
-    now: i64,
-    cutoff: i64,
+    now: time::OffsetDateTime,
+    cutoff: time::OffsetDateTime,
 ) -> sea_orm::UpdateMany<Entity> {
     Entity::update_many()
         .set(ActiveModel {
@@ -499,7 +499,7 @@ fn claimable_submission_query(
 pub async fn release_processing(
     conn: &impl ConnectionTrait,
     submission_id: i64,
-    processing_at: i64,
+    processing_at: time::OffsetDateTime,
 ) -> Result<bool, DbError> {
     let result = Entity::update_many()
         .set(ActiveModel {
@@ -521,10 +521,10 @@ pub async fn release_processing(
 pub async fn finish_processing(
     conn: &impl ConnectionTrait,
     submission_id: i64,
-    processing_at: i64,
+    processing_at: time::OffsetDateTime,
     status: Status,
 ) -> Result<Option<SubmissionView>, DbError> {
-    let now = time::OffsetDateTime::now_utc().unix_timestamp();
+    let now = time::OffsetDateTime::now_utc();
     let result = Entity::update_many()
         .set(ActiveModel {
             status: Set(status),
@@ -546,9 +546,8 @@ pub async fn finish_processing(
 
 /// Returns expired in-flight rows to the queue during startup recovery.
 pub async fn reset_stale_processing(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
-    let cutoff = time::OffsetDateTime::now_utc()
-        .unix_timestamp()
-        .saturating_sub(PROCESSING_LEASE_SECONDS);
+    let cutoff =
+        time::OffsetDateTime::now_utc() - time::Duration::seconds(PROCESSING_LEASE_SECONDS);
 
     Ok(stale_processing_reset_query(cutoff)
         .exec(conn)
@@ -556,7 +555,7 @@ pub async fn reset_stale_processing(conn: &impl ConnectionTrait) -> Result<u64, 
         .rows_affected)
 }
 
-fn stale_processing_reset_query(cutoff: i64) -> sea_orm::UpdateMany<Entity> {
+fn stale_processing_reset_query(cutoff: time::OffsetDateTime) -> sea_orm::UpdateMany<Entity> {
     Entity::update_many()
         .set(ActiveModel {
             status: Set(Status::Queued),
@@ -767,8 +766,8 @@ mod score_tests {
             challenge_id: 10,
             challenge_title: "Challenge".to_owned(),
             challenge_category: 0,
-            created_at: 0,
-            processing_at: Some(1),
+            created_at: time::OffsetDateTime::UNIX_EPOCH,
+            processing_at: Some(time::OffsetDateTime::from_unix_timestamp(1).unwrap()),
             checked_at: None,
             pts: 0,
             rank: 0,
@@ -876,7 +875,8 @@ mod score_tests {
 
     #[test]
     fn stale_processing_reset_uses_the_fifteen_second_lease_cutoff() {
-        let cutoff = 1_000 - PROCESSING_LEASE_SECONDS;
+        let cutoff =
+            time::OffsetDateTime::from_unix_timestamp(1_000 - PROCESSING_LEASE_SECONDS).unwrap();
         let statement = stale_processing_reset_query(cutoff).build(DbBackend::Postgres);
 
         assert!(statement.sql.starts_with("UPDATE \"submissions\""));
@@ -887,10 +887,10 @@ mod score_tests {
             statement.values.unwrap().0,
             vec![
                 Status::Queued.into(),
-                Option::<i64>::None.into(),
-                Option::<i64>::None.into(),
+                Option::<time::OffsetDateTime>::None.into(),
+                Option::<time::OffsetDateTime>::None.into(),
                 Status::Processing.into(),
-                985_i64.into(),
+                cutoff.into()
             ]
         );
         assert_eq!(PROCESSING_LEASE_SECONDS, 15);
@@ -898,7 +898,9 @@ mod score_tests {
 
     #[test]
     fn claim_query_accepts_only_queued_or_stale_processing_rows() {
-        let statement = claimable_submission_query(7, 1_000, 990).build(DbBackend::Postgres);
+        let now = time::OffsetDateTime::from_unix_timestamp(1_000).unwrap();
+        let cutoff = time::OffsetDateTime::from_unix_timestamp(990).unwrap();
+        let statement = claimable_submission_query(7, now, cutoff).build(DbBackend::Postgres);
 
         assert!(statement.sql.starts_with("UPDATE \"submissions\""));
         assert!(statement.sql.contains("\"id\" = $4"));
@@ -910,12 +912,12 @@ mod score_tests {
             statement.values.unwrap().0,
             vec![
                 Status::Processing.into(),
-                Some(1_000_i64).into(),
-                Option::<i64>::None.into(),
+                Some(now).into(),
+                Option::<time::OffsetDateTime>::None.into(),
                 7_i64.into(),
                 Status::Queued.into(),
                 Status::Processing.into(),
-                990_i64.into(),
+                cutoff.into()
             ]
         );
     }

@@ -169,10 +169,7 @@ pub async fn create_submission(
             return Err(WebError::NotFound(json!("game_not_found")));
         }
         crate::util::loader::ensure_game_not_paused(&game)?;
-        crate::util::loader::ensure_game_ongoing(
-            &game,
-            time::OffsetDateTime::now_utc().unix_timestamp(),
-        )?;
+        crate::util::loader::ensure_game_ongoing(&game, time::OffsetDateTime::now_utc())?;
 
         let game_challenge =
             crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge.id).await?;

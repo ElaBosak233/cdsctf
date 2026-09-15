@@ -94,7 +94,10 @@ pub async fn renew_instance(
     }
 
     // SAFETY: the creation_timestamp could be safely unwrapped.
-    let started_at = pod.metadata.creation_timestamp.unwrap().0.as_second();
+    let started_at = time::OffsetDateTime::from_unix_timestamp(
+        pod.metadata.creation_timestamp.unwrap().0.as_second(),
+    )
+    .expect("Kubernetes timestamps must be representable as OffsetDateTime");
 
     let annotations = pod.metadata.annotations.unwrap_or_default();
 
@@ -115,9 +118,9 @@ pub async fn renew_instance(
         return Err(WebError::BadRequest(json!("no_more_renewal")));
     }
 
-    let now = time::OffsetDateTime::now_utc().unix_timestamp();
-    let next_start = started_at + (renew + 1) * duration;
-    if next_start - now > time::Duration::minutes(10).whole_seconds() {
+    let now = time::OffsetDateTime::now_utc();
+    let next_start = started_at + time::Duration::seconds((renew + 1) * duration);
+    if next_start - now > time::Duration::minutes(10) {
         return Err(WebError::BadRequest(json!("renewal_within_10_minutes")));
     }
 

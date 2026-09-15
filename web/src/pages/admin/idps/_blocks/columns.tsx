@@ -1,3 +1,4 @@
+import { date } from "@/utils/time";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -269,9 +270,11 @@ function UpdatedAtCell({
   row: Row<IdpView>;
   formatter: Intl.DateTimeFormat;
 }) {
+  const updatedAt = date(row.original.updated_at);
+
   return (
     <span className="whitespace-nowrap text-sm text-secondary-foreground">
-      {formatter.format(new Date(row.original.updated_at * 1000))}
+      {updatedAt ? formatter.format(updatedAt) : "-"}
     </span>
   );
 }

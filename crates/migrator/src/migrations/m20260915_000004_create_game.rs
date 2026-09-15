@@ -1,4 +1,4 @@
-//! SeaORM migration `m20260806_000004_create_game` — applies forward/backward
+//! SeaORM migration `m20260915_000004_create_game` — applies forward/backward
 //! schema changes.
 
 use async_trait::async_trait;
@@ -10,7 +10,7 @@ pub struct Migration;
 impl MigrationName for Migration {
     /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260806_000004_create_game"
+        "m20260915_000004_create_game"
     }
 }
 
@@ -36,13 +36,13 @@ impl MigrationTrait for Migration {
                     "member_limit_max" BIGINT NOT NULL DEFAULT 3,
                     "writeup_required" BOOLEAN NOT NULL DEFAULT FALSE,
                     "timeslots" JSONB NOT NULL,
-                    "started_at" BIGINT NOT NULL,
-                    "frozen_at" BIGINT NOT NULL,
-                    "ended_at" BIGINT NOT NULL,
+                    "started_at" TIMESTAMPTZ NOT NULL,
+                    "frozen_at" TIMESTAMPTZ NOT NULL,
+                    "ended_at" TIMESTAMPTZ NOT NULL,
                     "icon_hash" VARCHAR,
                     "poster_hash" VARCHAR,
                     "score_revision" BIGINT NOT NULL DEFAULT 0,
-                    "created_at" BIGINT NOT NULL
+                    "created_at" TIMESTAMPTZ NOT NULL
                 );
             "#
             .to_owned(),

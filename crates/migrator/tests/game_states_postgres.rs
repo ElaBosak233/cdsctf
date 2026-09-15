@@ -62,6 +62,40 @@ async fn idp_state_columns(
         .collect()
 }
 
+async fn timestamp_column_types(database: &sea_orm::DatabaseConnection) -> Vec<(String, String)> {
+    database
+        .query_all_raw(Statement::from_string(
+            DbBackend::Postgres,
+            r#"
+                SELECT table_name, column_name
+                FROM information_schema.columns
+                WHERE table_schema = current_schema()
+                  AND data_type = 'timestamp with time zone'
+                  AND (table_name, column_name) IN (
+                    ('users', 'deleted_at'), ('users', 'created_at'), ('users', 'updated_at'),
+                    ('games', 'started_at'), ('games', 'frozen_at'), ('games', 'ended_at'), ('games', 'created_at'),
+                    ('challenges', 'deleted_at'), ('challenges', 'created_at'), ('challenges', 'updated_at'),
+                    ('game_notices', 'created_at'), ('game_challenges', 'frozen_at'),
+                    ('submissions', 'created_at'), ('submissions', 'processing_at'), ('submissions', 'checked_at'),
+                    ('notes', 'created_at'), ('notes', 'updated_at'),
+                    ('idps', 'created_at'), ('idps', 'updated_at'),
+                    ('user_idps', 'created_at'), ('user_idps', 'updated_at')
+                  )
+                ORDER BY table_name, column_name
+            "#,
+        ))
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|row| {
+            (
+                row.try_get("", "table_name").unwrap(),
+                row.try_get("", "column_name").unwrap(),
+            )
+        })
+        .collect()
+}
+
 async fn user_idp_check_constraint_count(database: &sea_orm::DatabaseConnection) -> i64 {
     database
         .query_one_raw(Statement::from_string(
@@ -92,6 +126,7 @@ async fn initial_state_columns_are_created_on_postgres() {
         .await
         .unwrap();
     Migrator::up(&database, None).await.unwrap();
+    assert_eq!(timestamp_column_types(&database).await.len(), 21);
     let columns = game_state_columns(&database).await;
     assert_eq!(columns.len(), 2);
     assert!(columns.iter().all(|(_, default, nullable)| {

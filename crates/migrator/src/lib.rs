@@ -20,19 +20,19 @@ impl MigratorTrait for Migrator {
     /// Returns every boxed migration in chronological order.
     fn migrations() -> Vec<Box<dyn MigrationTrait>> {
         vec![
-            Box::new(migrations::m20260806_000001_create_config::Migration),
-            Box::new(migrations::m20260806_000002_create_user::Migration),
-            Box::new(migrations::m20260806_000003_create_email::Migration),
-            Box::new(migrations::m20260806_000004_create_game::Migration),
-            Box::new(migrations::m20260806_000005_create_challenge::Migration),
-            Box::new(migrations::m20260806_000006_create_team::Migration),
-            Box::new(migrations::m20260806_000007_create_game_notice::Migration),
-            Box::new(migrations::m20260806_000008_create_game_challenge::Migration),
-            Box::new(migrations::m20260806_000009_create_team_user::Migration),
-            Box::new(migrations::m20260806_000010_create_submission::Migration),
-            Box::new(migrations::m20260806_000011_create_note::Migration),
-            Box::new(migrations::m20260806_000012_create_idp::Migration),
-            Box::new(migrations::m20260806_000013_create_user_idp::Migration),
+            Box::new(migrations::m20260915_000001_create_config::Migration),
+            Box::new(migrations::m20260915_000002_create_user::Migration),
+            Box::new(migrations::m20260915_000003_create_email::Migration),
+            Box::new(migrations::m20260915_000004_create_game::Migration),
+            Box::new(migrations::m20260915_000005_create_challenge::Migration),
+            Box::new(migrations::m20260915_000006_create_team::Migration),
+            Box::new(migrations::m20260915_000007_create_game_notice::Migration),
+            Box::new(migrations::m20260915_000008_create_game_challenge::Migration),
+            Box::new(migrations::m20260915_000009_create_team_user::Migration),
+            Box::new(migrations::m20260915_000010_create_submission::Migration),
+            Box::new(migrations::m20260915_000011_create_note::Migration),
+            Box::new(migrations::m20260915_000012_create_idp::Migration),
+            Box::new(migrations::m20260915_000013_create_user_idp::Migration),
         ]
     }
 }

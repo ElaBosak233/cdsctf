@@ -22,7 +22,7 @@ import { SubmitSection } from "./submit-section";
 type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
   digest?: Pick<ChallengeSummary, "id" | "title" | "category">;
   gameTeam?: PlayerTeamView;
-  frozenAt?: number | null;
+  frozenAt?: string | null;
   debug?: boolean;
   cheated?: boolean;
 };

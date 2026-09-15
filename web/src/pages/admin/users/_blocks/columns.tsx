@@ -1,3 +1,4 @@
+import { date } from "@/utils/time";
 import {
   AlertCircleIcon,
   ArrowDownIcon,
@@ -180,9 +181,11 @@ function CreatedAtCell({
   row: Row<UserAccountView>;
   formatter: Intl.DateTimeFormat;
 }) {
+  const createdAt = date(row.original.created_at);
+
   return (
     <span className="whitespace-nowrap text-sm text-secondary-foreground">
-      {formatter.format(new Date(row.original.created_at * 1000))}
+      {createdAt ? formatter.format(createdAt) : "-"}
     </span>
   );
 }
