@@ -270,9 +270,11 @@ function UpdatedAtCell({
   row: Row<IdpView>;
   formatter: Intl.DateTimeFormat;
 }) {
+  const updatedAt = date(row.original.updated_at);
+
   return (
     <span className="whitespace-nowrap text-sm text-secondary-foreground">
-      {formatter.format(date(row.original.updated_at ))}
+      {updatedAt ? formatter.format(updatedAt) : "-"}
     </span>
   );
 }

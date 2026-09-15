@@ -84,7 +84,8 @@ function formatTimestamp(
   formatter: Intl.DateTimeFormat
 ) {
   if (timestampValue == null) return "-";
-  return formatter.format(date(timestampValue));
+  const parsed = date(timestampValue);
+  return parsed ? formatter.format(parsed) : "-";
 }
 
 export default function Index() {

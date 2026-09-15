@@ -48,8 +48,10 @@ export function useOptions() {
             disabled:
               selfTeam?.state !== State.Passed ||
               currentGame?.paused ||
-              date(currentGame?.ended_at) < new Date() ||
-              date(currentGame?.started_at) > new Date(),
+              (date(currentGame?.ended_at)?.getTime() ??
+                Number.POSITIVE_INFINITY) < Date.now() ||
+              (date(currentGame?.started_at)?.getTime() ??
+                Number.NEGATIVE_INFINITY) > Date.now(),
           },
           {
             link: `/games/${currentGame?.id}/scoreboard`,

@@ -113,7 +113,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
         header: t("game:scoreboard.columns.time"),
         cell: ({ row }) => (
           <span className={cn(["font-mono", "text-secondary-foreground"])}>
-            {date(row.original.created_at).toLocaleString()}
+            {date(row.original.created_at)?.toLocaleString() ?? "-"}
           </span>
         ),
       },

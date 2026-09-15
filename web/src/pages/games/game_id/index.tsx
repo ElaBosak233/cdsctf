@@ -39,6 +39,8 @@ export default function Index() {
     const startedAt = date(currentGame.started_at);
     const endedAt = date(currentGame.ended_at);
 
+    if (!startedAt || !endedAt) return "loading";
+
     if (startedAt > new Date()) return "upcoming";
     if (endedAt < new Date()) return "ended";
     return "ongoing";
@@ -129,11 +131,9 @@ export default function Index() {
               )}
               size={"sm"}
             >
-              {new Date(
-                timestamp(currentGame?.started_at)
-              ).toLocaleString()}
+              {date(currentGame?.started_at)?.toLocaleString() ?? "-"}
               <ArrowRightIcon />
-              {date(currentGame?.ended_at).toLocaleString()}
+              {date(currentGame?.ended_at)?.toLocaleString() ?? "-"}
             </Badge>
             <div
               className={cn([
@@ -152,9 +152,7 @@ export default function Index() {
                   const freezeTime = new Date(
                     timestamp(currentGame?.frozen_at)
                   );
-                  const endTime = new Date(
-                    timestamp(currentGame?.ended_at)
-                  );
+                  const endTime = new Date(timestamp(currentGame?.ended_at));
 
                   const diff = (target: Date) =>
                     Math.max(

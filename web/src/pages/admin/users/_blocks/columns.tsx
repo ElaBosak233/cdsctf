@@ -181,9 +181,11 @@ function CreatedAtCell({
   row: Row<UserAccountView>;
   formatter: Intl.DateTimeFormat;
 }) {
+  const createdAt = date(row.original.created_at);
+
   return (
     <span className="whitespace-nowrap text-sm text-secondary-foreground">
-      {formatter.format(date(row.original.created_at ))}
+      {createdAt ? formatter.format(createdAt) : "-"}
     </span>
   );
 }

@@ -259,15 +259,21 @@ function ScheduleCell({
   formatter: Intl.DateTimeFormat;
 }) {
   const { t } = useTranslation();
-  const startedAt = date(row.original.started_at );
-  const endedAt = date(row.original.ended_at );
+  const startedAt = date(row.original.started_at);
+  const endedAt = date(row.original.ended_at);
   const rangeFormatter = formatter as Intl.DateTimeFormat & {
     formatRange?: (start: Date, end: Date) => string;
   };
-  const range = rangeFormatter.formatRange
-    ? rangeFormatter.formatRange(startedAt, endedAt)
-    : `${formatter.format(startedAt)} - ${formatter.format(endedAt)}`;
-  const format = (value: string) => formatter.format(date(value));
+  const range =
+    startedAt && endedAt
+      ? rangeFormatter.formatRange
+        ? rangeFormatter.formatRange(startedAt, endedAt)
+        : `${formatter.format(startedAt)} - ${formatter.format(endedAt)}`
+      : "-";
+  const format = (value: string) => {
+    const parsed = date(value);
+    return parsed ? formatter.format(parsed) : "-";
+  };
 
   return (
     <div className={cn(["flex", "min-w-0", "flex-col", "gap-1"])}>

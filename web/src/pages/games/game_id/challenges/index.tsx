@@ -124,6 +124,8 @@ export default function Index() {
     const freezeTime = date(currentGame?.frozen_at);
     const endTime = date(currentGame?.ended_at);
 
+    if (!startTime || !freezeTime || !endTime) return "";
+
     const remaining = (target: Date) => {
       const secondsTotal = Math.max(
         0,

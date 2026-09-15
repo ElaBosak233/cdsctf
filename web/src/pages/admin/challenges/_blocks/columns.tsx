@@ -268,7 +268,10 @@ function TimeCell({
   formatter: Intl.DateTimeFormat;
 }) {
   const { t } = useTranslation();
-  const format = (value: string) => formatter.format(date(value));
+  const format = (value: string) => {
+    const parsed = date(value);
+    return parsed ? formatter.format(parsed) : "-";
+  };
 
   return (
     <div className={cn(["flex", "flex-col", "gap-1", "whitespace-nowrap"])}>

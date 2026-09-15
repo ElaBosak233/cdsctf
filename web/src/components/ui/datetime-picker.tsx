@@ -520,7 +520,7 @@ function TimePicker({
 type Granularity = "day" | "hour" | "minute" | "second";
 
 function isValidDate(value: Date | undefined): value is Date {
-  return value != null && !Number.isNaN(value.getTime());
+  return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
 const dateTimePickerVariants = cva(
@@ -615,9 +615,12 @@ function DateTimePicker({
     ? defaultPopupValue
     : new Date(new Date().setHours(0, 0, 0, 0));
   const normalizedValue = isValidDate(value) ? value : undefined;
-  const [month, setMonth] = useState<Date>(normalizedValue ?? fallbackPopupValue);
-  const [displayDate, setDisplayDate] =
-    useState<Date | undefined>(normalizedValue);
+  const [month, setMonth] = useState<Date>(
+    normalizedValue ?? fallbackPopupValue
+  );
+  const [displayDate, setDisplayDate] = useState<Date | undefined>(
+    normalizedValue
+  );
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const context = React.useContext(FieldContext);

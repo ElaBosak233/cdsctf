@@ -89,7 +89,7 @@ export default function Layout() {
               "select-none",
             ])}
           >
-            {`${t("user:created_at")} ${date(user?.created_at).toLocaleDateString()}`}
+            {`${t("user:created_at")} ${date(user?.created_at)?.toLocaleDateString() ?? "-"}`}
           </span>
         </div>
         <div className={cn(["flex-1", "min-w-0", "flex", "flex-col"])}>
