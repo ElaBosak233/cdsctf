@@ -6,8 +6,8 @@ export type UserAccountView = {
   group: Group;
   description: string | null;
   avatar_hash: string | null;
-  created_at: number;
-  updated_at: number;
+  created_at: string;
+  updated_at: string;
 };
 
 export enum Group {
@@ -30,5 +30,5 @@ export type UserProfile = {
   username: string;
   description: string | null;
   avatar_hash: string | null;
-  created_at: number;
+  created_at: string;
 };

@@ -18,6 +18,7 @@ import {
   ShipWheelIcon,
   TrashIcon,
 } from "lucide-react";
+import { date } from "@/utils/time";
 import {
   createContext,
   type ReactNode,
@@ -267,8 +268,7 @@ function TimeCell({
   formatter: Intl.DateTimeFormat;
 }) {
   const { t } = useTranslation();
-  const format = (timestamp: number) =>
-    formatter.format(new Date(timestamp * 1000));
+  const format = (value: string) => formatter.format(date(value));
 
   return (
     <div className={cn(["flex", "flex-col", "gap-1", "whitespace-nowrap"])}>

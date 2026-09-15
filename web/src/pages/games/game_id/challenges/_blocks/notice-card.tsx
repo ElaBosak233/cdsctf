@@ -1,3 +1,4 @@
+import { timestamp } from "@/utils/time";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon, BellIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -177,7 +178,7 @@ function NoticeCard() {
                   </h2>
                   <p className={cn(["text-xs", "text-muted-foreground"])}>
                     {new Date(
-                      Number(selectedNotice.created_at) * 1000
+                      timestamp(selectedNotice.created_at)
                     ).toLocaleString()}
                   </p>
                 </div>
@@ -245,7 +246,7 @@ function NoticeCard() {
                           ])}
                         >
                           {new Date(
-                            Number(gameNotice?.created_at) * 1000
+                            timestamp(gameNotice?.created_at)
                           ).toLocaleDateString()}
                         </span>
                       </button>

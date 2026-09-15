@@ -161,9 +161,7 @@ function useColumns() {
         id: "created_at",
         header: t("game:notice.created_at"),
         cell: ({ row }) => {
-          return new Date(
-            row.getValue<number>("created_at") * 1000
-          ).toLocaleString();
+          return new Date(row.getValue<string>("created_at")).toLocaleString();
         },
       },
       {

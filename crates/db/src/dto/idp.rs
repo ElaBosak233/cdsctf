@@ -12,8 +12,10 @@ pub struct IdpView {
     pub avatar_hash: Option<String>,
     pub portal: Option<String>,
     pub script: String,
-    pub created_at: i64,
-    pub updated_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub updated_at: time::OffsetDateTime,
 }
 
 #[derive(
@@ -51,8 +53,8 @@ mod tests {
             avatar_hash: None,
             portal: Some("https://example.com".to_owned()),
             script: "secret provider script".to_owned(),
-            created_at: 2,
-            updated_at: 3,
+            created_at: time::OffsetDateTime::from_unix_timestamp(2).unwrap(),
+            updated_at: time::OffsetDateTime::from_unix_timestamp(3).unwrap(),
         }))
         .unwrap();
 

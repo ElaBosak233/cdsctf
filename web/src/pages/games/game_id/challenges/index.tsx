@@ -1,3 +1,4 @@
+import { date, timestamp } from "@/utils/time";
 import { useQuery } from "@tanstack/react-query";
 import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
@@ -119,9 +120,9 @@ export default function Index() {
   const remainingLabel = useMemo(() => {
     if (!currentGame) return "";
 
-    const startTime = new Date(Number(currentGame?.started_at) * 1000);
-    const freezeTime = new Date(Number(currentGame?.frozen_at) * 1000);
-    const endTime = new Date(Number(currentGame?.ended_at) * 1000);
+    const startTime = date(currentGame?.started_at);
+    const freezeTime = date(currentGame?.frozen_at);
+    const endTime = date(currentGame?.ended_at);
 
     const remaining = (target: Date) => {
       const secondsTotal = Math.max(
@@ -149,19 +150,19 @@ export default function Index() {
 
   const statusTone = useMemo(() => {
     if (!currentGame) return "bg-muted-foreground";
-    const nowSeconds = now.getTime() / 1000;
-    if (nowSeconds > Number(currentGame.ended_at)) return "bg-error";
-    if (nowSeconds > Number(currentGame.frozen_at)) return "bg-warning";
-    if (nowSeconds < Number(currentGame.started_at)) return "bg-info";
+    const nowTimestamp = now.getTime();
+    if (nowTimestamp > timestamp(currentGame.ended_at)) return "bg-error";
+    if (nowTimestamp > timestamp(currentGame.frozen_at)) return "bg-warning";
+    if (nowTimestamp < timestamp(currentGame.started_at)) return "bg-info";
     return "bg-success";
   }, [currentGame, now]);
 
   const statusKey = useMemo(() => {
     if (!currentGame) return "ongoing";
-    const nowSeconds = now.getTime() / 1000;
-    if (nowSeconds > Number(currentGame.ended_at)) return "ended";
-    if (nowSeconds > Number(currentGame.frozen_at)) return "frozen";
-    if (nowSeconds < Number(currentGame.started_at)) return "upcoming";
+    const nowTimestamp = now.getTime();
+    if (nowTimestamp > timestamp(currentGame.ended_at)) return "ended";
+    if (nowTimestamp > timestamp(currentGame.frozen_at)) return "frozen";
+    if (nowTimestamp < timestamp(currentGame.started_at)) return "upcoming";
     return "ongoing";
   }, [currentGame, now]);
 

@@ -9,5 +9,6 @@ pub struct GameNoticeView {
     pub game_id: i64,
     pub title: String,
     pub content: String,
-    pub created_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
 }

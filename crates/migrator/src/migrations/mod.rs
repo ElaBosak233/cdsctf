@@ -51,3 +51,4 @@ pub mod m20260806_000012_create_idp;
 /// Defines the `m20260806_000013_create_user_idp` submodule (see sibling `*.rs`
 /// files).
 pub mod m20260806_000013_create_user_idp;
+pub mod m20260915_000014_migrate_timestamps;

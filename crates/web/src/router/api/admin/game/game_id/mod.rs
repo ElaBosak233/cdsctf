@@ -24,12 +24,12 @@ use cds_db::sea_orm::{
     NotSet,
 };
 use cds_worker::calculator;
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use crate::{
     extract::{Path, VJson},
@@ -88,9 +88,12 @@ pub struct UpdateGameRequest {
     pub member_limit_max: Option<i64>,
     pub writeup_required: Option<bool>,
     pub timeslots: Option<Vec<cds_db::game::Timeslot>>,
-    pub started_at: Option<i64>,
-    pub frozen_at: Option<i64>,
-    pub ended_at: Option<i64>,
+    #[serde(with = "cds_db::time_format::option")]
+    pub started_at: Option<time::OffsetDateTime>,
+    #[serde(with = "cds_db::time_format::option")]
+    pub frozen_at: Option<time::OffsetDateTime>,
+    #[serde(with = "cds_db::time_format::option")]
+    pub ended_at: Option<time::OffsetDateTime>,
 }
 
 /// Updates game.

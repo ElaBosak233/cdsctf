@@ -4,14 +4,15 @@ import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { useTickerTime } from "@/hooks/use-ticker-time";
 import { cn } from "@/utils";
+import { timestamp } from "@/utils/time";
 
-function FrozenBadge({ frozenAt }: { frozenAt: number }) {
-  const [remaining, setRemaining] = useState(frozenAt * 1000 - Date.now());
+function FrozenBadge({ frozenAt }: { frozenAt: string }) {
+  const [remaining, setRemaining] = useState(timestamp(frozenAt) - Date.now());
   const now = useTickerTime();
   const { t } = useTranslation();
 
   useEffect(() => {
-    setRemaining(frozenAt * 1000 - now.getTime());
+    setRemaining(timestamp(frozenAt) - now.getTime());
   }, [frozenAt, now]);
 
   const formatRemaining = (ms: number) => {

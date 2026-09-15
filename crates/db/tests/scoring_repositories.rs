@@ -106,19 +106,21 @@ async fn scoring_repository_queries_execute_on_postgres() {
         Some(0)
     );
 
-    let now = time::OffsetDateTime::now_utc().unix_timestamp();
+    let now = time::OffsetDateTime::now_utc();
     transaction
         .execute_unprepared(&format!(
             r#"
                 INSERT INTO submissions (
                     id, challenge_id, created_at, status, processing_at, pts, rank
                 ) VALUES
-                    (2, 10, 1001, 'processing', {}, 0, 0),
-                    (3, 10, 1002, 'processing', {}, 0, 0),
-                    (4, 10, 1003, 'processing', NULL, 0, 0);
+                    (2, 10, to_timestamp({}::double precision), 'processing', to_timestamp({}::double precision), 0, 0),
+                    (3, 10, to_timestamp({}::double precision), 'processing', to_timestamp({}::double precision), 0, 0),
+                    (4, 10, to_timestamp(1003::double precision), 'processing', NULL, 0, 0);
             "#,
-            now - 20,
-            now
+            now.unix_timestamp() - 20,
+            now.unix_timestamp() - 20,
+            now.unix_timestamp() - 18,
+            now.unix_timestamp()
         ))
         .await
         .unwrap();
@@ -141,7 +143,7 @@ async fn scoring_repository_queries_execute_on_postgres() {
         .unwrap();
     assert_eq!(still_processing, 1);
     assert!(
-        !submission::release_processing(&transaction, 3, now - 1)
+        !submission::release_processing(&transaction, 3, now - time::Duration::seconds(1),)
             .await
             .unwrap()
     );

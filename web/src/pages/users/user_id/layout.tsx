@@ -1,3 +1,4 @@
+import { date } from "@/utils/time";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Outlet, useParams } from "react-router";
@@ -88,7 +89,7 @@ export default function Layout() {
               "select-none",
             ])}
           >
-            {`${t("user:created_at")} ${new Date(Number(user?.created_at) * 1000).toLocaleDateString()}`}
+            {`${t("user:created_at")} ${date(user?.created_at).toLocaleDateString()}`}
           </span>
         </div>
         <div className={cn(["flex-1", "min-w-0", "flex", "flex-col"])}>

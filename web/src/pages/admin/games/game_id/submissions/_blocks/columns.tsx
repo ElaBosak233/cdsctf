@@ -170,7 +170,10 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
         const checkedAt = row.original.checked_at;
         if (processingAt == null || checkedAt == null) return "-";
 
-        const duration = Math.max(0, checkedAt - processingAt);
+        const duration = Math.max(
+          0,
+          (Date.parse(checkedAt) - Date.parse(processingAt)) / 1000,
+        );
         return (
           <span className={cn(["text-xs", "text-muted-foreground"])}>
             {duration}s
@@ -187,7 +190,7 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
         if (ts == null) return "-";
         return (
           <span className={cn(["text-xs", "text-muted-foreground"])}>
-            {new Date(Number(ts) * 1000).toLocaleString()}
+            {new Date(ts).toLocaleString()}
           </span>
         );
       },

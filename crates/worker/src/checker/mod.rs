@@ -56,18 +56,17 @@ async fn enforce_check_timeout<F: Future>(
     tokio::time::timeout(CHECK_TIMEOUT, future).await
 }
 
-fn processing_retry_after_at(processing_at: Option<i64>, now: i64) -> Duration {
-    let expires_at = processing_at
-        .unwrap_or(now)
-        .saturating_add(PROCESSING_LEASE_SECONDS);
-    Duration::from_secs(expires_at.saturating_sub(now).max(1) as u64)
+fn processing_retry_after_at(
+    processing_at: Option<time::OffsetDateTime>,
+    now: time::OffsetDateTime,
+) -> Duration {
+    let expires_at =
+        processing_at.unwrap_or(now) + time::Duration::seconds(PROCESSING_LEASE_SECONDS);
+    Duration::from_secs((expires_at - now).whole_seconds().max(1) as u64)
 }
 
-fn processing_retry_after(processing_at: Option<i64>) -> Duration {
-    processing_retry_after_at(
-        processing_at,
-        time::OffsetDateTime::now_utc().unix_timestamp(),
-    )
+fn processing_retry_after(processing_at: Option<time::OffsetDateTime>) -> Duration {
+    processing_retry_after_at(processing_at, time::OffsetDateTime::now_utc())
 }
 
 /// Shared handles for one consumer instance (cloned into async jobs).
@@ -94,7 +93,7 @@ impl Context {
 async fn check(
     ctx: &Context,
     submission: SubmissionView,
-    processing_at: i64,
+    processing_at: time::OffsetDateTime,
 ) -> Result<CheckOutcome, anyhow::Error> {
     let user = if let Some(user) =
         cds_db::user::find_by_id::<UserAccountView>(&ctx.db.conn, submission.user_id).await?
@@ -283,7 +282,7 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
                                         processing_retry_after(submission.processing_at);
                                     debug!(
                                         submission_id = id,
-                                        processing_at = submission.processing_at,
+                                        processing_at = ?submission.processing_at,
                                         retry_after_ms = retry_after.as_millis(),
                                         "submission lease is active; message delayed"
                                     );
@@ -324,7 +323,7 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
                     team_id = submission.team_id,
                     game_id = submission.game_id,
                     challenge_id = submission.challenge_id,
-                    processing_at,
+                    processing_at = ?processing_at,
                     "submission claimed"
                 );
 
@@ -408,16 +407,23 @@ mod tests {
 
     #[test]
     fn processing_retry_waits_until_the_lease_expires() {
+        let now = time::OffsetDateTime::from_unix_timestamp(100).unwrap();
         assert_eq!(
-            processing_retry_after_at(Some(90), 100),
+            processing_retry_after_at(
+                Some(time::OffsetDateTime::from_unix_timestamp(90).unwrap()),
+                now
+            ),
             Duration::from_secs(5)
         );
         assert_eq!(
-            processing_retry_after_at(Some(85), 100),
+            processing_retry_after_at(
+                Some(time::OffsetDateTime::from_unix_timestamp(85).unwrap()),
+                now
+            ),
             Duration::from_secs(1)
         );
         assert_eq!(
-            processing_retry_after_at(None, 100),
+            processing_retry_after_at(None, now),
             Duration::from_secs(PROCESSING_LEASE_SECONDS as u64)
         );
     }

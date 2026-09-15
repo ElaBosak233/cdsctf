@@ -15,9 +15,9 @@ export type SubmissionView = {
   game_title: string | null;
   pts: number;
   rank: number;
-  created_at: number;
-  processing_at: number | null;
-  checked_at: number | null;
+  created_at: string;
+  processing_at: string | null;
+  checked_at: string | null;
 };
 
 export type SubmissionSummary = Omit<SubmissionView, "content">;

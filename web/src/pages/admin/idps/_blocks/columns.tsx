@@ -1,3 +1,4 @@
+import { date } from "@/utils/time";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -271,7 +272,7 @@ function UpdatedAtCell({
 }) {
   return (
     <span className="whitespace-nowrap text-sm text-secondary-foreground">
-      {formatter.format(new Date(row.original.updated_at * 1000))}
+      {formatter.format(date(row.original.updated_at ))}
     </span>
   );
 }

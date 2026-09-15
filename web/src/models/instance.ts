@@ -15,7 +15,7 @@ export type Instance = {
 
   renew?: number;
   duration?: number;
-  started_at?: number;
+  started_at?: string;
 };
 
 export type Nat = {

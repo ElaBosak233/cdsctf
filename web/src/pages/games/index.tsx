@@ -11,6 +11,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOutletContext } from "react-router";
 import { type GetGameRequest, getGames } from "@/api/games";
+import { date, timestamp } from "@/utils/time";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
@@ -68,22 +69,22 @@ function useGameQuery(params: GetGameRequest, trigger: number = 0) {
   });
 }
 
-function getGameStatus(game: GameSummary, nowSeconds: number): GameStatus {
-  if (game.started_at != null && nowSeconds < game.started_at) {
+function getGameStatus(game: GameSummary, now: number): GameStatus {
+  if (game.started_at != null && now < timestamp(game.started_at)) {
     return "upcoming";
   }
-  if (game.ended_at != null && nowSeconds > game.ended_at) {
+  if (game.ended_at != null && now > timestamp(game.ended_at)) {
     return "ended";
   }
   return "ongoing";
 }
 
 function formatTimestamp(
-  timestamp: number | undefined,
+  timestampValue: string | undefined,
   formatter: Intl.DateTimeFormat
 ) {
-  if (timestamp == null) return "-";
-  return formatter.format(new Date(timestamp * 1000));
+  if (timestampValue == null) return "-";
+  return formatter.format(date(timestampValue));
 }
 
 export default function Index() {
@@ -109,7 +110,7 @@ export default function Index() {
   const [selectedGame, setSelectedGame] = useState<GameSummary>();
   const totalPages = Math.ceil(total / size);
   const language = i18n.resolvedLanguage ?? i18n.language;
-  const nowSeconds = Date.now() / 1000;
+  const now = Date.now();
   const listDateFormatter = useMemo(
     () =>
       new Intl.DateTimeFormat(language, {
@@ -136,7 +137,7 @@ export default function Index() {
   }, [games]);
 
   const selectedStatus = selectedGame
-    ? getGameStatus(selectedGame, nowSeconds)
+    ? getGameStatus(selectedGame, now)
     : undefined;
   const selectedStatusStyle = selectedStatus
     ? GAME_STATUS_STYLES[selectedStatus]
@@ -432,7 +433,7 @@ export default function Index() {
             ])}
           >
             {games.map((game) => {
-              const status = getGameStatus(game, nowSeconds);
+              const status = getGameStatus(game, now);
               const statusStyle = GAME_STATUS_STYLES[status];
               const selected = selectedGame?.id === game.id;
               const gameMarkClass = cn([

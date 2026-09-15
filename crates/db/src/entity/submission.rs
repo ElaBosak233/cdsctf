@@ -16,9 +16,12 @@ pub struct Model {
     pub user_id: i64,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
-    pub created_at: i64,
-    pub processing_at: Option<i64>,
-    pub checked_at: Option<i64>,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format::option")]
+    pub processing_at: Option<time::OffsetDateTime>,
+    #[serde(with = "crate::time_format::option")]
+    pub checked_at: Option<time::OffsetDateTime>,
 
     #[sea_orm(default_value = 0)]
     pub pts: i64,
@@ -72,7 +75,7 @@ impl ActiveModelBehavior for ActiveModel {
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {
-        let ts = time::OffsetDateTime::now_utc().unix_timestamp();
+        let ts = time::OffsetDateTime::now_utc();
 
         if insert {
             self.created_at = Set(ts);

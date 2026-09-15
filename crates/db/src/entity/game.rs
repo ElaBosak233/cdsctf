@@ -29,14 +29,18 @@ pub struct Model {
     pub writeup_required: bool,
     #[sea_orm(column_type = "JsonBinary")]
     pub timeslots: Vec<Timeslot>,
-    pub started_at: i64,
-    pub frozen_at: i64,
-    pub ended_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub started_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub frozen_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub ended_at: time::OffsetDateTime,
     pub icon_hash: Option<String>,
     pub poster_hash: Option<String>,
     #[sea_orm(default_value = 0)]
     pub score_revision: i64,
-    pub created_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
     #[sea_orm(has_many)]
     pub submissions: HasMany<super::submission::Entity>,
     #[sea_orm(has_many)]
@@ -46,20 +50,14 @@ pub struct Model {
 }
 
 #[derive(
-    Clone,
-    Debug,
-    Default,
-    PartialEq,
-    Eq,
-    Serialize,
-    Deserialize,
-    FromJsonQueryResult,
-    utoipa::ToSchema,
+    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, utoipa::ToSchema,
 )]
 pub struct Timeslot {
     pub label: String,
-    pub started_at: i64,
-    pub ended_at: i64,
+    #[serde(with = "time::serde::rfc3339")]
+    pub started_at: time::OffsetDateTime,
+    #[serde(with = "time::serde::rfc3339")]
+    pub ended_at: time::OffsetDateTime,
 }
 
 #[async_trait]
@@ -68,7 +66,7 @@ impl ActiveModelBehavior for ActiveModel {
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {
-        let ts = time::OffsetDateTime::now_utc().unix_timestamp();
+        let ts = time::OffsetDateTime::now_utc();
 
         if insert {
             self.created_at = Set(ts);

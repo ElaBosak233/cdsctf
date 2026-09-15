@@ -15,7 +15,8 @@ pub struct Model {
     pub title: String,
     #[sea_orm(column_type = "Text")]
     pub content: String,
-    pub created_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
     #[sea_orm(belongs_to, from = "game_id", to = "id", on_delete = "Cascade")]
     pub game: BelongsTo<super::game::Entity>,
 }
@@ -26,7 +27,7 @@ impl ActiveModelBehavior for ActiveModel {
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {
-        let ts = time::OffsetDateTime::now_utc().unix_timestamp();
+        let ts = time::OffsetDateTime::now_utc();
 
         if insert {
             self.created_at = Set(ts);

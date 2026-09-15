@@ -37,6 +37,53 @@ pub use repository::{
     team_user, user, user_idp,
 };
 pub use sea_orm;
+
+/// Canonical JSON representation for absolute timestamps used by the API.
+pub mod time_format {
+    use serde::{Deserialize, Deserializer, Serializer};
+    pub use time::serde::rfc3339::{deserialize, serialize};
+    use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+
+    pub mod option {
+        pub use time::serde::rfc3339::option::{deserialize, serialize};
+    }
+
+    pub mod double_option {
+        use super::*;
+
+        pub fn serialize<S>(
+            value: &Option<Option<OffsetDateTime>>,
+            serializer: S,
+        ) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer, {
+            match value {
+                None => serializer.serialize_none(),
+                Some(None) => serializer.serialize_some(&Option::<String>::None),
+                Some(Some(value)) => serializer
+                    .serialize_some(&value.format(&Rfc3339).map_err(serde::ser::Error::custom)?),
+            }
+        }
+
+        pub fn deserialize<'de, D>(
+            deserializer: D,
+        ) -> Result<Option<Option<OffsetDateTime>>, D::Error>
+        where
+            D: Deserializer<'de>, {
+            let value = Option::<Option<String>>::deserialize(deserializer)?;
+            value
+                .map(|value| {
+                    value
+                        .map(|value| {
+                            OffsetDateTime::parse(&value, &Rfc3339)
+                                .map_err(serde::de::Error::custom)
+                        })
+                        .transpose()
+                })
+                .transpose()
+        }
+    }
+}
 use sea_orm::{ConnectOptions, ConnectionTrait, Database, DatabaseConnection};
 use tracing::{info, log};
 pub use traits::DbError;

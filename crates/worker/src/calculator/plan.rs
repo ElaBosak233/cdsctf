@@ -42,7 +42,7 @@ pub(super) fn build(
     }
 
     let mut plan = ScorePlan::default();
-    let mut team_totals: HashMap<i64, (i64, Option<i64>)> = HashMap::new();
+    let mut team_totals: HashMap<i64, (i64, Option<time::OffsetDateTime>)> = HashMap::new();
 
     for challenge in challenges {
         let challenge_submissions = by_challenge
@@ -145,7 +145,7 @@ mod tests {
         id: i64,
         challenge_id: i64,
         team_id: i64,
-        created_at: i64,
+        created_at: time::OffsetDateTime,
     ) -> SubmissionScoreInput {
         SubmissionScoreInput {
             id,
@@ -157,10 +157,27 @@ mod tests {
         }
     }
 
+    fn timestamp(seconds: i64) -> time::OffsetDateTime {
+        time::OffsetDateTime::from_unix_timestamp(seconds).unwrap()
+    }
+
     #[test]
     fn builds_submission_challenge_and_team_scores_in_one_pass() {
         let plan = build(
-            vec![submission(2, 10, 2, 200), submission(1, 10, 1, 100)],
+            vec![
+                submission(
+                    2,
+                    10,
+                    2,
+                    time::OffsetDateTime::from_unix_timestamp(200).unwrap(),
+                ),
+                submission(
+                    1,
+                    10,
+                    1,
+                    time::OffsetDateTime::from_unix_timestamp(100).unwrap(),
+                ),
+            ],
             vec![challenge(10, 0)],
             vec![
                 TeamScoreInput {
@@ -211,7 +228,10 @@ mod tests {
     #[test]
     fn equal_timestamps_are_ranked_deterministically_by_submission_id() {
         let plan = build(
-            vec![submission(20, 10, 2, 100), submission(10, 10, 1, 100)],
+            vec![
+                submission(20, 10, 2, timestamp(100)),
+                submission(10, 10, 1, timestamp(100)),
+            ],
             vec![challenge(10, 0)],
             Vec::new(),
         )
@@ -231,7 +251,7 @@ mod tests {
                 id: 1,
                 challenge_id: 10,
                 team_id: Some(1),
-                created_at: 100,
+                created_at: time::OffsetDateTime::from_unix_timestamp(100).unwrap(),
                 pts: base * 110 / 100,
                 rank: 1,
             }],
@@ -279,7 +299,12 @@ mod tests {
 
     #[test]
     fn rejects_submission_without_game_challenge_configuration() {
-        let error = build(vec![submission(1, 99, 1, 100)], Vec::new(), Vec::new()).unwrap_err();
+        let error = build(
+            vec![submission(1, 99, 1, timestamp(100))],
+            Vec::new(),
+            Vec::new(),
+        )
+        .unwrap_err();
 
         assert!(error.to_string().contains("challenge 99"));
     }
@@ -290,7 +315,14 @@ mod tests {
             .map(|challenge_id| challenge(challenge_id, 0))
             .collect::<Vec<_>>();
         let submissions = (1..=2_000)
-            .map(|id| submission(id, (id - 1) % 20 + 1, (id - 1) % 100 + 1, 1_000 + id / 20))
+            .map(|id| {
+                submission(
+                    id,
+                    (id - 1) % 20 + 1,
+                    (id - 1) % 100 + 1,
+                    timestamp(1_000 + id / 20),
+                )
+            })
             .collect::<Vec<_>>();
         let teams = (1..=100)
             .map(|id| TeamScoreInput {

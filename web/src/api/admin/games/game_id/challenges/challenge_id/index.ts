@@ -9,7 +9,7 @@ export type UpdateGameChallengeRequest = {
   min_pts?: number;
   difficulty?: number;
   bonus_ratios?: Array<number>;
-  frozen_at?: number | null;
+  frozen_at?: string | null;
 };
 
 export async function updateGameChallenge(request: UpdateGameChallengeRequest) {

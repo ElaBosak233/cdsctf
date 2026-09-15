@@ -1,3 +1,4 @@
+import { date } from "@/utils/time";
 import {
   AlertCircleIcon,
   ArrowDownIcon,
@@ -182,7 +183,7 @@ function CreatedAtCell({
 }) {
   return (
     <span className="whitespace-nowrap text-sm text-secondary-foreground">
-      {formatter.format(new Date(row.original.created_at * 1000))}
+      {formatter.format(date(row.original.created_at ))}
     </span>
   );
 }

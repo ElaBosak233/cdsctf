@@ -1,3 +1,4 @@
+import { date } from "@/utils/time";
 import {
   ChartNoAxesCombinedIcon,
   FlagIcon,
@@ -47,8 +48,8 @@ export function useOptions() {
             disabled:
               selfTeam?.state !== State.Passed ||
               currentGame?.paused ||
-              new Date(Number(currentGame?.ended_at) * 1000) < new Date() ||
-              new Date(Number(currentGame?.started_at) * 1000) > new Date(),
+              date(currentGame?.ended_at) < new Date() ||
+              date(currentGame?.started_at) > new Date(),
           },
           {
             link: `/games/${currentGame?.id}/scoreboard`,

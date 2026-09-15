@@ -11,13 +11,13 @@ use cds_db::{
     game::FindGameOptions,
     sea_orm::ActiveValue::{NotSet, Set},
 };
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use tracing::info;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use crate::{
     extract::{Query, VJson},
@@ -104,8 +104,10 @@ pub struct CreateGameRequest {
     pub member_limit_min: Option<i64>,
     pub member_limit_max: Option<i64>,
     pub timeslots: Option<Vec<cds_db::game::Timeslot>>,
-    pub started_at: i64,
-    pub ended_at: i64,
+    #[serde(with = "cds_db::time_format")]
+    pub started_at: time::OffsetDateTime,
+    #[serde(with = "cds_db::time_format")]
+    pub ended_at: time::OffsetDateTime,
 }
 
 /// Creates game.

@@ -1,3 +1,4 @@
+import { timestamp } from "@/utils/time";
 import { Flag, LockIcon } from "lucide-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -151,7 +152,7 @@ function ChallengeCard(props: ChallengeCardProps) {
                     </div>
                     <span className={cn(["text-secondary", "text-xs"])}>
                       {new Date(
-                        Number(blood?.created_at) * 1000
+                        timestamp(blood?.created_at)
                       ).toLocaleString()}
                     </span>
                   </div>

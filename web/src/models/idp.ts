@@ -6,8 +6,8 @@ export type IdpView = {
   avatar_hash: string | null;
   portal: string | null;
   script: string;
-  created_at: number;
-  updated_at: number;
+  created_at: string;
+  updated_at: string;
 };
 
 export type IdpSummary = {
