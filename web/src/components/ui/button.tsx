@@ -108,12 +108,15 @@ function Button(props: ButtonProps) {
   ) : (
     icon!
   );
+  const renderElement = React.isValidElement(render)
+    ? (render as React.ReactElement<{ children?: React.ReactNode }>)
+    : undefined;
   const childElement = React.isValidElement(children)
     ? (children as React.ReactElement<{ children?: React.ReactNode }>)
     : undefined;
   const renderedChildren = childElement
     ? childElement.props.children
-    : children;
+    : (children ?? renderElement?.props.children);
   const buttonContent = (
     <>
       {(!!icon || loading) && Icon}
@@ -128,11 +131,8 @@ function Button(props: ButtonProps) {
             children: buttonContent,
           })
       : undefined;
-  const resolvedRender = React.isValidElement(render)
-    ? React.cloneElement(
-        render as React.ReactElement<{ children?: React.ReactNode }>,
-        { children: buttonContent }
-      )
+  const resolvedRender = renderElement
+    ? React.cloneElement(renderElement, { children: buttonContent })
     : render;
 
   return useRender({
