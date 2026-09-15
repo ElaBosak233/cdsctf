@@ -87,7 +87,6 @@ function NoticeCard() {
         <TooltipTrigger
           render={
             <DialogTrigger
-              nativeButton={false}
               render={
                 <Button
                   className={cn([

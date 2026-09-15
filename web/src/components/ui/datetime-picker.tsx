@@ -719,7 +719,6 @@ function DateTimePicker({
       <div className="relative flex flex-1 w-0 items-center">
         <PopoverTrigger
           disabled={disabled}
-          nativeButton={false}
           render={
             <Button
               type="button"

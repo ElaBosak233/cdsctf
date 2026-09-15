@@ -24,4 +24,4 @@ function Card(props: CardProps) {
   });
 }
 
-export { Card };
+export { Card, type CardProps };

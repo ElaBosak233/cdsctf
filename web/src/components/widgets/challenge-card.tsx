@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import type { ChallengeStatus } from "@/api/challenges";
 import { Badge } from "@/components/ui/badge";
+import type { CardProps } from "@/components/ui/card";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -16,7 +17,7 @@ import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { getOrdinal } from "@/utils/math";
 
-type ChallengeCardProps = React.ComponentProps<"div"> & {
+type ChallengeCardProps = CardProps & {
   digest?: Pick<ChallengeSummary, "id" | "title" | "category">;
   status?: ChallengeStatus;
   debug?: boolean;

@@ -339,9 +339,9 @@ export default function Index() {
                 ) : (
                   <Dialog key={index}>
                     <DialogTrigger
-                      nativeButton={false}
                       render={
                         <ChallengeCard
+                          render={<button type="button" />}
                           digest={{
                             id: gameChallenge.challenge_id,
                             title: gameChallenge.challenge_title,

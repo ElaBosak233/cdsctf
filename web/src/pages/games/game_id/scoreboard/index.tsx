@@ -136,9 +136,9 @@ export default function Index() {
                 {scoreboardData.scoreboard.map((record) => (
                   <Dialog key={record.team?.id}>
                     <DialogTrigger
-                      nativeButton={false}
                       render={
                         <Card
+                          render={<button type="button" />}
                           className={cn([
                             "flex",
                             "items-center",

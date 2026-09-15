@@ -32,7 +32,6 @@ export function ContentDialog({
 
       <Dialog>
         <DialogTrigger
-          nativeButton={false}
           render={
             <Button
               variant="ghost"

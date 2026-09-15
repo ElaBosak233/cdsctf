@@ -113,7 +113,6 @@ export default function Layout() {
             })}
             <Dialog>
               <DialogTrigger
-                nativeButton={false}
                 render={
                   <Button variant="ghost" size="sm" className="shrink-0">
                     <PlayIcon className="size-4" />
@@ -185,7 +184,6 @@ export default function Layout() {
             <div className={cn(["border-t", "pt-4"])}>
               <Dialog>
                 <DialogTrigger
-                  nativeButton={false}
                   render={
                     <Button
                       icon={<PlayIcon className="size-4" />}
