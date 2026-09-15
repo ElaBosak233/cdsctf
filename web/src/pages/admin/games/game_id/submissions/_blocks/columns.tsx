@@ -14,6 +14,7 @@ import type { ColumnDef } from "@/hooks/use-data-table";
 import { Status, type SubmissionView } from "@/models/submission";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { formatDuration, timestamp } from "@/utils/time";
 
 function useColumns(): Array<ColumnDef<SubmissionView>> {
   const { t } = useTranslation();
@@ -170,13 +171,17 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
         const checkedAt = row.original.checked_at;
         if (processingAt == null || checkedAt == null) return "-";
 
-        const duration = Math.max(
-          0,
-          (Date.parse(checkedAt) - Date.parse(processingAt)) / 1000,
-        );
+        const duration = timestamp(checkedAt) - timestamp(processingAt);
         return (
-          <span className={cn(["text-xs", "text-muted-foreground"])}>
-            {duration}s
+          <span
+            className={cn([
+              "font-mono",
+              "text-xs",
+              "tabular-nums",
+              "text-muted-foreground",
+            ])}
+          >
+            {formatDuration(duration)}
           </span>
         );
       },
