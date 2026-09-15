@@ -1,4 +1,4 @@
-//! SeaORM migration `m20260806_000010_create_submission` — applies
+//! SeaORM migration `m20260915_000010_create_submission` — applies
 //! forward/backward schema changes.
 
 use async_trait::async_trait;
@@ -10,7 +10,7 @@ pub struct Migration;
 impl MigrationName for Migration {
     /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260806_000010_create_submission"
+        "m20260915_000010_create_submission"
     }
 }
 
@@ -31,9 +31,9 @@ impl MigrationTrait for Migration {
                     "user_id" BIGINT NOT NULL,
                     "team_id" BIGINT,
                     "game_id" BIGINT,
-                    "created_at" BIGINT NOT NULL,
-                    "processing_at" BIGINT,
-                    "checked_at" BIGINT,
+                    "created_at" TIMESTAMPTZ NOT NULL,
+                    "processing_at" TIMESTAMPTZ,
+                    "checked_at" TIMESTAMPTZ,
                     "pts" BIGINT NOT NULL DEFAULT 0,
                     "rank" BIGINT NOT NULL DEFAULT 0,
                 
