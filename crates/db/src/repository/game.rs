@@ -211,8 +211,8 @@ where
         title = %game.title,
         enabled = game.enabled,
         public = game.public,
-        started_at = game.started_at,
-        ended_at = game.ended_at,
+        started_at = %game.started_at,
+        ended_at = %game.ended_at,
         "game created"
     );
 
@@ -231,8 +231,8 @@ where
         title = %game.title,
         enabled = game.enabled,
         public = game.public,
-        started_at = game.started_at,
-        ended_at = game.ended_at,
+        started_at = %game.started_at,
+        ended_at = %game.ended_at,
         "game updated"
     );
 

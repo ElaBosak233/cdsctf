@@ -8,6 +8,6 @@ export type NoteView = {
   challenge_title?: string;
   challenge_category?: number;
   public: boolean;
-  created_at: number;
-  updated_at: number;
+  created_at: string;
+  updated_at: string;
 };

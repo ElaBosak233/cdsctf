@@ -13,8 +13,10 @@ pub struct UserIdpView {
     pub auth_key: String,
     pub source: Source,
     pub data: Option<serde_json::Value>,
-    pub created_at: i64,
-    pub updated_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub updated_at: time::OffsetDateTime,
 }
 
 #[derive(
@@ -52,8 +54,8 @@ mod tests {
             auth_key: "opaque".to_owned(),
             source: Source::Registration,
             data: None,
-            created_at: 4,
-            updated_at: 5,
+            created_at: time::OffsetDateTime::from_unix_timestamp(4).unwrap(),
+            updated_at: time::OffsetDateTime::from_unix_timestamp(5).unwrap(),
         })
         .unwrap();
 
@@ -68,8 +70,8 @@ mod tests {
             auth_key: "opaque".to_owned(),
             source: Source::Binding,
             data: Some(serde_json::json!({"token": "secret"})),
-            created_at: 4,
-            updated_at: 5,
+            created_at: time::OffsetDateTime::from_unix_timestamp(4).unwrap(),
+            updated_at: time::OffsetDateTime::from_unix_timestamp(5).unwrap(),
         }))
         .unwrap();
         assert!(summary.get("user_id").is_none());

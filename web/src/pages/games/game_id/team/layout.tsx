@@ -1,3 +1,4 @@
+import { timestamp } from "@/utils/time";
 import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
 import {
@@ -44,11 +45,11 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
-  const disabled = Date.now() / 1000 > Number(currentGame?.ended_at);
+  const disabled = Date.now() > timestamp(currentGame?.ended_at);
 
   const isGameOngoing =
-    Number(currentGame?.started_at) * 1000 < Date.now() &&
-    Number(currentGame?.ended_at) * 1000 > Date.now();
+    timestamp(currentGame?.started_at) < Date.now() &&
+    timestamp(currentGame?.ended_at) > Date.now();
 
   const options = [
     {

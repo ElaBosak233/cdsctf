@@ -19,7 +19,8 @@ pub struct ScoreboardSubmission {
     pub challenge_id: i64,
     pub challenge_title: String,
     pub pts: i64,
-    pub created_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
@@ -51,7 +52,7 @@ mod tests {
                 challenge_id: 30,
                 challenge_title: "challenge".to_owned(),
                 pts: 100,
-                created_at: 1_700_000_000,
+                created_at: time::OffsetDateTime::from_unix_timestamp(1_700_000_000).unwrap(),
             }],
         })
         .unwrap();
@@ -75,7 +76,7 @@ mod tests {
                     "challenge_id": 30,
                     "challenge_title": "challenge",
                     "pts": 100,
-                    "created_at": 1_700_000_000_i64,
+                    "created_at": "2023-11-14T22:13:20Z",
                 }],
             })
         );

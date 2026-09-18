@@ -1,3 +1,4 @@
+import { timestamp } from "@/utils/time";
 import { useEffect, useMemo, useState } from "react";
 import {
   Brush,
@@ -51,7 +52,7 @@ function ChampionChart(props: ChampionChartProps) {
 
       submissions?.forEach((submission) => {
         allSubmissions.push({
-          ts: Number(submission?.created_at),
+          ts: timestamp(submission?.created_at),
           teamId: team.id!,
           pts: Number(submission?.pts),
         });
@@ -113,7 +114,7 @@ function ChampionChart(props: ChampionChartProps) {
         <XAxis
           dataKey={"ts"}
           tickFormatter={(value: number) =>
-            new Date(value * 1000).toLocaleString(undefined, {
+            new Date(value).toLocaleString(undefined, {
               month: "2-digit",
               day: "2-digit",
               hour: "2-digit",
@@ -133,7 +134,7 @@ function ChampionChart(props: ChampionChartProps) {
           dataKey={"ts"}
           height={25}
           tickFormatter={(value: number) =>
-            new Date(value * 1000).toLocaleString(undefined, {
+            new Date(value).toLocaleString(undefined, {
               month: "2-digit",
               day: "2-digit",
               hour: "2-digit",

@@ -12,8 +12,8 @@ export type ChallengeDetail = {
   checker: string | null;
   writeup: string | null;
   deleted_at: number | null;
-  updated_at: number;
-  created_at: number;
+  updated_at: string;
+  created_at: string;
 };
 
 export type ChallengeView = Pick<

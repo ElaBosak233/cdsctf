@@ -1,5 +1,5 @@
-//! SeaORM migration `m20260806_000003_create_email` — applies forward/backward
-//! schema changes.
+//! SeaORM migration `m20260915_000009_create_team_user` — applies
+//! forward/backward schema changes.
 
 use async_trait::async_trait;
 use sea_orm::Statement;
@@ -10,7 +10,7 @@ pub struct Migration;
 impl MigrationName for Migration {
     /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260806_000003_create_email"
+        "m20260915_000009_create_team_user"
     }
 }
 
@@ -23,12 +23,15 @@ impl MigrationTrait for Migration {
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                CREATE TABLE IF NOT EXISTS "emails" (
-                    "email" VARCHAR UNIQUE NOT NULL PRIMARY KEY,
+                CREATE TABLE IF NOT EXISTS "team_users" (
+                    "team_id" BIGINT NOT NULL,
                     "user_id" BIGINT NOT NULL,
-                    "verified" BOOLEAN NOT NULL DEFAULT FALSE,
-
-                    CONSTRAINT "fk_emails_user_id"
+                    
+                    PRIMARY KEY ("team_id", "user_id"),
+                    CONSTRAINT "fk_team_users_team_id"
+                        FOREIGN KEY ("team_id") REFERENCES "teams" ("id")
+                            ON DELETE CASCADE,
+                    CONSTRAINT "fk_team_users_user_id"
                         FOREIGN KEY ("user_id") REFERENCES "users" ("id")
                             ON DELETE CASCADE
                 );
@@ -47,7 +50,7 @@ impl MigrationTrait for Migration {
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                DROP TABLE IF EXISTS "emails";
+                DROP TABLE IF EXISTS "team_users";
             "#
             .to_owned(),
         ))

@@ -15,7 +15,6 @@ use std::{
 use cds_engine::{ConfigureLua, mlua::Lua};
 use cds_media::Media;
 use serde::Deserialize;
-use time::OffsetDateTime;
 use tracing::debug;
 
 pub use crate::modules::audit::Status;
@@ -86,10 +85,7 @@ impl Checker {
                 .checker
                 .as_deref()
                 .ok_or_else(|| CheckerError::MissingScript(String::new()))?,
-            Some(
-                OffsetDateTime::from_unix_timestamp(challenge.updated_at)
-                    .unwrap_or_else(|_| OffsetDateTime::now_utc()),
-            ),
+            Some(challenge.updated_at),
         )
         .await?;
         Ok(())

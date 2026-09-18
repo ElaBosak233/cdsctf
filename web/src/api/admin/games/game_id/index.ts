@@ -20,9 +20,9 @@ export type UpdateGameBody = {
   writeup_required?: boolean;
   member_limit_min?: number;
   member_limit_max?: number;
-  started_at?: number;
-  frozen_at?: number;
-  ended_at?: number;
+  started_at?: string;
+  frozen_at?: string;
+  ended_at?: string;
 };
 
 export type UpdateGameRequest = UpdateGameBody & {

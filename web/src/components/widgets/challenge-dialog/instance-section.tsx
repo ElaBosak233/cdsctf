@@ -24,6 +24,7 @@ import type { Instance, Nat } from "@/models/instance";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import { timestamp } from "@/utils/time";
 import { Context } from "./context";
 
 function PortInfo({ instance, port }: { instance: Instance; port: Port }) {
@@ -148,9 +149,9 @@ function InstanceSection() {
         setInstance(p);
         setTimeLeft(
           Math.ceil(
-            Number(p?.started_at) +
+            timestamp(p?.started_at) +
               (Number(p?.renew) + 1) * Number(p?.duration) -
-              Date.now() / 1000
+              Date.now()
           )
         );
 

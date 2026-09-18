@@ -1,3 +1,4 @@
+import { timestamp } from "@/utils/time";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeftIcon, LightbulbIcon, PencilLineIcon } from "lucide-react";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
@@ -186,7 +187,7 @@ function WriteupSection() {
                         <PencilLineIcon className={cn(["size-3!"])} />
                         <span className={cn(["text-xs"])}>
                           {new Date(
-                            Number(note.updated_at) * 1000
+                            timestamp(note.updated_at)
                           ).toLocaleDateString()}
                         </span>
                       </div>

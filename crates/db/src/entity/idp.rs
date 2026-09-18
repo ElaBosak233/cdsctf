@@ -17,8 +17,10 @@ pub struct Model {
     pub portal: Option<String>,
     #[sea_orm(column_type = "Text")]
     pub script: String,
-    pub created_at: i64,
-    pub updated_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub updated_at: time::OffsetDateTime,
     #[sea_orm(has_many)]
     pub user_idps: HasMany<super::user_idp::Entity>,
 }
@@ -35,7 +37,7 @@ impl ActiveModelBehavior for ActiveModel {
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {
-        let ts = time::OffsetDateTime::now_utc().unix_timestamp();
+        let ts = time::OffsetDateTime::now_utc();
         self.updated_at = Set(ts);
         if insert {
             self.created_at = Set(ts);

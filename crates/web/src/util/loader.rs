@@ -19,7 +19,7 @@ pub fn ensure_game_not_paused(game: &GameDetail) -> Result<(), WebError> {
 }
 
 /// Rejects actions outside the configured competition window.
-pub fn ensure_game_ongoing(game: &GameDetail, now: i64) -> Result<(), WebError> {
+pub fn ensure_game_ongoing(game: &GameDetail, now: time::OffsetDateTime) -> Result<(), WebError> {
     if !(game.started_at..=game.ended_at).contains(&now) {
         return Err(WebError::Forbidden(json!("game_not_ongoing")));
     }
@@ -127,12 +127,12 @@ mod tests {
             member_limit_min: 1,
             member_limit_max: 3,
             timeslots: Vec::new(),
-            started_at: 100,
-            frozen_at: 150,
-            ended_at: 200,
+            started_at: time::OffsetDateTime::from_unix_timestamp(100).unwrap(),
+            frozen_at: time::OffsetDateTime::from_unix_timestamp(150).unwrap(),
+            ended_at: time::OffsetDateTime::from_unix_timestamp(200).unwrap(),
             icon_hash: None,
             poster_hash: None,
-            created_at: 1,
+            created_at: time::OffsetDateTime::from_unix_timestamp(1).unwrap(),
         }
     }
 
@@ -151,14 +151,22 @@ mod tests {
     fn competition_window_includes_both_boundaries() {
         let game = game();
 
-        assert!(ensure_game_ongoing(&game, 100).is_ok());
-        assert!(ensure_game_ongoing(&game, 200).is_ok());
+        let start = time::OffsetDateTime::from_unix_timestamp(100).unwrap();
+        let end = time::OffsetDateTime::from_unix_timestamp(200).unwrap();
+        assert!(ensure_game_ongoing(&game, start).is_ok());
+        assert!(ensure_game_ongoing(&game, end).is_ok());
         assert!(matches!(
-            ensure_game_ongoing(&game, 99),
+            ensure_game_ongoing(
+                &game,
+                time::OffsetDateTime::from_unix_timestamp(99).unwrap()
+            ),
             Err(WebError::Forbidden(_))
         ));
         assert!(matches!(
-            ensure_game_ongoing(&game, 201),
+            ensure_game_ongoing(
+                &game,
+                time::OffsetDateTime::from_unix_timestamp(201).unwrap()
+            ),
             Err(WebError::Forbidden(_))
         ));
     }

@@ -73,7 +73,7 @@ pub async fn get_game_challenge(
     }
     crate::util::loader::ensure_game_not_paused(&game)?;
 
-    let now = time::OffsetDateTime::now_utc().unix_timestamp();
+    let now = time::OffsetDateTime::now_utc();
     let in_game =
         cds_db::team::contains_user_in_game(&s.db.conn, game.id, operator.id, Some(TState::Passed))
             .await?;

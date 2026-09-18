@@ -19,12 +19,16 @@ pub struct GameDetail {
     pub member_limit_min: i64,
     pub member_limit_max: i64,
     pub timeslots: Vec<Timeslot>,
-    pub started_at: i64,
-    pub frozen_at: i64,
-    pub ended_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub started_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub frozen_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub ended_at: time::OffsetDateTime,
     pub icon_hash: Option<String>,
     pub poster_hash: Option<String>,
-    pub created_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
@@ -36,9 +40,12 @@ pub struct GameView {
     pub writeup_required: bool,
     pub paused: bool,
     pub blacked_out: bool,
-    pub started_at: i64,
-    pub frozen_at: i64,
-    pub ended_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub started_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub frozen_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub ended_at: time::OffsetDateTime,
     pub icon_hash: Option<String>,
     pub poster_hash: Option<String>,
 }
@@ -69,9 +76,12 @@ pub struct GameSummary {
     pub id: i64,
     pub title: String,
     pub sketch: Option<String>,
-    pub started_at: i64,
-    pub frozen_at: i64,
-    pub ended_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub started_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub frozen_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub ended_at: time::OffsetDateTime,
     pub icon_hash: Option<String>,
     pub poster_hash: Option<String>,
 }

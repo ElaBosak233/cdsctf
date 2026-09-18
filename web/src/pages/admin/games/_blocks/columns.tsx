@@ -1,3 +1,4 @@
+import { date, timestamp } from "@/utils/time";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -106,13 +107,13 @@ type GameStatus =
   | "ended";
 
 function getGameStatus(game: GameDetail): GameStatus {
-  const now = Date.now() / 1000;
+  const now = Date.now();
 
   if (!game.enabled) return "disabled";
-  if (now > game.ended_at) return "ended";
+  if (now > timestamp(game.ended_at)) return "ended";
   if (game.paused) return "paused";
-  if (now < game.started_at) return "upcoming";
-  if (now > game.frozen_at) return "frozen";
+  if (now < timestamp(game.started_at)) return "upcoming";
+  if (now > timestamp(game.frozen_at)) return "frozen";
   return "ongoing";
 }
 
@@ -258,16 +259,21 @@ function ScheduleCell({
   formatter: Intl.DateTimeFormat;
 }) {
   const { t } = useTranslation();
-  const startedAt = new Date(row.original.started_at * 1000);
-  const endedAt = new Date(row.original.ended_at * 1000);
+  const startedAt = date(row.original.started_at);
+  const endedAt = date(row.original.ended_at);
   const rangeFormatter = formatter as Intl.DateTimeFormat & {
     formatRange?: (start: Date, end: Date) => string;
   };
-  const range = rangeFormatter.formatRange
-    ? rangeFormatter.formatRange(startedAt, endedAt)
-    : `${formatter.format(startedAt)} - ${formatter.format(endedAt)}`;
-  const format = (timestamp: number) =>
-    formatter.format(new Date(timestamp * 1000));
+  const range =
+    startedAt && endedAt
+      ? rangeFormatter.formatRange
+        ? rangeFormatter.formatRange(startedAt, endedAt)
+        : `${formatter.format(startedAt)} - ${formatter.format(endedAt)}`
+      : "-";
+  const format = (value: string) => {
+    const parsed = date(value);
+    return parsed ? formatter.format(parsed) : "-";
+  };
 
   return (
     <div className={cn(["flex", "min-w-0", "flex-col", "gap-1"])}>

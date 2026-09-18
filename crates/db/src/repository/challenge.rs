@@ -36,17 +36,19 @@ pub async fn can_user_access(
     user_id: i64,
     challenge_id: i64,
 ) -> Result<bool, DbError> {
-    Ok(user_access_query(
-        user_id,
-        challenge_id,
-        time::OffsetDateTime::now_utc().unix_timestamp(),
+    Ok(
+        user_access_query(user_id, challenge_id, time::OffsetDateTime::now_utc())
+            .count(conn)
+            .await?
+            > 0,
     )
-    .count(conn)
-    .await?
-        > 0)
 }
 
-fn user_access_query(user_id: i64, challenge_id: i64, now: i64) -> sea_orm::Select<Entity> {
+fn user_access_query(
+    user_id: i64,
+    challenge_id: i64,
+    now: time::OffsetDateTime,
+) -> sea_orm::Select<Entity> {
     let active_game_access = active_game_access_query(user_id, challenge_id, now)
         .select_only()
         .column(crate::entity::game::Column::Id)
@@ -62,7 +64,7 @@ fn user_access_query(user_id: i64, challenge_id: i64, now: i64) -> sea_orm::Sele
 fn active_game_access_query(
     user_id: i64,
     challenge_id: i64,
-    now: i64,
+    now: time::OffsetDateTime,
 ) -> sea_orm::Select<crate::entity::game::Entity> {
     crate::entity::game::Entity::find()
         .join(
@@ -236,7 +238,7 @@ pub async fn delete(conn: &impl ConnectionTrait, challenge_id: i64) -> Result<()
 
     let _ = ActiveModel {
         id: Set(challenge.id),
-        deleted_at: Set(Some(time::OffsetDateTime::now_utc().unix_timestamp())),
+        deleted_at: Set(Some(time::OffsetDateTime::now_utc())),
         ..Default::default()
     }
     .update(conn)
@@ -258,7 +260,8 @@ mod tests {
 
     #[test]
     fn active_game_access_query_covers_membership_state_and_time() {
-        let statement = active_game_access_query(7, 9, 1_000).build(DbBackend::Postgres);
+        let now = time::OffsetDateTime::from_unix_timestamp(1_000).unwrap();
+        let statement = active_game_access_query(7, 9, now).build(DbBackend::Postgres);
 
         assert!(statement.sql.contains("INNER JOIN \"game_challenges\""));
         assert!(statement.sql.contains("INNER JOIN \"teams\""));
@@ -275,7 +278,8 @@ mod tests {
 
     #[test]
     fn user_access_query_combines_public_and_game_access_in_one_statement() {
-        let statement = user_access_query(7, 9, 1_000).build(DbBackend::Postgres);
+        let now = time::OffsetDateTime::from_unix_timestamp(1_000).unwrap();
+        let statement = user_access_query(7, 9, now).build(DbBackend::Postgres);
 
         assert_eq!(statement.sql.matches("SELECT").count(), 2);
         assert!(statement.sql.contains("\"challenges\".\"id\" = $1"));

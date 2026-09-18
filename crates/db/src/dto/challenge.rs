@@ -19,9 +19,12 @@ pub struct ChallengeDetail {
     pub instance: Option<Instance>,
     pub checker: Option<String>,
     pub writeup: Option<String>,
-    pub deleted_at: Option<i64>,
-    pub created_at: i64,
-    pub updated_at: i64,
+    #[serde(with = "crate::time_format::option")]
+    pub deleted_at: Option<time::OffsetDateTime>,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub updated_at: time::OffsetDateTime,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
@@ -88,8 +91,8 @@ mod tests {
             checker: Some("checker".to_owned()),
             writeup: Some("writeup".to_owned()),
             deleted_at: None,
-            created_at: 1,
-            updated_at: 2,
+            created_at: time::OffsetDateTime::from_unix_timestamp(1).unwrap(),
+            updated_at: time::OffsetDateTime::from_unix_timestamp(2).unwrap(),
         };
 
         let value = serde_json::to_value(ChallengeView::from(&challenge)).unwrap();

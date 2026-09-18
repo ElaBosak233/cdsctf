@@ -17,8 +17,10 @@ pub struct UserAccountView {
     #[schema(ignore)]
     pub hashed_password: String,
     pub avatar_hash: Option<String>,
-    pub created_at: i64,
-    pub updated_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub updated_at: time::OffsetDateTime,
 }
 
 #[derive(
@@ -40,7 +42,8 @@ pub struct UserProfile {
     pub username: String,
     pub description: Option<String>,
     pub avatar_hash: Option<String>,
-    pub created_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
 }
 
 impl From<&UserAccountView> for UserProfile {
@@ -68,7 +71,7 @@ mod tests {
             username: "user".to_owned(),
             description: Some("bio".to_owned()),
             avatar_hash: Some("avatar".to_owned()),
-            created_at: 1_700_000_000,
+            created_at: time::OffsetDateTime::from_unix_timestamp(1_700_000_000).unwrap(),
         };
 
         assert_eq!(
@@ -79,7 +82,7 @@ mod tests {
                 "username": "user",
                 "description": "bio",
                 "avatar_hash": "avatar",
-                "created_at": 1_700_000_000_i64,
+                "created_at": "2023-11-14T22:13:20Z",
             })
         );
     }
