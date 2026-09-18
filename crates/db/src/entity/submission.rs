@@ -20,6 +20,8 @@ pub struct Model {
     pub created_at: time::OffsetDateTime,
     #[serde(with = "crate::time_format::option")]
     pub processing_at: Option<time::OffsetDateTime>,
+    /// Monotonic per-row claim generation used to fence stale workers.
+    pub claims: i64,
     #[serde(with = "crate::time_format::option")]
     pub checked_at: Option<time::OffsetDateTime>,
 

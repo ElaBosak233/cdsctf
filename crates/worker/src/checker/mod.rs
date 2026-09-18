@@ -94,6 +94,7 @@ async fn check(
     ctx: &Context,
     submission: SubmissionView,
     processing_at: time::OffsetDateTime,
+    claims: i64,
 ) -> Result<CheckOutcome, anyhow::Error> {
     let user = if let Some(user) =
         cds_db::user::find_by_id::<UserAccountView>(&ctx.db.conn, submission.user_id).await?
@@ -155,7 +156,7 @@ async fn check(
     let FinalizeOutcome::Committed {
         status,
         score_game_id,
-    } = finalizer::finalize(&ctx.db, &submission, processing_at, verdict).await?
+    } = finalizer::finalize(&ctx.db, &submission, processing_at, claims, verdict).await?
     else {
         warn!(
             submission_id = submission.id,
@@ -327,7 +328,8 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
                     "submission claimed"
                 );
 
-                match check(&ctx, submission, processing_at).await {
+                let claims = submission.claims;
+                match check(&ctx, submission, processing_at, claims).await {
                     Ok(CheckOutcome::Committed) => {
                         message.double_ack().await.ok();
                     }
@@ -342,6 +344,7 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
                             &ctx.db.conn,
                             id,
                             processing_at,
+                            claims,
                         )
                         .await
                         {

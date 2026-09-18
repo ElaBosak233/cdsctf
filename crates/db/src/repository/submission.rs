@@ -173,6 +173,7 @@ impl TryFrom<crate::entity::submission::ModelEx> for SubmissionView {
             challenge_category: challenge.category,
             created_at: submission.created_at,
             processing_at: submission.processing_at,
+            claims: submission.claims,
             checked_at: submission.checked_at,
             pts: submission.pts,
             rank: submission.rank,
@@ -458,15 +459,25 @@ pub async fn claim_queued_or_stale_by_id(
 ) -> Result<Option<SubmissionView>, DbError> {
     let now = time::OffsetDateTime::now_utc();
     let cutoff = now - time::Duration::seconds(PROCESSING_LEASE_SECONDS);
-    let result = claimable_submission_query(submission_id, now, cutoff)
-        .exec(conn)
+    let mut claimed = claimable_submission_query(submission_id, now, cutoff)
+        .exec_with_returning(conn)
         .await?;
+    let Some(claimed) = claimed.pop() else {
+        return Ok(None);
+    };
 
-    if result.rows_affected == 0 {
+    let Some(submission) = find_by_id(conn, submission_id).await? else {
+        return Ok(None);
+    };
+
+    if submission.status != Status::Processing
+        || submission.processing_at != claimed.processing_at
+        || submission.claims != claimed.claims
+    {
         return Ok(None);
     }
 
-    find_by_id(conn, submission_id).await
+    Ok(Some(submission))
 }
 
 fn claimable_submission_query(
@@ -481,6 +492,7 @@ fn claimable_submission_query(
             checked_at: Set(None),
             ..Default::default()
         })
+        .col_expr(Column::Claims, Expr::col(Column::Claims).add(1_i64))
         .filter(Column::Id.eq(submission_id))
         .filter(
             Condition::any().add(Column::Status.eq(Status::Queued)).add(
@@ -500,6 +512,7 @@ pub async fn release_processing(
     conn: &impl ConnectionTrait,
     submission_id: i64,
     processing_at: time::OffsetDateTime,
+    claims: i64,
 ) -> Result<bool, DbError> {
     let result = Entity::update_many()
         .set(ActiveModel {
@@ -511,6 +524,7 @@ pub async fn release_processing(
         .filter(Column::Id.eq(submission_id))
         .filter(Column::Status.eq(Status::Processing))
         .filter(Column::ProcessingAt.eq(processing_at))
+        .filter(Column::Claims.eq(claims))
         .exec(conn)
         .await?;
 
@@ -522,6 +536,7 @@ pub async fn finish_processing(
     conn: &impl ConnectionTrait,
     submission_id: i64,
     processing_at: time::OffsetDateTime,
+    claims: i64,
     status: Status,
 ) -> Result<Option<SubmissionView>, DbError> {
     let now = time::OffsetDateTime::now_utc();
@@ -534,6 +549,7 @@ pub async fn finish_processing(
         .filter(Column::Id.eq(submission_id))
         .filter(Column::Status.eq(Status::Processing))
         .filter(Column::ProcessingAt.eq(processing_at))
+        .filter(Column::Claims.eq(claims))
         .exec(conn)
         .await?;
 
@@ -553,6 +569,26 @@ pub async fn reset_stale_processing(conn: &impl ConnectionTrait) -> Result<u64, 
         .exec(conn)
         .await?
         .rows_affected)
+}
+
+/// Advances the claim generation for an administrator-initiated processing
+/// transition. The row update that changes the status and this increment are
+/// performed in the caller's transaction.
+pub async fn advance_claim_generation(
+    conn: &impl ConnectionTrait,
+    submission_id: i64,
+) -> Result<(), DbError> {
+    let result = Entity::update_many()
+        .col_expr(Column::Claims, Expr::col(Column::Claims).add(1_i64))
+        .filter(Column::Id.eq(submission_id))
+        .exec(conn)
+        .await?;
+
+    if result.rows_affected == 0 {
+        return Err(DbError::NotFound(format!("submission_{submission_id}")));
+    }
+
+    Ok(())
 }
 
 fn stale_processing_reset_query(cutoff: time::OffsetDateTime) -> sea_orm::UpdateMany<Entity> {
@@ -768,6 +804,7 @@ mod score_tests {
             challenge_category: 0,
             created_at: time::OffsetDateTime::UNIX_EPOCH,
             processing_at: Some(time::OffsetDateTime::from_unix_timestamp(1).unwrap()),
+            claims: 1,
             checked_at: None,
             pts: 0,
             rank: 0,
@@ -903,17 +940,18 @@ mod score_tests {
         let statement = claimable_submission_query(7, now, cutoff).build(DbBackend::Postgres);
 
         assert!(statement.sql.starts_with("UPDATE \"submissions\""));
-        assert!(statement.sql.contains("\"id\" = $4"));
-        assert!(statement.sql.contains("\"status\" = $5"));
+        assert!(statement.sql.contains("\"id\" = $5"));
         assert!(statement.sql.contains("\"status\" = $6"));
+        assert!(statement.sql.contains("\"status\" = $7"));
         assert!(statement.sql.contains("\"processing_at\" IS NULL"));
-        assert!(statement.sql.contains("\"processing_at\" <= $7"));
+        assert!(statement.sql.contains("\"processing_at\" <= $8"));
         assert_eq!(
             statement.values.unwrap().0,
             vec![
                 Status::Processing.into(),
                 Some(now).into(),
                 Option::<time::OffsetDateTime>::None.into(),
+                1_i64.into(),
                 7_i64.into(),
                 Status::Queued.into(),
                 Status::Processing.into(),

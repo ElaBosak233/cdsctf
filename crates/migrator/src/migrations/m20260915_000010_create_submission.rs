@@ -33,6 +33,7 @@ impl MigrationTrait for Migration {
                     "game_id" BIGINT,
                     "created_at" TIMESTAMPTZ NOT NULL,
                     "processing_at" TIMESTAMPTZ,
+                    "claims" BIGINT NOT NULL DEFAULT 0,
                     "checked_at" TIMESTAMPTZ,
                     "pts" BIGINT NOT NULL DEFAULT 0,
                     "rank" BIGINT NOT NULL DEFAULT 0,

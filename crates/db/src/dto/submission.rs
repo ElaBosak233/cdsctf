@@ -25,6 +25,9 @@ pub struct SubmissionView {
     pub created_at: time::OffsetDateTime,
     #[serde(with = "crate::time_format::option")]
     pub processing_at: Option<time::OffsetDateTime>,
+    #[serde(skip)]
+    #[schema(ignore)]
+    pub claims: i64,
     #[serde(with = "crate::time_format::option")]
     pub checked_at: Option<time::OffsetDateTime>,
     pub pts: i64,
@@ -104,6 +107,7 @@ mod tests {
             challenge_category: 6,
             created_at: time::OffsetDateTime::from_unix_timestamp(1_700_000_000).unwrap(),
             processing_at: Some(time::OffsetDateTime::from_unix_timestamp(1_700_000_001).unwrap()),
+            claims: 1,
             checked_at: Some(time::OffsetDateTime::from_unix_timestamp(1_700_000_003).unwrap()),
             pts: 100,
             rank: 1,
@@ -111,6 +115,8 @@ mod tests {
 
         let value = serde_json::to_value(SubmissionSummary::from(&submission)).unwrap();
         assert!(value.get("content").is_none());
+        let internal_value = serde_json::to_value(&submission).unwrap();
+        assert!(internal_value.get("claims").is_none());
         assert_eq!(value["team_id"], 3);
         assert_eq!(value["game_id"], 4);
         assert_eq!(value["processing_at"], "2023-11-14T22:13:21Z");

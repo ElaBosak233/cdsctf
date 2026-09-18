@@ -20,10 +20,11 @@ async fn scoring_repository_queries_execute_on_postgres() {
                     challenge_id BIGINT NOT NULL,
                     team_id BIGINT,
                     game_id BIGINT,
-                    created_at BIGINT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL,
                     status TEXT NOT NULL,
-                    processing_at BIGINT,
-                    checked_at BIGINT,
+                    processing_at TIMESTAMPTZ,
+                    claims BIGINT NOT NULL DEFAULT 0,
+                    checked_at TIMESTAMPTZ,
                     pts BIGINT NOT NULL,
                     rank BIGINT NOT NULL
                 ) ON COMMIT DROP;
@@ -48,7 +49,7 @@ async fn scoring_repository_queries_execute_on_postgres() {
                 INSERT INTO games (id) VALUES (7), (8);
                 INSERT INTO submissions (
                     id, challenge_id, team_id, game_id, created_at, status, pts, rank
-                ) VALUES (1, 10, 100, 7, 1000, 'correct', 0, 0);
+                ) VALUES (1, 10, 100, 7, to_timestamp(1000), 'correct', 0, 0);
                 INSERT INTO game_challenges VALUES
                     (7, 10, 10, 1000, 100, ARRAY[10, 0]::BIGINT[], 0),
                     (8, 10, 10, 1000, 100, ARRAY[10, 0]::BIGINT[], 0);
@@ -106,7 +107,9 @@ async fn scoring_repository_queries_execute_on_postgres() {
         Some(0)
     );
 
-    let now = time::OffsetDateTime::now_utc();
+    let now =
+        time::OffsetDateTime::from_unix_timestamp(time::OffsetDateTime::now_utc().unix_timestamp())
+            .unwrap();
     transaction
         .execute_unprepared(&format!(
             r#"
@@ -143,12 +146,12 @@ async fn scoring_repository_queries_execute_on_postgres() {
         .unwrap();
     assert_eq!(still_processing, 1);
     assert!(
-        !submission::release_processing(&transaction, 3, now - time::Duration::seconds(1),)
+        !submission::release_processing(&transaction, 3, now - time::Duration::seconds(1), 0)
             .await
             .unwrap()
     );
     assert!(
-        submission::release_processing(&transaction, 3, now)
+        submission::release_processing(&transaction, 3, now, 0)
             .await
             .unwrap()
     );
@@ -256,4 +259,50 @@ async fn scoring_repository_queries_execute_on_postgres() {
     );
 
     transaction.rollback().await.unwrap();
+}
+
+#[tokio::test]
+#[ignore = "requires CDS_TEST_DATABASE_URL pointing to PostgreSQL"]
+async fn aba_fencing_rejects_stale_generation_with_identical_timestamp() {
+    let database_url = std::env::var("CDS_TEST_DATABASE_URL")
+        .expect("CDS_TEST_DATABASE_URL must be set for this ignored test");
+    let database = Database::connect(database_url).await.unwrap();
+    let transaction = database.begin().await.unwrap();
+    transaction
+        .execute_unprepared(
+            r#"
+                CREATE TEMP TABLE submissions (
+                    id BIGINT PRIMARY KEY,
+                    status TEXT NOT NULL,
+                    processing_at TIMESTAMPTZ,
+                    claims BIGINT NOT NULL DEFAULT 0,
+                    checked_at TIMESTAMPTZ
+                ) ON COMMIT DROP;
+                INSERT INTO submissions (
+                    id, status, processing_at, claims, checked_at
+                ) VALUES (
+                    1, 'processing', to_timestamp(1700000000), 2, NULL
+                );
+            "#,
+        )
+        .await
+        .unwrap();
+
+    let marker = time::OffsetDateTime::from_unix_timestamp(1_700_000_000).unwrap();
+    assert!(
+        !submission::release_processing(&transaction, 1, marker, 1)
+            .await
+            .unwrap()
+    );
+    assert!(
+        submission::finish_processing(&transaction, 1, marker, 1, submission::Status::Incorrect,)
+            .await
+            .unwrap()
+            .is_none()
+    );
+    assert!(
+        submission::release_processing(&transaction, 1, marker, 2)
+            .await
+            .unwrap()
+    );
 }

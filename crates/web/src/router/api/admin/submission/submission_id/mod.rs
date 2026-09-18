@@ -125,6 +125,7 @@ pub async fn update_submission_status(
     }
 
     let now = time::OffsetDateTime::now_utc();
+    let next_status = body.status.clone();
     let (processing_at, checked_at) = status_timestamps(&previous.status, &body.status, now);
     let (pts, rank) = status_scores(&previous.status, &body.status);
     let score_game_id =
@@ -148,6 +149,10 @@ pub async fn update_submission_status(
         },
     )
     .await?;
+
+    if next_status == Status::Processing {
+        cds_db::submission::advance_claim_generation(&transaction, submission_id).await?;
+    }
 
     if let Some(game_id) = score_game_id {
         cds_db::game::request_score_recalculation(&transaction, game_id).await?;
