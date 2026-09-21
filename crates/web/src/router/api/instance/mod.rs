@@ -165,10 +165,7 @@ pub async fn create_instance(
             return Err(WebError::NotFound(json!("game_not_found")));
         }
         crate::util::loader::ensure_game_not_paused(&game)?;
-        crate::util::loader::ensure_game_ongoing(
-            &game,
-            time::OffsetDateTime::now_utc().unix_timestamp(),
-        )?;
+        crate::util::loader::ensure_game_ongoing(&game, time::OffsetDateTime::now_utc())?;
     }
 
     if !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge.id).await? {

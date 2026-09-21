@@ -24,7 +24,8 @@ pub(crate) enum Verdict {
     Cheat { peer_team_id: i64 },
 }
 
-/// Result of attempting to finalize the submission owned by `processing_at`.
+/// Result of attempting to finalize the submission owned by
+/// `(processing_at, claims)`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum FinalizeOutcome {
     /// The terminal transition committed. A game id means the calculator must
@@ -48,7 +49,8 @@ struct CheatPolicy {
 pub(crate) async fn finalize(
     db: &DB,
     submission: &SubmissionView,
-    processing_at: i64,
+    processing_at: time::OffsetDateTime,
+    claims: i64,
     verdict: Verdict,
 ) -> Result<FinalizeOutcome, anyhow::Error> {
     let transaction = db
@@ -74,6 +76,7 @@ pub(crate) async fn finalize(
         &transaction,
         submission.id,
         processing_at,
+        claims,
         status.clone(),
     )
     .await?
@@ -138,7 +141,7 @@ async fn resolve_correct_status(
             cds_db::game_challenge::find_by_id(transaction, game_id, submission.challenge_id)
                 .await?
                 .context("game_challenge_not_found")?;
-        let now = time::OffsetDateTime::now_utc().unix_timestamp();
+        let now = time::OffsetDateTime::now_utc();
         if now > game.frozen_at
             || now > game.ended_at
             || game_challenge
@@ -211,7 +214,9 @@ mod tests {
     use super::*;
 
     const GAME_ID: i64 = 7;
-    const PROCESSING_AT: i64 = 1_700_000_000;
+    fn processing_at() -> time::OffsetDateTime {
+        time::OffsetDateTime::from_unix_timestamp(1_700_000_000).unwrap()
+    }
 
     async fn test_db() -> DB {
         let database_url = std::env::var("CDS_TEST_DATABASE_URL")
@@ -238,14 +243,18 @@ mod tests {
                 INSERT INTO users (
                     id, name, username, description, "group", hashed_password,
                     avatar_hash, deleted_at, created_at, updated_at
-                ) VALUES (1, 'User', 'user', NULL, 2, '', NULL, NULL, 0, 0);
+                ) VALUES (
+                    1, 'User', 'user', NULL, 2, '', NULL, NULL,
+                    to_timestamp(0), to_timestamp(0)
+                );
                 INSERT INTO challenges (
                     id, title, description, category, tags, has_instance,
                     has_attachment, has_writeup, public, instance, checker,
                     writeup, deleted_at, created_at, updated_at
                 ) VALUES (
                     10, 'Challenge', '', 0, ARRAY[]::TEXT[], FALSE, FALSE,
-                    FALSE, TRUE, NULL, NULL, NULL, NULL, 0, 0
+                    FALSE, TRUE, NULL, NULL, NULL, NULL,
+                    to_timestamp(0), to_timestamp(0)
                 );
                 INSERT INTO games (
                     id, title, sketch, description, enabled, public, paused,
@@ -254,11 +263,11 @@ mod tests {
                     ended_at, icon_hash, poster_hash, score_revision, created_at
                 ) VALUES
                     (7, 'Game', NULL, NULL, TRUE, TRUE, FALSE, FALSE, 1, 5,
-                     FALSE, '[]'::JSONB, 0, 4102444800, 4102444800, NULL,
-                     NULL, 0, 0),
+                     FALSE, '[]'::JSONB, to_timestamp(0), to_timestamp(4102444800),
+                     to_timestamp(4102444800), NULL, NULL, 0, to_timestamp(0)),
                     (8, 'Other game', NULL, NULL, TRUE, TRUE, FALSE, FALSE, 1,
-                     5, FALSE, '[]'::JSONB, 0, 4102444800, 4102444800, NULL,
-                     NULL, 0, 0);
+                     5, FALSE, '[]'::JSONB, to_timestamp(0), to_timestamp(4102444800),
+                     to_timestamp(4102444800), NULL, NULL, 0, to_timestamp(0));
                 INSERT INTO teams (
                     id, game_id, name, email, slogan, avatar_hash, has_writeup,
                     state, pts, rank
@@ -275,15 +284,15 @@ mod tests {
                     (7, 10, 10, 1000, 100, ARRAY[10, 0]::BIGINT[], TRUE, NULL, 0);
                 INSERT INTO submissions (
                     id, content, status, challenge_id, user_id, team_id,
-                    game_id, created_at, processing_at, checked_at, pts, rank
+                    game_id, created_at, processing_at, claims, checked_at, pts, rank
                 ) VALUES
-                    (1, 'flag', 'processing', 10, 1, 100, 7, 0, 1700000000, NULL, 0, 0),
-                    (2, 'flag', 'processing', 10, 1, 100, 7, 0, 1700000000, NULL, 0, 0),
-                    (3, 'flag', 'processing', 10, 1, 100, 7, 0, 1700000000, NULL, 0, 0),
-                    (4, 'flag', 'processing', 10, 1, 104, 7, 0, 1700000000, NULL, 0, 0),
-                    (5, 'flag', 'processing', 10, 1, 100, 7, 0, 1700000000, NULL, 0, 0),
-                    (6, 'flag', 'processing', 10, 1, 100, 7, 0, 1700000000, NULL, 0, 0),
-                    (7, 'flag', 'processing', 10, 1, NULL, NULL, 0, 1700000000, NULL, 0, 0);
+                    (1, 'flag', 'processing', 10, 1, 100, 7, to_timestamp(0), to_timestamp(1700000000), 0, NULL, 0, 0),
+                    (2, 'flag', 'processing', 10, 1, 100, 7, to_timestamp(0), to_timestamp(1700000000), 1, NULL, 0, 0),
+                    (3, 'flag', 'processing', 10, 1, 100, 7, to_timestamp(0), to_timestamp(1700000000), 0, NULL, 0, 0),
+                    (4, 'flag', 'processing', 10, 1, 104, 7, to_timestamp(0), to_timestamp(1700000000), 0, NULL, 0, 0),
+                    (5, 'flag', 'processing', 10, 1, 100, 7, to_timestamp(0), to_timestamp(1700000000), 0, NULL, 0, 0),
+                    (6, 'flag', 'processing', 10, 1, 100, 7, to_timestamp(0), to_timestamp(1700000000), 0, NULL, 0, 0),
+                    (7, 'flag', 'processing', 10, 1, NULL, NULL, to_timestamp(0), to_timestamp(1700000000), 0, NULL, 0, 0);
             "#,
         )
         .await
@@ -334,15 +343,18 @@ mod tests {
                         id, name, username, description, "group", hashed_password,
                         avatar_hash, deleted_at, created_at, updated_at
                     ) VALUES
-                        (1, 'Team user', 'team-user', NULL, 2, '', NULL, NULL, 0, 0),
-                        (2, 'Standalone user', 'standalone-user', NULL, 2, '', NULL, NULL, 0, 0);
+                        (1, 'Team user', 'team-user', NULL, 2, '', NULL, NULL,
+                         to_timestamp(0), to_timestamp(0)),
+                        (2, 'Standalone user', 'standalone-user', NULL, 2, '', NULL, NULL,
+                         to_timestamp(0), to_timestamp(0));
                     INSERT INTO {schema}.challenges (
                         id, title, description, category, tags, has_instance,
                         has_attachment, has_writeup, public, instance, checker,
                         writeup, deleted_at, created_at, updated_at
                     ) VALUES (
                         10, 'Challenge', '', 0, ARRAY[]::TEXT[], FALSE, FALSE,
-                        FALSE, TRUE, NULL, NULL, NULL, NULL, 0, 0
+                        FALSE, TRUE, NULL, NULL, NULL, NULL,
+                        to_timestamp(0), to_timestamp(0)
                     );
                     INSERT INTO {schema}.games (
                         id, title, sketch, description, enabled, public, paused,
@@ -351,8 +363,8 @@ mod tests {
                         ended_at, icon_hash, poster_hash, score_revision, created_at
                     ) VALUES (
                         7, 'Game', NULL, NULL, TRUE, TRUE, FALSE, FALSE, 1, 5,
-                        FALSE, '[]'::JSONB, 0, 4102444800, 4102444800, NULL,
-                        NULL, 0, 0
+                        FALSE, '[]'::JSONB, to_timestamp(0), to_timestamp(4102444800),
+                        to_timestamp(4102444800), NULL, NULL, 0, to_timestamp(0)
                     );
                     INSERT INTO {schema}.teams (
                         id, game_id, name, email, slogan, avatar_hash, has_writeup,
@@ -365,17 +377,19 @@ mod tests {
 
                     INSERT INTO {schema}.submissions (
                         id, content, status, challenge_id, user_id, team_id,
-                        game_id, created_at, processing_at, checked_at, pts, rank
+                        game_id, created_at, processing_at, claims, checked_at, pts, rank
                     )
-                    SELECT id, 'flag', 'processing', 10, 1, 100, 7, id,
-                           {PROCESSING_AT}, NULL, 0, 0
+                    SELECT id, 'flag', 'processing', 10, 1, 100, 7,
+                           to_timestamp(id::double precision),
+                           to_timestamp(1700000000), 0, NULL, 0, 0
                     FROM generate_series(1000, 1009) AS id;
                     INSERT INTO {schema}.submissions (
                         id, content, status, challenge_id, user_id, team_id,
-                        game_id, created_at, processing_at, checked_at, pts, rank
+                        game_id, created_at, processing_at, claims, checked_at, pts, rank
                     )
-                    SELECT id, 'flag', 'processing', 10, 2, NULL, NULL, id,
-                           {PROCESSING_AT}, NULL, 0, 0
+                    SELECT id, 'flag', 'processing', 10, 2, NULL, NULL,
+                           to_timestamp(id::double precision),
+                           to_timestamp(1700000000), 0, NULL, 0, 0
                     FROM generate_series(2000, 2009) AS id;
                 "#
             ))
@@ -403,8 +417,9 @@ mod tests {
             challenge_id: 10,
             challenge_title: "Challenge".to_owned(),
             challenge_category: 0,
-            created_at: 0,
-            processing_at: Some(PROCESSING_AT),
+            created_at: time::OffsetDateTime::UNIX_EPOCH,
+            processing_at: Some(processing_at()),
+            claims: 0,
             checked_at: None,
             pts: 0,
             rank: 0,
@@ -480,7 +495,8 @@ mod tests {
         let ordinary = finalize(
             &db,
             &game_submission(1, 100),
-            PROCESSING_AT,
+            processing_at(),
+            0,
             Verdict::Incorrect,
         )
         .await
@@ -509,7 +525,8 @@ mod tests {
         let lease_lost = finalize(
             &db,
             &game_submission(2, 100),
-            PROCESSING_AT + 1,
+            processing_at(),
+            0,
             Verdict::Cheat { peer_team_id: 101 },
         )
         .await
@@ -524,7 +541,8 @@ mod tests {
         let cross_game = finalize(
             &db,
             &game_submission(2, 100),
-            PROCESSING_AT,
+            processing_at(),
+            1,
             Verdict::Cheat { peer_team_id: 102 },
         )
         .await
@@ -545,7 +563,8 @@ mod tests {
         let contextless = finalize(
             &db,
             &submission(7, None, None),
-            PROCESSING_AT,
+            processing_at(),
+            0,
             Verdict::Cheat { peer_team_id: 101 },
         )
         .await
@@ -562,7 +581,8 @@ mod tests {
         let correct = finalize(
             &db,
             &game_submission(5, 100),
-            PROCESSING_AT,
+            processing_at(),
+            0,
             Verdict::Correct,
         )
         .await
@@ -587,7 +607,8 @@ mod tests {
         let duplicate = finalize(
             &db,
             &game_submission(6, 100),
-            PROCESSING_AT,
+            processing_at(),
+            0,
             Verdict::Correct,
         )
         .await
@@ -612,7 +633,8 @@ mod tests {
         let valid = finalize(
             &db,
             &game_submission(3, 100),
-            PROCESSING_AT,
+            processing_at(),
+            0,
             Verdict::Cheat { peer_team_id: 101 },
         )
         .await
@@ -653,7 +675,8 @@ mod tests {
         let error = finalize(
             &db,
             &game_submission(4, 104),
-            PROCESSING_AT,
+            processing_at(),
+            0,
             Verdict::Cheat { peer_team_id: 105 },
         )
         .await;
@@ -696,7 +719,8 @@ mod tests {
                 finalize(
                     &db,
                     &game_submission(1000 + index, 100),
-                    PROCESSING_AT,
+                    processing_at(),
+                    0,
                     Verdict::Correct,
                 )
                 .await
@@ -713,7 +737,7 @@ mod tests {
                 let mut standalone = submission(2000 + index, None, None);
                 standalone.user_id = 2;
                 barrier.wait().await;
-                finalize(&db, &standalone, PROCESSING_AT, Verdict::Correct).await
+                finalize(&db, &standalone, processing_at(), 0, Verdict::Correct).await
             }));
         }
 

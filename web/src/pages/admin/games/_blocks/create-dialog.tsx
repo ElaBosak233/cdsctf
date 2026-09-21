@@ -56,8 +56,8 @@ function CreateDialog(props: CreateDialogProps) {
       description: "",
       writeup_required: false,
       public: false,
-      started_at: Math.floor(values.started_at.getTime() / 1000),
-      ended_at: Math.floor(values.ended_at.getTime() / 1000),
+      started_at: values.started_at.toISOString(),
+      ended_at: values.ended_at.toISOString(),
     })
       .then((res) => {
         toast.success(

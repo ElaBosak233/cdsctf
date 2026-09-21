@@ -1,3 +1,4 @@
+import { date } from "@/utils/time";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { StarIcon } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -112,7 +113,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
         header: t("game:scoreboard.columns.time"),
         cell: ({ row }) => (
           <span className={cn(["font-mono", "text-secondary-foreground"])}>
-            {new Date(Number(row.original.created_at) * 1000).toLocaleString()}
+            {date(row.original.created_at)?.toLocaleString() ?? "-"}
           </span>
         ),
       },

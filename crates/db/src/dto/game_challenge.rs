@@ -15,7 +15,8 @@ pub struct GameChallengeView {
     pub min_pts: i64,
     pub pts: i64,
     pub enabled: bool,
-    pub frozen_at: Option<i64>,
+    #[serde(with = "crate::time_format::option")]
+    pub frozen_at: Option<time::OffsetDateTime>,
 }
 
 #[derive(
@@ -27,7 +28,8 @@ pub struct GameChallengeSummary {
     pub challenge_title: String,
     pub challenge_category: i32,
     pub pts: i64,
-    pub frozen_at: Option<i64>,
+    #[serde(with = "crate::time_format::option")]
+    pub frozen_at: Option<time::OffsetDateTime>,
 }
 
 #[cfg(test)]
@@ -42,7 +44,7 @@ mod tests {
             challenge_title: "challenge".to_owned(),
             challenge_category: 3,
             pts: 100,
-            frozen_at: Some(1_700_000_000),
+            frozen_at: Some(time::OffsetDateTime::from_unix_timestamp(1_700_000_000).unwrap()),
         })
         .unwrap();
 

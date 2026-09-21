@@ -14,8 +14,10 @@ pub struct NoteView {
     pub challenge_id: i64,
     pub challenge_title: String,
     pub challenge_category: i32,
-    pub created_at: i64,
-    pub updated_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub updated_at: time::OffsetDateTime,
 }
 
 #[cfg(test)]
@@ -34,8 +36,8 @@ mod tests {
             challenge_id: 3,
             challenge_title: "challenge".to_owned(),
             challenge_category: 4,
-            created_at: 1_700_000_000,
-            updated_at: 1_700_000_001,
+            created_at: time::OffsetDateTime::from_unix_timestamp(1_700_000_000).unwrap(),
+            updated_at: time::OffsetDateTime::from_unix_timestamp(1_700_000_001).unwrap(),
         })
         .unwrap();
 

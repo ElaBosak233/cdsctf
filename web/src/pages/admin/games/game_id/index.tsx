@@ -1,3 +1,4 @@
+import { date } from "@/utils/time";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ClockAlertIcon,
@@ -104,12 +105,14 @@ export default function Index() {
   });
 
   useEffect(() => {
+    if (!game) return;
+
     form.reset(
       {
         ...game,
-        started_at: new Date(Number(game?.started_at || 0) * 1000),
-        frozen_at: new Date(Number(game?.frozen_at || 0) * 1000),
-        ended_at: new Date(Number(game?.ended_at || 0) * 1000),
+        started_at: date(game?.started_at),
+        frozen_at: date(game?.frozen_at),
+        ended_at: date(game?.ended_at),
       },
       {
         keepDefaultValues: false,
@@ -131,9 +134,9 @@ export default function Index() {
     updateGame({
       ...values,
       id: resolvedGameId,
-      started_at: Math.floor(values.started_at?.getTime() / 1000),
-      frozen_at: Math.floor(values.frozen_at?.getTime() / 1000),
-      ended_at: Math.floor(values.ended_at?.getTime() / 1000),
+      started_at: values.started_at?.toISOString(),
+      frozen_at: values.frozen_at?.toISOString(),
+      ended_at: values.ended_at?.toISOString(),
     })
       .then((res) => {
         toast.success(

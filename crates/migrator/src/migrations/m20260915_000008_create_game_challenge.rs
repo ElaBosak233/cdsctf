@@ -1,4 +1,4 @@
-//! SeaORM migration `m20260806_000008_create_game_challenge` — applies
+//! SeaORM migration `m20260915_000008_create_game_challenge` — applies
 //! forward/backward schema changes.
 
 use async_trait::async_trait;
@@ -10,7 +10,7 @@ pub struct Migration;
 impl MigrationName for Migration {
     /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260806_000008_create_game_challenge"
+        "m20260915_000008_create_game_challenge"
     }
 }
 
@@ -31,7 +31,7 @@ impl MigrationTrait for Migration {
                     "min_pts" BIGINT NOT NULL DEFAULT 500,
                     "bonus_ratios" BIGINT[] NOT NULL,
                     "enabled" BOOLEAN NOT NULL DEFAULT FALSE,
-                    "frozen_at" BIGINT,
+                    "frozen_at" TIMESTAMPTZ,
                     "pts" BIGINT NOT NULL DEFAULT 0,
 
                     PRIMARY KEY ("game_id", "challenge_id"),

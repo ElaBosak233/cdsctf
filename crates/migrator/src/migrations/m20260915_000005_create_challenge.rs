@@ -1,4 +1,4 @@
-//! SeaORM migration `m20260806_000005_create_challenge` — applies
+//! SeaORM migration `m20260915_000005_create_challenge` — applies
 //! forward/backward schema changes.
 
 use async_trait::async_trait;
@@ -10,7 +10,7 @@ pub struct Migration;
 impl MigrationName for Migration {
     /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260806_000005_create_challenge"
+        "m20260915_000005_create_challenge"
     }
 }
 
@@ -36,9 +36,9 @@ impl MigrationTrait for Migration {
                     "instance" JSONB,
                     "checker" TEXT,
                     "writeup" TEXT,
-                    "deleted_at" BIGINT,
-                    "created_at" BIGINT NOT NULL,
-                    "updated_at" BIGINT NOT NULL
+                    "deleted_at" TIMESTAMPTZ,
+                    "created_at" TIMESTAMPTZ NOT NULL,
+                    "updated_at" TIMESTAMPTZ NOT NULL
                 );
             "#
             .to_owned(),

@@ -28,9 +28,12 @@ pub struct Model {
     pub checker: Option<String>,
     #[sea_orm(column_type = "Text")]
     pub writeup: Option<String>,
-    pub deleted_at: Option<i64>,
-    pub created_at: i64,
-    pub updated_at: i64,
+    #[serde(with = "crate::time_format::option")]
+    pub deleted_at: Option<time::OffsetDateTime>,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub updated_at: time::OffsetDateTime,
     #[sea_orm(has_many)]
     pub submissions: HasMany<super::submission::Entity>,
     #[sea_orm(has_many)]
@@ -120,7 +123,7 @@ impl ActiveModelBehavior for ActiveModel {
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {
-        let ts = time::OffsetDateTime::now_utc().unix_timestamp();
+        let ts = time::OffsetDateTime::now_utc();
 
         self.updated_at = Set(ts);
 

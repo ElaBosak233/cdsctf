@@ -22,7 +22,8 @@ pub struct Instance {
 
     pub renew: i64,
     pub duration: i64,
-    pub started_at: i64,
+    #[serde(with = "time::serde::rfc3339")]
+    pub started_at: time::OffsetDateTime,
 }
 
 impl Instance {
@@ -131,7 +132,10 @@ impl From<Pod> for Instance {
             });
 
         // SAFETY: the creation_timestamp could be safely unwrapped.
-        let started_at = pod.metadata.creation_timestamp.unwrap().0.as_second();
+        let started_at = time::OffsetDateTime::from_unix_timestamp(
+            pod.metadata.creation_timestamp.unwrap().0.as_second(),
+        )
+        .expect("Kubernetes timestamps must be representable as OffsetDateTime");
 
         Instance {
             id,

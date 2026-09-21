@@ -1,3 +1,4 @@
+import { date, timestamp } from "@/utils/time";
 import {
   ArrowRightIcon,
   CalendarCheckIcon,
@@ -35,8 +36,10 @@ export default function Index() {
   const status = useMemo(() => {
     if (!currentGame) return "loading";
 
-    const startedAt = new Date(Number(currentGame.started_at) * 1000);
-    const endedAt = new Date(Number(currentGame.ended_at) * 1000);
+    const startedAt = date(currentGame.started_at);
+    const endedAt = date(currentGame.ended_at);
+
+    if (!startedAt || !endedAt) return "loading";
 
     if (startedAt > new Date()) return "upcoming";
     if (endedAt < new Date()) return "ended";
@@ -128,11 +131,9 @@ export default function Index() {
               )}
               size={"sm"}
             >
-              {new Date(
-                Number(currentGame?.started_at) * 1000
-              ).toLocaleString()}
+              {date(currentGame?.started_at)?.toLocaleString() ?? "-"}
               <ArrowRightIcon />
-              {new Date(Number(currentGame?.ended_at) * 1000).toLocaleString()}
+              {date(currentGame?.ended_at)?.toLocaleString() ?? "-"}
             </Badge>
             <div
               className={cn([
@@ -146,14 +147,12 @@ export default function Index() {
               <span className={cn(["text-sm", "text-secondary-foreground"])}>
                 {(() => {
                   const startTime = new Date(
-                    Number(currentGame?.started_at) * 1000
+                    timestamp(currentGame?.started_at)
                   );
                   const freezeTime = new Date(
-                    Number(currentGame?.frozen_at) * 1000
+                    timestamp(currentGame?.frozen_at)
                   );
-                  const endTime = new Date(
-                    Number(currentGame?.ended_at) * 1000
-                  );
+                  const endTime = new Date(timestamp(currentGame?.ended_at));
 
                   const diff = (target: Date) =>
                     Math.max(

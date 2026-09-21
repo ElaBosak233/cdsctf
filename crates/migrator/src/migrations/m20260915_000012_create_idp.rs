@@ -1,5 +1,5 @@
-//! SeaORM migration `m20260806_000001_create_config` — applies forward/backward
-//! schema changes.
+//! SeaORM migration `m20260915_000012_create_idp` — creates script-backed IdP
+//! and user binding tables.
 
 use async_trait::async_trait;
 use sea_orm::Statement;
@@ -8,24 +8,29 @@ use sea_orm_migration::prelude::*;
 pub struct Migration;
 
 impl MigrationName for Migration {
-    /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260806_000001_create_config"
+        "m20260915_000012_create_idp"
     }
 }
 
 #[async_trait]
 impl MigrationTrait for Migration {
-    /// Applies forward DDL/DML for this migration.
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
 
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                CREATE TABLE IF NOT EXISTS "configs" (
-                    "id" BOOLEAN PRIMARY KEY DEFAULT TRUE,
-                    "data" JSONB NOT NULL
+                CREATE TABLE IF NOT EXISTS "idps" (
+                    "id" BIGSERIAL PRIMARY KEY,
+                    "name" VARCHAR(127) NOT NULL,
+                    "enabled" BOOLEAN NOT NULL DEFAULT TRUE,
+                    "registration_enabled" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "avatar_hash" VARCHAR,
+                    "portal" VARCHAR(255),
+                    "script" TEXT NOT NULL,
+                    "created_at" TIMESTAMPTZ NOT NULL,
+                    "updated_at" TIMESTAMPTZ NOT NULL
                 );
             "#
             .to_owned(),
@@ -35,14 +40,13 @@ impl MigrationTrait for Migration {
         Ok(())
     }
 
-    /// Rolls back this migration (reverse DDL/DML).
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
 
         db.execute_raw(Statement::from_string(
             manager.get_database_backend(),
             r#"
-                DROP TABLE IF EXISTS "configs";
+                DROP TABLE IF EXISTS "idps";
             "#
             .to_owned(),
         ))

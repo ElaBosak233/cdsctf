@@ -16,8 +16,10 @@ pub struct Model {
     pub source: Source,
     #[sea_orm(column_type = "JsonBinary", nullable)]
     pub data: Option<Json>,
-    pub created_at: i64,
-    pub updated_at: i64,
+    #[serde(with = "crate::time_format")]
+    pub created_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub updated_at: time::OffsetDateTime,
     #[sea_orm(belongs_to, from = "idp_id", to = "id", on_delete = "Cascade")]
     pub idp: BelongsTo<super::idp::Entity>,
     #[sea_orm(belongs_to, from = "user_id", to = "id", on_delete = "Cascade")]
@@ -49,7 +51,7 @@ impl ActiveModelBehavior for ActiveModel {
     async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait, {
-        let ts = time::OffsetDateTime::now_utc().unix_timestamp();
+        let ts = time::OffsetDateTime::now_utc();
         self.updated_at = Set(ts);
         if insert {
             self.created_at = Set(ts);
