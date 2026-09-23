@@ -26,9 +26,10 @@ export function parseTimestamp(value: TimestampInput): Date | undefined {
 }
 
 export function getGamePhase(
-  schedule: GameScheduleInput,
+  schedule: GameScheduleInput | undefined,
   currentTime = new Date()
 ): GamePhase | undefined {
+  if (!schedule) return undefined;
   if (!isValid(currentTime)) return undefined;
   if (!schedule.started_at || !schedule.frozen_at || !schedule.ended_at) {
     return undefined;

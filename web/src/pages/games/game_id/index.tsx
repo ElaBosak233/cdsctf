@@ -140,11 +140,13 @@ export default function Index() {
             >
               <span className={cn(["text-sm", "text-secondary-foreground"])}>
                 {(() => {
+                  if (!currentGame) return "";
+
                   const nowValue = currentTime;
                   const diff = (target: string | null | undefined) =>
                     Math.max(0, secondsUntil(target, nowValue) ?? 0);
 
-                  const phase = getGamePhase(currentGame!, nowValue);
+                  const phase = getGamePhase(currentGame, nowValue);
                   if (phase === "upcoming") {
                     const remain = diff(currentGame?.started_at);
                     return t("game:status.upcoming.remaining", {

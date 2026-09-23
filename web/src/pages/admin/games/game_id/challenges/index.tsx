@@ -328,7 +328,7 @@ export default function Index() {
                 : !loading && (
                     <TableRow>
                       <TableCell
-                        colSpan={columns.length}
+                        colSpan={table.getVisibleLeafColumns().length}
                         className={cn(["h-24", "text-center"])}
                       >
                         {t("game:challenge.empty")}
