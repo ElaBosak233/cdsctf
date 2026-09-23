@@ -36,7 +36,13 @@ import {
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useConfigStore } from "@/storages/config";
@@ -73,7 +79,6 @@ export default function Index() {
   const [saving, setSaving] = useState(false);
   const [_deleting, _setDeleting] = useState(false);
   const [hasAvatar, setHasAvatar] = useState(false);
-  const [lint, setLint] = useState<Array<DiagnosticMarker>>();
   const avatarInput = useRef<HTMLInputElement>(null);
   const { data: idp, isLoading } = useQuery({
     queryKey: ["admin", "idp", idpId, sharedStore.refresh],
@@ -107,28 +112,11 @@ export default function Index() {
   }, [idp, form]);
 
   const debouncedScript = useDebounce(form.watch("script"), 500);
-
-  useEffect(() => {
-    let active = true;
-    if (!debouncedScript) {
-      setLint([]);
-      return () => {
-        active = false;
-      };
-    }
-
-    lintIdpScript(debouncedScript)
-      .then((res) => {
-        if (active) setLint(res.markers);
-      })
-      .catch(() => {
-        if (active) setLint([]);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [debouncedScript]);
+  const { data: lint = [] } = useQuery<Array<DiagnosticMarker>>({
+    queryKey: ["admin", "idp-lint", debouncedScript],
+    queryFn: async () => (await lintIdpScript(debouncedScript)).markers,
+    enabled: !!debouncedScript,
+  });
 
   async function submit(values: IdpForm) {
     if (idpId == null) return;
@@ -372,29 +360,28 @@ export default function Index() {
                         <LayoutTemplateIcon />
                       </FieldIcon>
                       <Select
-                        placeholder={t("admin:idp.form.script.templates._")}
-                        options={[
-                          {
-                            value: "default",
-                            content: t(
-                              "admin:idp.form.script.templates.default"
-                            ),
-                          },
-                          {
-                            value: "github",
-                            content: t("admin:idp.form.script.templates.oauth"),
-                          },
-                          {
-                            value: "cas",
-                            content: t("admin:idp.form.script.templates.cas"),
-                          },
-                        ]}
-                        onValueChange={(
-                          value: keyof typeof scriptTemplates
-                        ) => {
-                          form.setValue("script", scriptTemplates[value]);
+                        onValueChange={(value) => {
+                          const key = value as keyof typeof scriptTemplates;
+                          form.setValue("script", scriptTemplates[key]);
                         }}
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={t("admin:idp.form.script.templates._")}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="default">
+                            {t("admin:idp.form.script.templates.default")}
+                          </SelectItem>
+                          <SelectItem value="github">
+                            {t("admin:idp.form.script.templates.oauth")}
+                          </SelectItem>
+                          <SelectItem value="cas">
+                            {t("admin:idp.form.script.templates.cas")}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </Field>
                   </div>
                   <FormControl>

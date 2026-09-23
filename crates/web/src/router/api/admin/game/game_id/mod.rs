@@ -16,6 +16,9 @@ mod poster;
 /// Defines the `team` submodule (see sibling `*.rs` files).
 mod team;
 
+/// Defines the game-scoped `user` submodule.
+mod user;
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -47,6 +50,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(calculate_game).with_state(state.clone()))
         .nest("/challenges", challenge::router(state.clone()))
         .nest("/teams", team::router(state.clone()))
+        .nest("/users", user::router(state.clone()))
         .nest("/notices", notice::router(state.clone()))
         .nest("/icon", icon::router(state.clone()))
         .nest("/poster", poster::router(state.clone()))
@@ -88,10 +92,13 @@ pub struct UpdateGameRequest {
     pub member_limit_max: Option<i64>,
     pub writeup_required: Option<bool>,
     pub timeslots: Option<Vec<cds_db::game::Timeslot>>,
+    #[serde(default)]
     #[serde(with = "cds_db::time_format::option")]
     pub started_at: Option<time::OffsetDateTime>,
+    #[serde(default)]
     #[serde(with = "cds_db::time_format::option")]
     pub frozen_at: Option<time::OffsetDateTime>,
+    #[serde(default)]
     #[serde(with = "cds_db::time_format::option")]
     pub ended_at: Option<time::OffsetDateTime>,
 }
@@ -192,4 +199,19 @@ pub async fn calculate_game(
     calculator::request(&s.db.conn, &s.queue, game.id).await?;
 
     Ok(Json(EmptyJson::default()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::UpdateGameRequest;
+
+    #[test]
+    fn update_game_accepts_partial_request_without_timestamps() {
+        let request: UpdateGameRequest = serde_json::from_str(r#"{"enabled":true}"#).unwrap();
+
+        assert_eq!(request.enabled, Some(true));
+        assert!(request.started_at.is_none());
+        assert!(request.frozen_at.is_none());
+        assert!(request.ended_at.is_none());
+    }
 }

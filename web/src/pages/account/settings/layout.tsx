@@ -61,9 +61,9 @@ export default function Layout() {
             className={cn(["shrink-0"])}
             variant={pathname === option.link ? "tonal" : "ghost"}
             level={option.link === deleteOption.link ? "error" : "primary"}
-            asChild
+            render={<Link to={option.link} />}
           >
-            <Link to={option.link}>{option.name}</Link>
+            {option.name}
           </Button>
         ))}
       </ScrollableNav>
@@ -90,9 +90,9 @@ export default function Layout() {
             className={cn(["justify-start"])}
             icon={option.icon}
             variant={pathname === option.link ? "tonal" : "ghost"}
-            asChild
+            render={<Link to={option.link} />}
           >
-            <Link to={option.link}>{option.name}</Link>
+            {option.name}
           </Button>
         ))}
         <Separator />
@@ -103,11 +103,9 @@ export default function Layout() {
           icon={<UserRoundXIcon />}
           level={"error"}
           variant={pathname === "/account/settings/delete" ? "tonal" : "ghost"}
-          asChild
+          render={<Link to={"/account/settings/delete"} />}
         >
-          <Link to={"/account/settings/delete"}>
-            {t("user:settings.delete")}
-          </Link>
+          {t("user:settings.delete")}
         </Button>
       </div>
       <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>

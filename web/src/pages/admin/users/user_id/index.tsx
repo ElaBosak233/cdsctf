@@ -26,7 +26,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { Group } from "@/models/user";
@@ -219,22 +225,34 @@ export default function Index() {
                       </FieldIcon>
                       <Select
                         {...field}
-                        options={groupOptions.map((group) => ({
-                          value: group.id,
-                          content: (
-                            <div
-                              className={cn(["flex", "gap-2", "items-center"])}
-                            >
-                              <group.icon className="size-4" />
-                              {group.name}
-                            </div>
-                          ),
-                        }))}
                         onValueChange={(value) => {
                           field.onChange(Number(value));
                         }}
                         value={String(field.value)}
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {groupOptions.map((group) => {
+                            const Icon = group.icon;
+                            return (
+                              <SelectItem key={group.id} value={group.id}>
+                                <span
+                                  className={cn([
+                                    "flex",
+                                    "gap-2",
+                                    "items-center",
+                                  ])}
+                                >
+                                  <Icon className="size-4" />
+                                  {group.name}
+                                </span>
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
                     </Field>
                   </FormControl>
                   <FormMessage />

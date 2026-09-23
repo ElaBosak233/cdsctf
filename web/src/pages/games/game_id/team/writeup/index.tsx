@@ -170,11 +170,22 @@ export default function Index() {
             variant={"tonal"}
             icon={<DownloadIcon />}
             disabled={!hasWriteup}
-            asChild={hasWriteup}
+            render={
+              hasWriteup
+                ? (renderProps) => (
+                    <a
+                      {...renderProps}
+                      href={writeupUrl}
+                      download
+                      aria-label={t("team:write_up.actions.download._")}
+                    >
+                      {renderProps.children}
+                    </a>
+                  )
+                : undefined
+            }
           >
-            <a href={writeupUrl} download>
-              {t("team:write_up.actions.download._")}
-            </a>
+            {t("team:write_up.actions.download._")}
           </Button>
         </Card>
       </div>

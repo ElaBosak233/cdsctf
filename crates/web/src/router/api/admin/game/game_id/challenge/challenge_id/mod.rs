@@ -40,6 +40,7 @@ pub struct UpdateGameChallengeRequest {
     pub max_pts: Option<i64>,
     pub min_pts: Option<i64>,
     pub bonus_ratios: Option<Vec<i64>>,
+    #[serde(default)]
     #[serde(with = "cds_db::time_format::double_option")]
     pub frozen_at: Option<Option<time::OffsetDateTime>>,
 }
@@ -149,4 +150,25 @@ pub async fn delete_game_challenge(
     calculator::notify(&s.queue, game_challenge.game_id).await;
 
     Ok(Json(EmptyJson::default()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::UpdateGameChallengeRequest;
+
+    #[test]
+    fn update_request_accepts_missing_optional_frozen_at() {
+        let request: UpdateGameChallengeRequest =
+            serde_json::from_str(r#"{"enabled":true}"#).unwrap();
+
+        assert!(request.frozen_at.is_none());
+    }
+
+    #[test]
+    fn update_request_preserves_explicit_null_frozen_at() {
+        let request: UpdateGameChallengeRequest =
+            serde_json::from_str(r#"{"frozen_at":null}"#).unwrap();
+
+        assert_eq!(request.frozen_at, Some(None));
+    }
 }

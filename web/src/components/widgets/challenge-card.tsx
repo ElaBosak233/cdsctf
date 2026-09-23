@@ -1,10 +1,10 @@
-import { timestamp } from "@/utils/time";
 import { Flag, LockIcon } from "lucide-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import type { ChallengeStatus } from "@/api/challenges";
 import { Badge } from "@/components/ui/badge";
+import type { CardProps } from "@/components/ui/card";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -16,8 +16,9 @@ import type { ChallengeSummary } from "@/models/challenge";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { getOrdinal } from "@/utils/math";
+import { parseTimestamp } from "@/utils/time";
 
-type ChallengeCardProps = React.ComponentProps<"div"> & {
+type ChallengeCardProps = CardProps & {
   digest?: Pick<ChallengeSummary, "id" | "title" | "category">;
   status?: ChallengeStatus;
   debug?: boolean;
@@ -42,6 +43,7 @@ function ChallengeCard(props: ChallengeCardProps) {
       className={cn(
         [
           "w-full",
+          "text-left",
           "relative",
           "select-none",
           "p-5",
@@ -75,26 +77,40 @@ function ChallengeCard(props: ChallengeCardProps) {
       </span>
       {!debug && status?.cheated ? (
         <Tooltip>
-          <TooltipTrigger asChild>
-            <LockIcon
-              className={cn(["absolute", "top-[10%]", "right-[7%]", "size-5"])}
-              color={category?.color}
-            />
-          </TooltipTrigger>
-          <TooltipContent onClick={(e) => e.stopPropagation()} sideOffset={0}>
+          <TooltipTrigger
+            render={
+              <LockIcon
+                className={cn([
+                  "absolute",
+                  "top-[10%]",
+                  "right-[7%]",
+                  "size-5",
+                ])}
+                color={category?.color}
+              />
+            }
+          ></TooltipTrigger>
+          <TooltipContent sideOffset={6} onClick={(e) => e.stopPropagation()}>
             {t("submission:cheated")}
           </TooltipContent>
         </Tooltip>
       ) : !debug && status?.solved ? (
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Flag
-              className={cn(["absolute", "top-[10%]", "right-[7%]", "size-5"])}
-              fill={category?.color}
-              color={category?.color}
-            />
-          </TooltipTrigger>
-          <TooltipContent onClick={(e) => e.stopPropagation()} sideOffset={0}>
+          <TooltipTrigger
+            render={
+              <Flag
+                className={cn([
+                  "absolute",
+                  "top-[10%]",
+                  "right-[7%]",
+                  "size-5",
+                ])}
+                fill={category?.color}
+                color={category?.color}
+              />
+            }
+          ></TooltipTrigger>
+          <TooltipContent sideOffset={6} onClick={(e) => e.stopPropagation()}>
             {t("submission:solved")}
           </TooltipContent>
         </Tooltip>
@@ -114,12 +130,10 @@ function ChallengeCard(props: ChallengeCardProps) {
       <Separator className={"my-3"} />
       <div className={cn(["flex", "justify-between", "items-center", "h-5"])}>
         <Tooltip>
-          <TooltipTrigger asChild>
-            <span className={cn(["text-sm"])}>
-              {t("submission:solves", {
-                count: debug ? NaN : status?.solved_times || 0,
-              })}
-            </span>
+          <TooltipTrigger render={<span className={cn(["text-sm"])} />}>
+            {t("submission:solves", {
+              count: debug ? NaN : status?.solved_times || 0,
+            })}
           </TooltipTrigger>
           {!!status?.solved_times && (
             <TooltipContent
@@ -151,9 +165,8 @@ function ChallengeCard(props: ChallengeCardProps) {
                       </span>
                     </div>
                     <span className={cn(["text-secondary", "text-xs"])}>
-                      {new Date(
-                        timestamp(blood?.created_at)
-                      ).toLocaleString()}
+                      {parseTimestamp(blood?.created_at)?.toLocaleString() ??
+                        "-"}
                     </span>
                   </div>
                 </div>

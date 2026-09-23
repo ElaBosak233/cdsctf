@@ -76,9 +76,9 @@ export default function Layout() {
                 variant={pathname === option?.link ? "tonal" : "ghost"}
                 size="sm"
                 className={cn(["shrink-0"])}
-                asChild
+                render={<Link to={option?.link} />}
               >
-                <Link to={option?.link}>{option?.name}</Link>
+                {option?.name}
               </Button>
             ))}
           </ScrollableNav>
@@ -128,9 +128,9 @@ export default function Layout() {
                   icon={option?.icon}
                   variant={pathname === option?.link ? "tonal" : "ghost"}
                   className={cn(["justify-start"])}
-                  asChild
+                  render={<Link to={option?.link} />}
                 >
-                  <Link to={option?.link}>{option?.name}</Link>
+                  {option?.name}
                 </Button>
               ))}
             </nav>

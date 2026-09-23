@@ -14,7 +14,7 @@ import type { ColumnDef } from "@/hooks/use-data-table";
 import { Status, type SubmissionView } from "@/models/submission";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { formatDuration, timestamp } from "@/utils/time";
+import { formatDuration, millisecondsBetween } from "@/utils/time";
 
 function useColumns(): Array<ColumnDef<SubmissionView>> {
   const { t } = useTranslation();
@@ -27,11 +27,7 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
       header: t("submission:id"),
       cell: ({ row }) => {
         const id = row.original.id;
-        return (
-          <div className={cn(["flex", "items-center", "gap-2"])}>
-            <Badge># {id}</Badge>
-          </div>
-        );
+        return <span className={cn(["shrink-0", "font-mono"])}>#{id}</span>;
       },
     },
     {
@@ -41,15 +37,21 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
       cell: ({ row }) => {
         const name = row.original.team_name ?? "-";
         return (
-          <div className={cn(["flex", "gap-2", "items-center"])}>
+          <div className={cn(["flex", "min-w-0", "items-center", "gap-3"])}>
             <Avatar
+              className="size-8 shrink-0"
               src={
                 row.original.team_avatar_hash &&
                 `/api/media?hash=${row.original.team_avatar_hash}`
               }
               fallback={name.charAt(0)}
             />
-            <span>{name}</span>
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <span className="truncate text-sm font-medium">{name}</span>
+              <span className="font-mono text-xs text-muted-foreground">
+                #{row.original.team_id}
+              </span>
+            </div>
           </div>
         );
       },
@@ -58,7 +60,16 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
       accessorKey: "challenge_title",
       id: "challenge_title",
       header: t("submission:challenge_title"),
-      cell: ({ row }) => <span>{row.original.challenge_title ?? "-"}</span>,
+      cell: ({ row }) => (
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="truncate text-sm font-medium">
+            {row.original.challenge_title ?? "-"}
+          </span>
+          <span className="font-mono text-xs text-muted-foreground">
+            #{row.original.challenge_id}
+          </span>
+        </div>
+      ),
     },
     {
       accessorKey: "team_id",
@@ -70,6 +81,12 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
       accessorKey: "challenge_id",
       id: "challenge_id",
       header: t("submission:challenge_id"),
+      enableHiding: true,
+    },
+    {
+      accessorKey: "user_id",
+      id: "user_id",
+      header: t("user:id"),
       enableHiding: true,
     },
     {
@@ -149,15 +166,21 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
       cell: ({ row }) => {
         const name = row.original.user_name ?? "-";
         return (
-          <div className={cn(["flex", "gap-2", "items-center"])}>
+          <div className={cn(["flex", "min-w-0", "items-center", "gap-3"])}>
             <Avatar
+              className="size-8 shrink-0"
               src={
                 row.original.user_avatar_hash &&
                 `/api/media?hash=${row.original.user_avatar_hash}`
               }
               fallback={name.charAt(0)}
             />
-            <span>{name}</span>
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <span className="truncate text-sm font-medium">{name}</span>
+              <span className="font-mono text-xs text-muted-foreground">
+                #{row.original.user_id}
+              </span>
+            </div>
           </div>
         );
       },
@@ -171,7 +194,7 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
         const checkedAt = row.original.checked_at;
         if (processingAt == null || checkedAt == null) return "-";
 
-        const duration = timestamp(checkedAt) - timestamp(processingAt);
+        const duration = millisecondsBetween(processingAt, checkedAt);
         return (
           <span
             className={cn([
@@ -231,30 +254,34 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
             ])}
           >
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={"ghost"}
-                  size={"sm"}
-                  level={"error"}
-                  square
-                  icon={<BanIcon />}
-                  onClick={() => handleStatusChange(Status.Cheat)}
-                />
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant={"ghost"}
+                    size={"sm"}
+                    level={"error"}
+                    square
+                    icon={<BanIcon />}
+                    onClick={() => handleStatusChange(Status.Cheat)}
+                  />
+                }
+              ></TooltipTrigger>
               <TooltipContent>
                 {t("submission:actions.mark_cheat")}
               </TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={"ghost"}
-                  size={"sm"}
-                  square
-                  icon={<XIcon />}
-                  onClick={() => handleStatusChange(Status.Incorrect)}
-                />
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant={"ghost"}
+                    size={"sm"}
+                    square
+                    icon={<XIcon />}
+                    onClick={() => handleStatusChange(Status.Incorrect)}
+                  />
+                }
+              ></TooltipTrigger>
               <TooltipContent>
                 {t("submission:actions.mark_incorrect")}
               </TooltipContent>

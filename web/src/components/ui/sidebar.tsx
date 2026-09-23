@@ -1,7 +1,8 @@
+import { useRender } from "@base-ui/react/use-render";
 import { PanelLeftCloseIcon, PanelLeftOpenIcon } from "lucide-react";
-import { Dialog as RadixDialog, Slot } from "radix-ui";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -144,26 +145,20 @@ function Sidebar({
   const { isMobile, state, openMobile, setOpenMobile } = context;
   if (isMobile) {
     return (
-      <RadixDialog.Root open={openMobile} onOpenChange={setOpenMobile}>
-        <RadixDialog.Portal>
-          <RadixDialog.Overlay className="fixed inset-0 z-40 bg-black/60" />
-          <RadixDialog.Content
-            data-slot="sidebar"
-            aria-describedby={undefined}
-            className={cn(
-              "fixed inset-y-0 z-50 flex w-[var(--sidebar-width)] flex-col bg-card p-0 shadow-xl outline-none",
-              side === "left" ? "left-0" : "right-0",
-              className
-            )}
-            {...props}
-          >
-            <RadixDialog.Title className="sr-only">
-              Navigation
-            </RadixDialog.Title>
-            {children}
-          </RadixDialog.Content>
-        </RadixDialog.Portal>
-      </RadixDialog.Root>
+      <Dialog open={openMobile} onOpenChange={setOpenMobile}>
+        <DialogContent
+          data-slot="sidebar"
+          aria-describedby={undefined}
+          className={cn(
+            "fixed inset-y-0 z-50 flex w-[var(--sidebar-width)] flex-col bg-card p-0 shadow-xl outline-none",
+            side === "left" ? "left-0" : "right-0",
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </DialogContent>
+      </Dialog>
     );
   }
   return (
@@ -361,34 +356,38 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 function SidebarMenuButton({
-  asChild = false,
   isActive = false,
   tooltip,
   className,
+  render,
+  children,
+  ref,
   ...props
-}: React.ComponentProps<"button"> & {
-  asChild?: boolean;
+}: useRender.ComponentProps<"button"> & {
   isActive?: boolean;
   tooltip?: string;
 }) {
-  const Comp = asChild ? Slot.Slot : "button";
-  const button = (
-    <Comp
-      data-sidebar="menu-button"
-      data-active={isActive}
-      className={cn(
+  const button = useRender({
+    defaultTagName: "button",
+    render,
+    ref,
+    props: {
+      "data-sidebar": "menu-button",
+      "data-active": isActive,
+      className: cn(
         "flex w-full min-w-0 items-center gap-2 overflow-hidden rounded-md px-3 py-2 text-left text-sm outline-none transition-[background-color,color] hover:bg-primary/10 hover:text-primary data-[active=true]:bg-primary/10 data-[active=true]:text-primary",
         "disabled:pointer-events-none disabled:opacity-50 data-[active=true]:bg-primary/7.5 data-[active=true]:hover:bg-primary/20 [&>span]:min-w-0 [&>span]:truncate [&>span]:whitespace-nowrap",
         "box-border [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:flex-none",
         className
-      )}
-      {...props}
-    />
-  );
+      ),
+      ...props,
+      children,
+    },
+  });
   if (!tooltip) return button;
   return (
     <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipTrigger render={button} />
       <TooltipContent side="right">{tooltip}</TooltipContent>
     </Tooltip>
   );
@@ -475,27 +474,31 @@ function SidebarMenuSubItem({
   );
 }
 function SidebarMenuSubButton({
-  asChild = false,
   isActive = false,
   className,
+  render,
+  children,
+  ref,
   ...props
-}: React.ComponentProps<"a"> & {
-  asChild?: boolean;
+}: useRender.ComponentProps<"a"> & {
   size?: "sm" | "md";
   isActive?: boolean;
 }) {
-  const Comp = asChild ? Slot.Slot : "a";
-  return (
-    <Comp
-      data-sidebar="menu-sub-button"
-      data-active={isActive}
-      className={cn(
+  return useRender({
+    defaultTagName: "a",
+    render,
+    ref,
+    props: {
+      "data-sidebar": "menu-sub-button",
+      "data-active": isActive,
+      className: cn(
         "flex h-7 min-w-0 items-center gap-2 overflow-hidden rounded-md px-2 text-sm text-muted-foreground outline-none hover:bg-muted hover:text-foreground data-[active=true]:bg-muted data-[active=true]:text-foreground",
         className
-      )}
-      {...props}
-    />
-  );
+      ),
+      ...props,
+      children,
+    },
+  });
 }
 
 export {

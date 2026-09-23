@@ -1,345 +1,207 @@
-import { cva, type VariantProps } from "class-variance-authority";
+import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { CheckIcon, ChevronRight, CircleIcon } from "lucide-react";
-import { DropdownMenu as RadixDropdownMenu } from "radix-ui";
 import type * as React from "react";
-
 import { cn } from "@/utils";
 
-function DropdownMenu({
-  ...props
-}: React.ComponentProps<typeof RadixDropdownMenu.Root>) {
-  return <RadixDropdownMenu.Root data-slot="dropdown-menu" {...props} />;
+function DropdownMenu(props: BaseMenu.Root.Props) {
+  return <BaseMenu.Root data-slot="dropdown-menu" {...props} />;
 }
-
-function DropdownMenuTrigger({
-  ...props
-}: React.ComponentProps<typeof RadixDropdownMenu.Trigger>) {
+function DropdownMenuPortal(props: BaseMenu.Portal.Props) {
+  return <BaseMenu.Portal data-slot="dropdown-menu-portal" {...props} />;
+}
+function DropdownMenuTrigger(
+  props: React.ComponentProps<typeof BaseMenu.Trigger>
+) {
+  return <BaseMenu.Trigger data-slot="dropdown-menu-trigger" {...props} />;
+}
+function DropdownMenuGroup(props: BaseMenu.Group.Props) {
+  return <BaseMenu.Group data-slot="dropdown-menu-group" {...props} />;
+}
+function DropdownMenuSub(props: BaseMenu.SubmenuRoot.Props) {
+  return <BaseMenu.SubmenuRoot data-slot="dropdown-menu-sub" {...props} />;
+}
+function DropdownMenuRadioGroup(props: BaseMenu.RadioGroup.Props) {
   return (
-    <RadixDropdownMenu.Trigger data-slot="dropdown-menu-trigger" {...props} />
+    <BaseMenu.RadioGroup data-slot="dropdown-menu-radio-group" {...props} />
   );
 }
 
-const DropdownMenuGroup = RadixDropdownMenu.Group;
+type DropdownMenuContentProps = BaseMenu.Popup.Props &
+  Pick<
+    BaseMenu.Positioner.Props,
+    "side" | "sideOffset" | "align" | "alignOffset"
+  >;
 
-function DropdownMenuPortal({
+function DropdownMenuContent({
+  className,
+  side = "bottom",
+  sideOffset = 4,
+  align = "start",
+  alignOffset = 0,
+  children,
   ...props
-}: React.ComponentProps<typeof RadixDropdownMenu.Portal>) {
+}: DropdownMenuContentProps) {
   return (
-    <RadixDropdownMenu.Portal data-slot="dropdown-menu-portal" {...props} />
+    <BaseMenu.Portal>
+      <BaseMenu.Positioner
+        side={side}
+        sideOffset={sideOffset}
+        align={align}
+        alignOffset={alignOffset}
+        className="isolate z-50"
+      >
+        <BaseMenu.Popup
+          data-slot="dropdown-menu-content"
+          className={cn(
+            "z-50 min-w-32 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0",
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </BaseMenu.Popup>
+      </BaseMenu.Positioner>
+    </BaseMenu.Portal>
   );
 }
-
-function DropdownMenuSub({
+function DropdownMenuSubContent({
+  className,
+  children,
   ...props
-}: React.ComponentProps<typeof RadixDropdownMenu.Sub>) {
-  return <RadixDropdownMenu.Sub data-slot="dropdown-menu-sub" {...props} />;
-}
-
-function DropdownMenuRadioGroup({
-  ...props
-}: React.ComponentProps<typeof RadixDropdownMenu.RadioGroup>) {
+}: DropdownMenuContentProps) {
   return (
-    <RadixDropdownMenu.RadioGroup
-      data-slot="dropdown-menu-radio-group"
+    <DropdownMenuContent
+      data-slot="dropdown-menu-sub-content"
+      side="right"
+      align="start"
+      alignOffset={-3}
+      className={cn("min-w-32 shadow-lg", className)}
       {...props}
-    />
+    >
+      {children}
+    </DropdownMenuContent>
   );
 }
-
 function DropdownMenuSubTrigger({
   className,
   inset,
   children,
-  ref,
-  ...rest
-}: React.ComponentProps<typeof RadixDropdownMenu.SubTrigger> & {
-  inset?: boolean;
-}) {
+  render,
+  ...props
+}: BaseMenu.SubmenuTrigger.Props & { inset?: boolean }) {
   return (
-    <RadixDropdownMenu.SubTrigger
-      ref={ref}
+    <BaseMenu.SubmenuTrigger
+      data-slot="dropdown-menu-sub-trigger"
+      data-inset={inset}
+      render={render}
       className={cn(
-        [
-          "flex",
-          "cursor-default",
-          "gap-2",
-          "select-none",
-          "items-center",
-          "rounded-sm",
-          "px-2",
-          "py-1.5",
-          "text-sm",
-          "outline-hidden",
-          "focus:bg-foreground/10",
-          "data-[state=open]:bg-foreground/10",
-          "[&_svg]:pointer-events-none",
-          "[&_svg]:size-4",
-          "[&_svg]:shrink-0",
-        ],
+        "flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-foreground/10 data-open:bg-foreground/10",
         inset && "pl-8",
         className
       )}
-      {...rest}
+      {...props}
     >
       {children}
-      <ChevronRight className="ml-auto" />
-    </RadixDropdownMenu.SubTrigger>
+      <ChevronRight className="ml-auto size-4" />
+    </BaseMenu.SubmenuTrigger>
   );
 }
 
-function DropdownMenuSubContent(
-  props: React.ComponentProps<typeof RadixDropdownMenu.SubContent>
-) {
-  const { className, ref, ...rest } = props;
-  return (
-    <RadixDropdownMenu.SubContent
-      ref={ref}
-      className={cn(
-        [
-          "z-50",
-          "min-w-32",
-          "overflow-hidden",
-          "rounded-md",
-          "border",
-          "bg-popover",
-          "p-1",
-          "text-popover-foreground",
-          "shadow-lg",
-          "data-[state=open]:animate-in",
-          "data-[state=closed]:animate-out",
-          "data-[state=closed]:fade-out-0",
-          "data-[state=open]:fade-in-0",
-          "data-[state=closed]:zoom-out-95",
-          "data-[state=open]:zoom-in-95",
-          "data-[side=bottom]:slide-in-from-top-2",
-          "data-[side=left]:slide-in-from-right-2",
-          "data-[side=right]:slide-in-from-left-2",
-          "data-[side=top]:slide-in-from-bottom-2",
-        ],
-        className
-      )}
-      {...rest}
-    />
-  );
-}
-
-function DropdownMenuContent({
+const itemClass =
+  "relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden transition-colors focus:bg-primary/5 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0";
+function DropdownMenuItem({
   className,
-  sideOffset = 4,
+  inset,
+  render,
+  children,
   ...props
-}: React.ComponentProps<typeof RadixDropdownMenu.Content>) {
+}: BaseMenu.Item.Props & { inset?: boolean }) {
   return (
-    <RadixDropdownMenu.Portal>
-      <RadixDropdownMenu.Content
-        data-slot="dropdown-menu-content"
-        sideOffset={sideOffset}
-        className={cn(
-          [
-            "z-50",
-            "min-w-32",
-            "overflow-hidden",
-            "rounded-md",
-            "border",
-            "bg-popover",
-            "p-1",
-            "text-popover-foreground",
-            "shadow-md",
-            "mx-2",
-            "data-[state=open]:animate-in",
-            "data-[state=closed]:animate-out",
-            "data-[state=closed]:fade-out-0",
-            "data-[state=open]:fade-in-0",
-            "data-[side=bottom]:slide-in-from-top-2!",
-            "data-[side=bottom]:slide-out-to-top-2!",
-            "data-[side=left]:slide-in-from-right-2!",
-            "data-[side=left]:slide-out-to-right-2!",
-            "data-[side=right]:slide-in-from-left-2!",
-            "data-[side=right]:slide-out-to-left-2!",
-            "data-[side=top]:slide-in-from-bottom-2!",
-            "data-[side=top]:slide-out-to-bottom-2!",
-          ],
-          className
-        )}
-        {...props}
-      />
-    </RadixDropdownMenu.Portal>
-  );
-}
-
-const dropdownMenuItemVariants = cva(
-  [
-    "relative",
-    "flex",
-    "cursor-default",
-    "select-none",
-    "items-center",
-    "gap-2",
-    "rounded-sm",
-    "px-2",
-    "py-1.5",
-    "text-sm",
-    "outline-hidden",
-    "transition-colors",
-    "focus:bg-primary/5",
-    "data-disabled:pointer-events-none",
-    "data-disabled:opacity-50",
-    "[&_svg]:pointer-events-none",
-    "[&_svg]:size-4",
-    "[&_svg]:shrink-0",
-  ],
-  {
-    variants: {
-      inset: {
-        true: ["pl-8"],
-      },
-    },
-    defaultVariants: {
-      inset: false,
-    },
-  }
-);
-
-interface DropdownMenuItemProps
-  extends React.ComponentProps<typeof RadixDropdownMenu.Item>,
-    VariantProps<typeof dropdownMenuItemVariants> {}
-
-function DropdownMenuItem(props: DropdownMenuItemProps) {
-  const { inset, className, ref, ...rest } = props;
-
-  return (
-    <RadixDropdownMenu.Item
-      ref={ref}
+    <BaseMenu.Item
       data-slot="dropdown-menu-item"
       data-inset={inset}
-      className={cn(dropdownMenuItemVariants({ inset, className }))}
-      {...rest}
-    />
+      render={render}
+      className={cn(itemClass, inset && "pl-8", className)}
+      {...props}
+    >
+      {children}
+    </BaseMenu.Item>
   );
 }
-
 function DropdownMenuCheckboxItem({
   className,
   children,
   checked,
   ...props
-}: React.ComponentProps<typeof RadixDropdownMenu.CheckboxItem>) {
+}: BaseMenu.CheckboxItem.Props) {
   return (
-    <RadixDropdownMenu.CheckboxItem
+    <BaseMenu.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
-      className={cn(
-        [
-          "relative",
-          "flex",
-          "cursor-default",
-          "select-none",
-          "items-center",
-          "rounded-sm",
-          "py-1.5",
-          "pl-8",
-          "pr-2",
-          "text-sm",
-          "outline-hidden",
-          "transition-colors",
-          "focus:bg-foreground/10",
-          "focus:text-foreground",
-          "data-disabled:pointer-events-none",
-          "data-disabled:opacity-50",
-        ],
-        className
-      )}
       checked={checked}
+      className={cn(itemClass, "pl-8", className)}
       {...props}
     >
       <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
-        <RadixDropdownMenu.ItemIndicator>
+        <BaseMenu.CheckboxItemIndicator>
           <CheckIcon className="size-4" />
-        </RadixDropdownMenu.ItemIndicator>
+        </BaseMenu.CheckboxItemIndicator>
       </span>
       {children}
-    </RadixDropdownMenu.CheckboxItem>
+    </BaseMenu.CheckboxItem>
   );
 }
-
 function DropdownMenuRadioItem({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof RadixDropdownMenu.RadioItem>) {
+}: BaseMenu.RadioItem.Props) {
   return (
-    <RadixDropdownMenu.RadioItem
+    <BaseMenu.RadioItem
       data-slot="dropdown-menu-radio-item"
-      className={cn(
-        [
-          "focus:bg-accent",
-          "focus:text-accent-foreground",
-          "relative",
-          "flex",
-          "cursor-default",
-          "items-center",
-          "gap-2",
-          "rounded-sm",
-          "py-1.5",
-          "pr-2",
-          "pl-8",
-          "text-sm",
-          "outline-hidden",
-          "select-none",
-          "data-disabled:pointer-events-none",
-          "data-disabled:opacity-50",
-          "[&_svg]:pointer-events-none",
-          "[&_svg]:shrink-0",
-          "[&_svg:not([class*='size-'])]:size-4",
-        ],
-        className
-      )}
+      className={cn(itemClass, "pl-8", className)}
       {...props}
     >
       <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
-        <RadixDropdownMenu.ItemIndicator>
+        <BaseMenu.RadioItemIndicator>
           <CircleIcon className="size-2 fill-current" />
-        </RadixDropdownMenu.ItemIndicator>
+        </BaseMenu.RadioItemIndicator>
       </span>
       {children}
-    </RadixDropdownMenu.RadioItem>
+    </BaseMenu.RadioItem>
   );
 }
-
 function DropdownMenuLabel({
   className,
   inset,
   ...props
-}: React.ComponentProps<typeof RadixDropdownMenu.Label> & {
-  inset?: boolean;
-}) {
+}: BaseMenu.GroupLabel.Props & { inset?: boolean }) {
   return (
-    <RadixDropdownMenu.Label
+    <BaseMenu.GroupLabel
       data-slot="dropdown-menu-label"
       data-inset={inset}
       className={cn(
-        "px-2 py-1.5 text-sm font-medium data-inset:pl-8",
+        "px-2 py-1.5 text-sm font-medium",
+        inset && "pl-8",
         className
       )}
       {...props}
     />
   );
 }
-
 function DropdownMenuSeparator({
   className,
   ...props
-}: React.ComponentProps<typeof RadixDropdownMenu.Separator>) {
+}: BaseMenu.Separator.Props) {
   return (
-    <RadixDropdownMenu.Separator
+    <BaseMenu.Separator
       data-slot="dropdown-menu-separator"
       className={cn("bg-border -mx-1 my-1 h-px", className)}
       {...props}
     />
   );
 }
-
 function DropdownMenuShortcut({
   className,
-  ref,
   ...props
 }: React.ComponentProps<"span">) {
   return (
@@ -349,7 +211,6 @@ function DropdownMenuShortcut({
         "text-muted-foreground ml-auto text-xs tracking-widest",
         className
       )}
-      ref={ref}
       {...props}
     />
   );

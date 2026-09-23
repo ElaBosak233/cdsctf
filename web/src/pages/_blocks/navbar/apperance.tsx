@@ -18,15 +18,17 @@ function Appearance() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant={"ghost"}
-          square
-          size={"sm"}
-          icon={<BrushIcon />}
-          aria-label="Appearance"
-        />
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant={"ghost"}
+            square
+            size={"sm"}
+            icon={<BrushIcon />}
+            aria-label="Appearance"
+          />
+        }
+      ></DropdownMenuTrigger>
       <DropdownMenuContent
         sideOffset={20}
         className={cn([

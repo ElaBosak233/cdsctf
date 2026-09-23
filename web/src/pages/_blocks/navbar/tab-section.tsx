@@ -16,12 +16,10 @@ function TabSection() {
   return (
     <>
       {options?.map((option, index) => {
-        const Comp = option?.disabled ? Button : Link;
-
         return (
           <Button
             key={index}
-            asChild
+            render={option?.disabled ? undefined : <Link to={option.link} />}
             variant={
               isSubRoute(
                 option.link,
@@ -37,7 +35,7 @@ function TabSection() {
             icon={option.icon}
             level={option?.warning ? "warning" : "primary"}
           >
-            <Comp to={option.link}>{option?.name}</Comp>
+            {option?.name}
           </Button>
         );
       })}

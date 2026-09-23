@@ -1,4 +1,3 @@
-import { timestamp } from "@/utils/time";
 import { useQuery } from "@tanstack/react-query";
 import { KeyIcon, RefreshCcwIcon, UsersRoundIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -14,15 +13,16 @@ import { useRefresh } from "@/hooks/use-refresh";
 import { State } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
+import { getGamePhase } from "@/utils/time";
 
 export default function Index() {
   const { t } = useTranslation();
   const { currentGame, selfTeam, members } = useGameStore();
   const { tick, bump } = useRefresh();
 
+  const phase = getGamePhase(currentGame ?? {});
   const disabled =
-    Date.now() > timestamp(currentGame?.ended_at) ||
-    selfTeam?.state !== State.Preparing;
+    phase == null || phase === "ended" || selfTeam?.state !== State.Preparing;
 
   const { data: token } = useQuery({
     queryKey: ["game_token", currentGame?.id, selfTeam?.id, tick],

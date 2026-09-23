@@ -9,7 +9,13 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -276,18 +282,23 @@ export default function Index() {
                 <ListOrderedIcon className="size-4" />
               </FieldIcon>
               <Select
-                options={[
-                  { value: "10" },
-                  { value: "20" },
-                  { value: "40" },
-                  { value: "60" },
-                ]}
                 value={String(size)}
                 onValueChange={(value) => {
                   void setSize(Number(value));
                   void setPage(1);
                 }}
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[10, 20, 40, 60].map((value) => (
+                    <SelectItem key={value} value={String(value)}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
           </div>
         </footer>

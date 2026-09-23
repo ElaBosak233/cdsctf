@@ -77,7 +77,6 @@ captcha:
     pow: 工作量证明
     image: 图像验证
     turnstile: Cloudflare Turnstile
-    hcaptcha: HCaptcha
   form:
     provider:
       _: 提供者
@@ -92,15 +91,6 @@ captcha:
         _: 站点密钥
       secret_key:
         _: 密钥
-    hcaptcha:
-      url:
-        _: API URL
-      site_key:
-        _: 站点密钥
-      secret_key:
-        _: 密钥
-      score:
-        _: 分数
   actions:
     update:
       _: 更新人机验证设置

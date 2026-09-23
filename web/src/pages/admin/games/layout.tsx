@@ -14,7 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Sidebar, SidebarInset } from "@/components/ui/sidebar";
 import { TextField } from "@/components/ui/text-field";
 import type { ColumnFiltersState } from "@/hooks/use-data-table";
@@ -88,16 +94,20 @@ function FilterFields({
           <EyeIcon className="size-4" />
         </FieldIcon>
         <Select
-          options={[
-            { value: "all", content: t("common:all") },
-            { value: "true", content: t("game:enabled.true") },
-            { value: "false", content: t("game:enabled.false") },
-          ]}
+          value={enabledValue}
           onValueChange={(value) =>
             setColumnFilters((prev) => setFilter(prev, "enabled", value))
           }
-          value={enabledValue}
-        />
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("common:all")}</SelectItem>
+            <SelectItem value="true">{t("game:enabled.true")}</SelectItem>
+            <SelectItem value="false">{t("game:enabled.false")}</SelectItem>
+          </SelectContent>
+        </Select>
       </Field>
     </>
   );

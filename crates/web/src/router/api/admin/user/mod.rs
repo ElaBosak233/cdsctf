@@ -11,6 +11,7 @@ use cds_db::{
     sea_orm::ActiveValue::Set,
     user::{FindUserOptions, Group},
 };
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::info;
@@ -18,7 +19,6 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use crate::{
     extract::{Query, VJson},

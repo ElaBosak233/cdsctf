@@ -121,7 +121,6 @@ export default function Index() {
                           className={cn([
                             "size-11",
                             "shrink-0",
-                            "border",
                             "bg-transparent",
                           ])}
                           src={
@@ -184,10 +183,16 @@ export default function Index() {
                             </Button>
                           </>
                         ) : (
-                          <Button asChild variant="solid" icon={<LinkIcon />}>
-                            <a href={idp.portal || `/account/idps/${idp.id}`}>
-                              {t("user:idp.actions.bind")}
-                            </a>
+                          <Button
+                            variant="solid"
+                            icon={<LinkIcon />}
+                            render={
+                              <a
+                                href={idp.portal || `/account/idps/${idp.id}`}
+                              />
+                            }
+                          >
+                            {t("user:idp.actions.bind")}
                           </Button>
                         )}
                       </div>

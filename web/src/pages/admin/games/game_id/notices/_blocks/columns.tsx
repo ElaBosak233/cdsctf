@@ -4,7 +4,6 @@ import { Trans, useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { deleteGameNotice } from "@/api/admin/games/game_id/notices";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -14,6 +13,7 @@ import type { GameNoticeView } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { parseRouteNumericId } from "@/utils/query";
+import { parseTimestamp } from "@/utils/time";
 import { Context } from "../../context";
 
 function ActionsCell({ row }: { row: Row<GameNoticeView> }) {
@@ -130,16 +130,24 @@ function useColumns() {
         accessorKey: "id",
         id: "id",
         header: t("game:notice.id"),
-        cell: function IdCell({ row }) {
-          const id = row.original.id;
-          return <Badge>{id}</Badge>;
-        },
+        enableHiding: true,
       },
       {
         accessorKey: "title",
         id: "title",
         header: t("game:notice.title"),
-        cell: ({ row }) => row.original.title,
+        cell: ({ row }) => (
+          <div className={cn(["min-w-0", "flex", "flex-col", "gap-0.5"])}>
+            <span className={cn(["truncate", "text-sm", "font-semibold"])}>
+              {row.original.title || "-"}
+            </span>
+            <span
+              className={cn(["font-mono", "text-xs", "text-muted-foreground"])}
+            >
+              #{row.original.id}
+            </span>
+          </div>
+        ),
       },
       {
         accessorKey: "content",
@@ -161,7 +169,11 @@ function useColumns() {
         id: "created_at",
         header: t("game:notice.created_at"),
         cell: ({ row }) => {
-          return new Date(row.getValue<string>("created_at")).toLocaleString();
+          return (
+            parseTimestamp(
+              row.getValue<string>("created_at")
+            )?.toLocaleString() ?? "-"
+          );
         },
       },
       {

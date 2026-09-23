@@ -1,4 +1,3 @@
-import { date } from "@/utils/time";
 import {
   ChartNoAxesCombinedIcon,
   FlagIcon,
@@ -10,9 +9,9 @@ import {
 } from "lucide-react";
 import { createContext, useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-
 import { State } from "@/models/team";
 import { useGameStore } from "@/storages/game";
+import { isGameActive } from "@/utils/time";
 
 export const Context = createContext<{
   mode: "default" | "game";
@@ -25,6 +24,7 @@ export function useOptions() {
   const { currentGame, selfTeam } = useGameStore();
 
   const { t } = useTranslation();
+  const gameActive = isGameActive(currentGame ?? {});
 
   const options = useMemo(() => {
     switch (mode) {
@@ -48,10 +48,7 @@ export function useOptions() {
             disabled:
               selfTeam?.state !== State.Passed ||
               currentGame?.paused ||
-              (date(currentGame?.ended_at)?.getTime() ??
-                Number.POSITIVE_INFINITY) < Date.now() ||
-              (date(currentGame?.started_at)?.getTime() ??
-                Number.NEGATIVE_INFINITY) > Date.now(),
+              !gameActive,
           },
           {
             link: `/games/${currentGame?.id}/scoreboard`,
@@ -87,9 +84,8 @@ export function useOptions() {
   }, [
     mode,
     currentGame?.id,
-    currentGame?.started_at,
-    currentGame?.ended_at,
     currentGame?.paused,
+    gameActive,
     selfTeam?.id,
     selfTeam?.state,
     t,

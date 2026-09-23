@@ -1,11 +1,7 @@
 //! Captcha abstraction: provider is selected from database configuration.
 //!
-//! Supported backends include proof-of-work, generated images, Cloudflare
-//! Turnstile, and hCaptcha. Some providers return `Ok(None)` on generate when
-//! not applicable.
-
-/// Defines the `hcaptcha` submodule (see sibling `*.rs` files).
-mod hcaptcha;
+//! Supported backends include proof-of-work, generated images, and Cloudflare
+//! Turnstile. Some providers return `Ok(None)` on generate when not applicable.
 
 /// Defines the `image` submodule (see sibling `*.rs` files).
 mod image;
@@ -59,7 +55,6 @@ impl Captcha {
             Provider::Pow => pow::check(self, answer).await,
             Provider::Image => image::check(self, answer).await,
             Provider::Turnstile => turnstile::check(self, answer).await,
-            Provider::HCaptcha => hcaptcha::check(self, answer).await,
             _ => Ok(true),
         }
     }

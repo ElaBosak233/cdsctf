@@ -22,7 +22,13 @@ import { Button } from "@/components/ui/button";
 import { Editor } from "@/components/ui/editor";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -156,37 +162,47 @@ export default function Index() {
               <LayoutTemplateIcon />
             </FieldIcon>
             <Select
-              placeholder={t("challenge:checker.templates._")}
-              options={[
-                {
-                  value: "simple",
-                  content: t("challenge:checker.templates.simple"),
-                },
-                {
-                  value: "regex",
-                  content: t("challenge:checker.templates.regex"),
-                },
-                {
-                  value: "suid",
-                  content: t("challenge:checker.templates.suid"),
-                },
-                {
-                  value: "suid_custom_key",
-                  content: t("challenge:checker.templates.suid_custom_key"),
-                },
-                {
-                  value: "leet",
-                  content: t("challenge:checker.templates.leet"),
-                },
-                {
-                  value: "leet_custom_key",
-                  content: t("challenge:checker.templates.leet_custom_key"),
-                },
-              ]}
-              onValueChange={(value: CheckerTemplate) => {
-                form.setValue("checker", checkerMap[value]);
+              onValueChange={(value) => {
+                const key = value as CheckerTemplate;
+                form.setValue("checker", checkerMap[key]);
               }}
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("challenge:checker.templates._")} />
+              </SelectTrigger>
+              <SelectContent>
+                {[
+                  {
+                    value: "simple",
+                    content: t("challenge:checker.templates.simple"),
+                  },
+                  {
+                    value: "regex",
+                    content: t("challenge:checker.templates.regex"),
+                  },
+                  {
+                    value: "suid",
+                    content: t("challenge:checker.templates.suid"),
+                  },
+                  {
+                    value: "suid_custom_key",
+                    content: t("challenge:checker.templates.suid_custom_key"),
+                  },
+                  {
+                    value: "leet",
+                    content: t("challenge:checker.templates.leet"),
+                  },
+                  {
+                    value: "leet_custom_key",
+                    content: t("challenge:checker.templates.leet_custom_key"),
+                  },
+                ].map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.content}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
 
           <Button

@@ -20,6 +20,13 @@ function Toaster(props: ToasterProps) {
     <Sonner
       richColors
       theme={computedTheme as ToasterProps["theme"]}
+      position="bottom-right"
+      closeButton
+      expand={false}
+      visibleToasts={4}
+      gap={10}
+      offset={{ bottom: 24, right: 24 }}
+      mobileOffset={{ bottom: 16, left: 16, right: 16 }}
       className={cn(["toaster", "group"])}
       icons={{
         info: <InfoIcon />,
@@ -33,15 +40,42 @@ function Toaster(props: ToasterProps) {
           toast: cn([
             "group",
             "toast",
-            "group-[.toaster]:!px-5",
+            "group-[.toaster]:!gap-2",
+            "group-[.toaster]:!px-3.5",
+            "group-[.toaster]:!pl-4",
+            "group-[.toaster]:!py-2.5",
+            "group-[.toaster]:!pr-9",
             "group-[.toaster]:!bg-card",
             "group-[.toaster]:!text-foreground",
             "group-[.toaster]:!border-border",
+            "group-[.toaster]:!border-l-4",
+            "data-[type=success]:!border-l-success",
+            "data-[type=error]:!border-l-error",
+            "data-[type=warning]:!border-l-warning",
+            "data-[type=info]:!border-l-info",
+            "data-[type=loading]:!border-l-primary",
             "group-[.toaster]:!rounded-lg",
-            "group-[.toaster]:!shadow-lg",
+            "group-[.toaster]:!shadow-md",
+            "group-[.toaster]:!duration-200",
           ]),
-          icon: cn(["group-[.toast]:!size-5", "[&_svg]:size-5"]),
-          description: cn(["group-[.toast]:!text-secondary-foreground"]),
+          icon: cn([
+            "group-[.toast]:!size-4",
+            "group-[.toast]:!self-center",
+            "group-[.toast]:!ml-0",
+            "group-[.toast]:!mr-0",
+            "[&_svg]:size-4",
+          ]),
+          title: cn([
+            "group-[.toast]:!text-sm",
+            "group-[.toast]:!font-semibold",
+            "group-[.toast]:!leading-5",
+          ]),
+          description: cn([
+            "group-[.toast]:!mt-0.5",
+            "group-[.toast]:!text-xs",
+            "group-[.toast]:!leading-4",
+            "group-[.toast]:!text-muted-foreground",
+          ]),
           actionButton: cn([
             "group-[.toast]:!bg-primary",
             "group-[.toast]:!text-primary-foreground",
@@ -50,7 +84,22 @@ function Toaster(props: ToasterProps) {
             "group-[.toast]:!bg-secondary",
             "group-[.toast]:!text-secondary-foreground",
           ]),
+          closeButton: cn([
+            "group-[.toast]:!left-auto",
+            "group-[.toast]:!right-2",
+            "group-[.toast]:!top-1/2",
+            "group-[.toast]:!transform-none",
+            "group-[.toast]:!-translate-y-1/2",
+            "group-[.toast]:!size-6",
+            "group-[.toast]:!rounded-md",
+            "group-[.toast]:!border-0",
+            "group-[.toast]:!bg-transparent",
+            "group-[.toast]:!text-muted-foreground",
+            "group-[.toast]:hover:!bg-muted",
+            "group-[.toast]:hover:!text-foreground",
+          ]),
         },
+        duration: 4000,
       }}
       {...rest}
     />

@@ -1,5 +1,6 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { HashIcon, LibraryIcon, PlusCircleIcon } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { getGameChallenges } from "@/api/admin/games/game_id/challenges";
@@ -8,7 +9,13 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -46,9 +53,6 @@ export default function Index() {
 
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
 
-  const [challenges, setChallenges] = useState<Array<GameChallengeView>>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] =
     useState<ColumnVisibilityState>({
@@ -61,6 +65,34 @@ export default function Index() {
     },
   ]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
+  const gameId = routeGameId ?? game?.id;
+  const challengeQuery = useQuery({
+    queryKey: [
+      "admin",
+      "game-challenges",
+      gameId,
+      sorting,
+      debouncedColumnFilters,
+      sharedStore.refresh,
+    ],
+    queryFn: () =>
+      getGameChallenges({
+        game_id: gameId!,
+        challenge_id: debouncedColumnFilters.find(
+          (c) => c.id === "challenge_id"
+        )?.value as number,
+        category:
+          (debouncedColumnFilters.find((c) => c.id === "challenge_category")
+            ?.value as string) !== "all"
+            ? (debouncedColumnFilters.find((c) => c.id === "challenge_category")
+                ?.value as number)
+            : undefined,
+      }),
+    enabled: gameId != null,
+    placeholderData: keepPreviousData,
+  });
+  const challenges = challengeQuery.data?.challenges ?? [];
+  const loading = challengeQuery.isFetching;
 
   const columns = useColumns();
   const table = useDataTable<GameChallengeView>({
@@ -79,41 +111,22 @@ export default function Index() {
     },
   });
 
-  useEffect(() => {
-    void sharedStore.refresh;
-
-    const gid = routeGameId ?? game?.id;
-    if (gid == null) return;
-
-    setLoading(true);
-    getGameChallenges({
-      game_id: gid,
-      challenge_id: debouncedColumnFilters.find((c) => c.id === "challenge_id")
-        ?.value as number,
-      category:
-        (debouncedColumnFilters.find((c) => c.id === "challenge_category")
-          ?.value as string) !== "all"
-          ? (debouncedColumnFilters.find((c) => c.id === "challenge_category")
-              ?.value as number)
-          : undefined,
-    })
-      .then((res) => {
-        setChallenges(res?.challenges || []);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [debouncedColumnFilters, sharedStore.refresh, game, routeGameId]);
-
   return (
     <div
       className={cn([
-        "container",
-        "mx-auto",
-        "flex-1",
+        "h-full",
+        "w-full",
+        "min-w-0",
         "min-h-0",
         "flex",
         "flex-col",
+        "gap-4",
+        "px-4",
+        "py-4",
+        "sm:px-6",
+        "sm:py-6",
+        "lg:px-8",
+        "lg:py-8",
       ])}
     >
       <div
@@ -121,8 +134,8 @@ export default function Index() {
           "flex",
           "justify-between",
           "items-center",
-          "mb-6",
-          "gap-10",
+          "shrink-0",
+          "gap-6",
         ])}
       >
         <h1
@@ -166,38 +179,31 @@ export default function Index() {
               <LibraryIcon />
             </FieldIcon>
             <Select
-              options={[
-                {
-                  value: "all",
-                  content: (
-                    <div className={cn(["flex", "gap-2", "items-center"])}>
-                      {t("common:all")}
-                    </div>
-                  ),
-                },
-                ...(categories || []).map((category) => {
-                  const Icon = category.icon!;
-
-                  return {
-                    value: String(category?.id),
-                    content: (
-                      <div className={cn(["flex", "gap-2", "items-center"])}>
-                        <Icon />
-                        {category?.name?.toUpperCase()}
-                      </div>
-                    ),
-                  };
-                }),
-              ]}
-              onValueChange={(value) =>
-                table.getColumn("challenge_category")?.setFilterValue(value)
-              }
               value={
                 (table
                   .getColumn("challenge_category")
                   ?.getFilterValue() as string) ?? ""
               }
-            />
+              onValueChange={(value) =>
+                table.getColumn("challenge_category")?.setFilterValue(value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("common:all")}</SelectItem>
+                {(categories || []).map((category) => {
+                  const Icon = category.icon!;
+                  return (
+                    <SelectItem key={category.id} value={String(category.id)}>
+                      <Icon />
+                      {category.name?.toUpperCase()}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           </Field>
 
           <Button
@@ -218,30 +224,59 @@ export default function Index() {
       <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
         <ScrollArea
           className={cn([
-            "rounded-md",
-            "border",
-            "bg-card",
-            "h-full",
+            "flex-1",
             "min-h-0",
+            "min-w-0",
+            "w-full",
             "overflow-hidden",
+            "rounded-lg",
+            "border",
+            "ring-1",
+            "ring-border/50",
+            "shadow-sm",
           ])}
         >
           <LoadingOverlay loading={loading} />
-          <Table className={cn(["text-foreground"])}>
+          <Table
+            className={cn([
+              "w-full",
+              "min-w-4xl",
+              "table-fixed",
+              "text-foreground",
+            ])}
+          >
             <TableHeader
               className={cn([
                 "sticky",
                 "top-0",
                 "z-2",
-                "bg-muted/70",
-                "backdrop-blur-md",
+                "bg-muted/80",
+                "backdrop-blur-sm",
+                "border-b",
               ])}
             >
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead
+                        key={header.id}
+                        className={cn([
+                          "bg-muted/95",
+                          header.column.id === "actions" && [
+                            "sticky",
+                            "right-0",
+                            "z-3",
+                            "bg-muted/95",
+                          ],
+                          header.column.id === "enabled" && "w-1 px-2",
+                          header.column.id === "challenge_id" && "w-24",
+                          header.column.id === "challenge_title" && "min-w-64",
+                          header.column.id === "challenge_category" && "w-44",
+                          header.column.id === "pts" && "w-24",
+                          header.column.id === "actions" && "w-12",
+                        ])}
+                      >
                         {!header.isPlaceholder &&
                           flexRender(
                             header.column.columnDef.header,
@@ -259,9 +294,29 @@ export default function Index() {
                     <TableRow
                       key={row.original.challenge_id}
                       data-state={row.getIsSelected() && "selected"}
+                      className={cn([
+                        "group",
+                        "transition-colors",
+                        "hover:bg-transparent",
+                      ])}
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
+                        <TableCell
+                          key={cell.id}
+                          className={cn([
+                            "py-3",
+                            "transition-colors",
+                            "group-hover:bg-muted/50",
+                            cell.column.id === "enabled" && "px-2",
+                            cell.column.id === "actions" && [
+                              "sticky",
+                              "right-0",
+                              "z-1",
+                              "w-28",
+                              "bg-card",
+                            ],
+                          ])}
+                        >
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()
@@ -273,7 +328,7 @@ export default function Index() {
                 : !loading && (
                     <TableRow>
                       <TableCell
-                        colSpan={columns.length}
+                        colSpan={table.getVisibleLeafColumns().length}
                         className={cn(["h-24", "text-center"])}
                       >
                         {t("game:challenge.empty")}

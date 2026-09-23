@@ -282,7 +282,7 @@ function TimePeriodSelect({
     <div className="flex h-10 items-center">
       <Select
         defaultValue={period}
-        onValueChange={(value: Period) => handleValueChange(value)}
+        onValueChange={(value) => handleValueChange(value as Period)}
       >
         <SelectTrigger
           ref={ref}
@@ -649,7 +649,7 @@ function DateTimePicker({
       setDisplayDate(undefined);
       setMonth(fallbackPopupValue);
     }
-  }, [normalizedValue]);
+  }, [fallbackPopupValue, normalizedValue]);
 
   const handleClear = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -731,50 +731,54 @@ function DateTimePicker({
 
   return (
     <Popover>
-      <PopoverTrigger asChild disabled={disabled}>
-        <div className="relative flex flex-1 w-0 items-center">
+      <div className="relative flex flex-1 w-0 items-center">
+        <PopoverTrigger
+          disabled={disabled}
+          render={
+            <Button
+              type="button"
+              disabled={disabled}
+              className={cn(
+                dateTimePickerVariants({
+                  size,
+                  icon: !!hasIcon,
+                  extraBtn: !!hasExtraButton,
+                }),
+                "justify-start w-full",
+                className
+              )}
+              ref={buttonRef}
+            >
+              {displayDate ? (
+                format(
+                  displayDate,
+                  hourCycle === 24
+                    ? initHourFormat.hour24
+                    : initHourFormat.hour12,
+                  { locale: loc as Locale }
+                )
+              ) : (
+                <span>{placeholder}</span>
+              )}
+            </Button>
+          }
+        />
+
+        {clearable && displayDate && (
           <Button
             type="button"
-            disabled={disabled}
-            className={cn(
-              dateTimePickerVariants({
-                size,
-                icon: !!hasIcon,
-                extraBtn: !!hasExtraButton,
-              }),
-              "justify-start w-full",
-              className
-            )}
-            ref={buttonRef}
+            variant="ghost"
+            size={"sm"}
+            square
+            className={cn([
+              "absolute right-1 opacity-70 hover:opacity-100 hover:bg-transparent transition-opacity",
+            ])}
+            onClick={handleClear}
           >
-            {displayDate ? (
-              format(
-                displayDate,
-                hourCycle === 24
-                  ? initHourFormat.hour24
-                  : initHourFormat.hour12,
-                { locale: loc as Locale }
-              )
-            ) : (
-              <span>{placeholder}</span>
-            )}
+            <CircleXIcon className="size-4" />
           </Button>
-
-          {clearable && displayDate && (
-            <Button
-              variant="ghost"
-              size={"sm"}
-              square
-              className={cn([
-                "absolute right-1 opacity-70 hover:opacity-100 hover:bg-transparent transition-opacity",
-              ])}
-              onClick={handleClear}
-            >
-              <CircleXIcon className="size-4" />
-            </Button>
-          )}
-        </div>
-      </PopoverTrigger>
+        )}
+      </div>
       <PopoverContent className="w-auto p-0">
         <Calendar
           mode="single"

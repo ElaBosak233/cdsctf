@@ -1,8 +1,5 @@
 //! SeaORM `mod` entity — maps the `mod` table and its relations.
 
-/// Defines the `hcaptcha` submodule (see sibling `*.rs` files).
-pub mod hcaptcha;
-
 /// Defines the `turnstile` submodule (see sibling `*.rs` files).
 pub mod turnstile;
 
@@ -16,7 +13,6 @@ pub struct Config {
     pub provider: Provider,
     pub difficulty: u64,
     pub turnstile: turnstile::Config,
-    pub hcaptcha: hcaptcha::Config,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default, Eq, PartialEq, utoipa::ToSchema)]
@@ -25,8 +21,6 @@ pub enum Provider {
     Pow,
     Image,
     Turnstile,
-    #[serde(rename = "hcaptcha")]
-    HCaptcha,
     #[default]
     #[serde(other)]
     None,
@@ -37,7 +31,6 @@ impl Config {
     pub fn desensitize(&self) -> Self {
         Self {
             turnstile: self.turnstile.desensitize(),
-            hcaptcha: self.hcaptcha.desensitize(),
             ..self.to_owned()
         }
     }
@@ -49,7 +42,6 @@ impl Default for Config {
         Self {
             provider: Provider::Pow,
             difficulty: 2,
-            hcaptcha: hcaptcha::Config::default(),
             turnstile: turnstile::Config::default(),
         }
     }

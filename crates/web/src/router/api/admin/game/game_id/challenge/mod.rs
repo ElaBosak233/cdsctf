@@ -93,6 +93,7 @@ pub struct CreateGameChallengeRequest {
     pub max_pts: Option<i64>,
     pub min_pts: Option<i64>,
     pub bonus_ratios: Option<Vec<i64>>,
+    #[serde(default)]
     #[serde(with = "cds_db::time_format::double_option")]
     pub frozen_at: Option<Option<time::OffsetDateTime>>,
 }
@@ -152,4 +153,27 @@ pub async fn create_game_challenge(
     calculator::notify(&s.queue, game.id).await;
 
     Ok(Json(GameChallengeResponse { game_challenge }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CreateGameChallengeRequest;
+
+    #[test]
+    fn create_request_accepts_missing_optional_frozen_at() {
+        let request: CreateGameChallengeRequest = serde_json::from_str(
+            r#"{"challenge_id":3,"enabled":false,"max_pts":2000,"min_pts":500,"difficulty":5,"bonus_ratios":[]}"#,
+        )
+        .unwrap();
+
+        assert!(request.frozen_at.is_none());
+    }
+
+    #[test]
+    fn create_request_preserves_explicit_null_frozen_at() {
+        let request: CreateGameChallengeRequest =
+            serde_json::from_str(r#"{"challenge_id":3,"frozen_at":null}"#).unwrap();
+
+        assert_eq!(request.frozen_at, Some(None));
+    }
 }

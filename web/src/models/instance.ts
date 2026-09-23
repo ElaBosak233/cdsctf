@@ -1,3 +1,4 @@
+import type { Timestamp } from "@/types";
 import type { Port } from "./challenge";
 
 export type Instance = {
@@ -15,7 +16,7 @@ export type Instance = {
 
   renew?: number;
   duration?: number;
-  started_at?: string;
+  started_at?: Timestamp;
 };
 
 export type Nat = {

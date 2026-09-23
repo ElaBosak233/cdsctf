@@ -1,4 +1,3 @@
-import { date, timestamp } from "@/utils/time";
 import { useQuery } from "@tanstack/react-query";
 import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
@@ -20,6 +19,7 @@ import { useTickerTime } from "@/hooks/use-ticker-time";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import { getGamePhase, secondsUntil } from "@/utils/time";
 import { NoticeCard } from "./_blocks/notice-card";
 import { TeamCard } from "./_blocks/team-card";
 
@@ -120,17 +120,8 @@ export default function Index() {
   const remainingLabel = useMemo(() => {
     if (!currentGame) return "";
 
-    const startTime = date(currentGame?.started_at);
-    const freezeTime = date(currentGame?.frozen_at);
-    const endTime = date(currentGame?.ended_at);
-
-    if (!startTime || !freezeTime || !endTime) return "";
-
-    const remaining = (target: Date) => {
-      const secondsTotal = Math.max(
-        0,
-        Math.floor((target.getTime() - now.getTime()) / 1000)
-      );
+    const remaining = (target: string | null | undefined) => {
+      const secondsTotal = Math.max(0, secondsUntil(target, now) ?? 0);
       return {
         hours: Math.floor(secondsTotal / 3600),
         minutes: Math.floor((secondsTotal % 3600) / 60),
@@ -138,40 +129,46 @@ export default function Index() {
       };
     };
 
-    if (now < startTime) {
-      return t("game:status.upcoming.remaining", remaining(startTime));
+    const phase = getGamePhase(currentGame, now);
+    if (phase == null) return "";
+    if (phase === "upcoming") {
+      return t(
+        "game:status.upcoming.remaining",
+        remaining(currentGame.started_at)
+      );
     }
-    if (now < freezeTime) {
-      return t("game:status.ongoing.remaining", remaining(freezeTime));
+    if (phase === "ongoing") {
+      return t(
+        "game:status.ongoing.remaining",
+        remaining(currentGame.frozen_at)
+      );
     }
-    if (now < endTime) {
-      return t("game:status.frozen.remaining", remaining(endTime));
+    if (phase === "frozen") {
+      return t("game:status.frozen.remaining", remaining(currentGame.ended_at));
     }
     return t("game:status.ended.remaining");
   }, [currentGame, now, t]);
 
   const statusTone = useMemo(() => {
     if (!currentGame) return "bg-muted-foreground";
-    const nowTimestamp = now.getTime();
-    if (nowTimestamp > timestamp(currentGame.ended_at)) return "bg-error";
-    if (nowTimestamp > timestamp(currentGame.frozen_at)) return "bg-warning";
-    if (nowTimestamp < timestamp(currentGame.started_at)) return "bg-info";
+    const phase = getGamePhase(currentGame, now);
+    if (phase == null) return "bg-muted-foreground";
+    if (phase === "ended") return "bg-error";
+    if (phase === "frozen") return "bg-warning";
+    if (phase === "upcoming") return "bg-info";
     return "bg-success";
   }, [currentGame, now]);
 
   const statusKey = useMemo(() => {
-    if (!currentGame) return "ongoing";
-    const nowTimestamp = now.getTime();
-    if (nowTimestamp > timestamp(currentGame.ended_at)) return "ended";
-    if (nowTimestamp > timestamp(currentGame.frozen_at)) return "frozen";
-    if (nowTimestamp < timestamp(currentGame.started_at)) return "upcoming";
-    return "ongoing";
+    if (!currentGame) return undefined;
+    return getGamePhase(currentGame, now);
   }, [currentGame, now]);
 
   const statusSurface = useMemo(() => {
     if (statusKey === "ended") return "bg-error/10";
     if (statusKey === "frozen") return "bg-warning/10";
     if (statusKey === "upcoming") return "bg-info/10";
+    if (statusKey == null) return "bg-muted/10";
     return "bg-success/10";
   }, [statusKey]);
 
@@ -341,17 +338,20 @@ export default function Index() {
                   />
                 ) : (
                   <Dialog key={index}>
-                    <DialogTrigger>
-                      <ChallengeCard
-                        digest={{
-                          id: gameChallenge.challenge_id,
-                          title: gameChallenge.challenge_title,
-                          category: gameChallenge.challenge_category,
-                        }}
-                        status={status}
-                      />
-                    </DialogTrigger>
-                    <DialogContent size="preview">
+                    <DialogTrigger
+                      render={
+                        <ChallengeCard
+                          render={<button type="button" />}
+                          digest={{
+                            id: gameChallenge.challenge_id,
+                            title: gameChallenge.challenge_title,
+                            category: gameChallenge.challenge_category,
+                          }}
+                          status={status}
+                        />
+                      }
+                    />
+                    <DialogContent size="preview" className="max-w-4xl">
                       <ChallengeDialog
                         digest={{
                           id: gameChallenge.challenge_id,
@@ -406,7 +406,7 @@ export default function Index() {
           "sm:bottom-6",
           "sm:left-6",
         ])}
-        aria-label={t(`game:status.${statusKey}._`)}
+        aria-label={statusKey ? t(`game:status.${statusKey}._`) : undefined}
       >
         <span
           className={cn(["size-2", "shrink-0", "rounded-full", statusTone])}
@@ -419,7 +419,7 @@ export default function Index() {
           <span
             className={cn(["block", "text-[11px]", "text-muted-foreground"])}
           >
-            {t(`game:status.${statusKey}._`)}
+            {statusKey ? t(`game:status.${statusKey}._`) : "-"}
           </span>
           <span
             className={cn(["block", "font-mono", "text-xs", "tabular-nums"])}

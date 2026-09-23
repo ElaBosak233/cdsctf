@@ -1,4 +1,4 @@
-import { Switch as RadixSwitch } from "radix-ui";
+import { Switch as BaseSwitch } from "@base-ui/react/switch";
 import type * as React from "react";
 
 import { cn } from "@/utils";
@@ -6,15 +6,15 @@ import { cn } from "@/utils";
 function Switch({
   className,
   ...props
-}: React.ComponentProps<typeof RadixSwitch.Root>) {
+}: React.ComponentProps<typeof BaseSwitch.Root>) {
   return (
-    <RadixSwitch.Root
+    <BaseSwitch.Root
       data-slot="switch"
       className={cn(
         [
           "peer",
-          "data-[state=checked]:bg-primary",
-          "data-[state=unchecked]:bg-input",
+          "data-checked:bg-primary",
+          "data-unchecked:bg-input",
           "focus-visible:border-ring",
           "focus-visible:ring-ring/50",
           "inline-flex",
@@ -36,7 +36,7 @@ function Switch({
       )}
       {...props}
     >
-      <RadixSwitch.Thumb
+      <BaseSwitch.Thumb
         data-slot="switch-thumb"
         className={cn([
           "bg-background",
@@ -47,13 +47,13 @@ function Switch({
           "ring-0",
           "shadow-lg",
           "transition-transform",
-          "data-[state=checked]:translate-x-4",
-          "data-[state=unchecked]:translate-x-0",
-          "data-[state=checked]:bg-input",
-          "data-[state=unchecked]:bg-primary",
+          "data-checked:translate-x-4",
+          "data-unchecked:translate-x-0",
+          "data-checked:bg-input",
+          "data-unchecked:bg-primary",
         ])}
       />
-    </RadixSwitch.Root>
+    </BaseSwitch.Root>
   );
 }
 

@@ -87,14 +87,12 @@ export default function Layout() {
               {options.map((option) => (
                 <SidebarMenuItem key={option.link}>
                   <SidebarMenuButton
-                    asChild
+                    render={<Link to={option.link} />}
                     isActive={isSubRoute(option.link, pathname, "/admin")}
                     className="h-9 justify-start px-2.5 [&>span]:group-data-[collapsible=icon]:hidden"
                   >
-                    <Link to={option.link}>
-                      {option.icon}
-                      <span>{option.name}</span>
-                    </Link>
+                    {option.icon}
+                    <span>{option.name}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -119,9 +117,9 @@ export default function Layout() {
               variant={
                 isSubRoute(option.link, pathname, "/admin") ? "tonal" : "ghost"
               }
-              asChild
+              render={<Link to={option.link} />}
             >
-              <Link to={option.link}>{option.name}</Link>
+              {option.name}
             </Button>
           ))}
         </ScrollableNav>

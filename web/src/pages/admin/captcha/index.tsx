@@ -1,6 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BotIcon, ClockIcon, LockIcon, SaveIcon, SendIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  BotIcon,
+  ClockIcon,
+  KeyIcon,
+  LinkIcon,
+  LockIcon,
+  LockKeyholeIcon,
+  SaveIcon,
+} from "lucide-react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -19,10 +28,15 @@ import {
 } from "@/components/ui/form";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { NumberField } from "@/components/ui/number-field";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
-import type { AdminConfig } from "@/models/config";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
@@ -30,18 +44,14 @@ export default function Index() {
   const { t } = useTranslation();
 
   const { config: globalConfig } = useConfigStore();
-  const [config, setConfig] = useState<AdminConfig>();
-
-  useEffect(() => {
-    getConfigs().then((res) => {
-      setConfig(res.config);
-    });
-  }, []);
+  const { data: config } = useQuery({
+    queryKey: ["admin", "config"],
+    queryFn: getConfigs,
+    select: (response) => response.config,
+  });
 
   const formSchema = z.object({
-    provider: z
-      .enum(["none", "pow", "image", "turnstile", "hcaptcha"])
-      .optional(),
+    provider: z.enum(["none", "pow", "image", "turnstile"]).optional(),
     difficulty: z.number().default(1).optional(),
     turnstile: z
       .object({
@@ -50,14 +60,6 @@ export default function Index() {
         secret_key: z.string().default("").optional(),
       })
 
-      .optional(),
-    hcaptcha: z
-      .object({
-        url: z.string().default("").optional(),
-        site_key: z.string().default("").optional(),
-        secret_key: z.string().default("").optional(),
-        score: z.number().default(0).optional(),
-      })
       .optional(),
   });
 
@@ -126,31 +128,27 @@ export default function Index() {
                       </FieldIcon>
                       <Select
                         {...field}
-                        options={[
-                          {
-                            value: "none",
-                            content: t("admin:captcha.provider.none"),
-                          },
-                          {
-                            value: "pow",
-                            content: t("admin:captcha.provider.pow"),
-                          },
-                          {
-                            value: "image",
-                            content: t("admin:captcha.provider.image"),
-                          },
-                          {
-                            value: "turnstile",
-                            content: t("admin:captcha.provider.turnstile"),
-                          },
-                          {
-                            value: "hcaptcha",
-                            content: t("admin:captcha.provider.hcaptcha"),
-                          },
-                        ]}
                         onValueChange={(value) => field.onChange(value)}
                         value={String(field.value)}
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">
+                            {t("admin:captcha.provider.none")}
+                          </SelectItem>
+                          <SelectItem value="pow">
+                            {t("admin:captcha.provider.pow")}
+                          </SelectItem>
+                          <SelectItem value="image">
+                            {t("admin:captcha.provider.image")}
+                          </SelectItem>
+                          <SelectItem value="turnstile">
+                            {t("admin:captcha.provider.turnstile")}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </Field>
                   </FormControl>
                   <FormMessage />
@@ -199,7 +197,7 @@ export default function Index() {
                     <FormControl>
                       <Field>
                         <FieldIcon>
-                          <SendIcon />
+                          <LinkIcon />
                         </FieldIcon>
                         <TextField
                           {...field}
@@ -224,7 +222,7 @@ export default function Index() {
                       <FormControl>
                         <Field>
                           <FieldIcon>
-                            <SendIcon />
+                            <KeyIcon />
                           </FieldIcon>
                           <TextField
                             {...field}
@@ -248,114 +246,7 @@ export default function Index() {
                       <FormControl>
                         <Field>
                           <FieldIcon>
-                            <SendIcon />
-                          </FieldIcon>
-                          <TextField
-                            {...field}
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                          />
-                        </Field>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </>
-          )}
-          {form.watch("provider") === "hcaptcha" && (
-            <>
-              <div className={cn(["flex", "flex-col", "gap-3", "sm:flex-row"])}>
-                <FormField
-                  control={form.control}
-                  name={"hcaptcha.url"}
-                  render={({ field }) => (
-                    <FormItem className={cn(["w-full"])}>
-                      <FormLabel>
-                        {t("admin:captcha.form.hcaptcha.url._")}
-                      </FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <SendIcon />
-                          </FieldIcon>
-                          <TextField
-                            {...field}
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                          />
-                        </Field>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={"hcaptcha.score"}
-                  render={({ field }) => (
-                    <FormItem className={cn(["w-full"])}>
-                      <FormLabel>
-                        {t("admin:captcha.form.hcaptcha.score._")}
-                      </FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <ClockIcon />
-                          </FieldIcon>
-                          <TextField
-                            {...field}
-                            type={"number"}
-                            value={field.value || ""}
-                            onChange={(e) =>
-                              field.onChange(e.target.valueAsNumber)
-                            }
-                          />
-                        </Field>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className={cn(["flex", "flex-col", "gap-3", "sm:flex-row"])}>
-                <FormField
-                  control={form.control}
-                  name={"hcaptcha.site_key"}
-                  render={({ field }) => (
-                    <FormItem className={cn(["w-full"])}>
-                      <FormLabel>
-                        {t("admin:captcha.form.hcaptcha.site_key._")}
-                      </FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <SendIcon />
-                          </FieldIcon>
-                          <TextField
-                            {...field}
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                          />
-                        </Field>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={"hcaptcha.secret_key"}
-                  render={({ field }) => (
-                    <FormItem className={cn(["w-full"])}>
-                      <FormLabel>
-                        {t("admin:captcha.form.hcaptcha.secret_key._")}
-                      </FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <SendIcon />
+                            <LockKeyholeIcon />
                           </FieldIcon>
                           <TextField
                             {...field}

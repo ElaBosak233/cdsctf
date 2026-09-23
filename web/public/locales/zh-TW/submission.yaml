@@ -5,6 +5,7 @@ team_id: 團隊 ID
 challenge_title: 題目
 challenge_id: 題目 ID
 flag: Flag
+user_id: 使用者 ID
 user_name: 使用者
 created_at: 送出時間
 processing_duration: 處理時長

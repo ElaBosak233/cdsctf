@@ -1,3 +1,5 @@
+import type { Timestamp } from "@/types";
+
 export type IdpView = {
   id: number;
   name: string;
@@ -6,8 +8,8 @@ export type IdpView = {
   avatar_hash: string | null;
   portal: string | null;
   script: string;
-  created_at: string;
-  updated_at: string;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 };
 
 export type IdpSummary = {

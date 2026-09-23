@@ -27,7 +27,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TagsField } from "@/components/ui/tags-field";
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
@@ -133,26 +139,37 @@ export default function Index() {
                     </FieldIcon>
                     <Select
                       {...field}
-                      options={categories?.map((category) => {
-                        const Icon = category.icon!;
-
-                        return {
-                          value: String(category?.id),
-                          content: (
-                            <div
-                              className={cn(["flex", "gap-2", "items-center"])}
-                            >
-                              <Icon />
-                              {category?.name?.toUpperCase()}
-                            </div>
-                          ),
-                        };
-                      })}
                       onValueChange={(value) => {
                         field.onChange(Number(value));
                       }}
                       value={String(field.value)}
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories?.map((category) => {
+                          const Icon = category.icon!;
+                          return (
+                            <SelectItem
+                              key={category.id}
+                              value={String(category.id)}
+                            >
+                              <span
+                                className={cn([
+                                  "flex",
+                                  "gap-2",
+                                  "items-center",
+                                ])}
+                              >
+                                <Icon />
+                                {category.name?.toUpperCase()}
+                              </span>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
                   </Field>
                 </FormControl>
                 <FormMessage />
@@ -195,21 +212,23 @@ export default function Index() {
                     </FieldIcon>
                     <Select
                       {...field}
-                      options={[
-                        {
-                          value: String(true),
-                          content: t("challenge:form.has_attachment.true"),
-                        },
-                        {
-                          value: String(false),
-                          content: t("challenge:form.has_attachment.false"),
-                        },
-                      ]}
                       onValueChange={(value) => {
                         field.onChange(value === "true");
                       }}
                       value={String(field.value)}
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">
+                          {t("challenge:form.has_attachment.true")}
+                        </SelectItem>
+                        <SelectItem value="false">
+                          {t("challenge:form.has_attachment.false")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </Field>
                 </FormControl>
                 <FormMessage />
@@ -229,35 +248,33 @@ export default function Index() {
                     </FieldIcon>
                     <Select
                       {...field}
-                      options={[
-                        {
-                          value: String(true),
-                          content: (
-                            <div
-                              className={cn(["flex", "gap-2", "items-center"])}
-                            >
-                              <ShipWheelIcon />
-                              {t("challenge:form.has_instance.true")}
-                            </div>
-                          ),
-                        },
-                        {
-                          value: String(false),
-                          content: (
-                            <div
-                              className={cn(["flex", "gap-2", "items-center"])}
-                            >
-                              <BoxIcon />
-                              {t("challenge:form.has_instance.false")}
-                            </div>
-                          ),
-                        },
-                      ]}
                       onValueChange={(value) => {
                         field.onChange(value === "true");
                       }}
                       value={String(field.value)}
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">
+                          <span
+                            className={cn(["flex", "gap-2", "items-center"])}
+                          >
+                            <ShipWheelIcon />
+                            {t("challenge:form.has_instance.true")}
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="false">
+                          <span
+                            className={cn(["flex", "gap-2", "items-center"])}
+                          >
+                            <BoxIcon />
+                            {t("challenge:form.has_instance.false")}
+                          </span>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </Field>
                 </FormControl>
                 <FormMessage />
@@ -277,21 +294,23 @@ export default function Index() {
                     </FieldIcon>
                     <Select
                       {...field}
-                      options={[
-                        {
-                          value: String(true),
-                          content: t("challenge:form.has_writeup.true"),
-                        },
-                        {
-                          value: String(false),
-                          content: t("challenge:form.has_writeup.false"),
-                        },
-                      ]}
                       onValueChange={(value) => {
                         field.onChange(value === "true");
                       }}
                       value={String(field.value)}
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">
+                          {t("challenge:form.has_writeup.true")}
+                        </SelectItem>
+                        <SelectItem value="false">
+                          {t("challenge:form.has_writeup.false")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </Field>
                 </FormControl>
                 <FormMessage />

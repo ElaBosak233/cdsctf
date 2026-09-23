@@ -1,6 +1,6 @@
+import { Avatar as BaseAvatar } from "@base-ui/react/avatar";
 import { cva, type VariantProps } from "class-variance-authority";
 import { LoaderCircleIcon } from "lucide-react";
-import { Avatar as RadixAvatar } from "radix-ui";
 import type * as React from "react";
 import { useState } from "react";
 import { cn } from "@/utils";
@@ -28,7 +28,7 @@ const avatarVariants = cva(
   }
 );
 
-type AvatarProps = React.ComponentProps<typeof RadixAvatar.Root> &
+type AvatarProps = React.ComponentProps<typeof BaseAvatar.Root> &
   VariantProps<typeof avatarVariants> & {
     src?: string | false | null;
     fallback?: React.ReactNode;
@@ -52,10 +52,10 @@ function Avatar(props: AvatarProps) {
     onLoadingStatusChange,
     ...rest
   } = props;
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(Boolean(src));
 
   return (
-    <RadixAvatar.Root
+    <BaseAvatar.Root
       ref={ref}
       className={cn(avatarVariants({ square, className }))}
       {...rest}
@@ -88,7 +88,7 @@ function Avatar(props: AvatarProps) {
           className={cn(["h-5", "w-5", "animate-spin", "text-primary"])}
         />
       </div>
-    </RadixAvatar.Root>
+    </BaseAvatar.Root>
   );
 }
 
@@ -98,12 +98,12 @@ function AvatarImage({
   fit = "cover",
   aspect = "square",
   ...rest
-}: React.ComponentProps<typeof RadixAvatar.Image> & {
+}: React.ComponentProps<typeof BaseAvatar.Image> & {
   fit?: string;
   aspect?: "square" | "video";
 }) {
   return (
-    <RadixAvatar.Image
+    <BaseAvatar.Image
       ref={ref}
       className={cn(
         [
@@ -128,9 +128,9 @@ function AvatarFallback({
   className,
   ref,
   ...rest
-}: React.ComponentProps<typeof RadixAvatar.Fallback>) {
+}: React.ComponentProps<typeof BaseAvatar.Fallback>) {
   return (
-    <RadixAvatar.Fallback
+    <BaseAvatar.Fallback
       ref={ref}
       className={cn(
         ["flex", "h-full", "w-full", "items-center", "justify-center"],

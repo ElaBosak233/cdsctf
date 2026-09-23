@@ -1,5 +1,5 @@
+import { Separator as SeparatorPrimitive } from "@base-ui/react/separator";
 import { cva } from "class-variance-authority";
-import { Separator as SeparatorPrimitive } from "radix-ui";
 import type * as React from "react";
 
 import { cn } from "@/utils/index";
@@ -13,27 +13,18 @@ const separatorVariants = cva(["shrink-0", "bg-border"], {
   },
 });
 
-function Separator(
-  props: React.ComponentProps<typeof SeparatorPrimitive.Root>
-) {
-  const {
-    className,
-    orientation = "horizontal",
-    decorative = true,
-    ref,
-    ...rest
-  } = props;
+function Separator(props: React.ComponentProps<typeof SeparatorPrimitive>) {
+  const { className, orientation = "horizontal", ref, ...rest } = props;
 
   return (
-    <SeparatorPrimitive.Root
+    <SeparatorPrimitive
       ref={ref}
-      decorative={decorative}
       orientation={orientation}
       className={cn(separatorVariants({ orientation, className }))}
       {...rest}
     />
   );
 }
-Separator.displayName = SeparatorPrimitive.Root.displayName;
+Separator.displayName = SeparatorPrimitive.displayName;
 
 export { Separator };

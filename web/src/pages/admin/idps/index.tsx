@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { IdCardIcon, PlusCircleIcon, UserRoundPlusIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { getConfigs, updateConfig } from "@/api/admin/configs";
@@ -45,18 +45,21 @@ export default function Index() {
     { id: "updated_at", desc: true },
   ]);
 
-  useEffect(() => {
-    getConfigs().then((response) => setAdminConfig(response.config));
-  }, []);
+  const { data: fetchedAdminConfig } = useQuery({
+    queryKey: ["admin", "config"],
+    queryFn: getConfigs,
+    select: (response) => response.config,
+  });
+  const effectiveAdminConfig = adminConfig ?? fetchedAdminConfig;
 
   async function setLocalRegistrationEnabled(enabled: boolean) {
-    if (!adminConfig) return;
+    if (!effectiveAdminConfig) return;
     setConfigSaving(true);
     try {
       const response = await updateConfig({
-        ...adminConfig,
+        ...effectiveAdminConfig,
         auth: {
-          ...adminConfig.auth,
+          ...effectiveAdminConfig.auth,
           local_registration_enabled: enabled,
         },
       });
@@ -87,8 +90,10 @@ export default function Index() {
         {t("admin:idp.local_registration._")}
       </span>
       <Switch
-        checked={adminConfig?.auth?.local_registration_enabled ?? false}
-        disabled={!adminConfig || configSaving}
+        checked={
+          effectiveAdminConfig?.auth?.local_registration_enabled ?? false
+        }
+        disabled={!effectiveAdminConfig || configSaving}
         onCheckedChange={setLocalRegistrationEnabled}
         aria-label={t("admin:idp.local_registration._")}
       />

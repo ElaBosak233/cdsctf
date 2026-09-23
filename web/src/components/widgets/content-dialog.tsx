@@ -31,15 +31,17 @@ export function ContentDialog({
       {showPreview && <span className="truncate max-w-xs">{preview}</span>}
 
       <Dialog>
-        <DialogTrigger>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={showPreview ? "ml-2 h-8 px-2" : "h-8 w-8 p-0"}
-          >
-            <EyeIcon className="h-4 w-4" />
-          </Button>
-        </DialogTrigger>
+        <DialogTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="sm"
+              className={showPreview ? "ml-2 h-8 px-2" : "h-8 w-8 p-0"}
+            >
+              <EyeIcon className="h-4 w-4" />
+            </Button>
+          }
+        />
         <DialogContent size="wide">
           <Card className={cn(["w-full", "max-w-2xl", "p-5", "min-h-64"])}>
             <Typography>

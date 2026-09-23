@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
 import type { ChallengeSummary } from "@/models/challenge";
 import type { PlayerTeamView } from "@/models/team";
+import type { Timestamp } from "@/types";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { AttachmentSection } from "./attachment-section";
@@ -22,7 +23,7 @@ import { SubmitSection } from "./submit-section";
 type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
   digest?: Pick<ChallengeSummary, "id" | "title" | "category">;
   gameTeam?: PlayerTeamView;
-  frozenAt?: string | null;
+  frozenAt?: Timestamp | null;
   debug?: boolean;
   cheated?: boolean;
 };
@@ -67,7 +68,7 @@ function ChallengeDialog(props: ChallengeDialogProps) {
       <Card
         className={cn([
           "w-full",
-          "max-w-5xl",
+          "max-w-4xl",
           "rounded-elevated",
           "shadow-lg",
           "overflow-hidden",

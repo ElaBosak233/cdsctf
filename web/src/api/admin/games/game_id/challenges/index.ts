@@ -24,6 +24,7 @@ export type CreateGameChallengeRequest = {
   min_pts?: number;
   difficulty?: number;
   bonus_ratios?: Array<number>;
+  frozen_at?: string | null;
 };
 
 export async function createGameChallenge(request: CreateGameChallengeRequest) {

@@ -21,7 +21,6 @@ pub struct PublicCaptchaConfig {
     pub provider: captcha::Provider,
     pub difficulty: u64,
     pub turnstile: PublicCaptchaSiteConfig,
-    pub hcaptcha: PublicCaptchaSiteConfig,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
@@ -43,9 +42,6 @@ impl From<&Config> for PublicConfig {
                 turnstile: PublicCaptchaSiteConfig {
                     site_key: config.captcha.turnstile.site_key.clone(),
                 },
-                hcaptcha: PublicCaptchaSiteConfig {
-                    site_key: config.captcha.hcaptcha.site_key.clone(),
-                },
             },
             logo_hash: config.logo_hash.clone(),
         }
@@ -65,12 +61,10 @@ mod tests {
         config.email.password = "secret".to_owned();
         config.email.whitelist = vec!["internal.example".to_owned()];
         config.captcha.turnstile.secret_key = "turnstile-secret".to_owned();
-        config.captcha.hcaptcha.secret_key = "hcaptcha-secret".to_owned();
 
         let value = serde_json::to_value(PublicConfig::from(&config)).unwrap();
         assert_eq!(value["email"], serde_json::json!({"enabled": false}));
         assert!(value["captcha"]["turnstile"].get("secret_key").is_none());
         assert!(value["captcha"]["turnstile"].get("url").is_none());
-        assert!(value["captcha"]["hcaptcha"].get("secret_key").is_none());
     }
 }

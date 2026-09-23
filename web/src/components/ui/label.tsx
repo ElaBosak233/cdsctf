@@ -1,15 +1,15 @@
-import { Label as RadixLabel } from "radix-ui";
 import type * as React from "react";
 
 import { cn } from "@/utils";
 
-type LabelProps = React.ComponentProps<typeof RadixLabel.Root>;
+type LabelProps = React.ComponentProps<"label">;
 
 function Label(props: LabelProps) {
   const { className, ...rest } = props;
 
   return (
-    <RadixLabel.Root
+    // biome-ignore lint/a11y/noLabelWithoutControl: The reusable component receives its association through htmlFor.
+    <label
       data-slot="label"
       className={cn(
         [

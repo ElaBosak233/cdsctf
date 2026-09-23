@@ -1,9 +1,9 @@
-import { ScrollArea as RadixScrollArea } from "radix-ui";
+import { ScrollArea as BaseScrollArea } from "@base-ui/react/scroll-area";
 import type * as React from "react";
 
 import { cn } from "@/utils";
 
-type ScrollAreaProps = React.ComponentProps<typeof RadixScrollArea.Root> & {
+type ScrollAreaProps = React.ComponentProps<typeof BaseScrollArea.Root> & {
   vertical?: boolean;
   horizontal?: boolean;
 };
@@ -18,12 +18,12 @@ function ScrollArea(props: ScrollAreaProps) {
   } = props;
 
   return (
-    <RadixScrollArea.Root
+    <BaseScrollArea.Root
       data-slot="scroll-area"
       className={cn("relative", className)}
       {...rest}
     >
-      <RadixScrollArea.Viewport
+      <BaseScrollArea.Viewport
         data-slot="scroll-area-viewport"
         className={cn([
           "ring-ring/10",
@@ -32,18 +32,17 @@ function ScrollArea(props: ScrollAreaProps) {
           "outline-ring/50",
           "size-full",
           "rounded-[inherit]",
-          "[&>div]:block!",
           "transition-[color,box-shadow]",
           "focus-visible:ring-4",
           "focus-visible:outline-1",
         ])}
       >
         {children}
-      </RadixScrollArea.Viewport>
+      </BaseScrollArea.Viewport>
       {vertical && <ScrollBar orientation={"vertical"} />}
       {horizontal && <ScrollBar orientation={"horizontal"} />}
-      <RadixScrollArea.Corner />
-    </RadixScrollArea.Root>
+      <BaseScrollArea.Corner />
+    </BaseScrollArea.Root>
   );
 }
 
@@ -51,9 +50,9 @@ function ScrollBar({
   className,
   orientation = "vertical",
   ...props
-}: React.ComponentProps<typeof RadixScrollArea.ScrollAreaScrollbar>) {
+}: React.ComponentProps<typeof BaseScrollArea.Scrollbar>) {
   return (
-    <RadixScrollArea.ScrollAreaScrollbar
+    <BaseScrollArea.Scrollbar
       data-slot="scroll-area-scrollbar"
       orientation={orientation}
       className={cn(
@@ -66,11 +65,11 @@ function ScrollBar({
       )}
       {...props}
     >
-      <RadixScrollArea.ScrollAreaThumb
+      <BaseScrollArea.Thumb
         data-slot="scroll-area-thumb"
         className="bg-foreground/30 relative flex-1 rounded-full hover:bg-foreground/40 active:bg-foreground/50 transition-colors"
       />
-    </RadixScrollArea.ScrollAreaScrollbar>
+    </BaseScrollArea.Scrollbar>
   );
 }
 

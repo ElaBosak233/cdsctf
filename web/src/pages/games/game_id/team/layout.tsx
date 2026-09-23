@@ -1,4 +1,3 @@
-import { timestamp } from "@/utils/time";
 import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
 import {
@@ -36,6 +35,7 @@ import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import { getGamePhase, isGameActive } from "@/utils/time";
 
 export default function Layout() {
   const { t } = useTranslation();
@@ -45,11 +45,9 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
-  const disabled = Date.now() > timestamp(currentGame?.ended_at);
-
-  const isGameOngoing =
-    timestamp(currentGame?.started_at) < Date.now() &&
-    timestamp(currentGame?.ended_at) > Date.now();
+  const phase = getGamePhase(currentGame ?? {});
+  const disabled = phase == null || phase === "ended";
+  const isGameOngoing = isGameActive(currentGame ?? {});
 
   const options = [
     {
@@ -175,22 +173,13 @@ export default function Layout() {
               {options?.map((option, index) => (
                 <SidebarMenuItem key={index}>
                   <SidebarMenuButton
-                    asChild={!option.disabled}
                     isActive={pathname === option.link}
                     disabled={option.disabled}
                     className="h-11 justify-start px-8 text-sm"
+                    render={<Link to={option.link} />}
                   >
-                    {option.disabled ? (
-                      <span>
-                        {option.icon}
-                        {option.name}
-                      </span>
-                    ) : (
-                      <Link to={option.link}>
-                        {option.icon}
-                        <span>{option.name}</span>
-                      </Link>
-                    )}
+                    {option.icon}
+                    <span>{option.name}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

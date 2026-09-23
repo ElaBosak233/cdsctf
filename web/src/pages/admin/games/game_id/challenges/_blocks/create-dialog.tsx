@@ -1,15 +1,22 @@
-import { HashIcon, LibraryIcon, TypeIcon } from "lucide-react";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { CheckIcon, LibraryIcon } from "lucide-react";
+import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { getChallenges } from "@/api/admin/challenges";
 import { createGameChallenge } from "@/api/admin/games/game_id/challenges";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
 import { Field, FieldIcon } from "@/components/ui/field";
-import { TextField } from "@/components/ui/text-field";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { ChallengeDetail } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
@@ -31,31 +38,48 @@ function CreateDialog(props: CreateDialogProps) {
   const { game } = useContext(Context);
   const sharedStore = useSharedStore();
 
-  const [id, setId] = useState<string>("");
-  const debouncedId = useDebounce(id, 100);
-  const [title, setTitle] = useState<string>("");
-  const debounceTitle = useDebounce(title, 100);
-  const [challenges, setChallenges] = useState<Array<ChallengeDetail>>();
+  const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query.trim(), 150);
+  const [selectedChallenge, setSelectedChallenge] =
+    useState<ChallengeDetail | null>(null);
 
-  const fetchChallenges = useCallback(() => {
-    getChallenges({
-      id: debouncedId ? Number(debouncedId) : undefined,
-      title: debounceTitle,
-      public: false,
-      size: 10,
-      page: 1,
-      sorts: "-created_at",
-    }).then((res) => {
-      setChallenges(res.challenges);
-    });
-  }, [debouncedId, debounceTitle]);
+  const challengeQuery = useQuery({
+    queryKey: ["admin", "game-challenge-options", debouncedQuery],
+    queryFn: async () => {
+      const numericId = /^\d+$/.test(debouncedQuery)
+        ? Number(debouncedQuery)
+        : undefined;
+      const [exactIdResult, titleResult] = await Promise.all([
+        numericId != null
+          ? getChallenges({
+              id: numericId,
+              public: false,
+              size: 1,
+              page: 1,
+            })
+          : Promise.resolve({ challenges: [], total: 0 }),
+        getChallenges({
+          title: debouncedQuery || undefined,
+          public: false,
+          size: 10,
+          page: 1,
+          sorts: "-created_at",
+        }),
+      ]);
 
-  useEffect(() => {
-    void debounceTitle;
-    void debouncedId;
-
-    fetchChallenges();
-  }, [fetchChallenges, debounceTitle, debouncedId]);
+      const seen = new Set<number>();
+      return [...exactIdResult.challenges, ...titleResult.challenges]
+        .filter((challenge) => {
+          if (seen.has(challenge.id)) return false;
+          seen.add(challenge.id);
+          return true;
+        })
+        .slice(0, 10);
+    },
+    enabled: true,
+    placeholderData: keepPreviousData,
+  });
+  const challenges = challengeQuery.data ?? [];
 
   function handleCreateGameChallenge(challenge: ChallengeDetail) {
     const gid = routeGameId ?? game?.id;
@@ -110,45 +134,65 @@ function CreateDialog(props: CreateDialogProps) {
         <span className={cn(["text-secondary-foreground", "text-sm"])}>
           {t("game:challenge.actions.add.message")}
         </span>
-        <div className={cn(["flex", "flex-col", "gap-3", "sm:flex-row"])}>
-          <Field size={"sm"} className={cn(["w-full"])}>
-            <FieldIcon>
-              <HashIcon />
-            </FieldIcon>
-            <TextField
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-              placeholder={t("challenge:form.id._")}
-            />
-          </Field>
-          <Field size={"sm"} className={cn(["w-full"])}>
-            <FieldIcon>
-              <TypeIcon />
-            </FieldIcon>
-            <TextField
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={t("challenge:title")}
-            />
-          </Field>
-        </div>
-        <div className={cn(["grid", "grid-cols-1", "sm:grid-cols-2", "gap-3"])}>
-          {challenges?.map((challenge) => {
-            const Icon = getCategory(challenge.category!).icon!;
-            return (
-              <Button
-                key={challenge?.id}
-                className={cn(["justify-start"])}
-                variant={"ghost"}
-                onClick={() => handleCreateGameChallenge(challenge)}
-              >
-                <Badge className={cn(["font-mono"])}>{challenge?.id}</Badge>
-                <Icon className={cn(["size-4"])} />
-                <span>{challenge?.title}</span>
-              </Button>
-            );
-          })}
-        </div>
+        <Field size="sm" className="w-full">
+          <FieldIcon>
+            <LibraryIcon />
+          </FieldIcon>
+          <Combobox<ChallengeDetail>
+            options={challenges.map((challenge) => ({
+              value: challenge,
+              content: challenge.title,
+            }))}
+            itemToStringLabel={(challenge) => challenge?.title ?? ""}
+            isItemEqualToValue={(item, value) => item.id === value.id}
+            filter={null}
+            onInputValueChange={(value, details) => {
+              if (details.reason === "input-change" || value === "") {
+                setQuery(value);
+              }
+            }}
+            value={selectedChallenge}
+            onValueChange={setSelectedChallenge}
+            placeholder={t("common:search")}
+            emptyText={t("challenge:empty")}
+          >
+            <ComboboxInput showClear placeholder={t("common:search")} />
+            <ComboboxContent>
+              <ComboboxEmpty>{t("challenge:empty")}</ComboboxEmpty>
+              <ComboboxList>
+                {challenges.map((challenge) => {
+                  const Icon = getCategory(challenge.category!).icon!;
+                  return (
+                    <ComboboxItem key={challenge.id} value={challenge}>
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                        #{challenge.id}
+                      </span>
+                      <Icon className="size-4 shrink-0" />
+                      <span className="min-w-0 truncate">
+                        {challenge.title}
+                      </span>
+                    </ComboboxItem>
+                  );
+                })}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+        </Field>
+        <Button
+          variant={"solid"}
+          icon={<CheckIcon />}
+          level={"success"}
+          // loading={loading}
+          disabled={selectedChallenge == null}
+          onClick={() => {
+            if (selectedChallenge) {
+              handleCreateGameChallenge(selectedChallenge);
+            }
+          }}
+          // type={"submit"}
+        >
+          {t("common:actions.confirm")}
+        </Button>
       </div>
     </Card>
   );

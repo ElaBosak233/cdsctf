@@ -3,21 +3,22 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { useTickerTime } from "@/hooks/use-ticker-time";
+import type { Timestamp } from "@/types";
 import { cn } from "@/utils";
-import { timestamp } from "@/utils/time";
+import { secondsUntil } from "@/utils/time";
 
-function FrozenBadge({ frozenAt }: { frozenAt: string }) {
-  const [remaining, setRemaining] = useState(timestamp(frozenAt) - Date.now());
+function FrozenBadge({ frozenAt }: { frozenAt: Timestamp }) {
+  const [remaining, setRemaining] = useState(() => secondsUntil(frozenAt) ?? 0);
   const now = useTickerTime();
   const { t } = useTranslation();
 
   useEffect(() => {
-    setRemaining(timestamp(frozenAt) - now.getTime());
+    setRemaining(secondsUntil(frozenAt, now) ?? 0);
   }, [frozenAt, now]);
 
   const formatRemaining = (ms: number) => {
     if (ms <= 0) return t("challenge:frozen.already");
-    const totalSeconds = Math.floor(ms / 1000);
+    const totalSeconds = ms;
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;

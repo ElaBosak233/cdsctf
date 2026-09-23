@@ -1,3 +1,5 @@
+import type { Timestamp } from "@/types";
+
 export type GameChallengeView = {
   game_id: number;
   challenge_id: number;
@@ -8,7 +10,7 @@ export type GameChallengeView = {
   max_pts: number;
   min_pts: number;
   bonus_ratios: number[];
-  frozen_at: string | null;
+  frozen_at: Timestamp | null;
   pts: number;
 };
 
@@ -18,5 +20,5 @@ export type GameChallengeSummary = {
   challenge_title: string;
   challenge_category: number;
   pts: number;
-  frozen_at: string | null;
+  frozen_at: Timestamp | null;
 };

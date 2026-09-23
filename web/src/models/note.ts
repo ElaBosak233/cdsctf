@@ -1,3 +1,5 @@
+import type { Timestamp } from "@/types";
+
 export type NoteView = {
   id: number;
   content: string;
@@ -8,6 +10,6 @@ export type NoteView = {
   challenge_title?: string;
   challenge_category?: number;
   public: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 };

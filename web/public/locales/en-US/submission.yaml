@@ -5,6 +5,7 @@ team_id: Team ID
 challenge_title: Challenge
 challenge_id: Challenge ID
 flag: Flag
+user_id: User ID
 user_name: User
 created_at: Time
 processing_duration: Processing time

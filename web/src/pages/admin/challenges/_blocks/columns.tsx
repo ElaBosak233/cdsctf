@@ -18,7 +18,6 @@ import {
   ShipWheelIcon,
   TrashIcon,
 } from "lucide-react";
-import { date } from "@/utils/time";
 import {
   createContext,
   type ReactNode,
@@ -57,6 +56,7 @@ import type { ChallengeDetail } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import { parseTimestamp } from "@/utils/time";
 
 const RowContext = createContext<{
   optimisticPublic: boolean;
@@ -156,17 +156,25 @@ function ChallengeCell({ row }: { row: Row<ChallengeDetail> }) {
         >
           <span className={cn(["shrink-0", "font-mono"])}>#{challenge.id}</span>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
-                square
-                size="sm"
-                variant="ghost"
-                className={cn(["size-6", "shrink-0", "text-muted-foreground"])}
-                aria-label={t("common:tooltip.copy")}
-                onClick={() => copyToClipboard(String(challenge.id))}
-              />
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  icon={
+                    isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />
+                  }
+                  square
+                  size="sm"
+                  variant="ghost"
+                  className={cn([
+                    "size-6",
+                    "shrink-0",
+                    "text-muted-foreground",
+                  ])}
+                  aria-label={t("common:tooltip.copy")}
+                  onClick={() => copyToClipboard(String(challenge.id))}
+                />
+              }
+            ></TooltipTrigger>
             <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
           </Tooltip>
           {challenge.description && (
@@ -269,7 +277,7 @@ function TimeCell({
 }) {
   const { t } = useTranslation();
   const format = (value: string) => {
-    const parsed = date(value);
+    const parsed = parseTimestamp(value);
     return parsed ? formatter.format(parsed) : "-";
   };
 
@@ -327,31 +335,33 @@ function ActionsCell({ row }: { row: Row<ChallengeDetail> }) {
       ])}
     >
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            square
-            icon={<EditIcon />}
-            aria-label={t("challenge:edit._")}
-            asChild
-          >
-            <Link to={`/admin/challenges/${challenge.id}`} />
-          </Button>
-        </TooltipTrigger>
+        <TooltipTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="sm"
+              square
+              icon={<EditIcon />}
+              aria-label={t("challenge:edit._")}
+              render={<Link to={`/admin/challenges/${challenge.id}`} />}
+            />
+          }
+        />
         <TooltipContent>{t("challenge:edit._")}</TooltipContent>
       </Tooltip>
 
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            square
-            size="sm"
-            variant="ghost"
-            icon={<EllipsisIcon />}
-            aria-label={t("challenge:actions._")}
-          />
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              square
+              size="sm"
+              variant="ghost"
+              icon={<EllipsisIcon />}
+              aria-label={t("challenge:actions._")}
+            />
+          }
+        ></DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem onClick={() => togglePublic(challenge.title)}>
             {optimisticPublic ? <EyeClosedIcon /> : <EyeIcon />}

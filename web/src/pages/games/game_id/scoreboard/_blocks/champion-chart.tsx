@@ -1,4 +1,3 @@
-import { timestamp } from "@/utils/time";
 import { useEffect, useMemo, useState } from "react";
 import {
   Brush,
@@ -9,7 +8,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
 import {
   type ChartConfig,
   ChartContainer,
@@ -18,6 +16,7 @@ import {
 } from "@/components/ui/chart";
 import type { ScoreboardEntry } from "@/models/game";
 import { cn } from "@/utils";
+import { toEpochMilliseconds } from "@/utils/time";
 
 const COLORS = [
   "#ff4d4f", // red
@@ -52,7 +51,7 @@ function ChampionChart(props: ChampionChartProps) {
 
       submissions?.forEach((submission) => {
         allSubmissions.push({
-          ts: timestamp(submission?.created_at),
+          ts: toEpochMilliseconds(submission?.created_at) ?? Number.NaN,
           teamId: team.id!,
           pts: Number(submission?.pts),
         });

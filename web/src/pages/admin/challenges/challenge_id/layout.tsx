@@ -104,21 +104,23 @@ export default function Layout() {
                   variant={pathname === option?.link ? "tonal" : "ghost"}
                   size="sm"
                   className={cn(["shrink-0"])}
-                  asChild
                   disabled={option?.disabled}
+                  render={<Comp to={option?.link} />}
                 >
-                  <Comp to={option?.link}>{option?.name}</Comp>
+                  {option?.name}
                 </Button>
               );
             })}
             <Dialog>
-              <DialogTrigger>
-                <Button variant="ghost" size="sm" className="shrink-0">
-                  <PlayIcon className="size-4" />
-                  {t("challenge:preview")}
-                </Button>
-              </DialogTrigger>
-              <DialogContent size="preview">
+              <DialogTrigger
+                render={
+                  <Button variant="ghost" size="sm" className="shrink-0">
+                    <PlayIcon className="size-4" />
+                    {t("challenge:preview")}
+                  </Button>
+                }
+              />
+              <DialogContent size="preview" className="max-w-4xl">
                 <ChallengeDialog digest={challenge} debug />
               </DialogContent>
             </Dialog>
@@ -171,30 +173,32 @@ export default function Layout() {
                     icon={option?.icon}
                     variant={pathname === option?.link ? "tonal" : "ghost"}
                     className={cn(["justify-start"])}
-                    asChild
                     disabled={option?.disabled}
+                    render={<Comp to={option?.link} />}
                   >
-                    <Comp to={option?.link}>{option?.name}</Comp>
+                    {option?.name}
                   </Button>
                 );
               })}
             </nav>
             <div className={cn(["border-t", "pt-4"])}>
               <Dialog>
-                <DialogTrigger>
-                  <Button
-                    icon={<PlayIcon className="size-4" />}
-                    variant="ghost"
-                    className={cn([
-                      "justify-start",
-                      "w-full",
-                      "text-muted-foreground",
-                    ])}
-                  >
-                    {t("challenge:preview")}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent size="preview">
+                <DialogTrigger
+                  render={
+                    <Button
+                      icon={<PlayIcon className="size-4" />}
+                      variant="ghost"
+                      className={cn([
+                        "justify-start",
+                        "w-full",
+                        "text-muted-foreground",
+                      ])}
+                    >
+                      {t("challenge:preview")}
+                    </Button>
+                  }
+                />
+                <DialogContent size="preview" className="max-w-4xl">
                   <ChallengeDialog digest={challenge} debug />
                 </DialogContent>
               </Dialog>

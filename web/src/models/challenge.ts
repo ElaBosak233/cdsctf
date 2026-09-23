@@ -1,3 +1,5 @@
+import type { Timestamp } from "@/types";
+
 export type ChallengeDetail = {
   id: number;
   title: string;
@@ -11,9 +13,9 @@ export type ChallengeDetail = {
   instance: Instance | null;
   checker: string | null;
   writeup: string | null;
-  deleted_at: number | null;
-  updated_at: string;
-  created_at: string;
+  deleted_at: Timestamp | null;
+  updated_at: Timestamp;
+  created_at: Timestamp;
 };
 
 export type ChallengeView = Pick<

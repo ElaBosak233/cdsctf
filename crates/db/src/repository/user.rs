@@ -58,6 +58,26 @@ fn base_find() -> sea_orm::Select<Entity> {
 /// Queries rows using filter options and returns `(rows, total_count)`.
 pub async fn find<T>(
     conn: &impl ConnectionTrait,
+    options: FindUserOptions,
+) -> Result<(Vec<T>, u64), DbError>
+where
+    T: FromQueryResult, {
+    find_scoped(conn, options, None).await
+}
+
+/// Queries users who belong to at least one team in a game.
+pub async fn find_by_game_id<T>(
+    conn: &impl ConnectionTrait,
+    game_id: i64,
+    options: FindUserOptions,
+) -> Result<(Vec<T>, u64), DbError>
+where
+    T: FromQueryResult, {
+    find_scoped(conn, options, Some(game_id)).await
+}
+
+async fn find_scoped<T>(
+    conn: &impl ConnectionTrait,
     FindUserOptions {
         id,
         name,
@@ -66,6 +86,7 @@ pub async fn find<T>(
         size,
         sorts,
     }: FindUserOptions,
+    game_id: Option<i64>,
 ) -> Result<(Vec<T>, u64), DbError>
 where
     T: FromQueryResult, {
@@ -85,6 +106,13 @@ where
 
     if let Some(group) = group {
         sql = sql.filter(Column::Group.eq(group));
+    }
+
+    if let Some(game_id) = game_id {
+        sql = sql
+            .inner_join(crate::entity::team::Entity)
+            .filter(crate::entity::team::Column::GameId.eq(game_id))
+            .distinct();
     }
 
     sql = sql.filter(Column::DeletedAt.is_null());

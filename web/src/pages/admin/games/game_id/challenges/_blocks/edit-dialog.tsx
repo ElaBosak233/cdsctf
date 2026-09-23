@@ -1,4 +1,3 @@
-import { date } from "@/utils/time";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ClockFadingIcon,
@@ -43,6 +42,7 @@ import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { curve } from "@/utils/math";
 import { parseRouteNumericId } from "@/utils/query";
+import { parseTimestamp } from "@/utils/time";
 import { Context } from "../../context";
 
 interface EditDialogProps {
@@ -86,7 +86,7 @@ function EditDialog(props: EditDialogProps) {
       {
         ...gameChallenge,
         frozen_at: gameChallenge.frozen_at
-          ? date(gameChallenge.frozen_at)
+          ? parseTimestamp(gameChallenge.frozen_at)
           : undefined,
       },
       {
@@ -137,9 +137,7 @@ function EditDialog(props: EditDialogProps) {
       game_id: gid,
       challenge_id: cid,
       ...values,
-      frozen_at: values.frozen_at
-        ? values.frozen_at.toISOString()
-        : null,
+      frozen_at: values.frozen_at ? values.frozen_at.toISOString() : null,
     }).then(() => {
       toast.success(
         t("game:challenge.actions.edit_config_success", {

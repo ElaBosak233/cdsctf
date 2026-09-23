@@ -1,4 +1,3 @@
-import { date } from "@/utils/time";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -44,6 +43,7 @@ import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 import type { IdpView } from "@/models/idp";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseTimestamp } from "@/utils/time";
 
 const RowContext = createContext<{
   optimisticEnabled: boolean;
@@ -270,7 +270,7 @@ function UpdatedAtCell({
   row: Row<IdpView>;
   formatter: Intl.DateTimeFormat;
 }) {
-  const updatedAt = date(row.original.updated_at);
+  const updatedAt = parseTimestamp(row.original.updated_at);
 
   return (
     <span className="whitespace-nowrap text-sm text-secondary-foreground">
@@ -303,30 +303,32 @@ function ActionsCell({ row }: { row: Row<IdpView> }) {
       ])}
     >
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            square
-            icon={<EditIcon />}
-            aria-label={t("admin:idp.actions.update._")}
-            asChild
-          >
-            <Link to={`/admin/idps/${idp.id}`} />
-          </Button>
-        </TooltipTrigger>
+        <TooltipTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="sm"
+              square
+              icon={<EditIcon />}
+              aria-label={t("admin:idp.actions.update._")}
+              render={<Link to={`/admin/idps/${idp.id}`} />}
+            />
+          }
+        />
         <TooltipContent>{t("admin:idp.actions.update._")}</TooltipContent>
       </Tooltip>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            square
-            size="sm"
-            variant="ghost"
-            icon={<EllipsisIcon />}
-            aria-label={t("admin:idp.actions._")}
-          />
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              square
+              size="sm"
+              variant="ghost"
+              icon={<EllipsisIcon />}
+              aria-label={t("admin:idp.actions._")}
+            />
+          }
+        ></DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem
             onClick={() => setDeleteDialogOpen(true)}

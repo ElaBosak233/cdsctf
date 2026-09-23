@@ -1,5 +1,6 @@
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { IdCardIcon, LogInIcon, UserRoundPlusIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -26,9 +27,6 @@ import { LoginForm } from "./_blocks/login-form";
 
 export default function Index() {
   const { config } = useConfigStore();
-  const [idps, setIdps] = useState<Awaited<ReturnType<typeof getIdps>>["idps"]>(
-    []
-  );
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { t } = useTranslation();
@@ -50,9 +48,12 @@ export default function Index() {
     });
   }, [navigate, redirect, status, t, user]);
 
-  useEffect(() => {
-    getIdps().then((res) => setIdps(res.idps ?? []));
-  }, []);
+  const { data: idps = [] } = useQuery({
+    queryKey: ["idps"],
+    queryFn: getIdps,
+    select: (response) => response.idps ?? [],
+    placeholderData: keepPreviousData,
+  });
 
   return (
     <>
@@ -105,51 +106,51 @@ export default function Index() {
               <div className={cn(["md:hidden", "flex", "flex-col", "gap-2"])}>
                 {config?.auth?.local_registration_enabled && (
                   <Button
-                    asChild
                     className={cn(["w-full"])}
                     size={"lg"}
                     variant={"tonal"}
                     icon={<UserRoundPlusIcon />}
+                    render={<Link to={registerUrl} />}
                   >
-                    <Link to={registerUrl}>
-                      {t("account:register.not_yet")}
-                    </Link>
+                    {t("account:register.not_yet")}
                   </Button>
                 )}
                 {idps.length > 0 && (
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        className={cn(["w-full"])}
-                        size={"lg"}
-                        variant={"tonal"}
-                        icon={<IdCardIcon />}
-                      >
-                        {t("account:idp.third_party")}
-                      </Button>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          className={cn(["w-full"])}
+                          size={"lg"}
+                          variant={"tonal"}
+                          icon={<IdCardIcon />}
+                        />
+                      }
+                    >
+                      {t("account:idp.third_party")}
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className={cn(["min-w-64"])}>
                       {idps.map((idp) => (
                         <DropdownMenuItem
                           key={idp.id}
                           className={cn(["flex", "items-center", "gap-2"])}
-                          asChild
-                        >
-                          <a
-                            href={getIdpUrl(idp.id, idp.portal)}
-                            onClick={() => rememberIdpRedirect(redirect)}
-                          >
-                            <Avatar
-                              square
-                              className={cn(["size-5", "bg-transparent"])}
-                              src={
-                                idp.avatar_hash &&
-                                `/api/media?hash=${idp.avatar_hash}`
-                              }
-                              fallback={idp.name?.charAt(0)}
+                          render={
+                            <a
+                              href={getIdpUrl(idp.id, idp.portal)}
+                              onClick={() => rememberIdpRedirect(redirect)}
                             />
-                            {idp.name}
-                          </a>
+                          }
+                        >
+                          <Avatar
+                            square
+                            className={cn(["size-5", "bg-transparent"])}
+                            src={
+                              idp.avatar_hash &&
+                              `/api/media?hash=${idp.avatar_hash}`
+                            }
+                            fallback={idp.name?.charAt(0)}
+                          />
+                          {idp.name}
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuContent>
@@ -191,49 +192,51 @@ export default function Index() {
             </div>
             {config?.auth?.local_registration_enabled && (
               <Button
-                asChild
                 className={cn("w-full")}
                 size={"lg"}
                 variant={"tonal"}
                 icon={<UserRoundPlusIcon />}
+                render={<Link to={registerUrl} />}
               >
-                <Link to={registerUrl}>{t("account:register.not_yet")}</Link>
+                {t("account:register.not_yet")}
               </Button>
             )}
             {idps.length > 0 && (
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    className={cn("w-full", "mt-2")}
-                    size={"lg"}
-                    variant={"tonal"}
-                    icon={<IdCardIcon />}
-                  >
-                    {t("account:idp.third_party")}
-                  </Button>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      className={cn("w-full", "mt-2")}
+                      size={"lg"}
+                      variant={"tonal"}
+                      icon={<IdCardIcon />}
+                    />
+                  }
+                >
+                  {t("account:idp.third_party")}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className={cn(["min-w-64"])}>
                   {idps.map((idp) => (
                     <DropdownMenuItem
                       key={idp.id}
                       className={cn(["flex", "items-center", "gap-2"])}
-                      asChild
-                    >
-                      <a
-                        href={getIdpUrl(idp.id, idp.portal)}
-                        onClick={() => rememberIdpRedirect(redirect)}
-                      >
-                        <Avatar
-                          square
-                          className={cn(["size-5", "bg-transparent"])}
-                          src={
-                            idp.avatar_hash &&
-                            `/api/media?hash=${idp.avatar_hash}`
-                          }
-                          fallback={idp.name?.charAt(0)}
+                      render={
+                        <a
+                          href={getIdpUrl(idp.id, idp.portal)}
+                          onClick={() => rememberIdpRedirect(redirect)}
                         />
-                        {idp.name}
-                      </a>
+                      }
+                    >
+                      <Avatar
+                        square
+                        className={cn(["size-5", "bg-transparent"])}
+                        src={
+                          idp.avatar_hash &&
+                          `/api/media?hash=${idp.avatar_hash}`
+                        }
+                        fallback={idp.name?.charAt(0)}
+                      />
+                      {idp.name}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>

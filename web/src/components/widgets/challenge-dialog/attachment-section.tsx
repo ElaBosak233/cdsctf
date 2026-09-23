@@ -38,18 +38,23 @@ export function AttachmentSection() {
   return (
     <div className={cn(["flex", "gap-3", "flex-wrap"])}>
       {metadata?.map((m) => (
-        <Button asChild icon={<DownloadIcon />} size={"sm"} key={m.filename}>
-          <a
-            target={"_blank"}
-            href={
-              debug
-                ? `/api/admin/challenges/${challenge?.id}/attachments/${m.filename}`
-                : `/api/challenges/${challenge?.id}/attachments/${m.filename}`
-            }
-            rel="noopener"
-          >
-            {m.filename}
-          </a>
+        <Button
+          render={
+            <a
+              target={"_blank"}
+              href={
+                debug
+                  ? `/api/admin/challenges/${challenge?.id}/attachments/${m.filename}`
+                  : `/api/challenges/${challenge?.id}/attachments/${m.filename}`
+              }
+              rel="noopener"
+            />
+          }
+          icon={<DownloadIcon />}
+          size={"sm"}
+          key={m.filename}
+        >
+          {m.filename}
         </Button>
       ))}
     </div>

@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
   CheckIcon,
   MailCheckIcon,
@@ -5,7 +6,7 @@ import {
   MailsIcon,
   TrashIcon,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getEmails } from "@/api/users/me/emails";
 import { Button } from "@/components/ui/button";
@@ -35,8 +36,6 @@ export default function Index() {
   const configStore = useConfigStore();
   const { tick, bump } = useRefresh();
 
-  const [emails, setEmails] = useState<Array<EmailView>>();
-
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
 
   const [verifyDialogOpen, setVerifyDialogOpen] = useState<boolean>(false);
@@ -45,13 +44,10 @@ export default function Index() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [deleteEmail, setDeleteEmail] = useState<string>("");
 
-  useEffect(() => {
-    void tick;
-
-    getEmails().then((res) => {
-      setEmails(res.emails);
-    });
-  }, [tick]);
+  const { data: emails = [] } = useQuery<Array<EmailView>>({
+    queryKey: ["account", "emails", tick],
+    queryFn: async () => (await getEmails()).emails ?? [],
+  });
 
   return (
     <>

@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { MailCheckIcon, SaveIcon, TypeIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -20,10 +21,15 @@ import {
 } from "@/components/ui/form";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { NumberField } from "@/components/ui/number-field";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
-import type { AdminConfig } from "@/models/config";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
@@ -31,24 +37,21 @@ export default function Index() {
   const { t } = useTranslation();
 
   const { config: globalConfig } = useConfigStore();
-  const [config, setConfig] = useState<AdminConfig>();
-
-  const [verifyBody, setVerifyBody] = useState<string>();
-  const [forgetBody, setForgetBody] = useState<string>();
-
-  useEffect(() => {
-    getConfigs().then((res) => {
-      setConfig(res.config);
-    });
-
-    getEmail("verify").then((res) => {
-      setVerifyBody(res.content);
-    });
-
-    getEmail("forget").then((res) => {
-      setForgetBody(res.content);
-    });
-  }, []);
+  const { data: config } = useQuery({
+    queryKey: ["admin", "config"],
+    queryFn: getConfigs,
+    select: (response) => response.config,
+  });
+  const { data: verifyBody } = useQuery({
+    queryKey: ["admin", "email-template", "verify"],
+    queryFn: () => getEmail("verify"),
+    select: (response) => response.content,
+  });
+  const { data: forgetBody } = useQuery({
+    queryKey: ["admin", "email-template", "forget"],
+    queryFn: () => getEmail("forget"),
+    select: (response) => response.content,
+  });
 
   const formSchema = z.object({
     enabled: z.boolean(),
@@ -145,21 +148,23 @@ export default function Index() {
                       <TypeIcon />
                     </FieldIcon>
                     <Select
-                      options={[
-                        {
-                          value: String(true),
-                          content: t("admin:mailbox.enabled.true"),
-                        },
-                        {
-                          value: String(false),
-                          content: t("admin:mailbox.enabled.false"),
-                        },
-                      ]}
                       onValueChange={(value) => {
                         field.onChange(value === "true");
                       }}
                       value={String(field.value)}
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">
+                          {t("admin:mailbox.enabled.true")}
+                        </SelectItem>
+                        <SelectItem value="false">
+                          {t("admin:mailbox.enabled.false")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </Field>
                 </FormControl>
                 <FormMessage />
@@ -230,23 +235,24 @@ export default function Index() {
                             <TypeIcon />
                           </FieldIcon>
                           <Select
-                            options={[
-                              {
-                                value: "tls",
-                                content: t("admin:mailbox.tls.tls"),
-                              },
-                              {
-                                value: "starttls",
-                                content: t("admin:mailbox.tls.starttls"),
-                              },
-                              {
-                                value: "none",
-                                content: t("admin:mailbox.tls.none"),
-                              },
-                            ]}
                             onValueChange={field.onChange}
                             value={String(field.value)}
-                          />
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="tls">
+                                {t("admin:mailbox.tls.tls")}
+                              </SelectItem>
+                              <SelectItem value="starttls">
+                                {t("admin:mailbox.tls.starttls")}
+                              </SelectItem>
+                              <SelectItem value="none">
+                                {t("admin:mailbox.tls.none")}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
                         </Field>
                       </FormControl>
                       <FormMessage />

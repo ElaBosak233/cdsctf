@@ -32,7 +32,13 @@ import {
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { NumberField } from "@/components/ui/number-field";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -242,21 +248,23 @@ export default function Index() {
                     </FieldIcon>
                     <Select
                       {...field}
-                      options={[
-                        {
-                          value: String(true),
-                          content: t("challenge:form.instance.internet.true"),
-                        },
-                        {
-                          value: String(false),
-                          content: t("challenge:form.instance.internet.false"),
-                        },
-                      ]}
                       onValueChange={(value) => {
                         field.onChange(value === "true");
                       }}
                       value={String(field.value)}
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">
+                          {t("challenge:form.instance.internet.true")}
+                        </SelectItem>
+                        <SelectItem value="false">
+                          {t("challenge:form.instance.internet.false")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </Field>
                 </FormControl>
                 <FormMessage />
@@ -367,29 +375,30 @@ export default function Index() {
                         </FieldIcon>
                         <Select
                           {...field}
-                          options={[
-                            {
-                              value: "Always",
-                              content: t(
-                                "challenge:form.instance.containers.image_pull_policy.always"
-                              ),
-                            },
-                            {
-                              value: "IfNotPresent",
-                              content: t(
-                                "challenge:form.instance.containers.image_pull_policy.if_not_present"
-                              ),
-                            },
-                            {
-                              value: "Never",
-                              content: t(
-                                "challenge:form.instance.containers.image_pull_policy.never"
-                              ),
-                            },
-                          ]}
                           onValueChange={field.onChange}
                           value={field.value}
-                        />
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Always">
+                              {t(
+                                "challenge:form.instance.containers.image_pull_policy.always"
+                              )}
+                            </SelectItem>
+                            <SelectItem value="IfNotPresent">
+                              {t(
+                                "challenge:form.instance.containers.image_pull_policy.if_not_present"
+                              )}
+                            </SelectItem>
+                            <SelectItem value="Never">
+                              {t(
+                                "challenge:form.instance.containers.image_pull_policy.never"
+                              )}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </Field>
                     </FormControl>
                     <FormMessage />
@@ -444,23 +453,25 @@ export default function Index() {
                             </FieldIcon>
                             <Select
                               {...field}
-                              options={[
-                                {
-                                  value: "TCP",
-                                  content: t(
-                                    "challenge:form.instance.containers.ports.protocol.tcp"
-                                  ),
-                                },
-                                {
-                                  value: "UDP",
-                                  content: t(
-                                    "challenge:form.instance.containers.ports.protocol.udp"
-                                  ),
-                                },
-                              ]}
                               onValueChange={field.onChange}
                               value={field.value}
-                            />
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="TCP">
+                                  {t(
+                                    "challenge:form.instance.containers.ports.protocol.tcp"
+                                  )}
+                                </SelectItem>
+                                <SelectItem value="UDP">
+                                  {t(
+                                    "challenge:form.instance.containers.ports.protocol.udp"
+                                  )}
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
                           </Field>
                         </FormControl>
                         <FormMessage />

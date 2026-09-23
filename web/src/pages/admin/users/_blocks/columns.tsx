@@ -1,4 +1,3 @@
-import { date } from "@/utils/time";
 import {
   AlertCircleIcon,
   ArrowDownIcon,
@@ -41,6 +40,7 @@ import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 import { Group, type UserAccountView } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseTimestamp } from "@/utils/time";
 
 function UserCell({ row }: { row: Row<UserAccountView> }) {
   const user = row.original;
@@ -69,17 +69,25 @@ function UserCell({ row }: { row: Row<UserAccountView> }) {
         >
           <span className="shrink-0 font-mono">#{user.id}</span>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
-                square
-                size="sm"
-                variant="ghost"
-                className={cn(["size-6", "shrink-0", "text-muted-foreground"])}
-                aria-label={t("common:tooltip.copy")}
-                onClick={() => copyToClipboard(String(user.id))}
-              />
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  icon={
+                    isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />
+                  }
+                  square
+                  size="sm"
+                  variant="ghost"
+                  className={cn([
+                    "size-6",
+                    "shrink-0",
+                    "text-muted-foreground",
+                  ])}
+                  aria-label={t("common:tooltip.copy")}
+                  onClick={() => copyToClipboard(String(user.id))}
+                />
+              }
+            ></TooltipTrigger>
             <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
           </Tooltip>
           {user.name && (
@@ -181,7 +189,7 @@ function CreatedAtCell({
   row: Row<UserAccountView>;
   formatter: Intl.DateTimeFormat;
 }) {
-  const createdAt = date(row.original.created_at);
+  const createdAt = parseTimestamp(row.original.created_at);
 
   return (
     <span className="whitespace-nowrap text-sm text-secondary-foreground">
@@ -215,30 +223,32 @@ function ActionsCell({ row }: { row: Row<UserAccountView> }) {
       ])}
     >
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            square
-            icon={<EditIcon />}
-            aria-label={t("user:actions.update._")}
-            asChild
-          >
-            <Link to={`/admin/users/${id}`} />
-          </Button>
-        </TooltipTrigger>
+        <TooltipTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="sm"
+              square
+              icon={<EditIcon />}
+              aria-label={t("user:actions.update._")}
+              render={<Link to={`/admin/users/${id}`} />}
+            />
+          }
+        />
         <TooltipContent>{t("user:actions.update._")}</TooltipContent>
       </Tooltip>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            square
-            size="sm"
-            variant="ghost"
-            icon={<EllipsisIcon />}
-            aria-label={t("user:actions._")}
-          />
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              square
+              size="sm"
+              variant="ghost"
+              icon={<EllipsisIcon />}
+              aria-label={t("user:actions._")}
+            />
+          }
+        ></DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem
             onClick={() => setDeleteDialogOpen(true)}

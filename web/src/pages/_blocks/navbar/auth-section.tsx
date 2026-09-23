@@ -34,46 +34,45 @@ function AuthSection() {
   if (user?.id) {
     return (
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button square>
+        <DropdownMenuTrigger
+          className={cn(
+            "relative inline-flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-md p-1 transition-colors hover:bg-primary/10"
+          )}
+          aria-label={user.name || user.username}
+        >
+          <Avatar
+            className={cn("h-8", "w-8")}
+            src={user.avatar_hash && `/api/media?hash=${user.avatar_hash}`}
+            fallback={user.name?.charAt(0)}
+          />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent sideOffset={20} className="w-42">
+          <DropdownMenuItem
+            className={cn(["flex", "items-center", "gap-2"])}
+            render={<Link to={`/users/${user.id}`} />}
+          >
             <Avatar
               className={cn("h-8", "w-8")}
               src={user.avatar_hash && `/api/media?hash=${user.avatar_hash}`}
               fallback={user.name?.charAt(0)}
             />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent sideOffset={20} className="w-42">
-          <DropdownMenuItem
-            className={cn(["flex", "items-center", "gap-2"])}
-            asChild
-          >
-            <Link to={`/users/${user.id}`}>
-              <Avatar
-                className={cn("h-8", "w-8")}
-                src={user.avatar_hash && `/api/media?hash=${user.avatar_hash}`}
-                fallback={user.name?.charAt(0)}
-              />
-              <div className={cn(["flex", "flex-col"])}>
-                <p className={cn(["text-sm", "line-clamp-2"])}>{user.name}</p>
-                <p
-                  className={cn([
-                    "text-xs",
-                    "text-muted-foreground",
-                    "line-clamp-1",
-                  ])}
-                >
-                  {`# ${user.username}`}
-                </p>
-              </div>
-            </Link>
+            <div className={cn(["flex", "flex-col"])}>
+              <p className={cn(["text-sm", "line-clamp-2"])}>{user.name}</p>
+              <p
+                className={cn([
+                  "text-xs",
+                  "text-muted-foreground",
+                  "line-clamp-1",
+                ])}
+              >
+                {`# ${user.username}`}
+              </p>
+            </div>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Link to={"/account/settings"}>
-              <SettingsIcon />
-              {t("account:setting")}
-            </Link>
+          <DropdownMenuItem render={<Link to={"/account/settings"} />}>
+            <SettingsIcon />
+            {t("account:setting")}
           </DropdownMenuItem>
           <DropdownMenuItem
             className={cn("text-error", "hover:text-error")}
@@ -88,10 +87,11 @@ function AuthSection() {
   }
 
   return (
-    <Button asChild icon={<UserRoundIcon />}>
-      <Link to={getLoginUrl(getLoginTarget(location))}>
-        {t("account:login._")}
-      </Link>
+    <Button
+      icon={<UserRoundIcon />}
+      render={<Link to={getLoginUrl(getLoginTarget(location))} />}
+    >
+      {t("account:login._")}
     </Button>
   );
 }
