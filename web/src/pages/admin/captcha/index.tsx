@@ -1,6 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { BotIcon, ClockIcon, LockIcon, SaveIcon, SendIcon } from "lucide-react";
+import {
+  BotIcon,
+  ClockIcon,
+  KeyIcon,
+  LinkIcon,
+  LockIcon,
+  LockKeyholeIcon,
+  SaveIcon,
+} from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -43,9 +51,7 @@ export default function Index() {
   });
 
   const formSchema = z.object({
-    provider: z
-      .enum(["none", "pow", "image", "turnstile", "hcaptcha"])
-      .optional(),
+    provider: z.enum(["none", "pow", "image", "turnstile"]).optional(),
     difficulty: z.number().default(1).optional(),
     turnstile: z
       .object({
@@ -54,14 +60,6 @@ export default function Index() {
         secret_key: z.string().default("").optional(),
       })
 
-      .optional(),
-    hcaptcha: z
-      .object({
-        url: z.string().default("").optional(),
-        site_key: z.string().default("").optional(),
-        secret_key: z.string().default("").optional(),
-        score: z.number().default(0).optional(),
-      })
       .optional(),
   });
 
@@ -149,9 +147,6 @@ export default function Index() {
                           <SelectItem value="turnstile">
                             {t("admin:captcha.provider.turnstile")}
                           </SelectItem>
-                          <SelectItem value="hcaptcha">
-                            {t("admin:captcha.provider.hcaptcha")}
-                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </Field>
@@ -202,7 +197,7 @@ export default function Index() {
                     <FormControl>
                       <Field>
                         <FieldIcon>
-                          <SendIcon />
+                          <LinkIcon />
                         </FieldIcon>
                         <TextField
                           {...field}
@@ -227,7 +222,7 @@ export default function Index() {
                       <FormControl>
                         <Field>
                           <FieldIcon>
-                            <SendIcon />
+                            <KeyIcon />
                           </FieldIcon>
                           <TextField
                             {...field}
@@ -251,114 +246,7 @@ export default function Index() {
                       <FormControl>
                         <Field>
                           <FieldIcon>
-                            <SendIcon />
-                          </FieldIcon>
-                          <TextField
-                            {...field}
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                          />
-                        </Field>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </>
-          )}
-          {form.watch("provider") === "hcaptcha" && (
-            <>
-              <div className={cn(["flex", "flex-col", "gap-3", "sm:flex-row"])}>
-                <FormField
-                  control={form.control}
-                  name={"hcaptcha.url"}
-                  render={({ field }) => (
-                    <FormItem className={cn(["w-full"])}>
-                      <FormLabel>
-                        {t("admin:captcha.form.hcaptcha.url._")}
-                      </FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <SendIcon />
-                          </FieldIcon>
-                          <TextField
-                            {...field}
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                          />
-                        </Field>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={"hcaptcha.score"}
-                  render={({ field }) => (
-                    <FormItem className={cn(["w-full"])}>
-                      <FormLabel>
-                        {t("admin:captcha.form.hcaptcha.score._")}
-                      </FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <ClockIcon />
-                          </FieldIcon>
-                          <TextField
-                            {...field}
-                            type={"number"}
-                            value={field.value || ""}
-                            onChange={(e) =>
-                              field.onChange(e.target.valueAsNumber)
-                            }
-                          />
-                        </Field>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className={cn(["flex", "flex-col", "gap-3", "sm:flex-row"])}>
-                <FormField
-                  control={form.control}
-                  name={"hcaptcha.site_key"}
-                  render={({ field }) => (
-                    <FormItem className={cn(["w-full"])}>
-                      <FormLabel>
-                        {t("admin:captcha.form.hcaptcha.site_key._")}
-                      </FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <SendIcon />
-                          </FieldIcon>
-                          <TextField
-                            {...field}
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                          />
-                        </Field>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={"hcaptcha.secret_key"}
-                  render={({ field }) => (
-                    <FormItem className={cn(["w-full"])}>
-                      <FormLabel>
-                        {t("admin:captcha.form.hcaptcha.secret_key._")}
-                      </FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <SendIcon />
+                            <LockKeyholeIcon />
                           </FieldIcon>
                           <TextField
                             {...field}

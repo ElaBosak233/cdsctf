@@ -77,7 +77,6 @@ captcha:
     pow: Proof of Work
     image: Image
     turnstile: Cloudflare Turnstile
-    hcaptcha: HCaptcha
   form:
     provider:
       _: Provider
@@ -92,15 +91,6 @@ captcha:
         _: Site Key
       secret_key:
         _: Secret Key
-    hcaptcha:
-      url:
-        _: API URL
-      site_key:
-        _: Site Key
-      secret_key:
-        _: Secret Key
-      score:
-        _: Score
   actions:
     update:
       _: Update Captcha Settings

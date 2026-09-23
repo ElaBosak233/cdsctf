@@ -1,4 +1,3 @@
-import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { BotIcon, ImageIcon, RefreshCcwIcon } from "lucide-react";
 import {
@@ -20,7 +19,6 @@ import { useApperanceStore } from "@/storages/appearance";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { encodeBase64 } from "@/utils/crypto";
 
 export const Context = createContext<{
   refresh: number;
@@ -61,13 +59,6 @@ export function Captcha(props: CaptchaProps) {
               size: "flexible",
               theme: themeStore?.theme === "dark" ? "dark" : "light",
             }}
-          />
-        );
-      case "hcaptcha":
-        return (
-          <HCaptcha
-            sitekey={String(configStore?.config?.captcha?.hcaptcha?.site_key)}
-            onVerify={(token) => onChange({ content: token })}
           />
         );
       case "pow":
@@ -190,27 +181,31 @@ function ImageCaptcha(props: CaptchaProps) {
   }, [id, result, onChange]);
 
   return (
-    <div className={cn(["flex", "items-center", "gap-2"])}>
-      <Field className={cn(["flex-1"])}>
-        <FieldIcon>
-          <ImageIcon />
-        </FieldIcon>
-        <TextField
-          value={result}
-          onChange={(e) => setResult(e.target.value)}
-          placeholder={t("common:captcha.placeholder")}
-        />
-      </Field>
-      <img
-        src={`data:image/svg+xml;base64,${encodeBase64(String(challenge))}`}
-        alt={"captcha"}
-        onClick={() => setRefresh?.()}
-        draggable={false}
-        style={{
-          height: 40,
-          width: 60,
-        }}
+    <Field>
+      <FieldIcon>
+        <ImageIcon />
+      </FieldIcon>
+      <TextField
+        value={result}
+        onChange={(e) => setResult(e.target.value)}
+        placeholder={t("common:captcha.placeholder")}
       />
-    </div>
+      <FieldButton
+        className={cn(["!aspect-auto", "w-20", "px-1"])}
+        aria-label={t("common:refresh")}
+        onClick={() => setRefresh?.()}
+      >
+        <img
+          src={
+            challenge
+              ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(challenge)}`
+              : undefined
+          }
+          alt=""
+          className={cn(["h-10", "w-18", "object-contain"])}
+          draggable={false}
+        />
+      </FieldButton>
+    </Field>
   );
 }

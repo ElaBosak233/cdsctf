@@ -23,9 +23,6 @@ importers:
       '@fontsource-variable/ubuntu-sans-mono':
         specifier: ^5.3.0
         version: 5.3.0
-      '@hcaptcha/react-hcaptcha':
-        specifier: ^2.2.0
-        version: 2.2.0
       '@hookform/resolvers':
         specifier: ^5.9.1
         version: 5.9.1(@standard-schema/spec@1.1.0)(react-hook-form@7.88.0(react@19.3.0))(zod@4.6.4)
@@ -430,9 +427,6 @@ packages:
 
   '@fontsource-variable/ubuntu-sans@5.3.0':
     resolution: {integrity: sha512-SsQHgZOfw7O6S3c8XtObfXIG034nUpPXWdPhjeFRwtfESjALC9wUYeMTXXalutKpk+mFs3V4vRQVJpeJvmZ9iA==}
-
-  '@hcaptcha/react-hcaptcha@2.2.0':
-    resolution: {integrity: sha512-/HrPgNLRrJziLrh2s+qFRO33ubBSuHn9sdNsQcP0wQElpORxlpR6wnq3X9j/bZGd+uQtYIvPl4QSU2la+Jl9Hg==}
 
   '@hookform/resolvers@5.9.1':
     resolution: {integrity: sha512-7b7vsbraJxKgjVSA1Nur9tLwj539WGJUBLA7QNvXnFoT2pM5Z7G+6rlukk4B2/QrTZy6huRtH6wKeESPKuIr6w==}
@@ -2589,8 +2583,6 @@ snapshots:
   '@fontsource-variable/ubuntu-sans-mono@5.3.0': {}
 
   '@fontsource-variable/ubuntu-sans@5.3.0': {}
-
-  '@hcaptcha/react-hcaptcha@2.2.0': {}
 
   '@hookform/resolvers@5.9.1(@standard-schema/spec@1.1.0)(react-hook-form@7.88.0(react@19.3.0))(zod@4.6.4)':
     dependencies:

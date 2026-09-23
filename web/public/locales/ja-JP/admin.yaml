@@ -77,7 +77,6 @@ captcha:
     pow: プルーフオブワーク
     image: 画像認証
     turnstile: Cloudflare Turnstile
-    hcaptcha: HCaptcha
   form:
     provider:
       _: プロバイダー
@@ -92,15 +91,6 @@ captcha:
         _: サイトキー
       secret_key:
         _: シークレットキー
-    hcaptcha:
-      url:
-        _: API URL
-      site_key:
-        _: サイトキー
-      secret_key:
-        _: シークレットキー
-      score:
-        _: スコア
   actions:
     update:
       _: CAPTCHA 設定を更新

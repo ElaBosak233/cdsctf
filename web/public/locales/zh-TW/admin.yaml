@@ -77,7 +77,6 @@ captcha:
     pow: 工作量證明
     image: 圖片驗證
     turnstile: Cloudflare Turnstile
-    hcaptcha: HCaptcha
   form:
     provider:
       _: 提供者
@@ -92,15 +91,6 @@ captcha:
         _: 網站金鑰
       secret_key:
         _: 金鑰
-    hcaptcha:
-      url:
-        _: API 位址
-      site_key:
-        _: 網站金鑰
-      secret_key:
-        _: 金鑰
-      score:
-        _: 分數
   actions:
     update:
       _: 更新人機驗證設定

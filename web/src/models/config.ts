@@ -9,12 +9,9 @@ export type PublicConfig = {
     local_registration_enabled?: boolean;
   };
   captcha?: {
-    provider?: "none" | "pow" | "image" | "turnstile" | "hcaptcha";
+    provider?: "none" | "pow" | "image" | "turnstile";
     difficulty?: number;
     turnstile?: {
-      site_key?: string;
-    };
-    hcaptcha?: {
       site_key?: string;
     };
   };
@@ -26,14 +23,9 @@ export type PublicConfig = {
 
 export type AdminConfig = Omit<PublicConfig, "captcha" | "email"> & {
   captcha?: {
-    provider?: "none" | "pow" | "image" | "turnstile" | "hcaptcha";
+    provider?: "none" | "pow" | "image" | "turnstile";
     difficulty?: number;
     turnstile?: {
-      url?: string;
-      site_key?: string;
-      secret_key?: string;
-    };
-    hcaptcha?: {
       url?: string;
       site_key?: string;
       secret_key?: string;

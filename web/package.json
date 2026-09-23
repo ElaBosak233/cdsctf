@@ -16,7 +16,6 @@
     "@codemirror/lint": "^6.9.7",
     "@fontsource-variable/ubuntu-sans": "^5.3.0",
     "@fontsource-variable/ubuntu-sans-mono": "^5.3.0",
-    "@hcaptcha/react-hcaptcha": "^2.2.0",
     "@hookform/resolvers": "^5.9.1",
     "@marsidev/react-turnstile": "^1.6.1",
     "@noble/hashes": "^2.4.0",
