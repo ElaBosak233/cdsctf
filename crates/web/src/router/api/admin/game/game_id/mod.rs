@@ -92,10 +92,13 @@ pub struct UpdateGameRequest {
     pub member_limit_max: Option<i64>,
     pub writeup_required: Option<bool>,
     pub timeslots: Option<Vec<cds_db::game::Timeslot>>,
+    #[serde(default)]
     #[serde(with = "cds_db::time_format::option")]
     pub started_at: Option<time::OffsetDateTime>,
+    #[serde(default)]
     #[serde(with = "cds_db::time_format::option")]
     pub frozen_at: Option<time::OffsetDateTime>,
+    #[serde(default)]
     #[serde(with = "cds_db::time_format::option")]
     pub ended_at: Option<time::OffsetDateTime>,
 }
@@ -196,4 +199,19 @@ pub async fn calculate_game(
     calculator::request(&s.db.conn, &s.queue, game.id).await?;
 
     Ok(Json(EmptyJson::default()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::UpdateGameRequest;
+
+    #[test]
+    fn update_game_accepts_partial_request_without_timestamps() {
+        let request: UpdateGameRequest = serde_json::from_str(r#"{"enabled":true}"#).unwrap();
+
+        assert_eq!(request.enabled, Some(true));
+        assert!(request.started_at.is_none());
+        assert!(request.frozen_at.is_none());
+        assert!(request.ended_at.is_none());
+    }
 }

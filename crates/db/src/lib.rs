@@ -70,17 +70,13 @@ pub mod time_format {
         ) -> Result<Option<Option<OffsetDateTime>>, D::Error>
         where
             D: Deserializer<'de>, {
-            let value = Option::<Option<String>>::deserialize(deserializer)?;
-            value
+            let value = Option::<String>::deserialize(deserializer)?;
+            let parsed = value
                 .map(|value| {
-                    value
-                        .map(|value| {
-                            OffsetDateTime::parse(&value, &Rfc3339)
-                                .map_err(serde::de::Error::custom)
-                        })
-                        .transpose()
+                    OffsetDateTime::parse(&value, &Rfc3339).map_err(serde::de::Error::custom)
                 })
-                .transpose()
+                .transpose()?;
+            Ok(Some(parsed))
         }
     }
 }
