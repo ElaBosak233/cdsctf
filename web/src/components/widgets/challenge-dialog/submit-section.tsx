@@ -176,18 +176,20 @@ function SubmitSection() {
             size={"sm"}
             onClick={handleDebugSubmit}
             disabled={cheated}
-            square
             icon={<BugIcon />}
-          ></Button>
+          >
+            {t("submission:actions.submit")}
+          </Button>
         ) : (
           <Button
             variant={"solid"}
             size={"sm"}
             onClick={handleFlagSubmit}
             disabled={cheated}
-            square
             icon={cheated ? <LockIcon /> : <SendIcon />}
-          />
+          >
+            {t("submission:actions.submit")}
+          </Button>
         )}
       </div>
     </div>
