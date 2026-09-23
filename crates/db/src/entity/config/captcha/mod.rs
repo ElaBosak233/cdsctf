@@ -21,9 +21,6 @@ pub enum Provider {
     Pow,
     Image,
     Turnstile,
-    // Preserve recognition of old persisted values without enabling the removed provider.
-    #[serde(rename = "hcaptcha")]
-    LegacyHCaptcha,
     #[default]
     #[serde(other)]
     None,
@@ -47,31 +44,5 @@ impl Default for Config {
             difficulty: 2,
             turnstile: turnstile::Config::default(),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{Config, Provider};
-
-    #[test]
-    fn legacy_hcaptcha_config_remains_readable_but_disabled() {
-        let config: Config = serde_json::from_value(serde_json::json!({
-            "provider": "hcaptcha",
-            "difficulty": 2,
-            "turnstile": {
-                "url": "https://example.com/siteverify",
-                "secret_key": "",
-                "site_key": ""
-            },
-            "hcaptcha": {
-                "url": "https://hcaptcha.com/siteverify",
-                "secret_key": "legacy-secret",
-                "site_key": "legacy-site-key"
-            }
-        }))
-        .unwrap();
-
-        assert_eq!(config.provider, Provider::LegacyHCaptcha);
     }
 }

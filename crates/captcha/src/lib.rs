@@ -55,7 +55,6 @@ impl Captcha {
             Provider::Pow => pow::check(self, answer).await,
             Provider::Image => image::check(self, answer).await,
             Provider::Turnstile => turnstile::check(self, answer).await,
-            Provider::LegacyHCaptcha => Ok(false),
             _ => Ok(true),
         }
     }
