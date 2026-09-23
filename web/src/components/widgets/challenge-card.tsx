@@ -1,4 +1,3 @@
-import { timestamp } from "@/utils/time";
 import { Flag, LockIcon } from "lucide-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -17,6 +16,7 @@ import type { ChallengeSummary } from "@/models/challenge";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { getOrdinal } from "@/utils/math";
+import { parseTimestamp } from "@/utils/time";
 
 type ChallengeCardProps = CardProps & {
   digest?: Pick<ChallengeSummary, "id" | "title" | "category">;
@@ -152,9 +152,8 @@ function ChallengeCard(props: ChallengeCardProps) {
                       </span>
                     </div>
                     <span className={cn(["text-secondary", "text-xs"])}>
-                      {new Date(
-                        timestamp(blood?.created_at)
-                      ).toLocaleString()}
+                      {parseTimestamp(blood?.created_at)?.toLocaleString() ??
+                        "-"}
                     </span>
                   </div>
                 </div>

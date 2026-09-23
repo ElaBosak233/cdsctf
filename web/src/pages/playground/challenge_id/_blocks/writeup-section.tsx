@@ -1,4 +1,3 @@
-import { timestamp } from "@/utils/time";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeftIcon, LightbulbIcon, PencilLineIcon } from "lucide-react";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
@@ -13,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/utils";
+import { parseTimestamp } from "@/utils/time";
 import { Context } from "../context";
 
 function useNotesQuery(
@@ -186,9 +186,9 @@ function WriteupSection() {
                       >
                         <PencilLineIcon className={cn(["size-3!"])} />
                         <span className={cn(["text-xs"])}>
-                          {new Date(
-                            timestamp(note.updated_at)
-                          ).toLocaleDateString()}
+                          {parseTimestamp(
+                            note.updated_at
+                          )?.toLocaleDateString() ?? "-"}
                         </span>
                       </div>
                     </div>

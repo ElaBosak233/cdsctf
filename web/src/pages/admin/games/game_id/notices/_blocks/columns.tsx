@@ -13,6 +13,7 @@ import type { GameNoticeView } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { parseRouteNumericId } from "@/utils/query";
+import { parseTimestamp } from "@/utils/time";
 import { Context } from "../../context";
 
 function ActionsCell({ row }: { row: Row<GameNoticeView> }) {
@@ -168,7 +169,11 @@ function useColumns() {
         id: "created_at",
         header: t("game:notice.created_at"),
         cell: ({ row }) => {
-          return new Date(row.getValue<string>("created_at")).toLocaleString();
+          return (
+            parseTimestamp(
+              row.getValue<string>("created_at")
+            )?.toLocaleString() ?? "-"
+          );
         },
       },
       {

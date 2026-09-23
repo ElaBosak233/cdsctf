@@ -1,3 +1,5 @@
+import type { Timestamp } from "@/types";
+
 export type UserAccountView = {
   id: number;
   name: string;
@@ -6,8 +8,8 @@ export type UserAccountView = {
   group: Group;
   description: string | null;
   avatar_hash: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 };
 
 export enum Group {
@@ -30,5 +32,5 @@ export type UserProfile = {
   username: string;
   description: string | null;
   avatar_hash: string | null;
-  created_at: string;
+  created_at: Timestamp;
 };

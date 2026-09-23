@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frontend Design"
+  short_description: "Design and build frontends in the CdsCTF visual system"
+  default_prompt: "Use $frontend-design to create or modify a frontend while preserving the CdsCTF visual language."

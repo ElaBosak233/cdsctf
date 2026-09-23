@@ -1,4 +1,3 @@
-import { date } from "@/utils/time";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -44,6 +43,7 @@ import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 import type { IdpView } from "@/models/idp";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { parseTimestamp } from "@/utils/time";
 
 const RowContext = createContext<{
   optimisticEnabled: boolean;
@@ -270,7 +270,7 @@ function UpdatedAtCell({
   row: Row<IdpView>;
   formatter: Intl.DateTimeFormat;
 }) {
-  const updatedAt = date(row.original.updated_at);
+  const updatedAt = parseTimestamp(row.original.updated_at);
 
   return (
     <span className="whitespace-nowrap text-sm text-secondary-foreground">

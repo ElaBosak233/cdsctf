@@ -24,7 +24,7 @@ import type { Instance, Nat } from "@/models/instance";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { formatApiMsg, parseErrorResponse } from "@/utils/query";
-import { timestamp } from "@/utils/time";
+import { instanceExpiresAt, secondsUntil } from "@/utils/time";
 import { Context } from "./context";
 
 function PortInfo({ instance, port }: { instance: Instance; port: Port }) {
@@ -147,12 +147,13 @@ function InstanceSection() {
       {
         const p = res.instances?.[0];
         setInstance(p);
+        const expiresAt = instanceExpiresAt(
+          p?.started_at,
+          Number(p?.duration),
+          Number(p?.renew)
+        );
         setTimeLeft(
-          Math.ceil(
-            timestamp(p?.started_at) +
-              (Number(p?.renew) + 1) * Number(p?.duration) -
-              Date.now()
-          )
+          expiresAt == null ? 0 : Math.max(0, secondsUntil(expiresAt) ?? 0)
         );
 
         if (p?.status !== "waiting") {

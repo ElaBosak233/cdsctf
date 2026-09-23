@@ -18,7 +18,6 @@ import {
   ShipWheelIcon,
   TrashIcon,
 } from "lucide-react";
-import { date } from "@/utils/time";
 import {
   createContext,
   type ReactNode,
@@ -57,6 +56,7 @@ import type { ChallengeDetail } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import { parseTimestamp } from "@/utils/time";
 
 const RowContext = createContext<{
   optimisticPublic: boolean;
@@ -269,7 +269,7 @@ function TimeCell({
 }) {
   const { t } = useTranslation();
   const format = (value: string) => {
-    const parsed = date(value);
+    const parsed = parseTimestamp(value);
     return parsed ? formatter.format(parsed) : "-";
   };
 

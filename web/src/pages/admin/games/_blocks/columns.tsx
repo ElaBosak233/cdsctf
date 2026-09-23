@@ -1,4 +1,3 @@
-import { date, timestamp } from "@/utils/time";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -52,6 +51,7 @@ import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 import type { GameDetail } from "@/models/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { getGamePhase, parseTimestamp } from "@/utils/time";
 
 const RowContext = createContext<{
   optimisticEnabled: boolean;
@@ -107,14 +107,10 @@ type GameStatus =
   | "ended";
 
 function getGameStatus(game: GameDetail): GameStatus {
-  const now = Date.now();
-
   if (!game.enabled) return "disabled";
-  if (now > timestamp(game.ended_at)) return "ended";
   if (game.paused) return "paused";
-  if (now < timestamp(game.started_at)) return "upcoming";
-  if (now > timestamp(game.frozen_at)) return "frozen";
-  return "ongoing";
+  const phase = getGamePhase(game);
+  return phase ?? "disabled";
 }
 
 const statusClasses: Record<GameStatus, string[]> = {
@@ -259,8 +255,8 @@ function ScheduleCell({
   formatter: Intl.DateTimeFormat;
 }) {
   const { t } = useTranslation();
-  const startedAt = date(row.original.started_at);
-  const endedAt = date(row.original.ended_at);
+  const startedAt = parseTimestamp(row.original.started_at);
+  const endedAt = parseTimestamp(row.original.ended_at);
   const rangeFormatter = formatter as Intl.DateTimeFormat & {
     formatRange?: (start: Date, end: Date) => string;
   };
@@ -271,7 +267,7 @@ function ScheduleCell({
         : `${formatter.format(startedAt)} - ${formatter.format(endedAt)}`
       : "-";
   const format = (value: string) => {
-    const parsed = date(value);
+    const parsed = parseTimestamp(value);
     return parsed ? formatter.format(parsed) : "-";
   };
 

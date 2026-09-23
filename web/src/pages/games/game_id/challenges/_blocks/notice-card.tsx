@@ -1,4 +1,3 @@
-import { timestamp } from "@/utils/time";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon, BellIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -23,6 +22,7 @@ import {
   useNoticeReadStore,
 } from "@/storages/notice";
 import { cn } from "@/utils";
+import { parseTimestamp } from "@/utils/time";
 
 function NoticeCard() {
   const { t } = useTranslation();
@@ -181,9 +181,9 @@ function NoticeCard() {
                     {selectedNotice.title}
                   </h2>
                   <p className={cn(["text-xs", "text-muted-foreground"])}>
-                    {new Date(
-                      timestamp(selectedNotice.created_at)
-                    ).toLocaleString()}
+                    {parseTimestamp(
+                      selectedNotice.created_at
+                    )?.toLocaleString() ?? "-"}
                   </p>
                 </div>
               </div>
@@ -249,9 +249,9 @@ function NoticeCard() {
                             "text-muted-foreground",
                           ])}
                         >
-                          {new Date(
-                            timestamp(gameNotice?.created_at)
-                          ).toLocaleDateString()}
+                          {parseTimestamp(
+                            gameNotice?.created_at
+                          )?.toLocaleDateString() ?? "-"}
                         </span>
                       </button>
                     ))}

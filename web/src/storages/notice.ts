@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import type { GameNoticeView } from "@/models/game_notice";
-import { timestamp } from "@/utils/time";
+import { toEpochMilliseconds } from "@/utils/time";
 
 const MAX_SEEN_FINGERPRINTS = 200;
 
@@ -95,7 +95,9 @@ export const useNoticeReadStore = create<NoticeReadState>()(
           const fingerprints = getNoticeFingerprints(notices);
           const maxId = getMaxNumber(notices.map((notice) => notice.id));
           const newestCreatedAt = getMaxNumber(
-            notices.map((notice) => timestamp(notice.created_at))
+            notices.map(
+              (notice) => toEpochMilliseconds(notice.created_at) ?? Number.NaN
+            )
           );
           const datasetReset = shouldResetDataset(
             previous,

@@ -1,4 +1,3 @@
-import { date } from "@/utils/time";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { StarIcon } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -28,6 +27,7 @@ import type { ScoreboardTeam } from "@/models/game";
 import { Status, type SubmissionSummary } from "@/models/submission";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
+import { parseTimestamp } from "@/utils/time";
 
 interface TeamDetailsDialogProps {
   team: ScoreboardTeam;
@@ -113,7 +113,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
         header: t("game:scoreboard.columns.time"),
         cell: ({ row }) => (
           <span className={cn(["font-mono", "text-secondary-foreground"])}>
-            {date(row.original.created_at)?.toLocaleString() ?? "-"}
+            {parseTimestamp(row.original.created_at)?.toLocaleString() ?? "-"}
           </span>
         ),
       },

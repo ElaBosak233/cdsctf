@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import ky, { HTTPError, TimeoutError } from "ky";
 import { toast } from "sonner";
 import { clearAuthenticatedUser } from "@/storages/auth";
-import type { ErrorResponse } from "@/types";
+import { decodeApiJson, type ErrorResponse } from "@/types";
 import i18n from "@/utils/i18n";
 
 type PendingEntry = {
@@ -17,6 +17,7 @@ const pendingRequests = new Map<string, PendingEntry>();
 const api = ky.extend({
   prefix: "/api",
   timeout: 5000,
+  parseJson: (text) => decodeApiJson(JSON.parse(text)),
   hooks: {
     beforeRequest: [
       ({ request }) => {

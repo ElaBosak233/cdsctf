@@ -1,3 +1,5 @@
+import type { Timestamp } from "@/types";
+
 export type GameDetail = {
   id: number;
   title: string;
@@ -11,12 +13,12 @@ export type GameDetail = {
   member_limit_min: number;
   member_limit_max: number;
   timeslots: Timeslot[];
-  started_at: string;
-  frozen_at: string;
-  ended_at: string;
+  started_at: Timestamp;
+  frozen_at: Timestamp;
+  ended_at: Timestamp;
   icon_hash: string | null;
   poster_hash: string | null;
-  created_at: string;
+  created_at: Timestamp;
 };
 
 export type GameView = Pick<
@@ -37,17 +39,17 @@ export type GameView = Pick<
 
 export type Timeslot = {
   label: string;
-  started_at: string;
-  ended_at: string;
+  started_at: Timestamp;
+  ended_at: Timestamp;
 };
 
 export type GameSummary = {
   id: number;
   title: string;
   sketch: string | null;
-  started_at: string;
-  frozen_at: string;
-  ended_at: string;
+  started_at: Timestamp;
+  frozen_at: Timestamp;
+  ended_at: Timestamp;
   icon_hash: string | null;
   poster_hash: string | null;
 };
@@ -74,5 +76,5 @@ export type ScoreboardSubmission = {
   challenge_id: number;
   challenge_title: string;
   pts: number;
-  created_at: string;
+  created_at: Timestamp;
 };

@@ -1,4 +1,3 @@
-import { date } from "@/utils/time";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ClockAlertIcon,
@@ -49,6 +48,7 @@ import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
 import { parseRouteNumericId } from "@/utils/query";
+import { parseTimestamp } from "@/utils/time";
 import { Context } from "./context";
 
 export default function Index() {
@@ -110,9 +110,9 @@ export default function Index() {
     form.reset(
       {
         ...game,
-        started_at: date(game?.started_at),
-        frozen_at: date(game?.frozen_at),
-        ended_at: date(game?.ended_at),
+        started_at: parseTimestamp(game?.started_at),
+        frozen_at: parseTimestamp(game?.frozen_at),
+        ended_at: parseTimestamp(game?.ended_at),
       },
       {
         keepDefaultValues: false,

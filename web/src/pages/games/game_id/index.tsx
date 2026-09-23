@@ -1,4 +1,3 @@
-import { date, timestamp } from "@/utils/time";
 import {
   ArrowRightIcon,
   CalendarCheckIcon,
@@ -25,28 +24,23 @@ import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 import { getLoginUrl } from "@/utils/redirect";
+import { getGamePhase, parseTimestamp, secondsUntil } from "@/utils/time";
 import { TeamGatheringDialog } from "./_blocks/team-gathering-dialog";
 
 export default function Index() {
   const { t } = useTranslation();
 
   const { currentGame } = useGameStore();
+  const currentTime = useTickerTime();
   useParams<{ game_id: string }>();
 
   const status = useMemo(() => {
     if (!currentGame) return "loading";
 
-    const startedAt = date(currentGame.started_at);
-    const endedAt = date(currentGame.ended_at);
-
-    if (!startedAt || !endedAt) return "loading";
-
-    if (startedAt > new Date()) return "upcoming";
-    if (endedAt < new Date()) return "ended";
-    return "ongoing";
-  }, [currentGame]);
-
-  const now = useTickerTime();
+    const phase = getGamePhase(currentGame, currentTime);
+    if (phase === "frozen") return "ongoing";
+    return phase ?? "loading";
+  }, [currentGame, currentTime]);
 
   return (
     <>
@@ -131,9 +125,9 @@ export default function Index() {
               )}
               size={"sm"}
             >
-              {date(currentGame?.started_at)?.toLocaleString() ?? "-"}
+              {parseTimestamp(currentGame?.started_at)?.toLocaleString() ?? "-"}
               <ArrowRightIcon />
-              {date(currentGame?.ended_at)?.toLocaleString() ?? "-"}
+              {parseTimestamp(currentGame?.ended_at)?.toLocaleString() ?? "-"}
             </Badge>
             <div
               className={cn([
@@ -146,36 +140,27 @@ export default function Index() {
             >
               <span className={cn(["text-sm", "text-secondary-foreground"])}>
                 {(() => {
-                  const startTime = new Date(
-                    timestamp(currentGame?.started_at)
-                  );
-                  const freezeTime = new Date(
-                    timestamp(currentGame?.frozen_at)
-                  );
-                  const endTime = new Date(timestamp(currentGame?.ended_at));
+                  const nowValue = currentTime;
+                  const diff = (target: string | null | undefined) =>
+                    Math.max(0, secondsUntil(target, nowValue) ?? 0);
 
-                  const diff = (target: Date) =>
-                    Math.max(
-                      0,
-                      Math.floor((target.getTime() - now.getTime()) / 1000)
-                    );
-
-                  if (now < startTime) {
-                    const remain = diff(startTime);
+                  const phase = getGamePhase(currentGame!, nowValue);
+                  if (phase === "upcoming") {
+                    const remain = diff(currentGame?.started_at);
                     return t("game:status.upcoming.remaining", {
                       hours: Math.floor(remain / 3600),
                       minutes: Math.floor((remain % 3600) / 60),
                       seconds: remain % 60,
                     });
-                  } else if (now < freezeTime) {
-                    const remain = diff(endTime);
+                  } else if (phase === "ongoing") {
+                    const remain = diff(currentGame?.ended_at);
                     return t("game:status.ongoing.remaining", {
                       hours: Math.floor(remain / 3600),
                       minutes: Math.floor((remain % 3600) / 60),
                       seconds: remain % 60,
                     });
-                  } else if (now < endTime) {
-                    const remain = diff(endTime);
+                  } else if (phase === "frozen") {
+                    const remain = diff(currentGame?.ended_at);
                     return t("game:status.frozen.remaining", {
                       hours: Math.floor(remain / 3600),
                       minutes: Math.floor((remain % 3600) / 60),

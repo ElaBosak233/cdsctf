@@ -1,3 +1,5 @@
+import type { Timestamp } from "@/types";
+
 export type SubmissionView = {
   id: number;
   content: string;
@@ -15,9 +17,9 @@ export type SubmissionView = {
   game_title: string | null;
   pts: number;
   rank: number;
-  created_at: string;
-  processing_at: string | null;
-  checked_at: string | null;
+  created_at: Timestamp;
+  processing_at: Timestamp | null;
+  checked_at: Timestamp | null;
 };
 
 export type SubmissionSummary = Omit<SubmissionView, "content">;

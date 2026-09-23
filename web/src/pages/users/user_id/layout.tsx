@@ -1,4 +1,3 @@
-import { date } from "@/utils/time";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Outlet, useParams } from "react-router";
@@ -7,6 +6,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/utils";
 import { parseRouteNumericId } from "@/utils/query";
+import { parseTimestamp } from "@/utils/time";
 import { Context } from "./context";
 
 function useUserQuery(userId: number | undefined) {
@@ -89,7 +89,7 @@ export default function Layout() {
               "select-none",
             ])}
           >
-            {`${t("user:created_at")} ${date(user?.created_at)?.toLocaleDateString() ?? "-"}`}
+            {`${t("user:created_at")} ${parseTimestamp(user?.created_at)?.toLocaleDateString() ?? "-"}`}
           </span>
         </div>
         <div className={cn(["flex-1", "min-w-0", "flex", "flex-col"])}>

@@ -1,4 +1,3 @@
-import { timestamp } from "@/utils/time";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   InfoIcon,
@@ -34,6 +33,7 @@ import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
+import { getGamePhase } from "@/utils/time";
 
 export default function Index() {
   const { currentGame, selfTeam, setSelfTeam } = useGameStore();
@@ -41,7 +41,8 @@ export default function Index() {
   const { t } = useTranslation();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const disabled = Date.now() > timestamp(currentGame?.ended_at);
+  const phase = getGamePhase(currentGame ?? {});
+  const disabled = phase == null || phase === "ended";
 
   const avatarInput = useRef<HTMLInputElement>(null);
   const [hasAvatar, setHasAvatar] = useState<boolean>(false);
