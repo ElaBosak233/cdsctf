@@ -101,7 +101,7 @@ function TeamCard() {
                 size={"sm"}
                 square
                 variant={"ghost"}
-                level={selfTeam?.has_writeup ? "secondary" : "warning"}
+                level={selfTeam?.has_writeup ? "success" : "warning"}
                 asChild
                 aria-label={writeupLabel}
               >

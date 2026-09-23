@@ -1,9 +1,12 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
+  ChevronRightIcon,
   ListOrderedIcon,
+  MedalIcon,
   MessageCircleDashedIcon,
   MoonIcon,
   StarIcon,
+  TrophyIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -140,20 +143,90 @@ export default function Index() {
                         <Card
                           render={<button type="button" />}
                           className={cn([
+                            "group",
                             "flex",
                             "items-center",
-                            "gap-5",
-                            "p-5",
+                            "gap-3",
+                            "p-4",
+                            "sm:gap-4",
+                            "sm:p-5",
                             "cursor-pointer",
-                            "hover:bg-muted/50",
-                            "transition-colors",
+                            "border-border/70",
+                            "hover:border-primary/30",
+                            "hover:bg-muted/40",
+                            "hover:shadow-sm",
+                            "focus-visible:outline-none",
+                            "focus-visible:ring-2",
+                            "focus-visible:ring-ring",
+                            "focus-visible:ring-offset-2",
+                            "transition-[background-color,border-color,box-shadow]",
                             "w-full",
                           ])}
                         >
-                          <Badge>{record.team?.rank}</Badge>
+                          {record.team?.rank != null &&
+                          record.team.rank <= 3 ? (
+                            <span
+                              className={cn(
+                                [
+                                  "flex",
+                                  "size-9",
+                                  "shrink-0",
+                                  "items-center",
+                                  "justify-center",
+                                  "rounded-full",
+                                  "bg-muted",
+                                  "text-muted-foreground",
+                                ],
+                                record.team.rank === 1 &&
+                                  "bg-warning/15 text-warning",
+                                record.team.rank === 3 &&
+                                  "bg-warning/10 text-warning/80"
+                              )}
+                            >
+                              <span className="sr-only">
+                                {record.team.rank}
+                              </span>
+                              {record.team.rank === 1 ? (
+                                <TrophyIcon
+                                  className="size-5"
+                                  aria-hidden="true"
+                                />
+                              ) : (
+                                <MedalIcon
+                                  className="size-5"
+                                  aria-hidden="true"
+                                />
+                              )}
+                            </span>
+                          ) : (
+                            <span
+                              className={cn([
+                                "flex",
+                                "size-9",
+                                "shrink-0",
+                                "items-center",
+                                "justify-center",
+                                "rounded-full",
+                                "bg-muted",
+                                "font-mono",
+                                "text-sm",
+                                "font-semibold",
+                                "tabular-nums",
+                                "text-muted-foreground",
+                              ])}
+                            >
+                              {record.team?.rank}
+                            </span>
+                          )}
 
                           <Avatar
-                            className={cn(["size-10", "shrink-0"])}
+                            className={cn([
+                              "size-11",
+                              "shrink-0",
+                              "rounded-full",
+                              "ring-1",
+                              "ring-border/70",
+                            ])}
                             src={
                               record.team?.avatar_hash &&
                               `/api/media?hash=${record.team?.avatar_hash}`
@@ -165,12 +238,19 @@ export default function Index() {
                             className={cn([
                               "flex",
                               "flex-col",
+                              "items-start",
                               "flex-1",
                               "min-w-0",
+                              "text-left",
                             ])}
                           >
                             <span
-                              className={cn(["font-semibold", "text-base"])}
+                              className={cn([
+                                "truncate",
+                                "w-full",
+                                "font-semibold",
+                                "text-base",
+                              ])}
                             >
                               {record.team?.name}
                             </span>
@@ -194,12 +274,26 @@ export default function Index() {
                               "gap-1.5",
                               "items-center",
                               "shrink-0",
-                              "px-4",
+                              "px-3",
+                              "bg-warning/10",
+                              "text-warning",
+                              "group-hover:bg-warning/15",
                             ])}
                           >
                             <StarIcon className={cn(["size-4"])} />
                             {record.team?.pts}
                           </Badge>
+                          <ChevronRightIcon
+                            className={cn([
+                              "size-4",
+                              "shrink-0",
+                              "text-muted-foreground/60",
+                              "transition-transform",
+                              "group-hover:translate-x-0.5",
+                              "group-hover:text-foreground",
+                            ])}
+                            aria-hidden="true"
+                          />
                         </Card>
                       }
                     />
