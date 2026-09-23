@@ -16,26 +16,28 @@ function MobileTab() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        asChild
         className={cn(["lg:hidden", "mr-1", "sm:mr-3"])}
-      >
-        <Button
-          square
-          size={"sm"}
-          icon={<ListIcon />}
-          aria-label="Open navigation"
-        />
-      </DropdownMenuTrigger>
+        render={
+          <Button
+            square
+            size={"sm"}
+            icon={<ListIcon />}
+            aria-label="Open navigation"
+          />
+        }
+      />
       <DropdownMenuContent sideOffset={20} className={cn(["space-y-1"])}>
         {options?.map((option, index) => {
           const Comp = option?.disabled ? DropdownMenuItem : Link;
 
           return (
-            <DropdownMenuItem key={index} disabled={option?.disabled} asChild>
-              <Comp to={option.link}>
-                {option?.icon}
-                {option.name}
-              </Comp>
+            <DropdownMenuItem
+              key={index}
+              disabled={option?.disabled}
+              render={<Comp to={option.link} />}
+            >
+              {option?.icon}
+              {option.name}
             </DropdownMenuItem>
           );
         })}

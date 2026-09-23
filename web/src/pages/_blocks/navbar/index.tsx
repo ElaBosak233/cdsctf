@@ -53,9 +53,11 @@ function Navbar() {
         >
           <div className={cn(["flex", "items-center"])}>
             <MobileTab />
-            <Button asChild size={"lg"} className={cn(["px-2", "sm:px-5"])}>
-              <Title />
-            </Button>
+            <Button
+              render={<Title />}
+              size="lg"
+              className={cn(["px-2", "sm:px-5"])}
+            />
             <div
               className={cn([
                 "ml-10",
@@ -72,14 +74,12 @@ function Navbar() {
             <Appearance />
             {status === "authenticated" && user?.group === Group.Admin && (
               <Button
-                asChild
+                render={<Link to="/admin" />}
                 icon={<SettingsIcon />}
                 size={"sm"}
                 square
                 aria-label="Open administration"
-              >
-                <Link to={"/admin"} />
-              </Button>
+              />
             )}
             <AuthSection />
           </div>

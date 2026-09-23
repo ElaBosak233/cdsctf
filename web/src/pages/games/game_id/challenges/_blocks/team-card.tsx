@@ -95,21 +95,23 @@ function TeamCard() {
         )}
         {currentGame?.writeup_required && (
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className={cn(["size-9"])}
-                size={"sm"}
-                square
-                variant={"ghost"}
-                level={selfTeam?.has_writeup ? "success" : "warning"}
-                asChild
-                aria-label={writeupLabel}
-              >
-                <Link to={`/games/${selfTeam?.game_id}/team/writeup`}>
+            <TooltipTrigger
+              render={
+                <Button
+                  className={cn(["size-9"])}
+                  size={"sm"}
+                  square
+                  variant={"ghost"}
+                  level={selfTeam?.has_writeup ? "success" : "warning"}
+                  render={
+                    <Link to={`/games/${selfTeam?.game_id}/team/writeup`} />
+                  }
+                  aria-label={writeupLabel}
+                >
                   <FilePenIcon />
-                </Link>
-              </Button>
-            </TooltipTrigger>
+                </Button>
+              }
+            />
             <TooltipContent>{writeupLabel}</TooltipContent>
           </Tooltip>
         )}

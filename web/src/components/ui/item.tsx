@@ -1,6 +1,5 @@
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
-import React from "react";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/utils/index";
 
@@ -54,17 +53,14 @@ function Item({
   className,
   variant = "default",
   size = "default",
-  asChild = false,
   render,
   children,
   ref,
   ...props
-}: useRender.ComponentProps<"div"> &
-  VariantProps<typeof itemVariants> & { asChild?: boolean }) {
-  const child = React.isValidElement(children) ? children : undefined;
+}: useRender.ComponentProps<"div"> & VariantProps<typeof itemVariants>) {
   return useRender({
     defaultTagName: "div",
-    render: render ?? (asChild ? child : undefined),
+    render,
     ref,
     props: {
       "data-slot": "item",
@@ -72,7 +68,7 @@ function Item({
       "data-size": size,
       className: cn(itemVariants({ variant, size, className })),
       ...props,
-      children: child && asChild ? undefined : children,
+      children,
     },
   });
 }

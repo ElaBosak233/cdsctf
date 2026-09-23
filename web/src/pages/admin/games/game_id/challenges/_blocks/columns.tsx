@@ -122,17 +122,25 @@ function ChallengeCell({ row }: { row: Row<GameChallengeView> }) {
         >
           <span className={cn(["shrink-0", "font-mono"])}>#{id}</span>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
-                square
-                size="sm"
-                variant="ghost"
-                className={cn(["size-6", "shrink-0", "text-muted-foreground"])}
-                aria-label={t("common:tooltip.copy")}
-                onClick={() => copyToClipboard(String(id))}
-              />
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  icon={
+                    isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />
+                  }
+                  square
+                  size="sm"
+                  variant="ghost"
+                  className={cn([
+                    "size-6",
+                    "shrink-0",
+                    "text-muted-foreground",
+                  ])}
+                  aria-label={t("common:tooltip.copy")}
+                  onClick={() => copyToClipboard(String(id))}
+                />
+              }
+            ></TooltipTrigger>
             <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
           </Tooltip>
         </div>
@@ -201,9 +209,12 @@ function ActionsCell({ row }: { row: Row<GameChallengeView> }) {
           />
         </DialogContent>
       </Dialog>
-      <Button icon={<EditIcon />} square size={"sm"} asChild>
-        <Link to={`/admin/challenges/${row.original.challenge_id}`} />
-      </Button>
+      <Button
+        icon={<EditIcon />}
+        square
+        size={"sm"}
+        render={<Link to={`/admin/challenges/${row.original.challenge_id}`} />}
+      />
       <Button
         level={"error"}
         variant={"ghost"}

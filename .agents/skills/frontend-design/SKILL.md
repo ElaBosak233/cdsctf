@@ -56,6 +56,17 @@ Use the shared `Button` and its variants:
 
 Set `level` to `primary`, `secondary`, `info`, `success`, `warning`, or `error` rather than inventing button colors. Preserve disabled opacity and `loading` spinner behavior. Do not put long explanations inside buttons.
 
+### Base UI `render` Composition
+
+Use Base UI's `render` prop to replace a primitive's root element (for example, render a `Button` as a router `Link`). Do not add or use Radix-style `asChild` APIs.
+
+- Keep `render` focused on the replacement element and its element-specific props. Put the primitive's visible content in the primitive's own `children`.
+- Avoid specifying visible children both inside the `render` element and on the primitive. The replacement element's children can override the primitive's children, hiding composed content such as a button icon or label.
+- Prefer `<Button render={<Link to="/path" />}>Label</Button>` over `<Button render={<Link to="/path">Label</Link>} />`.
+- When wrapping `useRender`, if the component destructures `children`, explicitly include `children` in the `props` passed to `useRender`; otherwise the replacement element may render empty.
+- Use Base UI's callback form of `render` only when custom prop/state composition is needed, and spread the supplied props onto the replacement element so behavior, accessibility attributes, and refs are preserved.
+- Nested primitives are a valid replacement element when the outer primitive is a trigger (for example, `DialogTrigger render={<Button>Open</Button>}`); keep the trigger's interactive content inside that replacement element.
+
 ### Fields And Forms
 
 Compose fields from `Field`, `FieldIcon`, `FieldButton`, and `TextField` where possible. The icon segment is a compact `bg-primary/20` block; the input uses `bg-input`, a subtle border, and a 2px ring with offset on focus. Use the `sm` field for dense admin/filter UI and `md` for ordinary forms.

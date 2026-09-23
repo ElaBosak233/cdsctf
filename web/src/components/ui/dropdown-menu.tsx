@@ -1,40 +1,36 @@
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { CheckIcon, ChevronRight, CircleIcon } from "lucide-react";
-import * as React from "react";
-
+import type * as React from "react";
 import { cn } from "@/utils";
 
-function DropdownMenu(props: any) {
+function DropdownMenu(props: BaseMenu.Root.Props) {
   return <BaseMenu.Root data-slot="dropdown-menu" {...props} />;
 }
-function DropdownMenuPortal(props: any) {
+function DropdownMenuPortal(props: BaseMenu.Portal.Props) {
   return <BaseMenu.Portal data-slot="dropdown-menu-portal" {...props} />;
 }
-function DropdownMenuTrigger({ asChild, children, ...props }: any) {
-  const child = React.isValidElement(children)
-    ? (children as React.ReactElement<{ children?: React.ReactNode }>)
-    : undefined;
-  return (
-    <BaseMenu.Trigger
-      data-slot="dropdown-menu-trigger"
-      render={asChild ? child : undefined}
-      {...props}
-    >
-      {asChild && child ? child.props.children : children}
-    </BaseMenu.Trigger>
-  );
+function DropdownMenuTrigger(
+  props: React.ComponentProps<typeof BaseMenu.Trigger>
+) {
+  return <BaseMenu.Trigger data-slot="dropdown-menu-trigger" {...props} />;
 }
-function DropdownMenuGroup(props: any) {
+function DropdownMenuGroup(props: BaseMenu.Group.Props) {
   return <BaseMenu.Group data-slot="dropdown-menu-group" {...props} />;
 }
-function DropdownMenuSub(props: any) {
+function DropdownMenuSub(props: BaseMenu.SubmenuRoot.Props) {
   return <BaseMenu.SubmenuRoot data-slot="dropdown-menu-sub" {...props} />;
 }
-function DropdownMenuRadioGroup(props: any) {
+function DropdownMenuRadioGroup(props: BaseMenu.RadioGroup.Props) {
   return (
     <BaseMenu.RadioGroup data-slot="dropdown-menu-radio-group" {...props} />
   );
 }
+
+type DropdownMenuContentProps = BaseMenu.Popup.Props &
+  Pick<
+    BaseMenu.Positioner.Props,
+    "side" | "sideOffset" | "align" | "alignOffset"
+  >;
 
 function DropdownMenuContent({
   className,
@@ -44,7 +40,7 @@ function DropdownMenuContent({
   alignOffset = 0,
   children,
   ...props
-}: any) {
+}: DropdownMenuContentProps) {
   return (
     <BaseMenu.Portal>
       <BaseMenu.Positioner
@@ -68,7 +64,11 @@ function DropdownMenuContent({
     </BaseMenu.Portal>
   );
 }
-function DropdownMenuSubContent({ className, children, ...props }: any) {
+function DropdownMenuSubContent({
+  className,
+  children,
+  ...props
+}: DropdownMenuContentProps) {
   return (
     <DropdownMenuContent
       data-slot="dropdown-menu-sub-content"
@@ -86,25 +86,14 @@ function DropdownMenuSubTrigger({
   className,
   inset,
   children,
-  asChild,
+  render,
   ...props
-}: any) {
-  const child = React.isValidElement(children)
-    ? (children as React.ReactElement<{ children?: React.ReactNode }>)
-    : undefined;
+}: BaseMenu.SubmenuTrigger.Props & { inset?: boolean }) {
   return (
     <BaseMenu.SubmenuTrigger
       data-slot="dropdown-menu-sub-trigger"
       data-inset={inset}
-      render={
-        asChild && child
-          ? (renderProps: React.HTMLAttributes<HTMLElement>) =>
-              React.cloneElement(child, {
-                ...renderProps,
-                children: child.props.children,
-              })
-          : undefined
-      }
+      render={render}
       className={cn(
         "flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-foreground/10 data-open:bg-foreground/10",
         inset && "pl-8",
@@ -112,14 +101,8 @@ function DropdownMenuSubTrigger({
       )}
       {...props}
     >
-      {asChild && child ? (
-        child.props.children
-      ) : (
-        <>
-          {children}
-          <ChevronRight className="ml-auto size-4" />
-        </>
-      )}
+      {children}
+      <ChevronRight className="ml-auto size-4" />
     </BaseMenu.SubmenuTrigger>
   );
 }
@@ -129,30 +112,19 @@ const itemClass =
 function DropdownMenuItem({
   className,
   inset,
-  asChild,
+  render,
   children,
   ...props
-}: any) {
-  const child = React.isValidElement(children)
-    ? (children as React.ReactElement<{ children?: React.ReactNode }>)
-    : undefined;
+}: BaseMenu.Item.Props & { inset?: boolean }) {
   return (
     <BaseMenu.Item
       data-slot="dropdown-menu-item"
       data-inset={inset}
-      render={
-        asChild && child
-          ? (renderProps: React.HTMLAttributes<HTMLElement>) =>
-              React.cloneElement(child, {
-                ...renderProps,
-                children: child.props.children,
-              })
-          : undefined
-      }
+      render={render}
       className={cn(itemClass, inset && "pl-8", className)}
       {...props}
     >
-      {asChild && child ? child.props.children : children}
+      {children}
     </BaseMenu.Item>
   );
 }
@@ -161,7 +133,7 @@ function DropdownMenuCheckboxItem({
   children,
   checked,
   ...props
-}: any) {
+}: BaseMenu.CheckboxItem.Props) {
   return (
     <BaseMenu.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
@@ -178,7 +150,11 @@ function DropdownMenuCheckboxItem({
     </BaseMenu.CheckboxItem>
   );
 }
-function DropdownMenuRadioItem({ className, children, ...props }: any) {
+function DropdownMenuRadioItem({
+  className,
+  children,
+  ...props
+}: BaseMenu.RadioItem.Props) {
   return (
     <BaseMenu.RadioItem
       data-slot="dropdown-menu-radio-item"
@@ -194,7 +170,11 @@ function DropdownMenuRadioItem({ className, children, ...props }: any) {
     </BaseMenu.RadioItem>
   );
 }
-function DropdownMenuLabel({ className, inset, ...props }: any) {
+function DropdownMenuLabel({
+  className,
+  inset,
+  ...props
+}: BaseMenu.GroupLabel.Props & { inset?: boolean }) {
   return (
     <BaseMenu.GroupLabel
       data-slot="dropdown-menu-label"
@@ -208,7 +188,10 @@ function DropdownMenuLabel({ className, inset, ...props }: any) {
     />
   );
 }
-function DropdownMenuSeparator({ className, ...props }: any) {
+function DropdownMenuSeparator({
+  className,
+  ...props
+}: BaseMenu.Separator.Props) {
   return (
     <BaseMenu.Separator
       data-slot="dropdown-menu-separator"

@@ -111,12 +111,10 @@ export default function Index() {
           <Separator orientation={"vertical"} className={cn(["h-5"])} />
           <Button
             square
-            asChild
+            render={<Link to="/about" />}
             icon={<InfoIcon />}
             className={cn(["text-secondary-foreground"])}
-          >
-            <Link to={"/about"} />
-          </Button>
+          />
         </div>
       </div>
     </>

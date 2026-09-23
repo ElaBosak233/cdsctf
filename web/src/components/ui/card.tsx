@@ -1,17 +1,13 @@
 import { useRender } from "@base-ui/react/use-render";
-import React from "react";
 import { cn } from "@/utils";
 
-type CardProps = useRender.ComponentProps<"div"> & {
-  asChild?: boolean;
-};
+type CardProps = useRender.ComponentProps<"div">;
 
 function Card(props: CardProps) {
-  const { className, asChild = false, render, children, ref, ...rest } = props;
-  const child = React.isValidElement(children) ? children : undefined;
+  const { className, render, ref, ...rest } = props;
   return useRender({
     defaultTagName: "div",
-    render: render ?? (asChild ? child : undefined),
+    render,
     ref,
     props: {
       className: cn(
@@ -19,7 +15,6 @@ function Card(props: CardProps) {
         className
       ),
       ...rest,
-      children: child && asChild ? undefined : children,
     },
   });
 }

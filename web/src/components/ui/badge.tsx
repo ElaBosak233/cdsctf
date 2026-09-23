@@ -1,6 +1,5 @@
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
-import React from "react";
 import { cn } from "@/utils";
 
 const badgeVariants = cva(
@@ -49,31 +48,18 @@ const badgeVariants = cva(
 );
 
 type BadgeProps = useRender.ComponentProps<"span"> &
-  VariantProps<typeof badgeVariants> & {
-    asChild?: boolean;
-  };
+  VariantProps<typeof badgeVariants>;
 
 function Badge(props: BadgeProps) {
-  const {
-    size,
-    variant,
-    className,
-    asChild = false,
-    render,
-    children,
-    ref,
-    ...rest
-  } = props;
-  const child = React.isValidElement(children) ? children : undefined;
+  const { size, variant, className, render, ref, ...rest } = props;
   return useRender({
     defaultTagName: "span",
-    render: render ?? (asChild ? child : undefined),
+    render,
     ref,
     props: {
       "data-slot": "badge",
       className: cn(badgeVariants({ size, variant, className })),
       ...rest,
-      children: child && asChild ? undefined : children,
     },
   });
 }

@@ -1,8 +1,8 @@
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 import { LoaderCircleIcon } from "lucide-react";
+import type React from "react";
 import type { CSSProperties, Ref } from "react";
-import React from "react";
 
 import { cn } from "@/utils/index";
 
@@ -78,7 +78,6 @@ const buttonVariants = cva(
 
 type ButtonProps = useRender.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
     icon?: React.ReactNode;
     loading?: boolean;
     level?: "primary" | "secondary" | "info" | "success" | "warning" | "error";
@@ -95,7 +94,6 @@ function Button(props: ButtonProps) {
     square,
     disabled = false,
     loading = false,
-    asChild = false,
     render,
     icon,
     children,
@@ -108,36 +106,16 @@ function Button(props: ButtonProps) {
   ) : (
     icon!
   );
-  const renderElement = React.isValidElement(render)
-    ? (render as React.ReactElement<{ children?: React.ReactNode }>)
-    : undefined;
-  const childElement = React.isValidElement(children)
-    ? (children as React.ReactElement<{ children?: React.ReactNode }>)
-    : undefined;
-  const renderedChildren = childElement
-    ? childElement.props.children
-    : (children ?? renderElement?.props.children);
   const buttonContent = (
     <>
       {(!!icon || loading) && Icon}
-      {renderedChildren}
+      {children}
     </>
   );
-  const asChildRender =
-    asChild && childElement
-      ? (renderProps: React.HTMLAttributes<HTMLElement>) =>
-          React.cloneElement(childElement, {
-            ...renderProps,
-            children: buttonContent,
-          })
-      : undefined;
-  const resolvedRender = renderElement
-    ? React.cloneElement(renderElement, { children: buttonContent })
-    : render;
 
   return useRender({
     defaultTagName: "button",
-    render: resolvedRender ?? asChildRender,
+    render,
     ref,
     props: {
       type,

@@ -649,7 +649,7 @@ function DateTimePicker({
       setDisplayDate(undefined);
       setMonth(fallbackPopupValue);
     }
-  }, [normalizedValue]);
+  }, [fallbackPopupValue, normalizedValue]);
 
   const handleClear = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();

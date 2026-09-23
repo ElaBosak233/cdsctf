@@ -161,6 +161,7 @@ export default function Index() {
                             "focus-visible:ring-offset-2",
                             "transition-[background-color,border-color,box-shadow]",
                             "w-full",
+                            "text-left",
                           ])}
                         >
                           {record.team?.rank != null &&

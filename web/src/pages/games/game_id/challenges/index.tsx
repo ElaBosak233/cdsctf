@@ -351,7 +351,7 @@ export default function Index() {
                         />
                       }
                     />
-                    <DialogContent size="preview">
+                    <DialogContent size="preview" className="max-w-4xl">
                       <ChallengeDialog
                         digest={{
                           id: gameChallenge.challenge_id,

@@ -63,19 +63,19 @@ export default function Index() {
               className={cn(["rounded-full"])}
               variant={"tonal"}
               size={"sm"}
-              asChild
-            >
-              <a
-                href={"https://github.com/ElaBosak233"}
-                target={"_blank"}
-                rel="noopener"
-              >
-                <span
-                  className={cn(["size-1.5", "rounded-full", "bg-info"])}
-                  aria-hidden="true"
+              render={
+                <a
+                  href={"https://github.com/ElaBosak233"}
+                  target={"_blank"}
+                  rel="noopener"
                 />
-                ElaBosak233
-              </a>
+              }
+            >
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-info"])}
+                aria-hidden="true"
+              />
+              ElaBosak233
             </Button>
           </div>
           <h3 className={cn(["flex", "gap-2", "items-center"])}>
@@ -87,91 +87,91 @@ export default function Index() {
               className={cn(["rounded-full"])}
               variant={"tonal"}
               size={"sm"}
-              asChild
-            >
-              <a
-                href={"https://github.com/Ec3o"}
-                target={"_blank"}
-                rel="noopener"
-              >
-                <span
-                  className={cn(["size-1.5", "rounded-full", "bg-success"])}
-                  aria-hidden="true"
+              render={
+                <a
+                  href={"https://github.com/Ec3o"}
+                  target={"_blank"}
+                  rel="noopener"
                 />
-                Ec3o
-              </a>
+              }
+            >
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-success"])}
+                aria-hidden="true"
+              />
+              Ec3o
             </Button>
             <Button
               className={cn(["rounded-full"])}
               variant={"tonal"}
               size={"sm"}
-              asChild
-            >
-              <a
-                href={"https://github.com/Reverier-Xu"}
-                target={"_blank"}
-                rel="noopener"
-              >
-                <span
-                  className={cn(["size-1.5", "rounded-full", "bg-success"])}
-                  aria-hidden="true"
+              render={
+                <a
+                  href={"https://github.com/Reverier-Xu"}
+                  target={"_blank"}
+                  rel="noopener"
                 />
-                Reverier-Xu
-              </a>
+              }
+            >
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-success"])}
+                aria-hidden="true"
+              />
+              Reverier-Xu
             </Button>
             <Button
               className={cn(["rounded-full"])}
               variant={"tonal"}
               size={"sm"}
-              asChild
-            >
-              <a
-                href={"https://github.com/security-s3ven"}
-                target={"_blank"}
-                rel="noopener"
-              >
-                <span
-                  className={cn(["size-1.5", "rounded-full", "bg-success"])}
-                  aria-hidden="true"
+              render={
+                <a
+                  href={"https://github.com/security-s3ven"}
+                  target={"_blank"}
+                  rel="noopener"
                 />
-                s3ven
-              </a>
+              }
+            >
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-success"])}
+                aria-hidden="true"
+              />
+              s3ven
             </Button>
             <Button
               className={cn(["rounded-full"])}
               variant={"tonal"}
               size={"sm"}
-              asChild
-            >
-              <a
-                href={"https://github.com/fR0Z863xF"}
-                target={"_blank"}
-                rel="noopener"
-              >
-                <span
-                  className={cn(["size-1.5", "rounded-full", "bg-success"])}
-                  aria-hidden="true"
+              render={
+                <a
+                  href={"https://github.com/fR0Z863xF"}
+                  target={"_blank"}
+                  rel="noopener"
                 />
-                fR0Z863xF
-              </a>
+              }
+            >
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-success"])}
+                aria-hidden="true"
+              />
+              fR0Z863xF
             </Button>
             <Button
               className={cn(["rounded-full"])}
               variant={"tonal"}
               size={"sm"}
-              asChild
-            >
-              <a
-                href={"https://github.com/xiaoheiCat"}
-                target={"_blank"}
-                rel="noopener"
-              >
-                <span
-                  className={cn(["size-1.5", "rounded-full", "bg-success"])}
-                  aria-hidden="true"
+              render={
+                <a
+                  href={"https://github.com/xiaoheiCat"}
+                  target={"_blank"}
+                  rel="noopener"
                 />
-                xiaoheiCat
-              </a>
+              }
+            >
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-success"])}
+                aria-hidden="true"
+              />
+              xiaoheiCat
             </Button>
           </div>
           <h3 className={cn(["flex", "gap-2", "items-center"])}>
@@ -183,43 +183,43 @@ export default function Index() {
               className={cn(["rounded-full"])}
               variant={"tonal"}
               size={"sm"}
-              asChild
-            >
-              <a
-                href={"https://github.com/Albertknight2023"}
-                target={"_blank"}
-                rel="noopener"
-              >
-                <span
-                  className={cn(["size-1.5", "rounded-full", "bg-orange-400"])}
-                  aria-hidden="true"
+              render={
+                <a
+                  href={"https://github.com/Albertknight2023"}
+                  target={"_blank"}
+                  rel="noopener"
                 />
-                Albert
-                <span className={cn(["text-sm", "text-muted-foreground"])}>
-                  {t("about:art_design")}
-                </span>
-              </a>
+              }
+            >
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-orange-400"])}
+                aria-hidden="true"
+              />
+              Albert
+              <span className={cn(["text-sm", "text-muted-foreground"])}>
+                {t("about:art_design")}
+              </span>
             </Button>
             <Button
               className={cn(["rounded-full"])}
               variant={"tonal"}
               size={"sm"}
-              asChild
-            >
-              <a
-                href={"https://github.com/skyhaibara"}
-                target={"_blank"}
-                rel="noopener"
-              >
-                <span
-                  className={cn(["size-1.5", "rounded-full", "bg-orange-400"])}
-                  aria-hidden="true"
+              render={
+                <a
+                  href={"https://github.com/skyhaibara"}
+                  target={"_blank"}
+                  rel="noopener"
                 />
-                skyhaibara
-                <span className={cn(["text-sm", "text-muted-foreground"])}>
-                  {t("about:paper_work")}
-                </span>
-              </a>
+              }
+            >
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-orange-400"])}
+                aria-hidden="true"
+              />
+              skyhaibara
+              <span className={cn(["text-sm", "text-muted-foreground"])}>
+                {t("about:paper_work")}
+              </span>
             </Button>
           </div>
           <h3 className={cn(["flex", "gap-2", "items-center"])}>
@@ -231,37 +231,37 @@ export default function Index() {
               className={cn(["rounded-full"])}
               variant={"tonal"}
               size={"sm"}
-              asChild
-            >
-              <a
-                href={"https://github.com/ret2shell"}
-                target={"_blank"}
-                rel="noopener"
-              >
-                <span
-                  className={cn(["size-1.5", "rounded-full", "bg-pink-400"])}
-                  aria-hidden="true"
+              render={
+                <a
+                  href={"https://github.com/ret2shell"}
+                  target={"_blank"}
+                  rel="noopener"
                 />
-                Reverier-Xu & Ret 2 Shell
-              </a>
+              }
+            >
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-pink-400"])}
+                aria-hidden="true"
+              />
+              Reverier-Xu & Ret 2 Shell
             </Button>
             <Button
               className={cn(["rounded-full"])}
               variant={"tonal"}
               size={"sm"}
-              asChild
-            >
-              <a
-                href={"https://github.com/GZCTF"}
-                target={"_blank"}
-                rel="noopener"
-              >
-                <span
-                  className={cn(["size-1.5", "rounded-full", "bg-pink-400"])}
-                  aria-hidden="true"
+              render={
+                <a
+                  href={"https://github.com/GZCTF"}
+                  target={"_blank"}
+                  rel="noopener"
                 />
-                GZTime & GZCTF
-              </a>
+              }
+            >
+              <span
+                className={cn(["size-1.5", "rounded-full", "bg-pink-400"])}
+                aria-hidden="true"
+              />
+              GZTime & GZCTF
             </Button>
           </div>
         </div>

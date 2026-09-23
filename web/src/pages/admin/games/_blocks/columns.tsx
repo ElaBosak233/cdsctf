@@ -181,17 +181,25 @@ function GameCell({ row }: { row: Row<GameDetail> }) {
         >
           <span className={cn(["shrink-0", "font-mono"])}>#{id}</span>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                icon={isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />}
-                square
-                size="sm"
-                variant="ghost"
-                className={cn(["size-6", "shrink-0", "text-muted-foreground"])}
-                aria-label={t("common:tooltip.copy")}
-                onClick={() => copyToClipboard(`${id}`)}
-              />
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  icon={
+                    isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />
+                  }
+                  square
+                  size="sm"
+                  variant="ghost"
+                  className={cn([
+                    "size-6",
+                    "shrink-0",
+                    "text-muted-foreground",
+                  ])}
+                  aria-label={t("common:tooltip.copy")}
+                  onClick={() => copyToClipboard(`${id}`)}
+                />
+              }
+            ></TooltipTrigger>
             <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
           </Tooltip>
           {row.original.sketch && (
@@ -338,31 +346,33 @@ function ActionsCell({ row }: { row: Row<GameDetail> }) {
       ])}
     >
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            square
-            icon={<EditIcon />}
-            aria-label={t("game:actions.update._")}
-            asChild
-          >
-            <Link to={`/admin/games/${id}`} />
-          </Button>
-        </TooltipTrigger>
+        <TooltipTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="sm"
+              square
+              icon={<EditIcon />}
+              aria-label={t("game:actions.update._")}
+              render={<Link to={`/admin/games/${id}`} />}
+            />
+          }
+        />
         <TooltipContent>{t("game:actions.update._")}</TooltipContent>
       </Tooltip>
 
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            square
-            size={"sm"}
-            variant={"ghost"}
-            icon={<EllipsisIcon />}
-            aria-label={t("game:actions._")}
-          />
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              square
+              size={"sm"}
+              variant={"ghost"}
+              icon={<EllipsisIcon />}
+              aria-label={t("game:actions._")}
+            />
+          }
+        ></DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem onClick={handleEnabledChange}>
             {optimisticEnabled ? <EyeClosedIcon /> : <EyeIcon />}

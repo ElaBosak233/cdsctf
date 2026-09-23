@@ -43,6 +43,7 @@ function ChallengeCard(props: ChallengeCardProps) {
       className={cn(
         [
           "w-full",
+          "text-left",
           "relative",
           "select-none",
           "p-5",
@@ -76,26 +77,40 @@ function ChallengeCard(props: ChallengeCardProps) {
       </span>
       {!debug && status?.cheated ? (
         <Tooltip>
-          <TooltipTrigger asChild>
-            <LockIcon
-              className={cn(["absolute", "top-[10%]", "right-[7%]", "size-5"])}
-              color={category?.color}
-            />
-          </TooltipTrigger>
-          <TooltipContent onClick={(e) => e.stopPropagation()} sideOffset={0}>
+          <TooltipTrigger
+            render={
+              <LockIcon
+                className={cn([
+                  "absolute",
+                  "top-[10%]",
+                  "right-[7%]",
+                  "size-5",
+                ])}
+                color={category?.color}
+              />
+            }
+          ></TooltipTrigger>
+          <TooltipContent sideOffset={6} onClick={(e) => e.stopPropagation()}>
             {t("submission:cheated")}
           </TooltipContent>
         </Tooltip>
       ) : !debug && status?.solved ? (
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Flag
-              className={cn(["absolute", "top-[10%]", "right-[7%]", "size-5"])}
-              fill={category?.color}
-              color={category?.color}
-            />
-          </TooltipTrigger>
-          <TooltipContent onClick={(e) => e.stopPropagation()} sideOffset={0}>
+          <TooltipTrigger
+            render={
+              <Flag
+                className={cn([
+                  "absolute",
+                  "top-[10%]",
+                  "right-[7%]",
+                  "size-5",
+                ])}
+                fill={category?.color}
+                color={category?.color}
+              />
+            }
+          ></TooltipTrigger>
+          <TooltipContent sideOffset={6} onClick={(e) => e.stopPropagation()}>
             {t("submission:solved")}
           </TooltipContent>
         </Tooltip>
@@ -115,12 +130,10 @@ function ChallengeCard(props: ChallengeCardProps) {
       <Separator className={"my-3"} />
       <div className={cn(["flex", "justify-between", "items-center", "h-5"])}>
         <Tooltip>
-          <TooltipTrigger asChild>
-            <span className={cn(["text-sm"])}>
-              {t("submission:solves", {
-                count: debug ? NaN : status?.solved_times || 0,
-              })}
-            </span>
+          <TooltipTrigger render={<span className={cn(["text-sm"])} />}>
+            {t("submission:solves", {
+              count: debug ? NaN : status?.solved_times || 0,
+            })}
           </TooltipTrigger>
           {!!status?.solved_times && (
             <TooltipContent

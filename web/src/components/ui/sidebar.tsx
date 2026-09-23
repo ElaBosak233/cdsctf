@@ -356,7 +356,6 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 function SidebarMenuButton({
-  asChild = false,
   isActive = false,
   tooltip,
   className,
@@ -365,14 +364,12 @@ function SidebarMenuButton({
   ref,
   ...props
 }: useRender.ComponentProps<"button"> & {
-  asChild?: boolean;
   isActive?: boolean;
   tooltip?: string;
 }) {
-  const child = React.isValidElement(children) ? children : undefined;
   const button = useRender({
     defaultTagName: "button",
-    render: render ?? (asChild ? child : undefined),
+    render,
     ref,
     props: {
       "data-sidebar": "menu-button",
@@ -384,13 +381,13 @@ function SidebarMenuButton({
         className
       ),
       ...props,
-      children: child && asChild ? undefined : children,
+      children,
     },
   });
   if (!tooltip) return button;
   return (
     <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipTrigger render={button} />
       <TooltipContent side="right">{tooltip}</TooltipContent>
     </Tooltip>
   );
@@ -477,7 +474,6 @@ function SidebarMenuSubItem({
   );
 }
 function SidebarMenuSubButton({
-  asChild = false,
   isActive = false,
   className,
   render,
@@ -485,14 +481,12 @@ function SidebarMenuSubButton({
   ref,
   ...props
 }: useRender.ComponentProps<"a"> & {
-  asChild?: boolean;
   size?: "sm" | "md";
   isActive?: boolean;
 }) {
-  const child = React.isValidElement(children) ? children : undefined;
   return useRender({
     defaultTagName: "a",
-    render: render ?? (asChild ? child : undefined),
+    render,
     ref,
     props: {
       "data-sidebar": "menu-sub-button",
@@ -502,7 +496,7 @@ function SidebarMenuSubButton({
         className
       ),
       ...props,
-      children: child && asChild ? undefined : children,
+      children,
     },
   });
 }

@@ -746,30 +746,37 @@ function DropzoneTrigger(props: DropzoneTriggerProps) {
 
   return (
     <Button
-      asChild={!disabled}
+      render={
+        disabled
+          ? undefined
+          : (renderProps) => (
+              <label {...renderProps} htmlFor={context.inputId}>
+                {renderProps.children}
+              </label>
+            )
+      }
       disabled={disabled}
       ref={ref}
       {...rest}
       className={className}
     >
-      <label>
-        {children}
-        <input
-          {...context.getInputProps({
-            style: {
-              display: undefined,
-            },
-            className: "sr-only",
-            tabIndex: undefined,
-          })}
-          aria-describedby={
-            context.isInvalid
-              ? [context.rootMessageId, ...fileMessageIds].join(" ")
-              : undefined
-          }
-          aria-invalid={context.isInvalid}
-        />
-      </label>
+      {children}
+      <input
+        {...context.getInputProps({
+          id: context.inputId,
+          style: {
+            display: undefined,
+          },
+          className: "sr-only",
+          tabIndex: undefined,
+        })}
+        aria-describedby={
+          context.isInvalid
+            ? [context.rootMessageId, ...fileMessageIds].join(" ")
+            : undefined
+        }
+        aria-invalid={context.isInvalid}
+      />
     </Button>
   );
 }

@@ -303,30 +303,32 @@ function ActionsCell({ row }: { row: Row<IdpView> }) {
       ])}
     >
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            square
-            icon={<EditIcon />}
-            aria-label={t("admin:idp.actions.update._")}
-            asChild
-          >
-            <Link to={`/admin/idps/${idp.id}`} />
-          </Button>
-        </TooltipTrigger>
+        <TooltipTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="sm"
+              square
+              icon={<EditIcon />}
+              aria-label={t("admin:idp.actions.update._")}
+              render={<Link to={`/admin/idps/${idp.id}`} />}
+            />
+          }
+        />
         <TooltipContent>{t("admin:idp.actions.update._")}</TooltipContent>
       </Tooltip>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            square
-            size="sm"
-            variant="ghost"
-            icon={<EllipsisIcon />}
-            aria-label={t("admin:idp.actions._")}
-          />
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              square
+              size="sm"
+              variant="ghost"
+              icon={<EllipsisIcon />}
+              aria-label={t("admin:idp.actions._")}
+            />
+          }
+        ></DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem
             onClick={() => setDeleteDialogOpen(true)}

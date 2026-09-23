@@ -157,22 +157,24 @@ function useColumns(): Array<ColumnDef<TeamView>> {
                     </Badge>
                   )}
                   <Button
-                    asChild={has_writeup}
                     size={"sm"}
                     variant={"ghost"}
                     square
                     disabled={!has_writeup || resolvedGameId == null}
+                    render={
+                      has_writeup ? (
+                        <Link
+                          to={
+                            resolvedGameId != null
+                              ? `/api/admin/games/${resolvedGameId}/teams/${row.original.id}/writeup`
+                              : "#"
+                          }
+                          target={"_blank"}
+                        />
+                      ) : undefined
+                    }
                   >
-                    <Link
-                      to={
-                        resolvedGameId != null
-                          ? `/api/admin/games/${resolvedGameId}/teams/${row.original.id}/writeup`
-                          : "#"
-                      }
-                      target={"_blank"}
-                    >
-                      <FileCheck2Icon />
-                    </Link>
+                    <FileCheck2Icon />
                   </Button>
                 </div>
               );

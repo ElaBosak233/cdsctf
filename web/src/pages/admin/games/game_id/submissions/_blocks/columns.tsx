@@ -254,30 +254,34 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
             ])}
           >
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={"ghost"}
-                  size={"sm"}
-                  level={"error"}
-                  square
-                  icon={<BanIcon />}
-                  onClick={() => handleStatusChange(Status.Cheat)}
-                />
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant={"ghost"}
+                    size={"sm"}
+                    level={"error"}
+                    square
+                    icon={<BanIcon />}
+                    onClick={() => handleStatusChange(Status.Cheat)}
+                  />
+                }
+              ></TooltipTrigger>
               <TooltipContent>
                 {t("submission:actions.mark_cheat")}
               </TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={"ghost"}
-                  size={"sm"}
-                  square
-                  icon={<XIcon />}
-                  onClick={() => handleStatusChange(Status.Incorrect)}
-                />
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant={"ghost"}
+                    size={"sm"}
+                    square
+                    icon={<XIcon />}
+                    onClick={() => handleStatusChange(Status.Incorrect)}
+                  />
+                }
+              ></TooltipTrigger>
               <TooltipContent>
                 {t("submission:actions.mark_incorrect")}
               </TooltipContent>

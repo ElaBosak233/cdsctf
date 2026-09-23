@@ -104,10 +104,10 @@ export default function Layout() {
                   variant={pathname === option?.link ? "tonal" : "ghost"}
                   size="sm"
                   className={cn(["shrink-0"])}
-                  asChild
                   disabled={option?.disabled}
+                  render={<Comp to={option?.link} />}
                 >
-                  <Comp to={option?.link}>{option?.name}</Comp>
+                  {option?.name}
                 </Button>
               );
             })}
@@ -120,7 +120,7 @@ export default function Layout() {
                   </Button>
                 }
               />
-              <DialogContent size="preview">
+              <DialogContent size="preview" className="max-w-4xl">
                 <ChallengeDialog digest={challenge} debug />
               </DialogContent>
             </Dialog>
@@ -173,10 +173,10 @@ export default function Layout() {
                     icon={option?.icon}
                     variant={pathname === option?.link ? "tonal" : "ghost"}
                     className={cn(["justify-start"])}
-                    asChild
                     disabled={option?.disabled}
+                    render={<Comp to={option?.link} />}
                   >
-                    <Comp to={option?.link}>{option?.name}</Comp>
+                    {option?.name}
                   </Button>
                 );
               })}
@@ -198,7 +198,7 @@ export default function Layout() {
                     </Button>
                   }
                 />
-                <DialogContent size="preview">
+                <DialogContent size="preview" className="max-w-4xl">
                   <ChallengeDialog digest={challenge} debug />
                 </DialogContent>
               </Dialog>

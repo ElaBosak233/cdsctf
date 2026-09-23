@@ -1,6 +1,5 @@
 import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
 import type * as ReactTypes from "react";
-import React from "react";
 
 import { cn } from "@/utils";
 
@@ -19,20 +18,10 @@ function Tooltip({ delayDuration = 0, children, ...props }: TooltipProps) {
   );
 }
 
-function TooltipTrigger({
-  asChild,
-  children,
-  ...props
-}: React.ComponentProps<typeof BaseTooltip.Trigger> & { asChild?: boolean }) {
-  return (
-    <BaseTooltip.Trigger
-      data-slot="tooltip-trigger"
-      render={asChild && React.isValidElement(children) ? children : undefined}
-      {...props}
-    >
-      {asChild ? undefined : children}
-    </BaseTooltip.Trigger>
-  );
+function TooltipTrigger(
+  props: ReactTypes.ComponentProps<typeof BaseTooltip.Trigger>
+) {
+  return <BaseTooltip.Trigger data-slot="tooltip-trigger" {...props} />;
 }
 
 function TooltipContent({
