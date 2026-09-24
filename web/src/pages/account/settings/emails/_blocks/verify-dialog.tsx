@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { sendVerifyEmail, verifyEmail } from "@/api/users/me/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DialogHeader } from "@/components/ui/dialog";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { patchAuthenticatedUser, useAuthStore } from "@/storages/auth";
@@ -70,11 +70,12 @@ function VerifyDialog(props: VerifyDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <DialogHeader
-          icon={<MailCheckIcon />}
-          title={t("user:emails.actions.verify._")}
-        />
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<MailCheckIcon />}
+        title={t("user:emails.actions.verify._")}
+      />
+      <DialogBody className="p-5 pt-4">
         {configStore?.config?.email?.enabled ? (
           <div className={cn(["flex", "gap-2", "items-center"])}>
             <Field size={"sm"} className={cn(["flex-1"])}>
@@ -99,16 +100,18 @@ function VerifyDialog(props: VerifyDialogProps) {
             })}
           </div>
         )}
-        <Button
-          size={"sm"}
-          level={"success"}
-          variant={"solid"}
-          icon={<CheckIcon />}
-          onClick={handleVerify}
-        >
-          {t("common:actions.confirm")}
-        </Button>
-      </div>
+        <DialogFooter>
+          <Button
+            size={"sm"}
+            level={"success"}
+            variant={"solid"}
+            icon={<CheckIcon />}
+            onClick={handleVerify}
+          >
+            {t("common:actions.confirm")}
+          </Button>
+        </DialogFooter>
+      </DialogBody>
     </Card>
   );
 }

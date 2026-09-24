@@ -17,7 +17,13 @@ import { deleteTeam, setTeamReady } from "@/api/games/game_id/teams/us";
 import { leaveTeam } from "@/api/games/game_id/teams/us/users";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
@@ -199,13 +205,18 @@ export default function Layout() {
                       "flex-col",
                     ])}
                   >
-                    <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-                      <DialogHeader
-                        icon={<UserRoundXIcon />}
-                        level="error"
-                        title={t("team:actions.disband._")}
-                        description={t("team:actions.disband.message")}
-                      />
+                    <DialogHeader
+                      className="p-5 pb-0"
+                      icon={<UserRoundXIcon />}
+                      level="error"
+                      title={t("team:actions.disband._")}
+                    />
+                    <DialogBody className="px-5">
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        {t("team:actions.disband.message")}
+                      </p>
+                    </DialogBody>
+                    <DialogFooter className="p-5 pt-0">
                       <Button
                         icon={<CheckCheckIcon />}
                         level={"error"}
@@ -214,7 +225,7 @@ export default function Layout() {
                       >
                         {t("common:actions.confirm")}
                       </Button>
-                    </div>
+                    </DialogFooter>
                   </Card>
                 </DialogContent>
               </Dialog>
@@ -245,13 +256,18 @@ export default function Layout() {
                       "flex-col",
                     ])}
                   >
-                    <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-                      <DialogHeader
-                        icon={<UserRoundMinusIcon />}
-                        level="warning"
-                        title={t("team:actions.leave._")}
-                        description={t("team:actions.leave.message")}
-                      />
+                    <DialogHeader
+                      className="p-5 pb-0"
+                      icon={<UserRoundMinusIcon />}
+                      level="warning"
+                      title={t("team:actions.leave._")}
+                    />
+                    <DialogBody className="px-5">
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        {t("team:actions.leave.message")}
+                      </p>
+                    </DialogBody>
+                    <DialogFooter className="p-5 pt-0">
                       <Button
                         icon={<CheckCheckIcon />}
                         level={"error"}
@@ -260,7 +276,7 @@ export default function Layout() {
                       >
                         {t("common:actions.confirm")}
                       </Button>
-                    </div>
+                    </DialogFooter>
                   </Card>
                 </DialogContent>
               </Dialog>
@@ -300,13 +316,18 @@ export default function Layout() {
                     "flex-col",
                   ])}
                 >
-                  <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-                    <DialogHeader
-                      icon={<TriangleAlertIcon />}
-                      level="warning"
-                      title={t("team:actions.ready.title")}
-                      description={t("team:actions.ready.message")}
-                    />
+                  <DialogHeader
+                    className="p-5 pb-0"
+                    icon={<TriangleAlertIcon />}
+                    level="warning"
+                    title={t("team:actions.ready.title")}
+                  />
+                  <DialogBody className="px-5">
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {t("team:actions.ready.message")}
+                    </p>
+                  </DialogBody>
+                  <DialogFooter className="p-5 pt-0">
                     <Button
                       icon={<CheckCheckIcon />}
                       level={"warning"}
@@ -315,7 +336,7 @@ export default function Layout() {
                     >
                       {t("team:actions.ready.of_course")}
                     </Button>
-                  </div>
+                  </DialogFooter>
                 </Card>
               </DialogContent>
             </Dialog>

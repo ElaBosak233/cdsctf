@@ -6,7 +6,13 @@ import { toast } from "sonner";
 import { deleteGameNotice } from "@/api/admin/games/game_id/notices";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import { ContentDialog } from "@/components/widgets/content-dialog";
 import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import type { GameNoticeView } from "@/models/game_notice";
@@ -76,32 +82,33 @@ function ActionsCell({ row }: { row: Row<GameNoticeView> }) {
               "flex-col",
             ])}
           >
-            <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-              <DialogHeader
-                icon={<TrashIcon />}
-                level="error"
-                title={t("game:notice.actions.delete._")}
-                description={
-                  <Trans
-                    i18nKey="game:notice.actions.delete.message"
-                    values={{ title: row.original.title }}
-                    components={{
-                      muted: <span className={cn(["text-muted-foreground"])} />,
-                    }}
-                  />
-                }
-              />
-              <div className={cn(["flex", "justify-end"])}>
-                <Button
-                  level={"error"}
-                  variant={"tonal"}
-                  size={"sm"}
-                  onClick={handleDelete}
-                >
-                  {t("common:actions.confirm")}
-                </Button>
-              </div>
-            </div>
+            <DialogHeader
+              className="p-5 pb-0"
+              icon={<TrashIcon />}
+              level="error"
+              title={t("game:notice.actions.delete._")}
+            />
+            <DialogBody className="px-5">
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                <Trans
+                  i18nKey="game:notice.actions.delete.message"
+                  values={{ title: row.original.title }}
+                  components={{
+                    muted: <span className={cn(["text-muted-foreground"])} />,
+                  }}
+                />
+              </p>
+            </DialogBody>
+            <DialogFooter className="p-5 pt-0">
+              <Button
+                level={"error"}
+                variant={"tonal"}
+                size={"sm"}
+                onClick={handleDelete}
+              >
+                {t("common:actions.confirm")}
+              </Button>
+            </DialogFooter>
           </Card>
         </DialogContent>
       </Dialog>

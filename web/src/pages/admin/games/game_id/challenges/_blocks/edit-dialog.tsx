@@ -25,7 +25,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
-import { DialogHeader } from "@/components/ui/dialog";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -166,11 +166,12 @@ function EditDialog(props: EditDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <DialogHeader
-          icon={<LibraryIcon />}
-          title={t("game:challenge.actions.edit._")}
-        />
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<LibraryIcon />}
+        title={t("game:challenge.actions.edit._")}
+      />
+      <DialogBody className="p-5 pt-4">
         <ScrollArea className={cn(["max-h-144", "overflow-y-auto"])}>
           <Form {...form}>
             <form
@@ -381,13 +382,15 @@ function EditDialog(props: EditDialogProps) {
                   />
                 </AreaChart>
               </ChartContainer>
-              <Button type={"submit"} variant={"solid"} icon={<SaveIcon />}>
-                {t("common:actions.save")}
-              </Button>
+              <DialogFooter>
+                <Button type={"submit"} variant={"solid"} icon={<SaveIcon />}>
+                  {t("common:actions.save")}
+                </Button>
+              </DialogFooter>
             </form>
           </Form>
         </ScrollArea>
-      </div>
+      </DialogBody>
     </Card>
   );
 }

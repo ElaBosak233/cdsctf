@@ -8,7 +8,7 @@ import { z } from "zod";
 import { createAdminIdp } from "@/api/admin/idps";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DialogHeader } from "@/components/ui/dialog";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -83,11 +83,12 @@ function CreateDialog(props: CreateDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <DialogHeader
-          icon={<IdCardIcon />}
-          title={t("admin:idp.actions.create._")}
-        />
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<IdCardIcon />}
+        title={t("admin:idp.actions.create._")}
+      />
+      <DialogBody className="p-5 pt-4">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -117,18 +118,20 @@ function CreateDialog(props: CreateDialogProps) {
                 </FormItem>
               )}
             />
-            <Button
-              variant="solid"
-              icon={<CheckIcon />}
-              level="success"
-              loading={loading}
-              type="submit"
-            >
-              {t("common:actions.confirm")}
-            </Button>
+            <DialogFooter>
+              <Button
+                variant="solid"
+                icon={<CheckIcon />}
+                level="success"
+                loading={loading}
+                type="submit"
+              >
+                {t("common:actions.confirm")}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
-      </div>
+      </DialogBody>
     </Card>
   );
 }

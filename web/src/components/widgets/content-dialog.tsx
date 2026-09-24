@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogHeader,
   DialogTrigger,
@@ -61,9 +62,11 @@ export function ContentDialog({
             ])}
           >
             <DialogHeader title={title} />
-            <Typography className="min-h-0 flex-1">
-              <MarkdownRender src={content} />
-            </Typography>
+            <DialogBody>
+              <Typography className="min-h-0 flex-1">
+                <MarkdownRender src={content} />
+              </Typography>
+            </DialogBody>
           </Card>
         </DialogContent>
       </Dialog>

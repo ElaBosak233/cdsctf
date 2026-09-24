@@ -9,7 +9,7 @@ import { createTeam } from "@/api/games/game_id/teams";
 import { joinTeam } from "@/api/games/game_id/teams/team_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DialogHeader } from "@/components/ui/dialog";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -168,29 +168,26 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
         </Button>
       </div>
 
+      <DialogHeader
+        className="px-6 pt-6 pb-0"
+        icon={tab === "create" ? <UserPlusIcon /> : <LogInIcon />}
+        title={t(
+          tab === "create"
+            ? "team:actions.gather.create.title"
+            : "team:actions.gather.join.title"
+        )}
+      />
+
       {/* Content area */}
-      <div className={cn(["p-6", "flex", "flex-col", "gap-6"])}>
+      <DialogBody className="p-6 gap-6">
         {tab === "create" ? (
           <>
-            <DialogHeader
-              icon={<UserPlusIcon />}
-              title={t("team:actions.gather.create.title")}
-              description={t("team:form.name.placeholder")}
-              descriptionClassName="text-xs text-muted-foreground/80 leading-relaxed"
-            />
-
             {/* Form */}
             <Form key="create" {...createForm}>
               <form
                 onSubmit={createForm.handleSubmit(onCreateFormSubmit)}
                 autoComplete="off"
-                className={cn([
-                  "flex",
-                  "flex-wrap",
-                  "items-end",
-                  "gap-3",
-                  "sm:flex-nowrap",
-                ])}
+                className={cn(["flex", "flex-col", "gap-3"])}
               >
                 <FormField
                   control={createForm.control}
@@ -217,39 +214,28 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
                     </FormItem>
                   )}
                 />
-                <Button
-                  variant="solid"
-                  level="info"
-                  type="submit"
-                  loading={loading}
-                  className={cn(["shrink-0"])}
-                >
-                  {t("team:actions.gather.create._")}
-                </Button>
+                <DialogFooter>
+                  <Button
+                    variant="solid"
+                    level="info"
+                    type="submit"
+                    loading={loading}
+                    className={cn(["shrink-0"])}
+                  >
+                    {t("team:actions.gather.create._")}
+                  </Button>
+                </DialogFooter>
               </form>
             </Form>
           </>
         ) : (
           <>
-            <DialogHeader
-              icon={<LogInIcon />}
-              title={t("team:actions.gather.join.title")}
-              description={t("team:form.invite_code.placeholder")}
-              descriptionClassName="text-xs text-muted-foreground/80 leading-relaxed"
-            />
-
             {/* Form */}
             <Form key="join" {...joinForm}>
               <form
                 onSubmit={joinForm.handleSubmit(onJoinFormSubmit)}
                 autoComplete="off"
-                className={cn([
-                  "flex",
-                  "flex-wrap",
-                  "items-end",
-                  "gap-3",
-                  "sm:flex-nowrap",
-                ])}
+                className={cn(["flex", "flex-col", "gap-3"])}
               >
                 <FormField
                   control={joinForm.control}
@@ -276,19 +262,21 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
                     </FormItem>
                   )}
                 />
-                <Button
-                  variant="solid"
-                  type="submit"
-                  loading={loading}
-                  className={cn(["shrink-0"])}
-                >
-                  {t("team:actions.gather.join._")}
-                </Button>
+                <DialogFooter>
+                  <Button
+                    variant="solid"
+                    type="submit"
+                    loading={loading}
+                    className={cn(["shrink-0"])}
+                  >
+                    {t("team:actions.gather.join._")}
+                  </Button>
+                </DialogFooter>
               </form>
             </Form>
           </>
         )}
-      </div>
+      </DialogBody>
     </Card>
   );
 }

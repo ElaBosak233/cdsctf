@@ -16,7 +16,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/components/ui/combobox";
-import { DialogHeader } from "@/components/ui/dialog";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { ChallengeDetail } from "@/models/challenge";
@@ -119,12 +119,15 @@ function CreateDialog(props: CreateDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <DialogHeader
-          icon={<LibraryIcon />}
-          title={t("game:challenge.actions.add._")}
-          description={t("game:challenge.actions.add.message")}
-        />
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<LibraryIcon />}
+        title={t("game:challenge.actions.add._")}
+      />
+      <DialogBody className="p-5 pt-4">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {t("game:challenge.actions.add.message")}
+        </p>
         <Field size="sm" className="w-full">
           <FieldIcon>
             <LibraryIcon />
@@ -169,22 +172,24 @@ function CreateDialog(props: CreateDialogProps) {
             </ComboboxContent>
           </Combobox>
         </Field>
-        <Button
-          variant={"solid"}
-          icon={<CheckIcon />}
-          level={"success"}
-          // loading={loading}
-          disabled={selectedChallenge == null}
-          onClick={() => {
-            if (selectedChallenge) {
-              handleCreateGameChallenge(selectedChallenge);
-            }
-          }}
-          // type={"submit"}
-        >
-          {t("common:actions.confirm")}
-        </Button>
-      </div>
+        <DialogFooter>
+          <Button
+            variant={"solid"}
+            icon={<CheckIcon />}
+            level={"success"}
+            // loading={loading}
+            disabled={selectedChallenge == null}
+            onClick={() => {
+              if (selectedChallenge) {
+                handleCreateGameChallenge(selectedChallenge);
+              }
+            }}
+            // type={"submit"}
+          >
+            {t("common:actions.confirm")}
+          </Button>
+        </DialogFooter>
+      </DialogBody>
     </Card>
   );
 }

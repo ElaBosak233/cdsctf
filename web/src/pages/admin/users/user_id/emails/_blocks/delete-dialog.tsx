@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { deleteEmail } from "@/api/admin/users/user_id/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DialogHeader } from "@/components/ui/dialog";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { cn } from "@/utils";
 
 interface DeleteEmailDialogProps {
@@ -48,27 +48,35 @@ export function DeleteEmailDialog(props: DeleteEmailDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <DialogHeader
-          icon={<TrashIcon />}
-          level="error"
-          title={t("user:emails.actions.delete._")}
-          description={
-            <div className={cn(["flex", "flex-col", "gap-1"])}>
-              <p className={cn(["font-medium"])}>
-                <Trans
-                  i18nKey={"user:emails.actions.delete.message"}
-                  values={{ email }}
-                  components={{
-                    muted: <span className={cn(["text-muted-foreground"])} />,
-                  }}
-                />
-              </p>
-              <p>{t("user:emails.actions.delete.message_brief")}</p>
-            </div>
-          }
-        />
-        <div className={cn(["flex", "justify-end", "gap-2"])}>
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<TrashIcon />}
+        level="error"
+        title={t("user:emails.actions.delete._")}
+      />
+      <DialogBody className="p-5 pt-4">
+        <div
+          className={cn([
+            "flex",
+            "flex-col",
+            "gap-1",
+            "text-sm",
+            "leading-relaxed",
+            "text-muted-foreground",
+          ])}
+        >
+          <p className={cn(["font-medium", "text-foreground"])}>
+            <Trans
+              i18nKey={"user:emails.actions.delete.message"}
+              values={{ email }}
+              components={{
+                muted: <span className={cn(["text-muted-foreground"])} />,
+              }}
+            />
+          </p>
+          <p>{t("user:emails.actions.delete.message_brief")}</p>
+        </div>
+        <DialogFooter>
           <Button
             variant={"solid"}
             level={"error"}
@@ -78,8 +86,8 @@ export function DeleteEmailDialog(props: DeleteEmailDialogProps) {
           >
             {t("common:actions.confirm")}
           </Button>
-        </div>
-      </div>
+        </DialogFooter>
+      </DialogBody>
     </Card>
   );
 }

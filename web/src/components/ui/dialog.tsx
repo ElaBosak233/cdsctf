@@ -29,10 +29,12 @@ type DialogHeaderProps = React.ComponentProps<"div"> & {
   trailing?: React.ReactNode;
   level?: "primary" | "info" | "success" | "warning" | "error";
   iconClassName?: string;
-  contentClassName?: string;
   titleClassName?: string;
   descriptionClassName?: string;
 };
+
+type DialogBodyProps = React.ComponentProps<"div">;
+type DialogFooterProps = React.ComponentProps<"div">;
 
 function DialogContent(props: DialogContentProps) {
   const { children, className, size = "default", slotProps, ...rest } = props;
@@ -90,7 +92,6 @@ function DialogHeader(props: DialogHeaderProps) {
     level = "primary",
     className,
     iconClassName,
-    contentClassName,
     titleClassName,
     descriptionClassName,
     ...rest
@@ -143,17 +144,14 @@ function DialogHeader(props: DialogHeaderProps) {
       )}
       <div
         data-slot="dialog-header-content"
-        className={cn(
-          [
-            "flex",
-            "min-w-0",
-            "flex-1",
-            "flex-col",
-            "gap-1",
-            !hasDescription && "justify-center",
-          ],
-          contentClassName
-        )}
+        className={cn([
+          "flex",
+          "min-w-0",
+          "flex-1",
+          "flex-col",
+          "gap-1",
+          !hasDescription && "justify-center",
+        ])}
       >
         <BaseDialog.Title
           data-slot="dialog-header-title"
@@ -182,6 +180,42 @@ function DialogHeader(props: DialogHeaderProps) {
         </div>
       )}
     </div>
+  );
+}
+
+function DialogBody({ className, ...props }: DialogBodyProps) {
+  return (
+    <div
+      data-slot="dialog-body"
+      className={cn([
+        "flex",
+        "min-h-0",
+        "flex-1",
+        "flex-col",
+        "gap-5",
+        className,
+      ])}
+      {...props}
+    />
+  );
+}
+
+function DialogFooter({ className, ...props }: DialogFooterProps) {
+  return (
+    <div
+      data-slot="dialog-footer"
+      className={cn([
+        "flex",
+        "w-full",
+        "shrink-0",
+        "items-center",
+        "justify-stretch",
+        "gap-2",
+        "[&>*]:flex-1",
+        className,
+      ])}
+      {...props}
+    />
   );
 }
 
@@ -216,4 +250,11 @@ function DialogOverlay({
   );
 }
 
-export { Dialog, DialogContent, DialogHeader, DialogTrigger };
+export {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+};

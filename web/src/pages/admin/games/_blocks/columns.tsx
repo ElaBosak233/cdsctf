@@ -33,7 +33,13 @@ import { deleteGame, updateGame } from "@/api/admin/games/game_id";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -403,32 +409,33 @@ function ActionsCell({ row }: { row: Row<GameDetail> }) {
               "flex-col",
             ])}
           >
-            <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-              <DialogHeader
-                icon={<TrashIcon />}
-                level="error"
-                title={t("game:actions.delete._")}
-                description={
-                  <Trans
-                    i18nKey="game:actions.delete.message"
-                    values={{ title }}
-                    components={{
-                      muted: <span className={cn(["text-muted-foreground"])} />,
-                    }}
-                  />
-                }
-              />
-              <div className={cn(["flex", "justify-end"])}>
-                <Button
-                  level={"error"}
-                  variant={"solid"}
-                  size={"sm"}
-                  onClick={handleDelete}
-                >
-                  {t("common:actions.confirm")}
-                </Button>
-              </div>
-            </div>
+            <DialogHeader
+              className="p-5 pb-0"
+              icon={<TrashIcon />}
+              level="error"
+              title={t("game:actions.delete._")}
+            />
+            <DialogBody className="px-5">
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                <Trans
+                  i18nKey="game:actions.delete.message"
+                  values={{ title }}
+                  components={{
+                    muted: <span className={cn(["text-muted-foreground"])} />,
+                  }}
+                />
+              </p>
+            </DialogBody>
+            <DialogFooter className="p-5 pt-0">
+              <Button
+                level={"error"}
+                variant={"solid"}
+                size={"sm"}
+                onClick={handleDelete}
+              >
+                {t("common:actions.confirm")}
+              </Button>
+            </DialogFooter>
           </Card>
         </DialogContent>
       </Dialog>

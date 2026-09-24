@@ -16,7 +16,7 @@ import { z } from "zod";
 import { createUser } from "@/api/admin/users";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DialogHeader } from "@/components/ui/dialog";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -110,11 +110,12 @@ function CreateUserDialog(props: CreateUserDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <DialogHeader
-          icon={<UserRoundPlusIcon />}
-          title={t("user:actions.create._")}
-        />
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<UserRoundPlusIcon />}
+        title={t("user:actions.create._")}
+      />
+      <DialogBody className="p-5 pt-4">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -269,18 +270,20 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                 </FormItem>
               )}
             />
-            <Button
-              type={"submit"}
-              variant={"solid"}
-              icon={<CheckIcon />}
-              level={"success"}
-              loading={loading}
-            >
-              {t("common:actions.confirm")}
-            </Button>
+            <DialogFooter>
+              <Button
+                type={"submit"}
+                variant={"solid"}
+                icon={<CheckIcon />}
+                level={"success"}
+                loading={loading}
+              >
+                {t("common:actions.confirm")}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
-      </div>
+      </DialogBody>
     </Card>
   );
 }

@@ -9,7 +9,7 @@ import { z } from "zod";
 import { createGameNotice } from "@/api/admin/games/game_id/notices";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DialogHeader } from "@/components/ui/dialog";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -81,11 +81,12 @@ function CreateDialog(props: CreateDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <DialogHeader
-          icon={<MessageCircleIcon />}
-          title={t("game:notice.actions.create._")}
-        />
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<MessageCircleIcon />}
+        title={t("game:notice.actions.create._")}
+      />
+      <DialogBody className="p-5 pt-4">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -130,12 +131,14 @@ function CreateDialog(props: CreateDialogProps) {
                 </FormItem>
               )}
             />
-            <Button icon={<SaveIcon />} variant={"solid"} type={"submit"}>
-              {t("common:actions.save")}
-            </Button>
+            <DialogFooter>
+              <Button icon={<SaveIcon />} variant={"solid"} type={"submit"}>
+                {t("common:actions.save")}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
-      </div>
+      </DialogBody>
     </Card>
   );
 }

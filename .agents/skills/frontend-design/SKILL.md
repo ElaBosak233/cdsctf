@@ -87,8 +87,6 @@ Use the shared `Dialog`. The overlay is opaque enough to isolate the task (`bg-b
 
 Large task dialogs should be a single elevated card with a clear header, separator-delimited sections, a bounded scrollable description, and fixed action sections. Challenge dialogs follow the order: category/title header, markdown description, optional attachments, optional instance controls, then submission controls.
 
-Use the shared `DialogHeader` for dialog title areas. Its title states what the dialog is for, while its optional description explains the consequence, context, or next step. Keep both in the same text column below the title when a description exists. When there is no description, center the icon and title vertically as one row; do not leave the icon aligned to the top of an empty description column. Keep dialog header copy translation-ready and avoid repeating the title in the description.
-
 ### Tables And Admin Surfaces
 
 Admin UI is information-dense and scan-friendly. Use the shared table primitives, small text, muted metadata, and semantic badges. For wide tables, keep a stable `min-width` inside a `ScrollArea`; use a sticky header with `bg-muted/95` and `backdrop-blur-sm`, and keep action columns sticky on the right when horizontal scrolling is possible. Rows use subtle `hover:bg-muted/50`; do not use dramatic row transforms or alternating decorative colors.

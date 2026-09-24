@@ -7,7 +7,7 @@ import z from "zod";
 import { addEmail } from "@/api/users/me/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DialogHeader } from "@/components/ui/dialog";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -59,11 +59,12 @@ function CreateDialog(props: CreateDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <DialogHeader
-          icon={<MailPlusIcon />}
-          title={t("user:emails.actions.create._")}
-        />
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<MailPlusIcon />}
+        title={t("user:emails.actions.create._")}
+      />
+      <DialogBody className="p-5 pt-4">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -90,18 +91,20 @@ function CreateDialog(props: CreateDialogProps) {
                 </FormItem>
               )}
             />
-            <Button
-              icon={<CheckIcon />}
-              level={"success"}
-              variant={"solid"}
-              size={"sm"}
-              type={"submit"}
-            >
-              {t("common:actions.confirm")}
-            </Button>
+            <DialogFooter>
+              <Button
+                icon={<CheckIcon />}
+                level={"success"}
+                variant={"solid"}
+                size={"sm"}
+                type={"submit"}
+              >
+                {t("common:actions.confirm")}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
-      </div>
+      </DialogBody>
     </Card>
   );
 }

@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { deleteEmail } from "@/api/users/me/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DialogHeader } from "@/components/ui/dialog";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { cn } from "@/utils";
 
 interface DeleteDialogProps {
@@ -39,22 +39,23 @@ function DeleteDialog(props: DeleteDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <DialogHeader
-          icon={<TrashIcon />}
-          level="error"
-          title={t("user:emails.actions.delete._")}
-          description={
-            <Trans
-              i18nKey={"user:emails.actions.delete.message"}
-              values={{ email }}
-              components={{
-                muted: <span className={cn(["text-foreground"])} />,
-              }}
-            />
-          }
-        />
-        <div className={cn(["flex", "justify-end"])}>
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<TrashIcon />}
+        level="error"
+        title={t("user:emails.actions.delete._")}
+      />
+      <DialogBody className="p-5 pt-4">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          <Trans
+            i18nKey={"user:emails.actions.delete.message"}
+            values={{ email }}
+            components={{
+              muted: <span className={cn(["text-foreground"])} />,
+            }}
+          />
+        </p>
+        <DialogFooter>
           <Button
             level={"error"}
             variant={"solid"}
@@ -63,8 +64,8 @@ function DeleteDialog(props: DeleteDialogProps) {
           >
             {t("common:actions.confirm")}
           </Button>
-        </div>
-      </div>
+        </DialogFooter>
+      </DialogBody>
     </Card>
   );
 }

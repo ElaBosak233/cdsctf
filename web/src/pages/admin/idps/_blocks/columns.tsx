@@ -26,7 +26,13 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -353,32 +359,33 @@ function ActionsCell({ row }: { row: Row<IdpView> }) {
               "shadow-lg",
             ])}
           >
-            <div className={cn(["flex", "flex-col", "gap-5", "p-5"])}>
-              <DialogHeader
-                icon={<TrashIcon />}
+            <DialogHeader
+              className="p-5 pb-0"
+              icon={<TrashIcon />}
+              level="error"
+              title={t("admin:idp.actions.delete._")}
+            />
+            <DialogBody className="px-5">
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                <Trans
+                  i18nKey="admin:idp.actions.delete.message"
+                  values={{ name: idp.name }}
+                  components={{
+                    muted: <span className="text-muted-foreground" />,
+                  }}
+                />
+              </p>
+            </DialogBody>
+            <DialogFooter className="p-5 pt-0">
+              <Button
                 level="error"
-                title={t("admin:idp.actions.delete._")}
-                description={
-                  <Trans
-                    i18nKey="admin:idp.actions.delete.message"
-                    values={{ name: idp.name }}
-                    components={{
-                      muted: <span className="text-muted-foreground" />,
-                    }}
-                  />
-                }
-              />
-              <div className="flex justify-end">
-                <Button
-                  level="error"
-                  variant="solid"
-                  size="sm"
-                  onClick={handleDelete}
-                >
-                  {t("common:actions.confirm")}
-                </Button>
-              </div>
-            </div>
+                variant="solid"
+                size="sm"
+                onClick={handleDelete}
+              >
+                {t("common:actions.confirm")}
+              </Button>
+            </DialogFooter>
           </Card>
         </DialogContent>
       </Dialog>
