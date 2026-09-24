@@ -285,7 +285,7 @@ function ActionsCell({ row }: { row: Row<UserAccountView> }) {
               level="error"
               title={t("user:actions.delete._")}
             />
-            <DialogBody className="px-5">
+            <DialogBody className="px-5 py-5">
               <p className="text-sm leading-relaxed text-muted-foreground">
                 <Trans
                   i18nKey="user:actions.delete.message"

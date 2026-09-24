@@ -211,7 +211,7 @@ export default function Layout() {
                       level="error"
                       title={t("team:actions.disband._")}
                     />
-                    <DialogBody className="px-5">
+                    <DialogBody className="px-5 py-5">
                       <p className="text-sm leading-relaxed text-muted-foreground">
                         {t("team:actions.disband.message")}
                       </p>
@@ -262,7 +262,7 @@ export default function Layout() {
                       level="warning"
                       title={t("team:actions.leave._")}
                     />
-                    <DialogBody className="px-5">
+                    <DialogBody className="px-5 py-5">
                       <p className="text-sm leading-relaxed text-muted-foreground">
                         {t("team:actions.leave.message")}
                       </p>
@@ -322,7 +322,7 @@ export default function Layout() {
                     level="warning"
                     title={t("team:actions.ready.title")}
                   />
-                  <DialogBody className="px-5">
+                  <DialogBody className="px-5 py-5">
                     <p className="text-sm leading-relaxed text-muted-foreground">
                       {t("team:actions.ready.message")}
                     </p>

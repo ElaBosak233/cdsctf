@@ -81,7 +81,7 @@ function ActionsCell({ row }: { row: Row<Metadata> }) {
               level="error"
               title={t("challenge:attachment.actions.delete._")}
             />
-            <DialogBody className="px-5">
+            <DialogBody className="px-5 py-5">
               <p className="text-sm leading-relaxed text-muted-foreground">
                 <Trans
                   i18nKey="challenge:attachment.actions.delete.message"

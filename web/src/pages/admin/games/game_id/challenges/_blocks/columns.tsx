@@ -246,7 +246,7 @@ function ActionsCell({ row }: { row: Row<GameChallengeView> }) {
               level="error"
               title={t("game:challenge.actions.delete._")}
             />
-            <DialogBody className="px-5">
+            <DialogBody className="px-5 py-5">
               <p className="text-sm leading-relaxed text-muted-foreground">
                 <Trans
                   i18nKey="game:challenge.actions.delete.message"

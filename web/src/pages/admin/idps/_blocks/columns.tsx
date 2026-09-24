@@ -365,7 +365,7 @@ function ActionsCell({ row }: { row: Row<IdpView> }) {
               level="error"
               title={t("admin:idp.actions.delete._")}
             />
-            <DialogBody className="px-5">
+            <DialogBody className="px-5 py-5">
               <p className="text-sm leading-relaxed text-muted-foreground">
                 <Trans
                   i18nKey="admin:idp.actions.delete.message"

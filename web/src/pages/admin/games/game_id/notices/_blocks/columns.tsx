@@ -88,7 +88,7 @@ function ActionsCell({ row }: { row: Row<GameNoticeView> }) {
               level="error"
               title={t("game:notice.actions.delete._")}
             />
-            <DialogBody className="px-5">
+            <DialogBody className="px-5 py-5">
               <p className="text-sm leading-relaxed text-muted-foreground">
                 <Trans
                   i18nKey="game:notice.actions.delete.message"
