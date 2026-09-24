@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/utils";
-import { FieldContext } from "./field";
+import { FieldContext, fieldClearButtonVariants } from "./field";
 import { inputVariants } from "./text-field";
 
 type ComboboxOption<Value = string> = {
@@ -118,7 +118,7 @@ function ComboboxInput({
         className="h-full min-w-0 flex-1 bg-transparent px-3 py-2 outline-none placeholder:text-secondary-foreground/80"
         {...props}
       />
-      {showClear && <ComboboxClear disabled={isDisabled} />}
+      {showClear && <ComboboxClear disabled={isDisabled} size={size} />}
       {showTrigger && (
         <ComboboxTrigger
           disabled={isDisabled}
@@ -165,15 +165,15 @@ function ComboboxTrigger({
 function ComboboxClear({
   className,
   children,
+  size,
   ...props
-}: React.ComponentProps<typeof BaseCombobox.Clear>) {
+}: React.ComponentProps<typeof BaseCombobox.Clear> & {
+  size?: "sm" | "md";
+}) {
   return (
     <BaseCombobox.Clear
       data-slot="combobox-clear"
-      className={cn(
-        "inline-flex h-full w-10 shrink-0 items-center justify-center rounded-none text-muted-foreground hover:bg-foreground/5 disabled:pointer-events-none disabled:opacity-50",
-        className
-      )}
+      className={cn(fieldClearButtonVariants({ size }), className)}
       {...props}
     >
       {children ?? <XIcon className="size-4" />}

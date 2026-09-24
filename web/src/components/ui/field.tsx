@@ -143,4 +143,59 @@ const extraBtnSection = cva(
   }
 );
 
-export { FieldButton, FieldContext, FieldIcon, FieldRoot as Field };
+const fieldClearButtonVariants = cva(
+  [
+    "inline-flex",
+    "shrink-0",
+    "items-center",
+    "justify-center",
+    "p-0",
+    "text-muted-foreground",
+    "hover:bg-foreground/5",
+    "disabled:pointer-events-none",
+    "disabled:opacity-50",
+    "[&_svg]:pointer-events-none",
+    "[&_svg]:shrink-0",
+    "[&_svg]:size-4",
+  ],
+  {
+    variants: {
+      size: {
+        sm: "size-10",
+        md: "size-12",
+      },
+      edge: {
+        middle: "rounded-none",
+        end: "rounded-l-none rounded-r-md",
+      },
+      overlay: {
+        true: "",
+        false: "",
+      },
+    },
+    compoundVariants: [
+      {
+        size: "sm",
+        overlay: true,
+        className: "!size-[calc(2.5rem-2px)]",
+      },
+      {
+        size: "md",
+        overlay: true,
+        className: "!size-[calc(3rem-2px)]",
+      },
+    ],
+    defaultVariants: {
+      size: "md",
+      edge: "middle",
+    },
+  }
+);
+
+export {
+  FieldButton,
+  FieldContext,
+  FieldIcon,
+  FieldRoot as Field,
+  fieldClearButtonVariants,
+};

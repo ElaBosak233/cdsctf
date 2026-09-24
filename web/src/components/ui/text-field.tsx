@@ -69,10 +69,10 @@ const inputVariants = cva(
         md: ["h-12", "min-h-12"],
       },
       icon: {
-        true: ["rounded-l-none", "border-l-0"],
+        true: ["!rounded-l-none", "!border-l-0"],
       },
       extraBtn: {
-        true: ["rounded-r-none", "border-r-0"],
+        true: ["!rounded-r-none", "!border-r-0"],
       },
     },
     defaultVariants: {

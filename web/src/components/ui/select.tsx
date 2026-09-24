@@ -78,7 +78,7 @@ const selectTriggerVariants = cva(
   {
     variants: {
       size: { sm: "h-10", md: "h-12" },
-      icon: { true: "rounded-l-none border-l-0" },
+      icon: { true: "!rounded-l-none !border-l-0" },
     },
     defaultVariants: { size: "md", icon: false },
   }
