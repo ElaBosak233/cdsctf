@@ -20,6 +20,7 @@ import {
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 
 import defaultScript from "../idp_id/_blocks/examples/default.lua?raw";
 
@@ -46,25 +47,26 @@ function CreateDialog(props: CreateDialogProps) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    createAdminIdp({
-      name: values.name,
-      enabled: false,
-      registration_enabled: false,
-      portal: null,
-      script: defaultScript,
-    })
-      .then((res) => {
-        toast.success(
-          t("admin:idp.actions.create.success", { name: res.idp?.name })
-        );
-        onClose();
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
+    try {
+      const res = await createAdminIdp({
+        name: values.name,
+        enabled: false,
+        registration_enabled: false,
+        portal: null,
+        script: defaultScript,
       });
+      toast.success(
+        t("admin:idp.actions.create.success", { name: res.idp?.name })
+      );
+      onClose();
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   return (

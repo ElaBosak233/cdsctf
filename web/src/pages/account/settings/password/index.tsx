@@ -22,7 +22,11 @@ import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import {
+  formatApiErrorMessage,
+  notifyApiError,
+  parseErrorResponse,
+} from "@/utils/query";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -68,10 +72,15 @@ export default function Index() {
       toast.success(t("user:change_password.actions.self_update.success"));
       form.reset();
     } catch (error) {
-      if (!(error instanceof HTTPError)) throw error;
+      if (!(error instanceof HTTPError)) {
+        await notifyApiError(error);
+        return;
+      }
       const body = await parseErrorResponse(error);
       if (error.response.status === StatusCodes.BAD_REQUEST) {
-        toast.error(formatApiMsg(body.msg));
+        toast.error(formatApiErrorMessage(body));
+      } else {
+        await notifyApiError(error);
       }
     } finally {
       setLoading(false);

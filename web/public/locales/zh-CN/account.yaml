@@ -106,3 +106,26 @@ captcha:
   _: 人机验证
   please_refresh: 请刷新验证码
   expired: 验证码已过期
+errors:
+  idp_request_failed: 身份提供商请求失败。
+  idp_script_invalid: 身份提供商脚本无效。
+  captcha_invalid: 验证码无效，请重新验证。
+  email_already_exists: 该邮箱已被使用。
+  email_already_verified: 该邮箱已经验证过了。
+  email_code_incorrect: 邮箱验证码错误。
+  email_disabled: 邮箱服务当前不可用。
+  email_not_found: 未找到该邮箱。
+  email_send_too_frequently: 邮件发送过于频繁，请稍后重试。
+  idp_already_bound: 该身份提供商已绑定。
+  idp_not_found: 未找到身份提供商。
+  idp_pending_mismatch: 身份验证信息已失效，请重新开始绑定流程。
+  idp_registration_disabled: 当前身份提供商不允许注册新用户。
+  invalid_or_expired_token: 验证令牌无效或已过期。
+  password_invalid: 密码错误。
+  registration_conflict: 注册信息已发生冲突，请检查后重试。
+  registration_disabled: 当前暂不开放注册。
+  session_error: 登录状态已失效，请重新登录。
+  user_idp_already_bound: 该用户已绑定此身份提供商。
+  user_idp_not_found: 未找到绑定的身份提供商。
+  user_not_found: 未找到用户。
+  username_already_exists: 用户名已被使用。

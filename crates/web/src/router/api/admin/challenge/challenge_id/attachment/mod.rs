@@ -121,7 +121,7 @@ pub async fn save_challenge_attachment(
     s.media
         .save(path, filename, data)
         .await
-        .map_err(|_| WebError::InternalServerError(json!("")))?;
+        .map_err(|_| WebError::InternalServerError(json!("internal_server_error")))?;
 
     Ok(Json(EmptyJson::default()))
 }

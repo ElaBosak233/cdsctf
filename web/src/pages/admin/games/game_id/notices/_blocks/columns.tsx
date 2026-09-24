@@ -12,7 +12,7 @@ import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import type { GameNoticeView } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { parseRouteNumericId } from "@/utils/query";
+import { notifyApiError, parseRouteNumericId } from "@/utils/query";
 import { parseTimestamp } from "@/utils/time";
 import { Context } from "../../context";
 
@@ -26,25 +26,23 @@ function ActionsCell({ row }: { row: Row<GameNoticeView> }) {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-  function handleDelete() {
+  async function handleDelete() {
     const gid = routeGameId ?? game?.id ?? row.original.game_id;
     if (gid == null || row.original.id == null) return;
 
-    deleteGameNotice({
-      game_id: gid,
-      id: row.original.id,
-    })
-      .then(() => {
-        toast.success(
-          t("game:notice.actions.delete.success", {
-            title: row.original.title,
-          })
-        );
-        setDeleteDialogOpen(false);
-      })
-      .finally(() => {
-        sharedStore?.setRefresh();
-      });
+    try {
+      await deleteGameNotice({ game_id: gid, id: row.original.id });
+      toast.success(
+        t("game:notice.actions.delete.success", {
+          title: row.original.title,
+        })
+      );
+      setDeleteDialogOpen(false);
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore?.setRefresh();
+    }
   }
 
   return (

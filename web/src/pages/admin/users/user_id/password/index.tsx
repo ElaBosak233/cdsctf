@@ -19,6 +19,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 import { Context } from "../context";
 
 export default function Index() {
@@ -51,25 +52,23 @@ export default function Index() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user) return;
 
     setLoading(true);
-    updateUser({
-      id: user.id!,
-      password: values.new_password,
-    })
-      .then(() => {
-        toast.success(
-          t("user:change_password.actions.update.success", {
-            username: user.username,
-          })
-        );
-        form.reset();
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    try {
+      await updateUser({ id: user.id!, password: values.new_password });
+      toast.success(
+        t("user:change_password.actions.update.success", {
+          username: user.username,
+        })
+      );
+      form.reset();
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

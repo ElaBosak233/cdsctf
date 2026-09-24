@@ -21,6 +21,7 @@ import {
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 
 interface CreateDialogProps {
   onClose: () => void;
@@ -49,26 +50,27 @@ function CreateDialog(props: CreateDialogProps) {
     defaultValues: {},
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    createGame({
-      ...values,
-      description: "",
-      writeup_required: false,
-      public: false,
-      started_at: values.started_at.toISOString(),
-      ended_at: values.ended_at.toISOString(),
-    })
-      .then((res) => {
-        toast.success(
-          t("game:actions.create.success", { title: res?.game?.title })
-        );
-        onClose();
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
+    try {
+      const res = await createGame({
+        ...values,
+        description: "",
+        writeup_required: false,
+        public: false,
+        started_at: values.started_at.toISOString(),
+        ended_at: values.ended_at.toISOString(),
       });
+      toast.success(
+        t("game:actions.create.success", { title: res?.game?.title })
+      );
+      onClose();
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
   return (
     <Card

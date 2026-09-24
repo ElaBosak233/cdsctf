@@ -191,3 +191,10 @@ actions:
     _: Delete Challenge
     message: "Are you sure you want to delete the challenge <muted>{{title}}</muted>?"
     success: "Challenge {{title}} deleted successfully."
+errors:
+  already_in_game: This challenge is already in the game.
+  attachment_not_found: This challenge has no attachment.
+  not_found: The challenge could not be found.
+  game_challenge_not_found: The challenge could not be found in this game.
+  user_or_team_required: Select either a user or a team.
+  checker_key_generation_failed: The checker key could not be generated. Try again later.

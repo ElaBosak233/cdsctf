@@ -12,7 +12,11 @@ import { TextField } from "@/components/ui/text-field";
 import { patchAuthenticatedUser, useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import {
+  formatApiErrorMessage,
+  notifyApiError,
+  parseErrorResponse,
+} from "@/utils/query";
 
 interface VerifyDialogProps {
   email: string;
@@ -37,11 +41,16 @@ function VerifyDialog(props: VerifyDialogProps) {
 
       toast.success(t("user:emails.actions.send_verify.success", { email }));
     } catch (error) {
-      if (!(error instanceof HTTPError)) return;
+      if (!(error instanceof HTTPError)) {
+        await notifyApiError(error);
+        return;
+      }
       const body = await parseErrorResponse(error);
 
       if (error.response.status === StatusCodes.BAD_REQUEST) {
-        toast.error(formatApiMsg(body.msg));
+        toast.error(formatApiErrorMessage(body));
+      } else {
+        await notifyApiError(error);
       }
     }
   }
@@ -60,11 +69,16 @@ function VerifyDialog(props: VerifyDialogProps) {
       onClose();
       bump();
     } catch (error) {
-      if (!(error instanceof HTTPError)) return;
+      if (!(error instanceof HTTPError)) {
+        await notifyApiError(error);
+        return;
+      }
       const body = await parseErrorResponse(error);
 
       if (error.response.status === StatusCodes.BAD_REQUEST) {
-        toast.error(formatApiMsg(body.msg));
+        toast.error(formatApiErrorMessage(body));
+      } else {
+        await notifyApiError(error);
       }
     }
   }

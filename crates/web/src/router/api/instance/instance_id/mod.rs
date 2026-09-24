@@ -54,7 +54,7 @@ pub async fn renew_instance(
     Extension(ext): Extension<AuthPrincipal>,
     Path(instance_id): Path<String>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let pod = s.cluster.get_pod(&instance_id).await?;
 
@@ -85,7 +85,7 @@ pub async fn renew_instance(
     if !(operator.id == user_id
         || cds_db::team_user::contains_user(&s.db.conn, team_id, operator.id).await?)
     {
-        return Err(WebError::Forbidden(json!("")));
+        return Err(WebError::Forbidden(json!("forbidden")));
     }
 
     if game_id != 0 {
@@ -152,7 +152,7 @@ pub async fn stop_instance(
     Extension(ext): Extension<AuthPrincipal>,
     Path(instance_id): Path<String>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let pod = s.cluster.get_pod(&instance_id).await?;
 
@@ -177,7 +177,7 @@ pub async fn stop_instance(
     if !(operator.id == user_id
         || cds_db::team_user::contains_user(&s.db.conn, team_id, operator.id).await?)
     {
-        return Err(WebError::Forbidden(json!("")));
+        return Err(WebError::Forbidden(json!("forbidden")));
     }
 
     s.cluster.delete_challenge_instance(&id).await?;

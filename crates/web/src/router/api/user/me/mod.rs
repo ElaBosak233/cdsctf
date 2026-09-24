@@ -67,7 +67,7 @@ pub async fn get_user_profile(
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
     let user = cds_db::user::find_by_id::<cds_db::UserAccountView>(&s.db.conn, operator.id)
         .await?
-        .ok_or(WebError::NotFound(json!("")))?;
+        .ok_or(WebError::NotFound(json!("not_found")))?;
     Ok(Json(UserResponse { user }))
 }
 

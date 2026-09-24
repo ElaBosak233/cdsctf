@@ -217,3 +217,10 @@ notice:
       _: 删除通知
       message: "你确定要删除通知 <muted>{{title}}</muted> 吗？"
       success: "通知 {{title}} 删除成功。"
+errors:
+  blacked_out: 当前比赛暂时不可见。
+  not_ongoing: 比赛当前不在进行中。
+  not_found: 未找到比赛。
+  paused: 比赛当前已暂停。
+  icon_not_found: 未找到比赛图标。
+  poster_not_found: 未找到比赛海报。

@@ -29,7 +29,11 @@ import { TextField } from "@/components/ui/text-field";
 import { Captcha, type CaptchaRef } from "@/components/widgets/captcha";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import {
+  formatApiErrorMessage,
+  notifyApiError,
+  parseErrorResponse,
+} from "@/utils/query";
 import { getSafeRedirect, withRedirect } from "@/utils/redirect";
 
 function RegisterForm() {
@@ -96,22 +100,25 @@ function RegisterForm() {
         )
       );
     } catch (error) {
-      if (!(error instanceof HTTPError)) throw error;
+      if (!(error instanceof HTTPError)) {
+        await notifyApiError(error);
+        return;
+      }
       const status = error.response.status;
       const body = await parseErrorResponse(error);
 
       if (status === StatusCodes.BAD_REQUEST) {
         toast.error(t("account:register.toast.failure._"), {
           id: "register-error",
-          description: formatApiMsg(body.msg),
+          description: formatApiErrorMessage(body),
         });
-      }
-
-      if (status === StatusCodes.CONFLICT) {
+      } else if (status === StatusCodes.CONFLICT) {
         toast.error(t("account:register.toast.failure._"), {
           id: "register-error",
           description: t("account:register.toast.failure.conflict"),
         });
+      } else {
+        await notifyApiError(error);
       }
 
       captchaRef.current?.refresh();

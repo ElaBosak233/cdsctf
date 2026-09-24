@@ -64,12 +64,12 @@ pub async fn get_game_challenge(
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameChallengeRequest>,
 ) -> Result<Json<GameChallengesListResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     if !game.enabled {
-        return Err(WebError::NotFound(json!("")));
+        return Err(WebError::NotFound(json!("not_found")));
     }
     crate::util::loader::ensure_game_not_paused(&game)?;
 
@@ -79,7 +79,7 @@ pub async fn get_game_challenge(
             .await?;
 
     if !in_game {
-        return Err(WebError::Forbidden(json!("")));
+        return Err(WebError::Forbidden(json!("forbidden")));
     }
     crate::util::loader::ensure_game_ongoing(&game, now)?;
 

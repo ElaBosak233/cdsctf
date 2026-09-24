@@ -39,7 +39,7 @@ pub async fn get_write_up(
                 .header("Content-Type", HeaderValue::from_static("application/pdf"))
                 .body(Body::from(buffer))?)
         }
-        None => Err(WebError::NotFound(json!(""))),
+        None => Err(WebError::NotFound(json!("not_found"))),
     }
 }
 

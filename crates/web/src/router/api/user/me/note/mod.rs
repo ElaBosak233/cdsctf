@@ -60,7 +60,7 @@ pub async fn get_my_note(
     Extension(ap): Extension<AuthPrincipal>,
     Query(params): Query<GetMyNoteRequest>,
 ) -> Result<Json<MyNotesListResponse>, WebError> {
-    let operator = ap.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ap.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let (notes, total) = cds_db::note::find(
         &s.db.conn,
@@ -109,12 +109,12 @@ pub async fn save_my_note(
     Extension(ap): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<SaveMyNoteRequest>,
 ) -> Result<Json<NoteResponse>, WebError> {
-    let operator = ap.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ap.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
     if !challenge.public {
-        return Err(WebError::Forbidden(json!("")));
+        return Err(WebError::Forbidden(json!("forbidden")));
     }
 
     let note = match cds_db::note::find_by_user_id_and_challenge_id(

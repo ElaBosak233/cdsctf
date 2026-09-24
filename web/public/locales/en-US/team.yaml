@@ -111,3 +111,12 @@ form:
     placeholder: Please enter your invite code
     required: Please enter your invite code
     invalid: Invalid invite code
+errors:
+  invalid_invite_token: The invite code is invalid or expired.
+  invalid_team: The team information is invalid.
+  member_limit_not_satisfied: The team size does not meet the competition requirements. Adjust the members and try again.
+  no_invite_token: Generate an invite code first.
+  no_other_member: The team must keep at least one other member.
+  not_found: The team could not be found.
+  not_preparing: The team is not in the preparing state.
+  user_already_in_game: You are already participating in this game.

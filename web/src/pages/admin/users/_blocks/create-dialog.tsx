@@ -36,6 +36,7 @@ import { TextField } from "@/components/ui/text-field";
 import { Group } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 
 interface CreateUserDialogProps {
   onClose: () => void;
@@ -74,21 +75,20 @@ function CreateUserDialog(props: CreateUserDialogProps) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    createUser({
-      ...values,
-    })
-      .then(() => {
-        toast.success(
-          t("user:actions.create.success", { username: values.username })
-        );
-        onClose();
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
-      });
+    try {
+      await createUser({ ...values });
+      toast.success(
+        t("user:actions.create.success", { username: values.username })
+      );
+      onClose();
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   const groupOptions = [

@@ -10,7 +10,11 @@ import { bindWithIdp, getIdp, loginWithIdp } from "@/api/idps";
 import { Avatar } from "@/components/ui/avatar";
 import { setAuthenticatedUser, useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
-import { parseErrorResponse, parseRouteNumericId } from "@/utils/query";
+import {
+  getApiErrorCode,
+  parseErrorResponse,
+  parseRouteNumericId,
+} from "@/utils/query";
 import {
   clearIdpRedirect,
   getIdpRedirect,
@@ -91,7 +95,7 @@ export default function Index() {
           const body = await parseErrorResponse(error);
           toast.error(
             error.response.status === StatusCodes.FORBIDDEN &&
-              body.msg === "idp_registration_disabled"
+              getApiErrorCode(body) === "idp_registration_disabled"
               ? t("account:idp.login.registration_disabled")
               : t("account:idp.login.error")
           );

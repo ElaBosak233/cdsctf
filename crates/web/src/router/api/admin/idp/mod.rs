@@ -107,14 +107,17 @@ pub async fn create_idp(
     ReqJson(body): ReqJson<AdminIdpRequest>,
 ) -> Result<(StatusCode, Json<AdminIdpResponse>), WebError> {
     body.validate()
-        .map_err(|err| WebError::BadRequest(json!(err.to_string())))?;
+        .map_err(|_| WebError::UnprocessableEntity(json!("validation_failed")))?;
     cds_idp::Idp::lint(&body.script)
         .await
         .map_err(|err| match err {
             EngineError::DiagnosticsError(markers) => {
-                WebError::BadRequest(json!({ "markers": markers }))
+                WebError::BadRequest(json!({ "code": "idp_script_invalid", "markers": markers }))
             }
-            _ => WebError::BadRequest(json!(err.to_string())),
+            _ => {
+                tracing::warn!(error = ?err, "identity provider script lint failed");
+                WebError::BadRequest(json!("idp_script_invalid"))
+            }
         })?;
 
     let idp = cds_db::idp::create_idp::<IdpView>(
@@ -166,7 +169,7 @@ pub async fn update_idp(
     ReqJson(body): ReqJson<AdminIdpRequest>,
 ) -> Result<Json<AdminIdpResponse>, WebError> {
     body.validate()
-        .map_err(|err| WebError::BadRequest(json!(err.to_string())))?;
+        .map_err(|_| WebError::UnprocessableEntity(json!("validation_failed")))?;
     let _ = cds_db::idp::find_idp_by_id::<IdpView>(&s.db.conn, idp_id)
         .await?
         .ok_or(WebError::NotFound(json!("idp_not_found")))?;
@@ -174,9 +177,12 @@ pub async fn update_idp(
         .await
         .map_err(|err| match err {
             EngineError::DiagnosticsError(markers) => {
-                WebError::BadRequest(json!({ "markers": markers }))
+                WebError::BadRequest(json!({ "code": "idp_script_invalid", "markers": markers }))
             }
-            _ => WebError::BadRequest(json!(err.to_string())),
+            _ => {
+                tracing::warn!(error = ?err, "identity provider script lint failed");
+                WebError::BadRequest(json!("idp_script_invalid"))
+            }
         })?;
 
     let idp = cds_db::idp::update_idp::<IdpView>(

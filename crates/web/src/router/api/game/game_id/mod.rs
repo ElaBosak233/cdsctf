@@ -82,7 +82,7 @@ pub async fn get_game(
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     if !game.enabled {
-        return Err(WebError::NotFound(json!("")));
+        return Err(WebError::NotFound(json!("not_found")));
     }
 
     Ok(Json(GameDetailResponse {
@@ -128,7 +128,7 @@ pub async fn get_game_scoreboard(
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     if !game.enabled {
-        return Err(WebError::NotFound(json!("")));
+        return Err(WebError::NotFound(json!("not_found")));
     }
     if game.blacked_out {
         return Err(WebError::Forbidden(json!("game_blacked_out")));

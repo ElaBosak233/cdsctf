@@ -41,7 +41,7 @@ import type { GameChallengeView } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { curve } from "@/utils/math";
-import { parseRouteNumericId } from "@/utils/query";
+import { notifyApiError, parseRouteNumericId } from "@/utils/query";
 import { parseTimestamp } from "@/utils/time";
 import { Context } from "../../context";
 
@@ -128,17 +128,18 @@ function EditDialog(props: EditDialogProps) {
     );
   }
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     const gid = routeGameId ?? game?.id ?? gameChallenge.game_id;
     const cid = gameChallenge.challenge_id;
     if (gid == null || cid == null) return;
 
-    updateGameChallenge({
-      game_id: gid,
-      challenge_id: cid,
-      ...values,
-      frozen_at: values.frozen_at ? values.frozen_at.toISOString() : null,
-    }).then(() => {
+    try {
+      await updateGameChallenge({
+        game_id: gid,
+        challenge_id: cid,
+        ...values,
+        frozen_at: values.frozen_at ? values.frozen_at.toISOString() : null,
+      });
       toast.success(
         t("game:challenge.actions.edit_config_success", {
           title: gameChallenge?.challenge_title,
@@ -146,7 +147,9 @@ function EditDialog(props: EditDialogProps) {
       );
       sharedStore?.setRefresh();
       onClose();
-    });
+    } catch (error) {
+      await notifyApiError(error);
+    }
   }
 
   return (

@@ -42,6 +42,7 @@ import { useRefresh } from "@/hooks/use-refresh";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
+import { notifyApiError } from "@/utils/query";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -76,13 +77,13 @@ export default function Index() {
     });
   }, [config, form]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    updateConfig({
-      ...config,
-      ...values,
-    }).then(() => {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      await updateConfig({ ...config, ...values });
       toast.success(t("admin:platform.actions.update.success"));
-    });
+    } catch (error) {
+      await notifyApiError(error);
+    }
   }
 
   const iconDropzone = useDropzone({

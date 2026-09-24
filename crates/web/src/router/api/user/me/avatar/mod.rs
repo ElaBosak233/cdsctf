@@ -95,7 +95,7 @@ pub async fn delete_user_avatar(
 
     let user = cds_db::user::find_by_id::<cds_db::user::Model>(&s.db.conn, operator.id)
         .await?
-        .ok_or(WebError::NotFound(json!("")))?;
+        .ok_or(WebError::NotFound(json!("not_found")))?;
 
     if let Some(hash) = user.avatar_hash {
         s.media.delete("media".to_owned(), hash).await?;

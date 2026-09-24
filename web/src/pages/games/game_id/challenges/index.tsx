@@ -55,6 +55,7 @@ export default function Index() {
       });
     },
     enabled: gameId != null && !currentGame?.paused,
+    meta: { suppressErrorToast: true },
   });
 
   const categories = useMemo(() => {

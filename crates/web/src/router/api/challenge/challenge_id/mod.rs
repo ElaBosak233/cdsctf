@@ -53,12 +53,12 @@ pub async fn get_challenge(
     Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
 ) -> Result<Json<ChallengeDetailResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
     if !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge.id).await? {
-        return Err(WebError::Forbidden(json!("")));
+        return Err(WebError::Forbidden(json!("forbidden")));
     }
 
     Ok(Json(ChallengeDetailResponse {

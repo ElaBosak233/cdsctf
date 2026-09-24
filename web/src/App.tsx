@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { RouterProvider } from "react-router";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toaster } from "@/components/ui/sonner";
@@ -7,10 +8,17 @@ import { cn } from "@/utils";
 import "@/utils/i18n";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
+import { onUnhandledApiError } from "@/utils/query";
 import { queryClient } from "@/utils/query-client";
 import { ThemeWatcher } from "./components/utils/theme-watcher";
 
 function App() {
+  useEffect(() => {
+    window.addEventListener("unhandledrejection", onUnhandledApiError);
+    return () =>
+      window.removeEventListener("unhandledrejection", onUnhandledApiError);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster />

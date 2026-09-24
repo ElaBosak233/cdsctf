@@ -35,3 +35,6 @@ status:
   cheat: Cheat
   expired: Expired
   duplicate: Duplicate
+errors:
+  cheated: This submission was rejected because suspicious activity was detected.
+  too_frequent: Submissions are too frequent. Try again later.

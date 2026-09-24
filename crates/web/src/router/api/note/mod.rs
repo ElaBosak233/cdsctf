@@ -59,7 +59,7 @@ pub async fn list_notes(
     Extension(ap): Extension<AuthPrincipal>,
     Query(params): Query<ListNotesRequest>,
 ) -> Result<Json<ListNotesResponse>, WebError> {
-    let _ = ap.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ap.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let (notes, total) = cds_db::note::find(
         &s.db.conn,

@@ -22,7 +22,7 @@ import type { ChallengeDetail } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
-import { parseRouteNumericId } from "@/utils/query";
+import { notifyApiError, parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 
 interface CreateDialogProps {
@@ -81,25 +81,28 @@ function CreateDialog(props: CreateDialogProps) {
   });
   const challenges = challengeQuery.data ?? [];
 
-  function handleCreateGameChallenge(challenge: ChallengeDetail) {
+  async function handleCreateGameChallenge(challenge: ChallengeDetail) {
     const gid = routeGameId ?? game?.id;
     if (gid == null || challenge.id == null) return;
 
-    createGameChallenge({
-      game_id: gid,
-      challenge_id: challenge.id,
-      enabled: false,
-      max_pts: 2000,
-      min_pts: 500,
-      difficulty: 5,
-      bonus_ratios: [],
-    }).then(() => {
+    try {
+      await createGameChallenge({
+        game_id: gid,
+        challenge_id: challenge.id,
+        enabled: false,
+        max_pts: 2000,
+        min_pts: 500,
+        difficulty: 5,
+        bonus_ratios: [],
+      });
       toast.success(
         t("game:challenge.actions.add.success", { title: challenge?.title })
       );
       sharedStore?.setRefresh();
       onClose();
-    });
+    } catch (error) {
+      await notifyApiError(error);
+    }
   }
 
   return (

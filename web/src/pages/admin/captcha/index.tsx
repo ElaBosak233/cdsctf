@@ -39,6 +39,7 @@ import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -74,13 +75,13 @@ export default function Index() {
     });
   }, [config?.captcha, form]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    updateConfig({
-      ...config,
-      captcha: { ...values },
-    }).then(() => {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      await updateConfig({ ...config, captcha: { ...values } });
       toast.success(t("admin:captcha.actions.update.success"));
-    });
+    } catch (error) {
+      await notifyApiError(error);
+    }
   }
 
   return (

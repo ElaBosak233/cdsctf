@@ -47,7 +47,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
-import { parseRouteNumericId } from "@/utils/query";
+import { notifyApiError, parseRouteNumericId } from "@/utils/query";
 import { parseTimestamp } from "@/utils/time";
 import { Context } from "./context";
 
@@ -127,26 +127,27 @@ export default function Index() {
     setHasPoster(game.poster_hash != null);
   }, [game]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     if (resolvedGameId == null) return;
 
     setLoading(true);
-    updateGame({
-      ...values,
-      id: resolvedGameId,
-      started_at: values.started_at?.toISOString(),
-      frozen_at: values.frozen_at?.toISOString(),
-      ended_at: values.ended_at?.toISOString(),
-    })
-      .then((res) => {
-        toast.success(
-          t("game:actions.update.success", { title: res?.game?.title })
-        );
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
+    try {
+      const res = await updateGame({
+        ...values,
+        id: resolvedGameId,
+        started_at: values.started_at?.toISOString(),
+        frozen_at: values.frozen_at?.toISOString(),
+        ended_at: values.ended_at?.toISOString(),
       });
+      toast.success(
+        t("game:actions.update.success", { title: res?.game?.title })
+      );
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   async function handlePosterUpload(

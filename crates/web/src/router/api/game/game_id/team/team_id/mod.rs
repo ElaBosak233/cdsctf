@@ -94,7 +94,7 @@ pub async fn join_team(
     Path((game_id, team_id)): Path<(i64, i64)>,
     ReqJson(body): ReqJson<JoinTeamRequest>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 

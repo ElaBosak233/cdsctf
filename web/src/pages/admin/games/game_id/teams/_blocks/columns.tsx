@@ -23,7 +23,7 @@ import type { ColumnDef } from "@/hooks/use-data-table";
 import { State, type TeamView } from "@/models/team";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { parseRouteNumericId } from "@/utils/query";
+import { notifyApiError, parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 
 function useColumns(): Array<ColumnDef<TeamView>> {
@@ -194,23 +194,20 @@ function useColumns(): Array<ColumnDef<TeamView>> {
         const game_id = row.original.game_id;
         const state = row.original.state;
 
-        function handleStateChange(state: State) {
+        async function handleStateChange(state: State) {
           const gid = game_id ?? resolvedGameId;
           if (gid == null || id == null) return;
 
-          updateTeam({
-            team_id: id,
-            game_id: gid,
-            state,
-          })
-            .then(() => {
-              toast.success(
-                t("game:team.actions.message", { name: row.original.name })
-              );
-            })
-            .finally(() => {
-              sharedStore?.setRefresh();
-            });
+          try {
+            await updateTeam({ team_id: id, game_id: gid, state });
+            toast.success(
+              t("game:team.actions.message", { name: row.original.name })
+            );
+          } catch (error) {
+            await notifyApiError(error);
+          } finally {
+            sharedStore?.setRefresh();
+          }
         }
 
         return (

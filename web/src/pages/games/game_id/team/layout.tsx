@@ -34,7 +34,11 @@ import { State } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import {
+  formatApiErrorMessage,
+  notifyApiError,
+  parseErrorResponse,
+} from "@/utils/query";
 import { getGamePhase, isGameActive } from "@/utils/time";
 
 export default function Layout() {
@@ -84,13 +88,18 @@ export default function Layout() {
       });
       setConfirmDialogOpen(false);
     } catch (error) {
-      if (!(error instanceof HTTPError)) throw error;
+      if (!(error instanceof HTTPError)) {
+        await notifyApiError(error);
+        return;
+      }
       const body = await parseErrorResponse(error);
 
       if (error.response.status === StatusCodes.BAD_REQUEST) {
         toast.error(t("common:errors.default"), {
-          description: formatApiMsg(body.msg),
+          description: formatApiErrorMessage(body),
         });
+      } else {
+        await notifyApiError(error);
       }
     }
     sharedStore.setRefresh();
@@ -136,12 +145,19 @@ export default function Layout() {
       setDisbandDialogOpen(false);
       navigate(`/games/${currentGame?.id}`);
     } catch (error) {
-      if (!(error instanceof HTTPError)) return;
+      if (!(error instanceof HTTPError)) {
+        await notifyApiError(error);
+        return;
+      }
       const body = await parseErrorResponse(error);
 
       if (error.response.status === StatusCodes.BAD_REQUEST) {
         toast.error(t("team:actions.leave.error"), {
-          description: formatApiMsg(body.msg),
+          description: formatApiErrorMessage(body),
+        });
+      } else {
+        await notifyApiError(error, {
+          title: t("team:actions.leave.error"),
         });
       }
     } finally {

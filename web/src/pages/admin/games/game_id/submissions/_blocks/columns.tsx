@@ -14,6 +14,7 @@ import type { ColumnDef } from "@/hooks/use-data-table";
 import { Status, type SubmissionView } from "@/models/submission";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 import { formatDuration, millisecondsBetween } from "@/utils/time";
 
 function useColumns(): Array<ColumnDef<SubmissionView>> {
@@ -228,19 +229,17 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
       cell: function ActionsCell({ row }) {
         const id = row.original.id;
 
-        function handleStatusChange(status: Status) {
+        async function handleStatusChange(status: Status) {
           if (id == null) return;
 
-          updateSubmissionStatus({
-            submission_id: id,
-            status,
-          })
-            .then(() => {
-              toast.success(t("submission:actions.status_updated"));
-            })
-            .finally(() => {
-              sharedStore?.setRefresh();
-            });
+          try {
+            await updateSubmissionStatus({ submission_id: id, status });
+            toast.success(t("submission:actions.status_updated"));
+          } catch (error) {
+            await notifyApiError(error);
+          } finally {
+            sharedStore?.setRefresh();
+          }
         }
 
         return (

@@ -129,7 +129,7 @@ pub async fn create_debug_submission(
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateDebugSubmissionRequest>,
 ) -> Result<Json<CreateDebugSubmissionResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     // Validate challenge exists.
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;

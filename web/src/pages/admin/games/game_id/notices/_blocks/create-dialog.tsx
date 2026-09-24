@@ -22,7 +22,7 @@ import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { parseRouteNumericId } from "@/utils/query";
+import { notifyApiError, parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 
 interface CreateDialogProps {
@@ -51,20 +51,20 @@ function CreateDialog(props: CreateDialogProps) {
     resolver: zodResolver(formSchema),
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     const gid = routeGameId ?? game?.id;
     if (gid == null) return;
 
-    createGameNotice({
-      game_id: gid,
-      ...values,
-    }).then((res) => {
+    try {
+      const res = await createGameNotice({ game_id: gid, ...values });
       toast.success(
         t("game:notice.actions.create.success", { title: res?.notice?.title })
       );
       sharedStore?.setRefresh();
       onClose();
-    });
+    } catch (error) {
+      await notifyApiError(error);
+    }
   }
 
   return (

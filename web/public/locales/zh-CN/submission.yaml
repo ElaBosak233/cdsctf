@@ -35,3 +35,6 @@ status:
   cheat: 作弊
   expired: 过期
   duplicate: 重复
+errors:
+  cheated: 检测到异常提交，无法继续提交答案。
+  too_frequent: 提交过于频繁，请稍后重试。

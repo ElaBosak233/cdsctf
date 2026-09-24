@@ -106,3 +106,26 @@ captcha:
   _: Captcha
   please_refresh: Please refresh your Captcha
   expired: Captcha expired
+errors:
+  idp_request_failed: The identity provider request failed.
+  idp_script_invalid: The identity provider script is invalid.
+  captcha_invalid: The captcha is invalid. Please verify again.
+  email_already_exists: This email address is already in use.
+  email_already_verified: This email address has already been verified.
+  email_code_incorrect: The email verification code is incorrect.
+  email_disabled: Email service is currently unavailable.
+  email_not_found: The email address could not be found.
+  email_send_too_frequently: Emails are being sent too frequently. Try again later.
+  idp_already_bound: This identity provider is already bound.
+  idp_not_found: The identity provider could not be found.
+  idp_pending_mismatch: The identity verification has expired. Start the binding flow again.
+  idp_registration_disabled: This identity provider does not allow new registrations.
+  invalid_or_expired_token: The verification token is invalid or expired.
+  password_invalid: The password is incorrect.
+  registration_conflict: The registration details conflict with an existing account.
+  registration_disabled: Registration is currently disabled.
+  session_error: Your session has expired. Please sign in again.
+  user_idp_already_bound: This user is already bound to the identity provider.
+  user_idp_not_found: The identity provider binding could not be found.
+  user_not_found: The user could not be found.
+  username_already_exists: This username is already in use.

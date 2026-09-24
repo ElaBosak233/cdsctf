@@ -11,6 +11,7 @@ import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import type { Metadata } from "@/models/media";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 import { Context } from "../context";
 
 function ActionsCell({ row }: { row: Row<Metadata> }) {
@@ -21,19 +22,20 @@ function ActionsCell({ row }: { row: Row<Metadata> }) {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-  function handleDelete() {
-    deleteChallengeAttachment(challenge?.id, row.original.filename)
-      .then(() => {
-        toast.success(
-          t("challenge:attachment.actions.delete.success", {
-            filename: row.original.filename,
-          })
-        );
-        setDeleteDialogOpen(false);
-      })
-      .finally(() => {
-        sharedStore?.setRefresh();
-      });
+  async function handleDelete() {
+    try {
+      await deleteChallengeAttachment(challenge?.id, row.original.filename);
+      toast.success(
+        t("challenge:attachment.actions.delete.success", {
+          filename: row.original.filename,
+        })
+      );
+      setDeleteDialogOpen(false);
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore?.setRefresh();
+    }
   }
 
   return (

@@ -34,7 +34,7 @@ import type { GameChallengeView } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
-import { parseRouteNumericId } from "@/utils/query";
+import { notifyApiError, parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 import { EditDialog } from "./edit-dialog";
 
@@ -163,25 +163,23 @@ function ActionsCell({ row }: { row: Row<GameChallengeView> }) {
   const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-  function handleDelete() {
+  async function handleDelete() {
     const gid = routeGameId ?? game?.id ?? row.original.game_id;
     if (gid == null || challenge_id == null) return;
 
-    deleteGameChallenge({
-      game_id: gid,
-      challenge_id,
-    })
-      .then(() => {
-        toast.success(
-          t("game:actions.delete.success", {
-            title,
-          })
-        );
-        setDeleteDialogOpen(false);
-      })
-      .finally(() => {
-        sharedStore?.setRefresh();
-      });
+    try {
+      await deleteGameChallenge({ game_id: gid, challenge_id });
+      toast.success(
+        t("game:actions.delete.success", {
+          title,
+        })
+      );
+      setDeleteDialogOpen(false);
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore?.setRefresh();
+    }
   }
 
   return (

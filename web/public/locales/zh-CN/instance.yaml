@@ -16,3 +16,9 @@ actions:
     _: 续期
     success: 续期成功。
     error: 续期失败。
+errors:
+  challenge_invalid: 题目实例无效，请刷新后重试。
+  no_more_renewal: 该实例已不能继续续期。
+  renewal_within_10_minutes: 实例将在十分钟内到期，暂时不能续期。
+  too_many_team_instances: 团队实例数量已达上限。
+  too_many_user_instances: 你的实例数量已达上限。

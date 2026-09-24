@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
 import { KeyIcon, LogInIcon, TypeIcon, UserPlusIcon } from "lucide-react";
 import { useState } from "react";
@@ -25,7 +24,11 @@ import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import {
+  formatApiErrorMessage,
+  notifyApiError,
+  parseErrorResponse,
+} from "@/utils/query";
 
 type Tab = "create" | "join";
 
@@ -58,24 +61,25 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     resolver: zodResolver(createFormSchema),
   });
 
-  function onCreateFormSubmit(values: z.infer<typeof createFormSchema>) {
+  async function onCreateFormSubmit(values: z.infer<typeof createFormSchema>) {
     if (!currentGame) return;
 
     setLoading(true);
-    createTeam({
-      game_id: currentGame.id!,
-      ...values,
-    })
-      .then((res) => {
-        toast.success(
-          t("team:actions.create.success", { name: res?.team?.name })
-        );
-        onClose();
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
+    try {
+      const res = await createTeam({
+        game_id: currentGame.id!,
+        ...values,
       });
+      toast.success(
+        t("team:actions.create.success", { name: res?.team?.name })
+      );
+      onClose();
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   const joinFormSchema = z.object({
@@ -92,7 +96,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     resolver: zodResolver(joinFormSchema),
   });
 
-  function onJoinFormSubmit(values: z.infer<typeof joinFormSchema>) {
+  async function onJoinFormSubmit(values: z.infer<typeof joinFormSchema>) {
     const tokens = values.token.split(":");
     const team_id = Number(tokens[0]);
     const token = tokens[1];
@@ -100,29 +104,27 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     if (!currentGame) return;
 
     setLoading(true);
-    joinTeam({
-      game_id: currentGame.id!,
-      team_id: team_id,
-      token: token,
-    })
-      .then(() => {
-        toast.success(t("team:actions.join.success"));
-        onClose();
-      })
-      .catch(async (error) => {
-        if (!(error instanceof HTTPError)) return;
-        const body = await parseErrorResponse(error);
-
-        if (error.response.status === StatusCodes.BAD_REQUEST) {
-          toast.error(t("team:actions.join.error"), {
-            description: formatApiMsg(body.msg),
-          });
-        }
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
+    try {
+      await joinTeam({
+        game_id: currentGame.id!,
+        team_id,
+        token,
       });
+      toast.success(t("team:actions.join.success"));
+      onClose();
+    } catch (error) {
+      if (error instanceof HTTPError) {
+        const body = await parseErrorResponse(error);
+        toast.error(t("team:actions.join.error"), {
+          description: formatApiErrorMessage(body),
+        });
+      } else {
+        await notifyApiError(error, { title: t("team:actions.join.error") });
+      }
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   return (

@@ -94,11 +94,14 @@ pub async fn bind(
     Path(idp_id): Path<i64>,
     ReqJson(body): ReqJson<IdpAuthRequest>,
 ) -> Result<(StatusCode, Json<IdpBindResponse>), WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let idp = enabled_idp(&s, idp_id).await?;
     cds_idp::Idp::preload(idp.id, &idp.script)
         .await
-        .map_err(|err| WebError::BadRequest(json!(err.to_string())))?;
+        .map_err(|err| {
+            tracing::warn!(error = ?err, "identity provider preload failed");
+            WebError::BadRequest(json!("idp_script_invalid"))
+        })?;
 
     let payload = cds_idp::Idp::bind(idp.id, body.params, user_map(&s, &operator).await?).await?;
 
@@ -199,7 +202,10 @@ pub async fn login(
     let idp = enabled_idp(&s, idp_id).await?;
     cds_idp::Idp::preload(idp.id, &idp.script)
         .await
-        .map_err(|err| WebError::BadRequest(json!(err.to_string())))?;
+        .map_err(|err| {
+            tracing::warn!(error = ?err, "identity provider preload failed");
+            WebError::BadRequest(json!("idp_script_invalid"))
+        })?;
     let payload = cds_idp::Idp::login(idp.id, body.params).await?;
 
     if let Some(identity) = cds_db::user_idp::find_user_idp_by_auth_key::<
@@ -278,7 +284,7 @@ pub async fn register(
     let idp = enabled_idp(&s, idp_id).await?;
     ensure_registration_enabled(idp.registration_enabled)?;
     body.validate()
-        .map_err(|err| WebError::BadRequest(json!(err.to_string())))?;
+        .map_err(|_| WebError::UnprocessableEntity(json!("validation_failed")))?;
 
     let pending_key = format!("idp_pending:{}", body.token);
     let pending: Option<PendingIdentityState> = s.cache.take(&pending_key).await?;

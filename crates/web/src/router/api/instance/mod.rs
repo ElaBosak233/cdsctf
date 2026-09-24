@@ -69,13 +69,13 @@ pub async fn list_instances(
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetInstanceRequest>,
 ) -> Result<Json<ListInstancesResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let mut map: BTreeMap<String, String> = BTreeMap::new();
 
     match (params.user_id, params.team_id, params.game_id) {
         (Some(user_id), None, None) => {
             if operator.id != user_id {
-                return Err(WebError::Forbidden(json!("")));
+                return Err(WebError::Forbidden(json!("forbidden")));
             }
             map.insert("cds/user_id".to_owned(), format!("{}", user_id));
         }
@@ -85,13 +85,13 @@ pub async fn list_instances(
             let team =
                 crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
             if team.id != team_id {
-                return Err(WebError::Forbidden(json!("")));
+                return Err(WebError::Forbidden(json!("forbidden")));
             }
             map.insert("cds/team_id".to_owned(), format!("{}", team_id));
             map.insert("cds/game_id".to_owned(), format!("{}", game_id));
         }
         _ => {
-            return Err(WebError::BadRequest(json!("")));
+            return Err(WebError::BadRequest(json!("bad_request")));
         }
     }
 
@@ -155,7 +155,7 @@ pub async fn create_instance(
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateInstanceRequest>,
 ) -> Result<(StatusCode, Json<CreateInstanceResponse>), WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 

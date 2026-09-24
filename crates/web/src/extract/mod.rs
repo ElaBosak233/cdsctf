@@ -40,15 +40,15 @@ where
                     let kind = inner.kind();
                     match &kind {
                         ErrorKind::UnsupportedType { .. } => {
-                            Err(WebError::InternalServerError(json!(kind.to_string())))
+                            Err(WebError::InternalServerError(json!("invalid_path")))
                         }
-                        _ => Err(WebError::BadRequest(json!(kind.to_string()))),
+                        _ => Err(WebError::BadRequest(json!("invalid_path"))),
                     }
                 }
-                PathRejection::MissingPathParams(error) => {
-                    Err(WebError::InternalServerError(json!(error.to_string())))
+                PathRejection::MissingPathParams(_) => {
+                    Err(WebError::InternalServerError(json!("path_parameters_missing")))
                 }
-                _ => Err(WebError::InternalServerError(json!(rejection.to_string()))),
+                _ => Err(WebError::InternalServerError(json!("path_extraction_failed"))),
             },
         }
     }
@@ -70,7 +70,10 @@ where
     async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
         match axum::extract::Json::<T>::from_request(req, state).await {
             Ok(value) => Ok(Self(value.0)),
-            Err(rejection) => Err(WebError::BadRequest(json!(rejection.body_text()))),
+            Err(rejection) => {
+                tracing::debug!(error = %rejection, "invalid JSON request body");
+                Err(WebError::BadRequest(json!("invalid_json")))
+            }
         }
     }
 }
@@ -93,10 +96,16 @@ where
             Ok(value) => match value.0.validate() {
                 Ok(_) => Ok(Self(value.0)),
                 Err(validation_errors) => {
-                    Err(WebError::UnprocessableEntity(json!(validation_errors)))
+                    Err(WebError::UnprocessableEntity(json!({
+                        "code": "validation_failed",
+                        "errors": validation_errors
+                    })))
                 }
             },
-            Err(rejection) => Err(WebError::BadRequest(json!(rejection.body_text()))),
+            Err(rejection) => {
+                tracing::debug!(error = %rejection, "invalid JSON request body");
+                Err(WebError::BadRequest(json!("invalid_json")))
+            }
         }
     }
 }
@@ -119,10 +128,10 @@ where
         match axum::extract::Extension::<T>::from_request_parts(parts, state).await {
             Ok(value) => Ok(Self(value.0)),
             Err(rejection) => match rejection {
-                ExtensionRejection::MissingExtension(error) => {
-                    Err(WebError::InternalServerError(json!(error.body_text())))
+                ExtensionRejection::MissingExtension(_) => {
+                    Err(WebError::InternalServerError(json!("extension_missing")))
                 }
-                _ => Err(WebError::InternalServerError(json!(rejection.body_text()))),
+                _ => Err(WebError::InternalServerError(json!("extension_extraction_failed"))),
             },
         }
     }
@@ -146,10 +155,10 @@ where
         match axum::extract::Query::<T>::from_request_parts(parts, state).await {
             Ok(value) => Ok(Self(value.0)),
             Err(rejection) => match rejection {
-                QueryRejection::FailedToDeserializeQueryString(error) => {
-                    Err(WebError::InternalServerError(json!(error.body_text())))
+                QueryRejection::FailedToDeserializeQueryString(_) => {
+                    Err(WebError::BadRequest(json!("invalid_query")))
                 }
-                _ => Err(WebError::InternalServerError(json!(rejection.body_text()))),
+                _ => Err(WebError::BadRequest(json!("query_extraction_failed"))),
             },
         }
     }

@@ -101,3 +101,12 @@ form:
     placeholder: 请输入你的邀请码
     required: 请输入你的邀请码
     invalid: 无效的邀请码
+errors:
+  invalid_invite_token: 邀请码无效或已过期。
+  invalid_team: 团队信息无效。
+  member_limit_not_satisfied: 团队人数不符合参赛要求，请调整成员数量后重试。
+  no_invite_token: 请先生成邀请码。
+  no_other_member: 团队至少需要保留一名其他成员。
+  not_found: 未找到团队。
+  not_preparing: 团队当前不处于准备状态。
+  user_already_in_game: 你已经参加了这场比赛。

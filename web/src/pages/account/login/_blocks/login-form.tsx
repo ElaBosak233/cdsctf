@@ -29,6 +29,7 @@ import { Captcha, type CaptchaRef } from "@/components/widgets/captcha";
 import { setAuthenticatedUser } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 import { getSafeRedirect } from "@/utils/redirect";
 
 function LoginForm({ onAuthenticated }: { onAuthenticated?: () => void }) {
@@ -88,7 +89,10 @@ function LoginForm({ onAuthenticated }: { onAuthenticated?: () => void }) {
         navigate("/account/settings/emails");
       }
     } catch (error) {
-      if (!(error instanceof HTTPError)) throw error;
+      if (!(error instanceof HTTPError)) {
+        await notifyApiError(error);
+        return;
+      }
       const status = error.response.status;
 
       if (status === StatusCodes.BAD_REQUEST) {
@@ -96,13 +100,13 @@ function LoginForm({ onAuthenticated }: { onAuthenticated?: () => void }) {
           id: "login",
           description: t("account:login.error.invalid"),
         });
-      }
-
-      if (status === StatusCodes.GONE) {
+      } else if (status === StatusCodes.GONE) {
         toast.error(t("account:captcha.expired"), {
           id: "login",
           description: t("account:captcha.please_refresh"),
         });
+      } else {
+        await notifyApiError(error);
       }
 
       captchaRef?.current?.refresh();

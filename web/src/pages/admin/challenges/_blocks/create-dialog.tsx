@@ -28,6 +28,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
+import { notifyApiError } from "@/utils/query";
 
 interface CreateDialogProps {
   onClose: () => void;
@@ -57,25 +58,26 @@ function CreateDialog(props: CreateDialogProps) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    createChallenge({
-      ...values,
-      description: "",
-      has_instance: false,
-      public: false,
-      has_attachment: false,
-    })
-      .then((res) => {
-        toast.success(
-          t("challenge:actions.create.success", { title: res.challenge?.title })
-        );
-        onClose();
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
+    try {
+      const res = await createChallenge({
+        ...values,
+        description: "",
+        has_instance: false,
+        public: false,
+        has_attachment: false,
       });
+      toast.success(
+        t("challenge:actions.create.success", { title: res.challenge?.title })
+      );
+      onClose();
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   return (

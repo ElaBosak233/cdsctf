@@ -81,7 +81,7 @@ pub async fn list_submissions(
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<ListSubmissionsRequest>,
 ) -> Result<Json<ListSubmissionsResponse>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
@@ -149,7 +149,7 @@ pub async fn create_submission(
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateSubmissionRequest>,
 ) -> Result<(StatusCode, Json<SubmissionSummary>), WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
@@ -250,7 +250,7 @@ pub async fn create_submission(
 
     let submission = cds_db::submission::find_by_id(&s.db.conn, submission.id)
         .await?
-        .ok_or_else(|| WebError::NotFound(json!("")))?;
+        .ok_or_else(|| WebError::NotFound(json!("not_found")))?;
 
     Ok((
         StatusCode::CREATED,

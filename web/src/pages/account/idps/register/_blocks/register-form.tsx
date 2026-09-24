@@ -30,7 +30,12 @@ import {
 import { TextField } from "@/components/ui/text-field";
 import { setAuthenticatedUser } from "@/storages/auth";
 import { cn } from "@/utils";
-import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import {
+  formatApiErrorMessage,
+  getApiErrorCode,
+  notifyApiError,
+  parseErrorResponse,
+} from "@/utils/query";
 import {
   clearIdpRedirect,
   getIdpRedirect,
@@ -145,14 +150,18 @@ function IdpRegisterForm() {
         replace: true,
       });
     } catch (error) {
-      if (!(error instanceof HTTPError)) throw error;
+      if (!(error instanceof HTTPError)) {
+        await notifyApiError(error);
+        return;
+      }
       const status = error.response.status;
       const body = await parseErrorResponse(error);
 
       if (status === StatusCodes.BAD_REQUEST) {
+        const code = getApiErrorCode(body);
         if (
-          body.msg === "invalid_or_expired_token" ||
-          body.msg === "idp_pending_mismatch"
+          code === "invalid_or_expired_token" ||
+          code === "idp_pending_mismatch"
         ) {
           sessionStorage.removeItem("idp_pending_identity");
           const redirect = getIdpRedirect(searchParams.get("redirect"));
@@ -169,22 +178,20 @@ function IdpRegisterForm() {
 
         toast.error(t("account:idp.register.failed"), {
           id: "idp-register-error",
-          description: formatApiMsg(body.msg),
+          description: formatApiErrorMessage(body),
         });
-      }
-
-      if (status === StatusCodes.CONFLICT) {
+      } else if (status === StatusCodes.CONFLICT) {
         toast.error(t("account:idp.register.failed"), {
           id: "idp-register-error",
           description: t("account:idp.register.conflict"),
         });
-      }
-
-      if (status === StatusCodes.FORBIDDEN) {
+      } else if (status === StatusCodes.FORBIDDEN) {
         toast.error(t("account:idp.register.failed"), {
           id: "idp-register-error",
           description: t("account:idp.login.registration_disabled"),
         });
+      } else {
+        await notifyApiError(error);
       }
     } finally {
       setLoading(false);

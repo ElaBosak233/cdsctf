@@ -12,7 +12,8 @@ pub async fn validation_error(_err: garde::Error) -> impl IntoResponse {}
 
 /// Maps unexpected boxed Axum errors to a generic 500 [`WebError`].
 pub async fn box_error(err: axum::BoxError) -> WebError {
-    WebError::InternalServerError(json!(format!("{:?}", err)))
+    tracing::error!(error = ?err, "boxed axum error");
+    WebError::InternalServerError(json!("internal_server_error"))
 }
 
 /// Converts `tower_governor` failures into HTTP responses with matching status
@@ -22,9 +23,12 @@ pub fn governor_error(err: GovernorError) -> Response<Body> {
         GovernorError::TooManyRequests {
             wait_time,
             headers: _,
-        } => WebError::TooManyRequests(json!(format!("{:?}", wait_time))),
-        GovernorError::UnableToExtractKey => WebError::BadRequest(json!(format!("{:?}", err))),
-        _ => WebError::InternalServerError(json!(format!("{:?}", err))),
+        } => WebError::TooManyRequests(json!({
+            "code": "rate_limit_exceeded",
+            "retry_after_seconds": wait_time
+        })),
+        GovernorError::UnableToExtractKey => WebError::BadRequest(json!("rate_limit_key_unavailable")),
+        _ => WebError::InternalServerError(json!("rate_limit_failed")),
     };
 
     web_err.into_response()

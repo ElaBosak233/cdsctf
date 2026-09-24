@@ -16,3 +16,9 @@ actions:
     _: Renew
     success: Renewed successfully.
     error: Renew failed.
+errors:
+  challenge_invalid: The challenge instance is invalid.
+  no_more_renewal: This instance cannot be renewed anymore.
+  renewal_within_10_minutes: This instance cannot be renewed within ten minutes of expiry.
+  too_many_team_instances: The team has reached its instance limit.
+  too_many_user_instances: You have reached your instance limit.

@@ -49,7 +49,7 @@ pub async fn list_game_notices(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<GameNoticesListResponse>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let game_notices = cds_db::game_notice::find_by_game_id(&s.db.conn, game_id).await?;
     let total = game_notices.len() as u64;
