@@ -157,7 +157,9 @@ export default function Index() {
     if (!file || resolvedGameId == null) return;
 
     if (file.size > 3 * 1024 * 1024) {
-      toast.error(t("game:form.poster_upload.size_error"));
+      toast.error(t("game:form.poster_upload.size_error.title"), {
+        description: t("game:form.poster_upload.size_error.description"),
+      });
       event.target.value = "";
       return;
     }
@@ -182,10 +184,10 @@ export default function Index() {
       toast.success(t("game:form.poster_upload.success"), {
         id: "game-poster-upload",
       });
-    } catch (_) {
-      toast.error(t("game:form.poster_upload.error"), {
+    } catch (error) {
+      await notifyApiError(error, {
         id: "game-poster-upload",
-        description: t("common:errors.network"),
+        title: t("game:form.poster_upload.error"),
       });
       return;
     }
@@ -213,7 +215,9 @@ export default function Index() {
     if (!file || resolvedGameId == null) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error(t("game:form.icon_upload.size_error"));
+      toast.error(t("game:form.icon_upload.size_error.title"), {
+        description: t("game:form.icon_upload.size_error.description"),
+      });
       event.target.value = "";
       return;
     }
@@ -238,10 +242,10 @@ export default function Index() {
       toast.success(t("game:form.icon_upload.success"), {
         id: "game-icon-upload",
       });
-    } catch (_) {
-      toast.error(t("game:form.icon_upload.error"), {
+    } catch (error) {
+      await notifyApiError(error, {
         id: "game-icon-upload",
-        description: t("common:errors.network"),
+        title: t("game:form.icon_upload.error"),
       });
       return;
     }

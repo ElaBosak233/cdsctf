@@ -110,9 +110,10 @@ export default function Index() {
         toast.success(t("admin:platform.logo_upload.success"), {
           id: "logo-upload",
         });
-      } catch {
-        toast.error(t("admin:platform.logo_upload.error"), {
+      } catch (error) {
+        await notifyApiError(error, {
           id: "logo-upload",
+          title: t("admin:platform.logo_upload.error"),
         });
       } finally {
         bump();

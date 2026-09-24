@@ -75,7 +75,9 @@ form:
     progress: "上传进度 {{percent}}%"
     success: 海报上传成功。
     error: 海报上传失败。
-    size_error: 海报大小超过 3MB 限制。
+    size_error:
+      title: 海报过大
+      description: 请选择不超过 3 MB 的海报。
   poster_delete:
     success: 海报删除成功。
   icon: 图标
@@ -83,7 +85,9 @@ form:
     progress: "上传进度 {{percent}}%"
     success: 图标上传成功。
     error: 图标上传失败。
-    size_error: 图标大小超过 5MB 限制。
+    size_error:
+      title: 图标过大
+      description: 请选择不超过 5 MB 的图标。
   icon_delete:
     success: 图标删除成功。
   public:
@@ -136,7 +140,9 @@ actions:
     _: 更新比赛
     success: "比赛 {{title}} 更新成功。"
 challenges:
-  no_permission: 你没有权限查看本场比赛的题目。
+  no_permission:
+    title: 无权访问
+    description: 你没有权限查看本场比赛的题目。
 paused:
   title: 比赛已暂停
   description: 管理员恢复比赛后可以继续答题。

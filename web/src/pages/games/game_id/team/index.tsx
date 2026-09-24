@@ -33,6 +33,7 @@ import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
+import { notifyApiError } from "@/utils/query";
 import { getGamePhase } from "@/utils/time";
 
 export default function Index() {
@@ -94,7 +95,9 @@ export default function Index() {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error(t("team:avatar.upload.size_error"));
+      toast.error(t("team:avatar.upload.size_error.title"), {
+        description: t("team:avatar.upload.size_error.description"),
+      });
       event.target.value = "";
       return;
     }
@@ -127,8 +130,11 @@ export default function Index() {
         id: "team-avatar-upload",
       });
       setRefresh();
-    } catch {
-      toast.error(t("team:avatar.upload.error"));
+    } catch (error) {
+      await notifyApiError(error, {
+        id: "team-avatar-upload",
+        title: t("team:avatar.upload.error"),
+      });
     }
 
     event.target.value = "";

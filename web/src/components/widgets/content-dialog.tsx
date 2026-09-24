@@ -1,7 +1,12 @@
 import { EyeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/utils";
 import { MarkdownRender } from "../ui/markdown-render";
@@ -16,6 +21,7 @@ interface ContentDialogProps {
 
 export function ContentDialog({
   content,
+  title,
   maxPreviewLength = 10,
   showPreview = true,
 }: ContentDialogProps) {
@@ -43,8 +49,19 @@ export function ContentDialog({
           }
         />
         <DialogContent size="wide">
-          <Card className={cn(["w-full", "max-w-2xl", "p-5", "min-h-64"])}>
-            <Typography>
+          <Card
+            className={cn([
+              "w-full",
+              "max-w-2xl",
+              "p-5",
+              "min-h-64",
+              "flex",
+              "flex-col",
+              "gap-5",
+            ])}
+          >
+            <DialogHeader title={title} />
+            <Typography className="min-h-0 flex-1">
               <MarkdownRender src={content} />
             </Typography>
           </Card>

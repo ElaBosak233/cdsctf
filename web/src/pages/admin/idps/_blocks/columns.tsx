@@ -26,7 +26,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +43,7 @@ import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 import type { IdpView } from "@/models/idp";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 import { parseTimestamp } from "@/utils/time";
 
 const RowContext = createContext<{
@@ -91,9 +92,9 @@ function RowProvider({ idp, children }: { idp: IdpView; children: ReactNode }) {
               { name: idp.name }
             )
           );
-        } catch {
+        } catch (error) {
           setOptimisticStatus(status);
-          toast.error(t("common:errors.default"));
+          await notifyApiError(error);
         }
       });
     },
@@ -353,34 +354,20 @@ function ActionsCell({ row }: { row: Row<IdpView> }) {
             ])}
           >
             <div className={cn(["flex", "flex-col", "gap-5", "p-5"])}>
-              <div className={cn(["flex", "items-center", "gap-3"])}>
-                <div
-                  className={cn([
-                    "flex",
-                    "size-10",
-                    "shrink-0",
-                    "items-center",
-                    "justify-center",
-                    "rounded-badge",
-                    "bg-error/10",
-                    "text-error",
-                  ])}
-                >
-                  <TrashIcon className="size-5" />
-                </div>
-                <h3 className="text-base font-semibold">
-                  {t("admin:idp.actions.delete._")}
-                </h3>
-              </div>
-              <p className="text-sm">
-                <Trans
-                  i18nKey="admin:idp.actions.delete.message"
-                  values={{ name: idp.name }}
-                  components={{
-                    muted: <span className="text-muted-foreground" />,
-                  }}
-                />
-              </p>
+              <DialogHeader
+                icon={<TrashIcon />}
+                level="error"
+                title={t("admin:idp.actions.delete._")}
+                description={
+                  <Trans
+                    i18nKey="admin:idp.actions.delete.message"
+                    values={{ name: idp.name }}
+                    components={{
+                      muted: <span className="text-muted-foreground" />,
+                    }}
+                  />
+                }
+              />
               <div className="flex justify-end">
                 <Button
                   level="error"

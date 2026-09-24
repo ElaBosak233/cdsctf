@@ -22,6 +22,18 @@ type DialogContentProps = React.ComponentProps<typeof BaseDialog.Popup> & {
   };
 };
 
+type DialogHeaderProps = React.ComponentProps<"div"> & {
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  icon?: React.ReactNode;
+  trailing?: React.ReactNode;
+  level?: "primary" | "info" | "success" | "warning" | "error";
+  iconClassName?: string;
+  contentClassName?: string;
+  titleClassName?: string;
+  descriptionClassName?: string;
+};
+
 function DialogContent(props: DialogContentProps) {
   const { children, className, size = "default", slotProps, ...rest } = props;
 
@@ -69,6 +81,110 @@ function DialogContent(props: DialogContentProps) {
   );
 }
 
+function DialogHeader(props: DialogHeaderProps) {
+  const {
+    title,
+    description,
+    icon,
+    trailing,
+    level = "primary",
+    className,
+    iconClassName,
+    contentClassName,
+    titleClassName,
+    descriptionClassName,
+    ...rest
+  } = props;
+  const hasDescription =
+    description !== undefined && description !== null && description !== "";
+
+  const levelClass = {
+    primary: "bg-primary/10 text-primary",
+    info: "bg-info/10 text-info",
+    success: "bg-success/10 text-success",
+    warning: "bg-warning/10 text-warning",
+    error: "bg-error/10 text-error",
+  }[level];
+
+  return (
+    <div
+      data-slot="dialog-header"
+      className={cn(
+        [
+          "flex",
+          "min-w-0",
+          "gap-3.5",
+          hasDescription ? "items-start" : "items-center",
+        ],
+        className
+      )}
+      {...rest}
+    >
+      {icon && (
+        <div
+          data-slot="dialog-header-icon"
+          className={cn(
+            [
+              "flex",
+              "size-10",
+              "shrink-0",
+              "items-center",
+              "justify-center",
+              "rounded-badge",
+              "shadow-xs",
+              levelClass,
+              "[&_svg]:size-5",
+            ],
+            iconClassName
+          )}
+        >
+          {icon}
+        </div>
+      )}
+      <div
+        data-slot="dialog-header-content"
+        className={cn(
+          [
+            "flex",
+            "min-w-0",
+            "flex-1",
+            "flex-col",
+            "gap-1",
+            !hasDescription && "justify-center",
+          ],
+          contentClassName
+        )}
+      >
+        <BaseDialog.Title
+          data-slot="dialog-header-title"
+          className={cn(
+            ["text-base", "font-semibold", "text-foreground"],
+            titleClassName
+          )}
+        >
+          {title}
+        </BaseDialog.Title>
+        {hasDescription && (
+          <BaseDialog.Description
+            data-slot="dialog-header-description"
+            className={cn(
+              ["text-sm", "text-muted-foreground"],
+              descriptionClassName
+            )}
+          >
+            {description}
+          </BaseDialog.Description>
+        )}
+      </div>
+      {trailing && (
+        <div className="ml-auto shrink-0" data-slot="dialog-header-trailing">
+          {trailing}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DialogPortal({
   ...props
 }: React.ComponentProps<typeof BaseDialog.Portal>) {
@@ -100,4 +216,4 @@ function DialogOverlay({
   );
 }
 
-export { Dialog, DialogContent, DialogTrigger };
+export { Dialog, DialogContent, DialogHeader, DialogTrigger };

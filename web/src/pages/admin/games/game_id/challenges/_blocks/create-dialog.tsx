@@ -16,6 +16,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/components/ui/combobox";
+import { DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { ChallengeDetail } from "@/models/challenge";
@@ -119,24 +120,11 @@ function CreateDialog(props: CreateDialogProps) {
       ])}
     >
       <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <div className={cn(["flex", "items-center", "gap-3"])}>
-          <div
-            className={cn([
-              "flex items-center justify-center",
-              "size-10 rounded-badge",
-              "bg-primary/10",
-              "shrink-0",
-            ])}
-          >
-            <LibraryIcon className={cn(["size-5"])} />
-          </div>
-          <h3 className={cn(["text-base", "font-semibold"])}>
-            {t("game:challenge.actions.add._")}
-          </h3>
-        </div>
-        <span className={cn(["text-secondary-foreground", "text-sm"])}>
-          {t("game:challenge.actions.add.message")}
-        </span>
+        <DialogHeader
+          icon={<LibraryIcon />}
+          title={t("game:challenge.actions.add._")}
+          description={t("game:challenge.actions.add.message")}
+        />
         <Field size="sm" className="w-full">
           <FieldIcon>
             <LibraryIcon />

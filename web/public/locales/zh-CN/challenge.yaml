@@ -191,5 +191,12 @@ errors:
   attachment_not_found: 这道题目没有可用附件。
   not_found: 未找到题目。
   game_challenge_not_found: 未找到比赛中的题目。
-  user_or_team_required: 请指定用户或团队。
-  checker_key_generation_failed: 检查器密钥生成失败，请稍后重试。
+  user_or_team_required:
+    title: 需要指定参与者
+    description: 请选择用户或团队。
+  checker_key_generation_failed:
+    title: 检查器密钥生成失败
+    description: 请稍后重试。
+  checker_key_already_exists:
+    title: 检查器密钥已存在
+    description: 请移除冲突的密钥文件后重试。

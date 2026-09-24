@@ -8,6 +8,7 @@ import { z } from "zod";
 import { createAdminIdp } from "@/api/admin/idps";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -83,21 +84,10 @@ function CreateDialog(props: CreateDialogProps) {
       ])}
     >
       <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <div className={cn(["flex", "items-center", "gap-3"])}>
-          <div
-            className={cn([
-              "flex items-center justify-center",
-              "size-10 rounded-badge",
-              "bg-primary/10",
-              "shrink-0",
-            ])}
-          >
-            <IdCardIcon className={cn(["size-5"])} />
-          </div>
-          <h3 className={cn(["text-base", "font-semibold"])}>
-            {t("admin:idp.actions.create._")}
-          </h3>
-        </div>
+        <DialogHeader
+          icon={<IdCardIcon />}
+          title={t("admin:idp.actions.create._")}
+        />
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { deleteGameNotice } from "@/api/admin/games/game_id/notices";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { ContentDialog } from "@/components/widgets/content-dialog";
 import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import type { GameNoticeView } from "@/models/game_notice";
@@ -77,30 +77,20 @@ function ActionsCell({ row }: { row: Row<GameNoticeView> }) {
             ])}
           >
             <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-              <div className={cn(["flex", "items-center", "gap-3"])}>
-                <div
-                  className={cn([
-                    "flex items-center justify-center",
-                    "size-10 rounded-badge",
-                    "bg-error/10 text-error",
-                    "shrink-0",
-                  ])}
-                >
-                  <TrashIcon className={cn(["size-5"])} />
-                </div>
-                <h3 className={cn(["text-base", "font-semibold"])}>
-                  {t("game:notice.actions.delete._")}
-                </h3>
-              </div>
-              <p className={cn(["text-sm"])}>
-                <Trans
-                  i18nKey="game:notice.actions.delete.message"
-                  values={{ title: row.original.title }}
-                  components={{
-                    muted: <span className={cn(["text-muted-foreground"])} />,
-                  }}
-                />
-              </p>
+              <DialogHeader
+                icon={<TrashIcon />}
+                level="error"
+                title={t("game:notice.actions.delete._")}
+                description={
+                  <Trans
+                    i18nKey="game:notice.actions.delete.message"
+                    values={{ title: row.original.title }}
+                    components={{
+                      muted: <span className={cn(["text-muted-foreground"])} />,
+                    }}
+                  />
+                }
+              />
               <div className={cn(["flex", "justify-end"])}>
                 <Button
                   level={"error"}

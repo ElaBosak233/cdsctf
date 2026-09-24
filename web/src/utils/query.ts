@@ -1,11 +1,15 @@
 import { StatusCodes } from "http-status-codes";
-import ky, { HTTPError, TimeoutError } from "ky";
+import ky, { HTTPError, NetworkError, TimeoutError } from "ky";
 import { toast } from "sonner";
 import { clearAuthenticatedUser } from "@/storages/auth";
 import { decodeApiJson, type ErrorResponse } from "@/types";
 import {
-  API_ERROR_FALLBACK_KEY,
+  API_ERROR_FALLBACK_KEYS,
   API_ERROR_I18N_KEYS,
+  type ApiErrorI18nKeys,
+  NETWORK_ERROR_I18N_KEYS,
+  SERVICE_UNAVAILABLE_I18N_KEYS,
+  TIMEOUT_ERROR_I18N_KEYS,
 } from "@/utils/api-errors";
 import i18n from "@/utils/i18n";
 
@@ -32,6 +36,7 @@ function isApiErrorHandled(error: unknown) {
 function isApiError(error: unknown) {
   return (
     error instanceof HTTPError ||
+    error instanceof NetworkError ||
     error instanceof TimeoutError ||
     (typeof error === "object" &&
       error !== null &&
@@ -47,17 +52,17 @@ export async function notifyApiError(
   markApiErrorHandled(error);
 
   if (error instanceof TimeoutError) {
-    toast.error(options.title ?? i18n.t("common:errors.timeout"), {
-      id: options.id ?? "timeout",
-    });
+    showApiErrorToast(TIMEOUT_ERROR_I18N_KEYS, options);
     return;
   }
 
-  const message = await getApiErrorMessage(error);
-  toast.error(options.title ?? i18n.t("common:errors.default"), {
-    id: options.id,
-    description: message || undefined,
-  });
+  if (error instanceof NetworkError) {
+    showApiErrorToast(NETWORK_ERROR_I18N_KEYS, options);
+    return;
+  }
+
+  const message = await getApiErrorToast(error);
+  showApiErrorToast(message, options);
 }
 
 export function onUnhandledApiError(event: PromiseRejectionEvent) {
@@ -67,13 +72,56 @@ export function onUnhandledApiError(event: PromiseRejectionEvent) {
   void notifyApiError(event.reason);
 }
 
-async function getApiErrorMessage(error: unknown): Promise<string> {
+export type ApiErrorToast = {
+  title: string;
+  description?: string;
+};
+
+function translateMessage(keys: ApiErrorI18nKeys): ApiErrorToast {
+  const title = i18n.t(keys.title, { defaultValue: "" });
+  const description = keys.description
+    ? i18n.t(keys.description, { defaultValue: "" })
+    : undefined;
+
+  return {
+    title: typeof title === "string" && title !== keys.title ? title : "",
+    description:
+      typeof description === "string" && description !== keys.description
+        ? description
+        : undefined,
+  };
+}
+
+function showApiErrorToast(
+  message: ApiErrorToast,
+  options: { title?: string; id?: string } = {}
+) {
+  const actionTitle = options.title?.trim();
+  const title = actionTitle || message.title;
+  const descriptionParts = actionTitle
+    ? [message.title, message.description]
+    : [message.description];
+  const description = [
+    ...new Set(
+      descriptionParts.filter(
+        (part): part is string => Boolean(part) && part !== title
+      )
+    ),
+  ].join(" — ");
+
+  toast.error(title || translateMessage(API_ERROR_FALLBACK_KEYS).title, {
+    id: options.id,
+    description: description || undefined,
+  });
+}
+
+async function getApiErrorToast(error: unknown): Promise<ApiErrorToast> {
   if (error instanceof HTTPError) {
     try {
       const body = await parseErrorResponse(error);
-      return formatApiErrorMessage(body);
+      return formatApiError(body);
     } catch {
-      return "";
+      return translateMessage(API_ERROR_FALLBACK_KEYS);
     }
   }
 
@@ -82,10 +130,22 @@ async function getApiErrorMessage(error: unknown): Promise<string> {
     error !== null &&
     ("code" in error || "details" in error)
   ) {
-    return formatApiErrorMessage(error);
+    const record = error as Record<string, unknown>;
+    if (typeof record.code === "string" && record.code.trim()) {
+      return formatApiError(error);
+    }
+    if (typeof record.status === "number") {
+      return formatApiError({
+        code: getHttpStatusErrorCode(record.status),
+        details: record.details,
+      });
+    }
+    return formatApiError(error);
   }
 
-  return typeof error === "string" ? error : "";
+  return typeof error === "string"
+    ? { title: error }
+    : translateMessage(API_ERROR_FALLBACK_KEYS);
 }
 
 const api = ky.extend({
@@ -151,19 +211,17 @@ const api = ky.extend({
           clearAuthenticatedUser();
 
           if (!error.request.headers.get("Ignore-Unauthorized")) {
-            toast.error(i18n.t("account:guard.login_required"), {
+            toast.error(i18n.t("account:guard.login_required.title"), {
               id: "please-login-first",
+              description: i18n.t("account:guard.login_required.description"),
             });
           }
         }
 
         if (error.response.status === StatusCodes.BAD_GATEWAY) {
           markApiErrorHandled(error);
-          toast.error(i18n.t("common:errors.service_unavailable"), {
+          showApiErrorToast(SERVICE_UNAVAILABLE_I18N_KEYS, {
             id: "502-backend-offline",
-            description: i18n.t(
-              "common:errors.service_unavailable_description"
-            ),
           });
         }
 
@@ -173,9 +231,7 @@ const api = ky.extend({
         if (!(error instanceof TimeoutError)) return error as unknown as Error;
 
         markApiErrorHandled(error);
-        toast.error(i18n.t("common:errors.timeout"), {
-          id: "timeout",
-        });
+        showApiErrorToast(TIMEOUT_ERROR_I18N_KEYS, { id: "timeout" });
 
         return error;
       },
@@ -191,17 +247,59 @@ function toSearchParams<T extends object>(obj: T): URLSearchParams {
   return sp;
 }
 
-/** Parses the JSON error payload from a failed ky request (`ErrorResponse`). */
-async function parseErrorResponse(error: HTTPError): Promise<ErrorResponse> {
-  try {
-    const payload: unknown = await error.response.clone().json();
-    if (typeof payload === "object" && payload !== null && "code" in payload) {
-      return payload as ErrorResponse;
-    }
-    return { code: "request_failed", details: payload };
-  } catch {
-    return { code: "request_failed" };
+function isErrorResponse(payload: unknown): payload is ErrorResponse {
+  if (typeof payload !== "object" || payload === null) return false;
+  return typeof (payload as Record<string, unknown>).code === "string";
+}
+
+function getHttpStatusErrorCode(status: number): string {
+  switch (status) {
+    case StatusCodes.BAD_REQUEST:
+      return "bad_request";
+    case StatusCodes.UNAUTHORIZED:
+      return "unauthorized";
+    case StatusCodes.FORBIDDEN:
+      return "forbidden";
+    case StatusCodes.NOT_FOUND:
+      return "not_found";
+    case StatusCodes.CONFLICT:
+      return "conflict";
+    case StatusCodes.LOCKED:
+      return "locked";
+    case StatusCodes.TOO_MANY_REQUESTS:
+      return "too_many_requests";
+    case StatusCodes.UNPROCESSABLE_ENTITY:
+      return "unprocessable_entity";
+    default:
+      return status >= 500 ? "internal_server_error" : "bad_request";
   }
+}
+
+/** Parses the JSON error payload already consumed by Ky into `HTTPError.data`. */
+async function parseErrorResponse(error: HTTPError): Promise<ErrorResponse> {
+  if (isErrorResponse(error.data)) return error.data;
+
+  // Ky 2 consumes the response body before throwing HTTPError. This fallback
+  // supports custom fetch implementations where data was not populated.
+  if (error.data === undefined && !error.response.bodyUsed) {
+    try {
+      const payload: unknown = await error.response.clone().json();
+      if (isErrorResponse(payload)) return payload;
+      if (payload !== undefined) {
+        return {
+          code: getHttpStatusErrorCode(error.response.status),
+          details: payload,
+        };
+      }
+    } catch {
+      // Fall through to a status-derived code below.
+    }
+  }
+
+  return {
+    code: getHttpStatusErrorCode(error.response.status),
+    details: error.data,
+  };
 }
 
 /** Gets the stable error code from an API error envelope. */
@@ -215,20 +313,22 @@ export function getApiErrorCode(payload: unknown): string | undefined {
   return undefined;
 }
 
-function translateApiErrorCode(code: string): string | undefined {
-  const key = API_ERROR_I18N_KEYS[code];
-  if (!key) return undefined;
-  return i18n.exists(key) ? i18n.t(key) : undefined;
+function translateApiErrorCode(code: string): ApiErrorToast | undefined {
+  const keys = API_ERROR_I18N_KEYS[code];
+  if (!keys) return undefined;
+
+  const message = translateMessage(keys);
+  return message.title ? message : undefined;
 }
 
-/** Turns an API error envelope into a translated, user-facing message. */
-export function formatApiErrorMessage(payload: unknown): string {
+/** Turns an API error envelope into a translated, two-level toast message. */
+export function formatApiError(payload: unknown): ApiErrorToast {
   const code = getApiErrorCode(payload);
   if (code) {
     const translated = translateApiErrorCode(code);
     if (translated) return translated;
   }
-  return i18n.t(API_ERROR_FALLBACK_KEY);
+  return translateMessage(API_ERROR_FALLBACK_KEYS);
 }
 
 /** Finite numeric id from a route param (`useParams`). Empty or non-numeric → `undefined`. */

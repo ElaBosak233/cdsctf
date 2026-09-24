@@ -1,6 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
-import { HTTPError } from "ky";
 import {
   CheckCheckIcon,
   LockIcon,
@@ -29,11 +27,7 @@ import { Captcha } from "@/components/widgets/captcha";
 import { clearAuthenticatedUser, useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import {
-  formatApiErrorMessage,
-  notifyApiError,
-  parseErrorResponse,
-} from "@/utils/query";
+import { notifyApiError } from "@/utils/query";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -75,16 +69,7 @@ export default function Index() {
       clearAuthenticatedUser();
       navigate("/");
     } catch (error) {
-      if (!(error instanceof HTTPError)) {
-        await notifyApiError(error);
-        return;
-      }
-      const body = await parseErrorResponse(error);
-      if (error.response.status === StatusCodes.BAD_REQUEST) {
-        toast.error(formatApiErrorMessage(body));
-      } else {
-        await notifyApiError(error);
-      }
+      await notifyApiError(error);
     }
   }
 

@@ -38,7 +38,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -393,34 +393,20 @@ function ActionsCell({ row }: { row: Row<ChallengeDetail> }) {
             ])}
           >
             <div className={cn(["flex", "flex-col", "gap-5", "p-5"])}>
-              <div className={cn(["flex", "items-center", "gap-3"])}>
-                <div
-                  className={cn([
-                    "flex",
-                    "size-10",
-                    "shrink-0",
-                    "items-center",
-                    "justify-center",
-                    "rounded-badge",
-                    "bg-error/10",
-                    "text-error",
-                  ])}
-                >
-                  <TrashIcon className="size-5" />
-                </div>
-                <h3 className="text-base font-semibold">
-                  {t("challenge:actions.delete._")}
-                </h3>
-              </div>
-              <p className="text-sm">
-                <Trans
-                  i18nKey="challenge:actions.delete.message"
-                  values={{ title: challenge.title }}
-                  components={{
-                    muted: <span className="text-muted-foreground" />,
-                  }}
-                />
-              </p>
+              <DialogHeader
+                icon={<TrashIcon />}
+                level="error"
+                title={t("challenge:actions.delete._")}
+                description={
+                  <Trans
+                    i18nKey="challenge:actions.delete.message"
+                    values={{ title: challenge.title }}
+                    components={{
+                      muted: <span className="text-muted-foreground" />,
+                    }}
+                  />
+                }
+              />
               <div className="flex justify-end">
                 <Button
                   level="error"

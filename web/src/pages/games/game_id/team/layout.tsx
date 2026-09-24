@@ -1,5 +1,3 @@
-import { StatusCodes } from "http-status-codes";
-import { HTTPError } from "ky";
 import {
   CheckCheckIcon,
   CheckIcon,
@@ -19,7 +17,7 @@ import { deleteTeam, setTeamReady } from "@/api/games/game_id/teams/us";
 import { leaveTeam } from "@/api/games/game_id/teams/us/users";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
@@ -34,11 +32,7 @@ import { State } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import {
-  formatApiErrorMessage,
-  notifyApiError,
-  parseErrorResponse,
-} from "@/utils/query";
+import { notifyApiError } from "@/utils/query";
 import { getGamePhase, isGameActive } from "@/utils/time";
 
 export default function Layout() {
@@ -88,19 +82,7 @@ export default function Layout() {
       });
       setConfirmDialogOpen(false);
     } catch (error) {
-      if (!(error instanceof HTTPError)) {
-        await notifyApiError(error);
-        return;
-      }
-      const body = await parseErrorResponse(error);
-
-      if (error.response.status === StatusCodes.BAD_REQUEST) {
-        toast.error(t("common:errors.default"), {
-          description: formatApiErrorMessage(body),
-        });
-      } else {
-        await notifyApiError(error);
-      }
+      await notifyApiError(error);
     }
     sharedStore.setRefresh();
   }
@@ -145,21 +127,9 @@ export default function Layout() {
       setDisbandDialogOpen(false);
       navigate(`/games/${currentGame?.id}`);
     } catch (error) {
-      if (!(error instanceof HTTPError)) {
-        await notifyApiError(error);
-        return;
-      }
-      const body = await parseErrorResponse(error);
-
-      if (error.response.status === StatusCodes.BAD_REQUEST) {
-        toast.error(t("team:actions.leave.error"), {
-          description: formatApiErrorMessage(body),
-        });
-      } else {
-        await notifyApiError(error, {
-          title: t("team:actions.leave.error"),
-        });
-      }
+      await notifyApiError(error, {
+        title: t("team:actions.leave.error"),
+      });
     } finally {
       sharedStore.setRefresh();
     }
@@ -230,39 +200,12 @@ export default function Layout() {
                     ])}
                   >
                     <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-                      <div className={cn(["flex", "items-start", "gap-3.5"])}>
-                        <div
-                          className={cn([
-                            "flex items-center justify-center",
-                            "size-10 rounded-badge",
-                            "bg-error/10 text-error",
-                            "shadow-xs shrink-0",
-                          ])}
-                        >
-                          <UserRoundXIcon className={cn(["size-5"])} />
-                        </div>
-                        <div
-                          className={cn([
-                            "flex",
-                            "flex-col",
-                            "gap-1",
-                            "pt-0.5",
-                          ])}
-                        >
-                          <h3
-                            className={cn([
-                              "text-sm",
-                              "font-semibold",
-                              "text-foreground",
-                            ])}
-                          >
-                            {t("team:actions.disband._")}
-                          </h3>
-                        </div>
-                      </div>
-                      <p className={cn(["text-sm", "text-muted-foreground"])}>
-                        {t("team:actions.disband.message")}
-                      </p>
+                      <DialogHeader
+                        icon={<UserRoundXIcon />}
+                        level="error"
+                        title={t("team:actions.disband._")}
+                        description={t("team:actions.disband.message")}
+                      />
                       <Button
                         icon={<CheckCheckIcon />}
                         level={"error"}
@@ -303,39 +246,12 @@ export default function Layout() {
                     ])}
                   >
                     <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-                      <div className={cn(["flex", "items-start", "gap-3.5"])}>
-                        <div
-                          className={cn([
-                            "flex items-center justify-center",
-                            "size-10 rounded-badge",
-                            "bg-warning/10 text-warning",
-                            "shadow-xs shrink-0",
-                          ])}
-                        >
-                          <UserRoundMinusIcon className={cn(["size-5"])} />
-                        </div>
-                        <div
-                          className={cn([
-                            "flex",
-                            "flex-col",
-                            "gap-1",
-                            "pt-0.5",
-                          ])}
-                        >
-                          <h3
-                            className={cn([
-                              "text-sm",
-                              "font-semibold",
-                              "text-foreground",
-                            ])}
-                          >
-                            {t("team:actions.leave._")}
-                          </h3>
-                        </div>
-                      </div>
-                      <p className={cn(["text-sm", "text-muted-foreground"])}>
-                        {t("team:actions.leave.message")}
-                      </p>
+                      <DialogHeader
+                        icon={<UserRoundMinusIcon />}
+                        level="warning"
+                        title={t("team:actions.leave._")}
+                        description={t("team:actions.leave.message")}
+                      />
                       <Button
                         icon={<CheckCheckIcon />}
                         level={"error"}
@@ -385,34 +301,12 @@ export default function Layout() {
                   ])}
                 >
                   <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-                    <div className={cn(["flex", "items-start", "gap-3.5"])}>
-                      <div
-                        className={cn([
-                          "flex items-center justify-center",
-                          "size-10 rounded-badge",
-                          "bg-warning/10 text-warning",
-                          "shadow-xs shrink-0",
-                        ])}
-                      >
-                        <TriangleAlertIcon className={cn(["size-5"])} />
-                      </div>
-                      <div
-                        className={cn(["flex", "flex-col", "gap-1", "pt-0.5"])}
-                      >
-                        <h3
-                          className={cn([
-                            "text-sm",
-                            "font-semibold",
-                            "text-foreground",
-                          ])}
-                        >
-                          {t("team:actions.ready.title")}
-                        </h3>
-                      </div>
-                    </div>
-                    <p className={cn(["text-sm", "text-muted-foreground"])}>
-                      {t("team:actions.ready.message")}
-                    </p>
+                    <DialogHeader
+                      icon={<TriangleAlertIcon />}
+                      level="warning"
+                      title={t("team:actions.ready.title")}
+                      description={t("team:actions.ready.message")}
+                    />
                     <Button
                       icon={<CheckCheckIcon />}
                       level={"warning"}

@@ -1,23 +1,28 @@
 hint1: 本题需要使用动态容器，
 hint2: 点击“启动”进行容器下发。
 remaining: "剩余时间 {{hours}}:{{minutes}}:{{seconds}}"
-error: 发生错误。
+error: 容器启动失败。
 actions:
   start:
     _: 启动
     creating: 正在发送容器创建请求。
     sent: 已下发启动命令。
     description: 这可能需要一些时间。
-    error: 容器创建时发生错误，即将触发销毁。
+    error:
+      title: 容器创建失败
+      description: 容器将被销毁。
   stop:
     _: 停止
     sent: 已下发停止命令。
+    error: 容器停止失败
   renew:
     _: 续期
     success: 续期成功。
     error: 续期失败。
 errors:
-  challenge_invalid: 题目实例无效，请刷新后重试。
+  challenge_invalid:
+    title: 题目实例无效
+    description: 请刷新页面后重试。
   no_more_renewal: 该实例已不能继续续期。
   renewal_within_10_minutes: 实例将在十分钟内到期，暂时不能续期。
   too_many_team_instances: 团队实例数量已达上限。

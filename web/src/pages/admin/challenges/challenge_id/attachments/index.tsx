@@ -25,6 +25,7 @@ import type { Metadata } from "@/models/media";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
+import { notifyApiError } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./columns";
 
@@ -76,9 +77,10 @@ export default function Index() {
           status: "success",
           result: "",
         };
-      } catch {
-        toast.error(t("challenge:attachment.upload.error"), {
+      } catch (error) {
+        await notifyApiError(error, {
           id: "attachment-upload",
+          title: t("challenge:attachment.upload.error"),
         });
         return {
           status: "error",

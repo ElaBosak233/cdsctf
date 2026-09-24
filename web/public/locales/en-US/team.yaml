@@ -97,7 +97,9 @@ avatar:
     progress: "Upload progress {{percent}}%"
     success: Avatar uploaded successfully.
     error: Avatar upload failed.
-    size_error: Avatar size exceeds 5MB limit.
+    size_error:
+      title: Avatar is too large
+      description: Choose an avatar no larger than 5 MB.
   delete:
     success: Avatar deleted successfully.
   team_delete_success: "Team {{name}} avatar deleted successfully."
@@ -114,8 +116,12 @@ form:
 errors:
   invalid_invite_token: The invite code is invalid or expired.
   invalid_team: The team information is invalid.
-  member_limit_not_satisfied: The team size does not meet the competition requirements. Adjust the members and try again.
-  no_invite_token: Generate an invite code first.
+  member_limit_not_satisfied:
+    title: Team size does not meet the competition requirements
+    description: Adjust the number of members and try again.
+  no_invite_token:
+    title: Invite code unavailable
+    description: Generate an invite code first.
   no_other_member: The team must keep at least one other member.
   not_found: The team could not be found.
   not_preparing: The team is not in the preparing state.

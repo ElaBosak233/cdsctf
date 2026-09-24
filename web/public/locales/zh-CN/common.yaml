@@ -18,22 +18,50 @@ actions:
   clear_cache: 清除缓存
 tooltip:
   copy: 复制到剪贴板
+editor:
+  image_upload:
+    progress: "正在上传图片（{{percent}}%）"
+    error: 图片上传失败
+    size_error:
+      title: 图片过大
+      description: 请选择不超过 10 MB 的图片。
 errors:
-  default: 发生了点错误
+  default:
+    title: 暂时无法完成请求
+    description: 请重试；如果问题持续存在，请联系管理员。
   unexpected: 发生了点错误
-  network: 网络错误
-  service_unavailable: 服务暂不可用
-  service_unavailable_description: 服务器暂时无法完成请求
-  timeout: 请求超时
-  bad_request: 请求参数无效，请检查后重试。
-  unauthorized: 请先登录后再继续操作。
+  network:
+    title: 网络连接不可用
+    description: 请检查网络连接后重试。
+  service_unavailable:
+    title: 服务暂不可用
+    description: 服务器暂时无法完成请求。
+  timeout:
+    title: 请求超时
+    description: 请检查网络连接后重试。
+  bad_request:
+    title: 请求无效
+    description: 请检查输入内容后重试。
+  unauthorized:
+    title: 需要登录
+    description: 请先登录后再继续操作。
   forbidden: 你没有权限执行此操作。
   not_found: 请求的内容不存在或已被删除。
-  internal_server_error: 服务器暂时无法完成请求，请稍后重试。
-  conflict: 当前内容已发生变化，请刷新后重试。
-  locked: 当前内容已被锁定，暂时无法操作。
-  too_many_requests: 操作过于频繁，请稍后重试。
-  unprocessable_entity: 提交的信息无法处理，请检查后重试。
+  internal_server_error:
+    title: 服务器暂时无法完成请求
+    description: 请稍后重试。
+  conflict:
+    title: 内容已发生变化
+    description: 请刷新页面后重试。
+  locked:
+    title: 内容已锁定
+    description: 当前无法修改此内容。
+  too_many_requests:
+    title: 请求过于频繁
+    description: 请稍后重试。
+  unprocessable_entity:
+    title: 提交的信息无法处理
+    description: 请检查输入内容后重试。
   invalid_json: 请求内容不是有效的 JSON。
   validation_failed: 提交的部分字段无效。
   invalid_path: 请求地址无效。
@@ -43,13 +71,19 @@ errors:
   query_extraction_failed: 无法处理查询参数。
   extension_missing: 服务端缺少必要扩展。
   extension_extraction_failed: 无法加载服务端必要扩展。
-  rate_limit_exceeded: 请求过于频繁，请稍后再试。
+  rate_limit_exceeded:
+    title: 请求过于频繁
+    description: 请稍后再试。
   rate_limit_key_unavailable: 无法对请求执行限流。
-  rate_limit_failed: 请求限流失败，请稍后再试。
+  rate_limit_failed:
+    title: 请求限流失败
+    description: 请稍后再试。
   multipart: 无法处理上传的文件。
   host_extract_failed: 无法识别请求主机。
   ip_extract_failed: 无法识别客户端地址。
-  invalid: 请求无效，请检查后重试。
+  invalid:
+    title: 请求无效
+    description: 请检查输入内容后重试。
   captcha:
     not_required: 当前不需要生成验证码。
   media:
@@ -57,7 +91,9 @@ errors:
     forbidden_file_type: 不支持上传此文件类型。
     invalid_mime_type: 文件类型无效。
     missing_content_type: 请求缺少文件类型信息。
-    no_file: 未选择文件。
+    no_file:
+      title: 未选择文件
+      description: 请先选择文件。
     size_too_large: 文件大小超过限制。
     upload_limit_10m: 十分钟内上传次数已达上限。
     upload_limit_24h: 二十四小时内上传次数已达上限。

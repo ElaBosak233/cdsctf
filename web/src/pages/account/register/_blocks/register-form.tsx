@@ -1,6 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
-import { HTTPError } from "ky";
 import {
   CheckIcon,
   LockIcon,
@@ -29,11 +27,7 @@ import { TextField } from "@/components/ui/text-field";
 import { Captcha, type CaptchaRef } from "@/components/widgets/captcha";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import {
-  formatApiErrorMessage,
-  notifyApiError,
-  parseErrorResponse,
-} from "@/utils/query";
+import { notifyApiError } from "@/utils/query";
 import { getSafeRedirect, withRedirect } from "@/utils/redirect";
 
 function RegisterForm() {
@@ -100,26 +94,10 @@ function RegisterForm() {
         )
       );
     } catch (error) {
-      if (!(error instanceof HTTPError)) {
-        await notifyApiError(error);
-        return;
-      }
-      const status = error.response.status;
-      const body = await parseErrorResponse(error);
-
-      if (status === StatusCodes.BAD_REQUEST) {
-        toast.error(t("account:register.toast.failure._"), {
-          id: "register-error",
-          description: formatApiErrorMessage(body),
-        });
-      } else if (status === StatusCodes.CONFLICT) {
-        toast.error(t("account:register.toast.failure._"), {
-          id: "register-error",
-          description: t("account:register.toast.failure.conflict"),
-        });
-      } else {
-        await notifyApiError(error);
-      }
+      await notifyApiError(error, {
+        id: "register-error",
+        title: t("account:register.toast.failure._"),
+      });
 
       captchaRef.current?.refresh();
     } finally {

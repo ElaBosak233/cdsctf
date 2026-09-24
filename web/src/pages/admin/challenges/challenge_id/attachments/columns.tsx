@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { deleteChallengeAttachment } from "@/api/admin/challenges/challenge_id/attachments/filename";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import type { Metadata } from "@/models/media";
 import { useSharedStore } from "@/storages/shared";
@@ -70,30 +70,20 @@ function ActionsCell({ row }: { row: Row<Metadata> }) {
             ])}
           >
             <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-              <div className={cn(["flex", "items-center", "gap-3"])}>
-                <div
-                  className={cn([
-                    "flex items-center justify-center",
-                    "size-10 rounded-badge",
-                    "bg-error/10 text-error",
-                    "shrink-0",
-                  ])}
-                >
-                  <TrashIcon className={cn(["size-5"])} />
-                </div>
-                <h3 className={cn(["text-base", "font-semibold"])}>
-                  {t("challenge:attachment.actions.delete._")}
-                </h3>
-              </div>
-              <p className={cn(["text-sm"])}>
-                <Trans
-                  i18nKey="challenge:attachment.actions.delete.message"
-                  values={{ filename: row.original.filename }}
-                  components={{
-                    muted: <span className={cn(["text-muted-foreground"])} />,
-                  }}
-                />
-              </p>
+              <DialogHeader
+                icon={<TrashIcon />}
+                level="error"
+                title={t("challenge:attachment.actions.delete._")}
+                description={
+                  <Trans
+                    i18nKey="challenge:attachment.actions.delete.message"
+                    values={{ filename: row.original.filename }}
+                    components={{
+                      muted: <span className={cn(["text-muted-foreground"])} />,
+                    }}
+                  />
+                }
+              />
               <div className={cn(["flex", "justify-end"])}>
                 <Button
                   level={"error"}

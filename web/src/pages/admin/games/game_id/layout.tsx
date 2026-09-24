@@ -114,9 +114,9 @@ export default function Layout() {
         t("game:actions.update.success", { title: res.game.title })
       );
       sharedStore.setRefresh();
-    } catch {
+    } catch (error) {
       setGameState((current) => ({ ...current, [state]: previous }));
-      toast.error(t("common:errors.network"));
+      await notifyApiError(error);
     } finally {
       setUpdatingState(null);
     }

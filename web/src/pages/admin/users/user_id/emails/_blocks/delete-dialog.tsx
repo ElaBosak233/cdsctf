@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { deleteEmail } from "@/api/admin/users/user_id/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DialogHeader } from "@/components/ui/dialog";
 import { cn } from "@/utils";
 
 interface DeleteEmailDialogProps {
@@ -48,35 +49,25 @@ export function DeleteEmailDialog(props: DeleteEmailDialogProps) {
       ])}
     >
       <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <div className={cn(["flex", "items-center", "gap-3"])}>
-          <div
-            className={cn([
-              "flex items-center justify-center",
-              "size-10 rounded-badge",
-              "bg-error/10 text-error",
-              "shrink-0",
-            ])}
-          >
-            <TrashIcon className={cn(["size-5"])} />
-          </div>
-          <h3 className={cn(["text-base", "font-semibold"])}>
-            {t("user:emails.actions.delete._")}
-          </h3>
-        </div>
-        <div className={cn(["flex", "flex-col", "gap-1"])}>
-          <p className={cn(["text-sm", "font-medium"])}>
-            <Trans
-              i18nKey={"user:emails.actions.delete.message"}
-              values={{ email }}
-              components={{
-                muted: <span className={cn(["text-muted-foreground"])} />,
-              }}
-            />
-          </p>
-          <p className={cn(["text-sm", "text-muted-foreground"])}>
-            {t("user:emails.actions.delete.message_brief")}
-          </p>
-        </div>
+        <DialogHeader
+          icon={<TrashIcon />}
+          level="error"
+          title={t("user:emails.actions.delete._")}
+          description={
+            <div className={cn(["flex", "flex-col", "gap-1"])}>
+              <p className={cn(["font-medium"])}>
+                <Trans
+                  i18nKey={"user:emails.actions.delete.message"}
+                  values={{ email }}
+                  components={{
+                    muted: <span className={cn(["text-muted-foreground"])} />,
+                  }}
+                />
+              </p>
+              <p>{t("user:emails.actions.delete.message_brief")}</p>
+            </div>
+          }
+        />
         <div className={cn(["flex", "justify-end", "gap-2"])}>
           <Button
             variant={"solid"}

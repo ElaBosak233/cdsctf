@@ -75,7 +75,9 @@ form:
     progress: "Upload progress {{percent}}%"
     success: Poster uploaded successfully.
     error: Poster upload failed.
-    size_error: Poster size exceeds 3MB limit.
+    size_error:
+      title: Poster is too large
+      description: Choose a poster no larger than 3 MB.
   poster_delete:
     success: Poster deleted successfully.
   icon: Icon
@@ -83,7 +85,9 @@ form:
     progress: "Upload progress {{percent}}%"
     success: Icon uploaded successfully.
     error: Icon upload failed.
-    size_error: Icon size exceeds 5MB limit.
+    size_error:
+      title: Icon is too large
+      description: Choose an icon no larger than 5 MB.
   icon_delete:
     success: Icon deleted successfully.
   public:
@@ -136,7 +140,9 @@ actions:
     _: Update Game
     success: "Game {{title}} updated successfully."
 challenges:
-  no_permission: You do not have permission to view challenges in this game.
+  no_permission:
+    title: Access denied
+    description: You do not have permission to view challenges in this game.
 paused:
   title: Game paused
   description: You can continue solving after an administrator resumes the game.

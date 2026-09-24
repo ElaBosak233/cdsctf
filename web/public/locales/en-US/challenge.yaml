@@ -196,5 +196,12 @@ errors:
   attachment_not_found: This challenge has no attachment.
   not_found: The challenge could not be found.
   game_challenge_not_found: The challenge could not be found in this game.
-  user_or_team_required: Select either a user or a team.
-  checker_key_generation_failed: The checker key could not be generated. Try again later.
+  user_or_team_required:
+    title: Participant required
+    description: Select either a user or a team.
+  checker_key_generation_failed:
+    title: Checker key generation failed
+    description: Try again later.
+  checker_key_already_exists:
+    title: Checker key already exists
+    description: Remove the conflicting key file and try again.

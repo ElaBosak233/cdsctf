@@ -1,23 +1,28 @@
 hint1: "This challenge requires a dynamic environment,"
 hint2: click 'Start' to provision the environment.
 remaining: "Remaining {{hours}}:{{minutes}}:{{seconds}}"
-error: An error occurred.
+error: Container could not be started.
 actions:
   start:
     _: Start
     creating: Sending container create request.
     sent: Container start command sent.
     description: This may take a while.
-    error: Error occurred while creating container, destroy will be triggered.
+    error:
+      title: Container creation failed
+      description: The container will be destroyed.
   stop:
     _: Stop
     sent: Container stop command sent.
+    error: Container could not be stopped
   renew:
     _: Renew
     success: Renewed successfully.
     error: Renew failed.
 errors:
-  challenge_invalid: The challenge instance is invalid.
+  challenge_invalid:
+    title: Challenge instance is invalid
+    description: Refresh the page and try again.
   no_more_renewal: This instance cannot be renewed anymore.
   renewal_within_10_minutes: This instance cannot be renewed within ten minutes of expiry.
   too_many_team_instances: The team has reached its instance limit.

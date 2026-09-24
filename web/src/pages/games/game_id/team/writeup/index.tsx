@@ -19,6 +19,7 @@ import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
+import { notifyApiError } from "@/utils/query";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -62,9 +63,10 @@ export default function Index() {
           status: "success",
           result: "",
         };
-      } catch {
-        toast.error(t("team:write_up.actions.upload.error"), {
+      } catch (error) {
+        await notifyApiError(error, {
           id: "writeup-upload",
+          title: t("team:write_up.actions.upload.error"),
         });
         return {
           status: "error",

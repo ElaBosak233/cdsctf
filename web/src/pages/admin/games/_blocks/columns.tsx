@@ -33,7 +33,7 @@ import { deleteGame, updateGame } from "@/api/admin/games/game_id";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -404,30 +404,20 @@ function ActionsCell({ row }: { row: Row<GameDetail> }) {
             ])}
           >
             <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-              <div className={cn(["flex", "items-center", "gap-3"])}>
-                <div
-                  className={cn([
-                    "flex items-center justify-center",
-                    "size-10 rounded-badge",
-                    "bg-error/10 text-error",
-                    "shrink-0",
-                  ])}
-                >
-                  <TrashIcon className={cn(["size-5"])} />
-                </div>
-                <h3 className={cn(["text-base", "font-semibold"])}>
-                  {t("game:actions.delete._")}
-                </h3>
-              </div>
-              <p className={cn(["text-sm"])}>
-                <Trans
-                  i18nKey="game:actions.delete.message"
-                  values={{ title }}
-                  components={{
-                    muted: <span className={cn(["text-muted-foreground"])} />,
-                  }}
-                />
-              </p>
+              <DialogHeader
+                icon={<TrashIcon />}
+                level="error"
+                title={t("game:actions.delete._")}
+                description={
+                  <Trans
+                    i18nKey="game:actions.delete.message"
+                    values={{ title }}
+                    components={{
+                      muted: <span className={cn(["text-muted-foreground"])} />,
+                    }}
+                  />
+                }
+              />
               <div className={cn(["flex", "justify-end"])}>
                 <Button
                   level={"error"}

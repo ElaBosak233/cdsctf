@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { deleteEmail } from "@/api/users/me/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DialogHeader } from "@/components/ui/dialog";
 import { cn } from "@/utils";
 
 interface DeleteDialogProps {
@@ -39,30 +40,20 @@ function DeleteDialog(props: DeleteDialogProps) {
       ])}
     >
       <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <div className={cn(["flex", "items-center", "gap-3"])}>
-          <div
-            className={cn([
-              "flex items-center justify-center",
-              "size-10 rounded-badge",
-              "bg-error/10 text-error",
-              "shrink-0",
-            ])}
-          >
-            <TrashIcon className={cn(["size-5"])} />
-          </div>
-          <h3 className={cn(["text-base", "font-semibold"])}>
-            {t("user:emails.actions.delete._")}
-          </h3>
-        </div>
-        <p className={cn(["text-sm", "text-muted-foreground"])}>
-          <Trans
-            i18nKey={"user:emails.actions.delete.message"}
-            values={{ email }}
-            components={{
-              muted: <span className={cn(["text-foreground"])} />,
-            }}
-          />
-        </p>
+        <DialogHeader
+          icon={<TrashIcon />}
+          level="error"
+          title={t("user:emails.actions.delete._")}
+          description={
+            <Trans
+              i18nKey={"user:emails.actions.delete.message"}
+              values={{ email }}
+              components={{
+                muted: <span className={cn(["text-foreground"])} />,
+              }}
+            />
+          }
+        />
         <div className={cn(["flex", "justify-end"])}>
           <Button
             level={"error"}

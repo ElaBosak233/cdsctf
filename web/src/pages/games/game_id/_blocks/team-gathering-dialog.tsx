@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { HTTPError } from "ky";
 import { KeyIcon, LogInIcon, TypeIcon, UserPlusIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -10,6 +9,7 @@ import { createTeam } from "@/api/games/game_id/teams";
 import { joinTeam } from "@/api/games/game_id/teams/team_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -24,11 +24,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import {
-  formatApiErrorMessage,
-  notifyApiError,
-  parseErrorResponse,
-} from "@/utils/query";
+import { notifyApiError } from "@/utils/query";
 
 type Tab = "create" | "join";
 
@@ -113,14 +109,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
       toast.success(t("team:actions.join.success"));
       onClose();
     } catch (error) {
-      if (error instanceof HTTPError) {
-        const body = await parseErrorResponse(error);
-        toast.error(t("team:actions.join.error"), {
-          description: formatApiErrorMessage(body),
-        });
-      } else {
-        await notifyApiError(error, { title: t("team:actions.join.error") });
-      }
+      await notifyApiError(error, { title: t("team:actions.join.error") });
     } finally {
       sharedStore.setRefresh();
       setLoading(false);
@@ -183,39 +172,12 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
       <div className={cn(["p-6", "flex", "flex-col", "gap-6"])}>
         {tab === "create" ? (
           <>
-            {/* Section header */}
-            <div className={cn(["flex", "items-start", "gap-3.5"])}>
-              <div
-                className={cn([
-                  "flex items-center justify-center",
-                  "size-10 rounded-badge",
-                  "bg-primary/10",
-                  "shrink-0",
-                ])}
-              >
-                <UserPlusIcon className={cn(["size-5"])} />
-              </div>
-              <div className={cn(["flex flex-col gap-1", "pt-0.5"])}>
-                <h3
-                  className={cn([
-                    "text-sm",
-                    "font-semibold",
-                    "text-foreground",
-                  ])}
-                >
-                  {t("team:actions.gather.create.title")}
-                </h3>
-                <p
-                  className={cn([
-                    "text-xs",
-                    "text-muted-foreground/80",
-                    "leading-relaxed",
-                  ])}
-                >
-                  {t("team:form.name.placeholder")}
-                </p>
-              </div>
-            </div>
+            <DialogHeader
+              icon={<UserPlusIcon />}
+              title={t("team:actions.gather.create.title")}
+              description={t("team:form.name.placeholder")}
+              descriptionClassName="text-xs text-muted-foreground/80 leading-relaxed"
+            />
 
             {/* Form */}
             <Form key="create" {...createForm}>
@@ -269,39 +231,12 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
           </>
         ) : (
           <>
-            {/* Section header */}
-            <div className={cn(["flex", "items-start", "gap-3.5"])}>
-              <div
-                className={cn([
-                  "flex items-center justify-center",
-                  "size-10 rounded-badge",
-                  "bg-primary/10",
-                  "shrink-0",
-                ])}
-              >
-                <LogInIcon className={cn(["size-5"])} />
-              </div>
-              <div className={cn(["flex flex-col gap-1", "pt-0.5"])}>
-                <h3
-                  className={cn([
-                    "text-sm",
-                    "font-semibold",
-                    "text-foreground",
-                  ])}
-                >
-                  {t("team:actions.gather.join.title")}
-                </h3>
-                <p
-                  className={cn([
-                    "text-xs",
-                    "text-muted-foreground/80",
-                    "leading-relaxed",
-                  ])}
-                >
-                  {t("team:form.invite_code.placeholder")}
-                </p>
-              </div>
-            </div>
+            <DialogHeader
+              icon={<LogInIcon />}
+              title={t("team:actions.gather.join.title")}
+              description={t("team:form.invite_code.placeholder")}
+              descriptionClassName="text-xs text-muted-foreground/80 leading-relaxed"
+            />
 
             {/* Form */}
             <Form key="join" {...joinForm}>

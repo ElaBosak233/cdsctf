@@ -67,16 +67,13 @@ function SubmitSection() {
       });
       if (!submission) return;
       setFlag("");
-      toast.loading(
-        t("submission:submitted", {
+      toast.loading(t("submission:notifications.submitted.title"), {
+        id: `submission-${submission.id}`,
+        description: t("submission:notifications.submitted.description", {
           id: submission.id,
           title: submission.challenge_title,
         }),
-        {
-          id: `submission-${submission.id}`,
-          description: t("submission:queued_review"),
-        }
-      );
+      });
       add(submission);
     } catch (error) {
       await notifyApiError(error);
@@ -97,16 +94,18 @@ function SubmitSection() {
       });
 
       if (result.status === Status.Correct) {
-        toast.success(t("submission:status.correct"), {
-          description: t("submission:result.correct"),
+        toast.success(t("submission:notifications.result.correct.title"), {
+          description: t("submission:notifications.result.correct.description"),
         });
       } else if (result.status === Status.Incorrect) {
-        toast.error(t("submission:status.incorrect"), {
-          description: t("submission:result.incorrect"),
+        toast.error(t("submission:notifications.result.incorrect.title"), {
+          description: t(
+            "submission:notifications.result.incorrect.description"
+          ),
         });
       } else if (result.status === Status.Cheat) {
-        toast.error(t("submission:status.cheat"), {
-          description: t("submission:result.cheat"),
+        toast.error(t("submission:notifications.result.cheat.title"), {
+          description: t("submission:notifications.result.cheat.description"),
         });
       }
     } catch (error) {

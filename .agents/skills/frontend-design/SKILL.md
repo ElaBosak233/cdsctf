@@ -87,6 +87,8 @@ Use the shared `Dialog`. The overlay is opaque enough to isolate the task (`bg-b
 
 Large task dialogs should be a single elevated card with a clear header, separator-delimited sections, a bounded scrollable description, and fixed action sections. Challenge dialogs follow the order: category/title header, markdown description, optional attachments, optional instance controls, then submission controls.
 
+Use the shared `DialogHeader` for dialog title areas. Its title states what the dialog is for, while its optional description explains the consequence, context, or next step. Keep both in the same text column below the title when a description exists. When there is no description, center the icon and title vertically as one row; do not leave the icon aligned to the top of an empty description column. Keep dialog header copy translation-ready and avoid repeating the title in the description.
+
 ### Tables And Admin Surfaces
 
 Admin UI is information-dense and scan-friendly. Use the shared table primitives, small text, muted metadata, and semantic badges. For wide tables, keep a stable `min-width` inside a `ScrollArea`; use a sticky header with `bg-muted/95` and `backdrop-blur-sm`, and keep action columns sticky on the right when horizontal scrolling is possible. Rows use subtle `hover:bg-muted/50`; do not use dramatic row transforms or alternating decorative colors.
@@ -114,6 +116,18 @@ Pagination, filters, and page-size controls belong in a compact footer with resu
 - Loading uses the shared circular spinner, `LoadingOverlay`, button `loading`, skeletons, or Sonner loading toasts. Keep the underlying layout stable while loading.
 - Use Sonner for async success, warning, error, and progress feedback. Give long-running operations stable toast IDs so progress updates replace rather than duplicate notifications.
 - Hover states should change color, opacity, shadow, or underline; avoid scale jumps that move neighboring content.
+
+### Toast Content Hierarchy
+
+Treat a toast as a compact two-level message, not a container for an undifferentiated sentence:
+
+- The title answers **what happened**. Make it brief, specific, independently understandable, and easy to scan: for example, `Team size does not meet the requirements`.
+- The description answers **why it happened or what the user should do next**. Use it for cause, relevant context, impact, or a recovery action: for example, `Adjust the number of members and try again.`
+- Prefer a concrete business outcome over generic titles such as `Something went wrong`, `Request failed`, or `Operation failed` whenever a specific result is known.
+- Do not repeat the title in the description. If there is no useful secondary information, omit the description instead of padding the toast.
+- Apply the same hierarchy to every semantic type: success titles name the completed result, warning titles name the condition requiring attention, and loading titles name the operation or current phase; descriptions add only useful context or the next step.
+- Keep title and description as separate i18n values when both are needed. Do not split translated sentences at runtime by punctuation or string position, because sentence boundaries and word order vary across locales.
+- When presenting an API error, preserve the caller's action context only when it adds information. Use the specific translated business error as the title by default; if an action title is useful, place the specific backend reason or recovery guidance in the description.
 
 ## Responsive And Accessibility Requirements
 

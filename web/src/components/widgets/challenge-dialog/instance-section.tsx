@@ -1,5 +1,3 @@
-import { StatusCodes } from "http-status-codes";
-import { HTTPError } from "ky";
 import {
   ClipboardCheckIcon,
   ClipboardIcon,
@@ -23,11 +21,7 @@ import type { Port } from "@/models/challenge";
 import type { Instance, Nat } from "@/models/instance";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
-import {
-  formatApiErrorMessage,
-  notifyApiError,
-  parseErrorResponse,
-} from "@/utils/query";
+import { notifyApiError } from "@/utils/query";
 import { instanceExpiresAt, secondsUntil } from "@/utils/time";
 import { Context } from "./context";
 
@@ -172,9 +166,10 @@ function InstanceSection() {
         current?.status === "waiting" &&
         current?.reason !== "ContainerCreating"
       ) {
-        toast.warning(t("instance:actions.start.error"), {
+        toast.warning(t("instance:actions.start.error.title"), {
           id: "instance",
-          description: current?.reason,
+          description:
+            current?.reason || t("instance:actions.start.error.description"),
         });
         setInstanceStopLoading(true);
       }
@@ -195,38 +190,32 @@ function InstanceSection() {
         id: "renew",
       });
     } catch (error) {
-      if (!(error instanceof HTTPError)) {
-        await notifyApiError(error, { id: "renew" });
-        return;
-      }
-      const body = await parseErrorResponse(error);
-
-      if (error.response.status === StatusCodes.BAD_REQUEST) {
-        toast.error(t("challenge:instance.renew_error"), {
-          id: "renew",
-          description: formatApiErrorMessage(body),
-        });
-      } else {
-        await notifyApiError(error, {
-          id: "renew",
-          title: t("challenge:instance.renew_error"),
-        });
-      }
+      await notifyApiError(error, {
+        id: "renew",
+        title: t("challenge:instance.renew_error"),
+      });
     }
   }
 
   const handleInstanceStop = useCallback(async () => {
     if (!instance) return;
 
-    await stopInstance({
-      id: instance.id!,
-    });
+    try {
+      await stopInstance({
+        id: instance.id!,
+      });
 
-    toast.info(t("instance:actions.stop.sent"), {
-      id: "instance-stop",
-    });
-    setInstance(undefined);
-    setInstanceStopLoading(false);
+      toast.info(t("instance:actions.stop.sent"), {
+        id: "instance-stop",
+      });
+      setInstance(undefined);
+      setInstanceStopLoading(false);
+    } catch (error) {
+      await notifyApiError(error, {
+        id: "instance-stop",
+        title: t("instance:actions.stop.error"),
+      });
+    }
   }, [instance, t]);
 
   useEffect(() => {
@@ -277,12 +266,8 @@ function InstanceSection() {
       });
       fetchInstances();
     } catch (error) {
-      if (!(error instanceof HTTPError)) return;
-      const body = await parseErrorResponse(error);
-
-      toast.error(t("instance:error"), {
+      await notifyApiError(error, {
         id: "instance",
-          description: formatApiErrorMessage(body),
       });
     }
   }

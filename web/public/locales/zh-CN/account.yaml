@@ -17,7 +17,9 @@ login:
     not_verified: 你还未经过验证
     verify_email: 请先验证你的邮箱
 guard:
-  login_required: 请登录后继续
+  login_required:
+    title: 需要登录
+    description: 请登录后继续操作。
   unavailable: 暂时无法确认登录状态，请重试
   forbidden: 你没有权限访问此页面
 register:
@@ -98,7 +100,9 @@ idp:
     success: 登录成功
     verifying: 正在验证第三方账号...
     error: 第三方登录失败
-    registration_disabled: 此认证服务不允许新用户注册，请先登录已有账号后再绑定。
+    registration_disabled:
+      title: 当前不开放新用户注册
+      description: 请先登录已有账号，再绑定此身份提供商。
   unbind:
     success: 第三方账号解绑成功
   third_party: 第三方登录
@@ -107,24 +111,42 @@ captcha:
   please_refresh: 请刷新验证码
   expired: 验证码已过期
 errors:
-  idp_request_failed: 身份提供商请求失败。
+  idp_request_failed:
+    title: 身份提供商暂不可用
+    description: 请重试或选择其他登录方式。
   idp_script_invalid: 身份提供商脚本无效。
-  captcha_invalid: 验证码无效，请重新验证。
+  captcha_invalid:
+    title: 验证码无效
+    description: 请重新验证后再试。
   email_already_exists: 该邮箱已被使用。
   email_already_verified: 该邮箱已经验证过了。
+  email_code_expired:
+    title: 邮箱验证码已过期
+    description: 请重新获取验证码后再试。
   email_code_incorrect: 邮箱验证码错误。
   email_disabled: 邮箱服务当前不可用。
   email_not_found: 未找到该邮箱。
-  email_send_too_frequently: 邮件发送过于频繁，请稍后重试。
+  email_send_too_frequently:
+    title: 邮件发送过于频繁
+    description: 请稍后重试。
   idp_already_bound: 该身份提供商已绑定。
   idp_not_found: 未找到身份提供商。
-  idp_pending_mismatch: 身份验证信息已失效，请重新开始绑定流程。
+  idp_pending_mismatch:
+    title: 身份验证已过期
+    description: 请重新开始绑定流程。
   idp_registration_disabled: 当前身份提供商不允许注册新用户。
+  registration_idp_cannot_be_unbound:
+    title: 无法解绑主要登录方式
+    description: 该身份提供商用于创建账号，必须保持绑定。
   invalid_or_expired_token: 验证令牌无效或已过期。
   password_invalid: 密码错误。
-  registration_conflict: 注册信息已发生冲突，请检查后重试。
+  registration_conflict:
+    title: 注册信息已存在
+    description: 请检查填写的信息后重试。
   registration_disabled: 当前暂不开放注册。
-  session_error: 登录状态已失效，请重新登录。
+  session_error:
+    title: 登录状态已失效
+    description: 请重新登录后继续操作。
   user_idp_already_bound: 该用户已绑定此身份提供商。
   user_idp_not_found: 未找到绑定的身份提供商。
   user_not_found: 未找到用户。

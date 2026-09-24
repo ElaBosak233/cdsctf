@@ -49,7 +49,7 @@ import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
-import { parseRouteNumericId } from "@/utils/query";
+import { notifyApiError, parseRouteNumericId } from "@/utils/query";
 
 import casScript from "./_blocks/examples/cas.lua?raw";
 import defaultScript from "./_blocks/examples/default.lua?raw";
@@ -144,7 +144,9 @@ export default function Index() {
     if (!file || idpId == null) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error(t("admin:idp.avatar_upload.size_error"));
+      toast.error(t("admin:idp.avatar_upload.size_error.title"), {
+        description: t("admin:idp.avatar_upload.size_error.description"),
+      });
       event.target.value = "";
       return;
     }
@@ -173,9 +175,10 @@ export default function Index() {
         id: "idp-avatar-upload",
       });
       sharedStore.setRefresh();
-    } catch {
-      toast.error(t("admin:idp.avatar_upload.error"), {
+    } catch (error) {
+      await notifyApiError(error, {
         id: "idp-avatar-upload",
+        title: t("admin:idp.avatar_upload.error"),
       });
     }
     event.target.value = "";

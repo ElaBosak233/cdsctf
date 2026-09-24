@@ -12,6 +12,7 @@ import { setAuthenticatedUser, useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import {
   getApiErrorCode,
+  notifyApiError,
   parseErrorResponse,
   parseRouteNumericId,
 } from "@/utils/query";
@@ -93,12 +94,20 @@ export default function Index() {
       } catch (error) {
         if (error instanceof HTTPError) {
           const body = await parseErrorResponse(error);
-          toast.error(
+          if (
             error.response.status === StatusCodes.FORBIDDEN &&
-              getApiErrorCode(body) === "idp_registration_disabled"
-              ? t("account:idp.login.registration_disabled")
-              : t("account:idp.login.error")
-          );
+            getApiErrorCode(body) === "idp_registration_disabled"
+          ) {
+            toast.error(t("account:idp.login.registration_disabled.title"), {
+              description: t(
+                "account:idp.login.registration_disabled.description"
+              ),
+            });
+          } else {
+            await notifyApiError(error, {
+              title: t("account:idp.login.error"),
+            });
+          }
           navigate(
             user
               ? "/account/settings/idps"
@@ -109,7 +118,9 @@ export default function Index() {
           );
           clearIdpRedirect();
         } else {
-          throw error;
+          await notifyApiError(error, {
+            title: t("account:idp.login.error"),
+          });
         }
       }
     }

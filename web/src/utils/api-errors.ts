@@ -1,115 +1,269 @@
-/**
- * Maps stable backend error codes to domain-owned i18n keys.
- *
- * Keep this registry exhaustive: backend codes stay transport-focused while
- * translations live with the UI domain that owns the message.
- */
-export const API_ERROR_I18N_KEYS: Readonly<Record<string, string>> = {
+export type ApiErrorI18nKeys = Readonly<{
+  title: string;
+  description?: string;
+}>;
+
+function message(title: string, description?: string): ApiErrorI18nKeys {
+  return { title, description };
+}
+
+/** Maps stable backend error codes to domain-owned toast copy. */
+export const API_ERROR_I18N_KEYS: Readonly<Record<string, ApiErrorI18nKeys>> = {
   // Shared HTTP and infrastructure errors.
-  bad_request: "common:errors.bad_request",
-  unauthorized: "common:errors.unauthorized",
-  forbidden: "common:errors.forbidden",
-  not_found: "common:errors.not_found",
-  internal_server_error: "common:errors.internal_server_error",
-  conflict: "common:errors.conflict",
-  locked: "common:errors.locked",
-  too_many_requests: "common:errors.too_many_requests",
-  unprocessable_entity: "common:errors.unprocessable_entity",
-  invalid_json: "common:errors.invalid_json",
-  validation_failed: "common:errors.validation_failed",
-  invalid_path: "common:errors.invalid_path",
-  path_parameters_missing: "common:errors.path_parameters_missing",
-  path_extraction_failed: "common:errors.path_extraction_failed",
-  invalid_query: "common:errors.invalid_query",
-  query_extraction_failed: "common:errors.query_extraction_failed",
-  extension_missing: "common:errors.extension_missing",
-  extension_extraction_failed: "common:errors.extension_extraction_failed",
-  rate_limit_exceeded: "common:errors.rate_limit_exceeded",
-  rate_limit_key_unavailable: "common:errors.rate_limit_key_unavailable",
-  rate_limit_failed: "common:errors.rate_limit_failed",
-  tower_sessions: "account:errors.session_error",
-  http: "common:errors.internal_server_error",
-  multipart: "common:errors.multipart",
-  db: "common:errors.internal_server_error",
-  cache: "common:errors.internal_server_error",
-  env: "common:errors.internal_server_error",
-  event: "common:errors.internal_server_error",
-  captcha: "common:errors.internal_server_error",
-  idp: "account:errors.idp_request_failed",
-  media: "common:errors.internal_server_error",
-  queue: "common:errors.internal_server_error",
-  cluster: "common:errors.internal_server_error",
-  other: "common:errors.internal_server_error",
-  host_extract_failed: "common:errors.host_extract_failed",
-  ip_extract_failed: "common:errors.ip_extract_failed",
-  invalid: "common:errors.invalid",
-  avatar_not_found: "common:errors.media.avatar_not_found",
-  dont_need_generate_captcha: "common:errors.captcha.not_required",
-  forbidden_file_type: "common:errors.media.forbidden_file_type",
-  invalid_mime_type: "common:errors.media.invalid_mime_type",
-  missing_content_type: "common:errors.media.missing_content_type",
-  no_file: "common:errors.media.no_file",
-  size_too_large: "common:errors.media.size_too_large",
-  upload_media_10m: "common:errors.media.upload_limit_10m",
-  upload_media_24h: "common:errors.media.upload_limit_24h",
+  bad_request: message(
+    "common:errors.bad_request.title",
+    "common:errors.bad_request.description"
+  ),
+  unauthorized: message(
+    "common:errors.unauthorized.title",
+    "common:errors.unauthorized.description"
+  ),
+  forbidden: message("common:errors.forbidden"),
+  not_found: message("common:errors.not_found"),
+  internal_server_error: message(
+    "common:errors.internal_server_error.title",
+    "common:errors.internal_server_error.description"
+  ),
+  conflict: message(
+    "common:errors.conflict.title",
+    "common:errors.conflict.description"
+  ),
+  locked: message(
+    "common:errors.locked.title",
+    "common:errors.locked.description"
+  ),
+  too_many_requests: message(
+    "common:errors.too_many_requests.title",
+    "common:errors.too_many_requests.description"
+  ),
+  unprocessable_entity: message(
+    "common:errors.unprocessable_entity.title",
+    "common:errors.unprocessable_entity.description"
+  ),
+  invalid_json: message("common:errors.invalid_json"),
+  validation_failed: message("common:errors.validation_failed"),
+  invalid_path: message("common:errors.invalid_path"),
+  path_parameters_missing: message("common:errors.path_parameters_missing"),
+  path_extraction_failed: message("common:errors.path_extraction_failed"),
+  invalid_query: message("common:errors.invalid_query"),
+  query_extraction_failed: message("common:errors.query_extraction_failed"),
+  extension_missing: message("common:errors.extension_missing"),
+  extension_extraction_failed: message(
+    "common:errors.extension_extraction_failed"
+  ),
+  rate_limit_exceeded: message(
+    "common:errors.rate_limit_exceeded.title",
+    "common:errors.rate_limit_exceeded.description"
+  ),
+  rate_limit_key_unavailable: message(
+    "common:errors.rate_limit_key_unavailable"
+  ),
+  rate_limit_failed: message(
+    "common:errors.rate_limit_failed.title",
+    "common:errors.rate_limit_failed.description"
+  ),
+  tower_sessions: message(
+    "account:errors.session_error.title",
+    "account:errors.session_error.description"
+  ),
+  http: message(
+    "common:errors.internal_server_error.title",
+    "common:errors.internal_server_error.description"
+  ),
+  multipart: message("common:errors.multipart"),
+  db: message(
+    "common:errors.internal_server_error.title",
+    "common:errors.internal_server_error.description"
+  ),
+  cache: message(
+    "common:errors.internal_server_error.title",
+    "common:errors.internal_server_error.description"
+  ),
+  env: message(
+    "common:errors.internal_server_error.title",
+    "common:errors.internal_server_error.description"
+  ),
+  event: message(
+    "common:errors.internal_server_error.title",
+    "common:errors.internal_server_error.description"
+  ),
+  captcha: message(
+    "common:errors.internal_server_error.title",
+    "common:errors.internal_server_error.description"
+  ),
+  idp: message(
+    "account:errors.idp_request_failed.title",
+    "account:errors.idp_request_failed.description"
+  ),
+  media: message(
+    "common:errors.internal_server_error.title",
+    "common:errors.internal_server_error.description"
+  ),
+  queue: message(
+    "common:errors.internal_server_error.title",
+    "common:errors.internal_server_error.description"
+  ),
+  cluster: message(
+    "common:errors.internal_server_error.title",
+    "common:errors.internal_server_error.description"
+  ),
+  other: message(
+    "common:errors.internal_server_error.title",
+    "common:errors.internal_server_error.description"
+  ),
+  host_extract_failed: message("common:errors.host_extract_failed"),
+  ip_extract_failed: message("common:errors.ip_extract_failed"),
+  invalid: message(
+    "common:errors.invalid.title",
+    "common:errors.invalid.description"
+  ),
+  avatar_not_found: message("common:errors.media.avatar_not_found"),
+  dont_need_generate_captcha: message("common:errors.captcha.not_required"),
+  forbidden_file_type: message("common:errors.media.forbidden_file_type"),
+  invalid_mime_type: message("common:errors.media.invalid_mime_type"),
+  missing_content_type: message("common:errors.media.missing_content_type"),
+  no_file: message(
+    "common:errors.media.no_file.title",
+    "common:errors.media.no_file.description"
+  ),
+  size_too_large: message("common:errors.media.size_too_large"),
+  upload_media_10m: message("common:errors.media.upload_limit_10m"),
+  upload_media_24h: message("common:errors.media.upload_limit_24h"),
 
   // Account and identity errors.
-  captcha_invalid: "account:errors.captcha_invalid",
-  email_already_exists: "account:errors.email_already_exists",
-  email_already_verified: "account:errors.email_already_verified",
-  email_code_incorrect: "account:errors.email_code_incorrect",
-  email_disabled: "account:errors.email_disabled",
-  email_not_found: "account:errors.email_not_found",
-  email_send_too_frequently: "account:errors.email_send_too_frequently",
-  idp_already_bound: "account:errors.idp_already_bound",
-  idp_not_found: "account:errors.idp_not_found",
-  idp_pending_mismatch: "account:errors.idp_pending_mismatch",
-  idp_script_invalid: "account:errors.idp_script_invalid",
-  idp_registration_disabled: "account:errors.idp_registration_disabled",
-  invalid_or_expired_token: "account:errors.invalid_or_expired_token",
-  password_invalid: "account:errors.password_invalid",
-  registration_conflict: "account:errors.registration_conflict",
-  registration_disabled: "account:errors.registration_disabled",
-  session_error: "account:errors.session_error",
-  user_idp_already_bound: "account:errors.user_idp_already_bound",
-  user_idp_not_found: "account:errors.user_idp_not_found",
-  user_not_found: "account:errors.user_not_found",
-  username_already_exists: "account:errors.username_already_exists",
+  captcha_invalid: message(
+    "account:errors.captcha_invalid.title",
+    "account:errors.captcha_invalid.description"
+  ),
+  email_already_exists: message("account:errors.email_already_exists"),
+  email_already_verified: message("account:errors.email_already_verified"),
+  email_code_expired: message(
+    "account:errors.email_code_expired.title",
+    "account:errors.email_code_expired.description"
+  ),
+  email_code_incorrect: message("account:errors.email_code_incorrect"),
+  email_disabled: message("account:errors.email_disabled"),
+  email_not_found: message("account:errors.email_not_found"),
+  email_send_too_frequently: message(
+    "account:errors.email_send_too_frequently.title",
+    "account:errors.email_send_too_frequently.description"
+  ),
+  idp_already_bound: message("account:errors.idp_already_bound"),
+  idp_not_found: message("account:errors.idp_not_found"),
+  idp_pending_mismatch: message(
+    "account:errors.idp_pending_mismatch.title",
+    "account:errors.idp_pending_mismatch.description"
+  ),
+  idp_script_invalid: message("account:errors.idp_script_invalid"),
+  idp_registration_disabled: message(
+    "account:errors.idp_registration_disabled"
+  ),
+  registration_idp_cannot_be_unbound: message(
+    "account:errors.registration_idp_cannot_be_unbound.title",
+    "account:errors.registration_idp_cannot_be_unbound.description"
+  ),
+  invalid_or_expired_token: message("account:errors.invalid_or_expired_token"),
+  password_invalid: message("account:errors.password_invalid"),
+  registration_conflict: message(
+    "account:errors.registration_conflict.title",
+    "account:errors.registration_conflict.description"
+  ),
+  registration_disabled: message("account:errors.registration_disabled"),
+  session_error: message(
+    "account:errors.session_error.title",
+    "account:errors.session_error.description"
+  ),
+  user_idp_already_bound: message("account:errors.user_idp_already_bound"),
+  user_idp_not_found: message("account:errors.user_idp_not_found"),
+  user_not_found: message("account:errors.user_not_found"),
+  username_already_exists: message("account:errors.username_already_exists"),
 
   // Competition and challenge errors.
-  game_blacked_out: "game:errors.blacked_out",
-  game_is_not_ongoing: "game:errors.not_ongoing",
-  game_not_found: "game:errors.not_found",
-  game_not_ongoing: "game:errors.not_ongoing",
-  game_paused: "game:errors.paused",
-  icon_not_found: "game:errors.icon_not_found",
-  poster_not_found: "game:errors.poster_not_found",
-  challenge_already_in_game: "challenge:errors.already_in_game",
-  challenge_has_not_attachment: "challenge:errors.attachment_not_found",
-  challenge_not_found: "challenge:errors.not_found",
-  game_challenge_not_found: "challenge:errors.game_challenge_not_found",
-  either_user_or_team: "challenge:errors.user_or_team_required",
-  checker_key_generation_failed:
-    "challenge:errors.checker_key_generation_failed",
+  game_blacked_out: message("game:errors.blacked_out"),
+  game_is_not_ongoing: message("game:errors.not_ongoing"),
+  game_not_found: message("game:errors.not_found"),
+  game_not_ongoing: message("game:errors.not_ongoing"),
+  game_paused: message("game:errors.paused"),
+  icon_not_found: message("game:errors.icon_not_found"),
+  poster_not_found: message("game:errors.poster_not_found"),
+  challenge_already_in_game: message("challenge:errors.already_in_game"),
+  challenge_has_not_attachment: message(
+    "challenge:errors.attachment_not_found"
+  ),
+  challenge_not_found: message("challenge:errors.not_found"),
+  game_challenge_not_found: message(
+    "challenge:errors.game_challenge_not_found"
+  ),
+  either_user_or_team: message(
+    "challenge:errors.user_or_team_required.title",
+    "challenge:errors.user_or_team_required.description"
+  ),
+  checker_key_generation_failed: message(
+    "challenge:errors.checker_key_generation_failed.title",
+    "challenge:errors.checker_key_generation_failed.description"
+  ),
+  checker_key_already_exists: message(
+    "challenge:errors.checker_key_already_exists.title",
+    "challenge:errors.checker_key_already_exists.description"
+  ),
 
   // Team errors.
-  invalid_invite_token: "team:errors.invalid_invite_token",
-  invalid_team: "team:errors.invalid_team",
-  member_limit_not_satisfied: "team:errors.member_limit_not_satisfied",
-  no_invite_token: "team:errors.no_invite_token",
-  team_has_no_other_member: "team:errors.no_other_member",
-  team_not_found: "team:errors.not_found",
-  team_not_preparing: "team:errors.not_preparing",
-  user_already_in_game: "team:errors.user_already_in_game",
+  invalid_invite_token: message("team:errors.invalid_invite_token"),
+  invalid_team: message("team:errors.invalid_team"),
+  member_limit_not_satisfied: message(
+    "team:errors.member_limit_not_satisfied.title",
+    "team:errors.member_limit_not_satisfied.description"
+  ),
+  no_invite_token: message(
+    "team:errors.no_invite_token.title",
+    "team:errors.no_invite_token.description"
+  ),
+  team_has_no_other_member: message("team:errors.no_other_member"),
+  team_not_found: message("team:errors.not_found"),
+  team_not_preparing: message("team:errors.not_preparing"),
+  user_already_in_game: message("team:errors.user_already_in_game"),
 
   // Instance and submission errors.
-  challenge_instance_invalid: "instance:errors.challenge_invalid",
-  no_more_renewal: "instance:errors.no_more_renewal",
-  renewal_within_10_minutes: "instance:errors.renewal_within_10_minutes",
-  too_many_team_pods: "instance:errors.too_many_team_instances",
-  too_many_user_pods: "instance:errors.too_many_user_instances",
-  cheated: "submission:errors.cheated",
-  submission: "submission:errors.too_frequent",
+  challenge_instance_invalid: message(
+    "instance:errors.challenge_invalid.title",
+    "instance:errors.challenge_invalid.description"
+  ),
+  no_more_renewal: message("instance:errors.no_more_renewal"),
+  renewal_within_10_minutes: message(
+    "instance:errors.renewal_within_10_minutes"
+  ),
+  too_many_team_pods: message("instance:errors.too_many_team_instances"),
+  too_many_user_pods: message("instance:errors.too_many_user_instances"),
+  cheated: message(
+    "submission:errors.cheated.title",
+    "submission:errors.cheated.description"
+  ),
+  correct_submission_already_exists: message(
+    "submission:errors.correct_submission_already_exists.title",
+    "submission:errors.correct_submission_already_exists.description"
+  ),
+  submission: message(
+    "submission:errors.too_frequent.title",
+    "submission:errors.too_frequent.description"
+  ),
 };
 
-export const API_ERROR_FALLBACK_KEY = "common:errors.default";
+export const API_ERROR_FALLBACK_KEYS = message(
+  "common:errors.default.title",
+  "common:errors.default.description"
+);
+
+export const NETWORK_ERROR_I18N_KEYS = message(
+  "common:errors.network.title",
+  "common:errors.network.description"
+);
+
+export const TIMEOUT_ERROR_I18N_KEYS = message(
+  "common:errors.timeout.title",
+  "common:errors.timeout.description"
+);
+
+export const SERVICE_UNAVAILABLE_I18N_KEYS = message(
+  "common:errors.service_unavailable.title",
+  "common:errors.service_unavailable.description"
+);
