@@ -273,7 +273,7 @@ function EditDialog(props: EditDialogProps) {
                   <FormItem>
                     <FormLabel>{t("game:challenge.form.frozen_at")}</FormLabel>
                     <FormControl>
-                      <Field>
+                      <Field size={"sm"}>
                         <FieldIcon>
                           <ClockFadingIcon />
                         </FieldIcon>

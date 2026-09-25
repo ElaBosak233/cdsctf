@@ -283,14 +283,14 @@ function TimePeriodSelect({
   };
 
   return (
-    <div className="flex h-10 items-center">
+    <div className="flex h-9 items-center">
       <Select
-        defaultValue={period}
+        value={period}
         onValueChange={(value) => handleValueChange(value as Period)}
       >
         <SelectTrigger
           ref={ref}
-          className="focus:bg-accent focus:text-accent-foreground w-[65px]"
+          className="focus:bg-accent focus:text-accent-foreground !h-9 !min-h-9 w-14 px-2 text-xs"
           onKeyDown={handleKeyDown}
         >
           <SelectValue />
@@ -389,13 +389,13 @@ function TimePickerInput({
   };
 
   return (
-    <Field size={"sm"}>
+    <Field size="sm" className="h-9">
       <TextField
         ref={ref}
         id={id || picker}
         name={name || picker}
         className={cn(
-          "focus:bg-accent focus:text-accent-foreground w-12 text-center font-mono text-base tabular-nums caret-transparent [&::-webkit-inner-spin-button]:appearance-none",
+          "focus:bg-accent focus:text-accent-foreground !h-9 !min-h-9 w-10 flex-none px-1.5 text-center font-mono text-sm tabular-nums caret-transparent [&::-webkit-inner-spin-button]:appearance-none",
           className
         )}
         value={value || calculatedValue}
@@ -461,8 +461,8 @@ function TimePicker({
   );
 
   return (
-    <div className="flex items-center justify-center gap-2">
-      <Clock className="mr-2 h-4 w-4" />
+    <div className="flex min-h-9 items-center justify-center gap-1">
+      <Clock className="mr-0.5 size-3.5 shrink-0 text-muted-foreground" />
       <TimePickerInput
         picker={hourCycle === 24 ? "hours" : "12hours"}
         date={date}
@@ -474,7 +474,7 @@ function TimePicker({
       />
       {(granularity === "minute" || granularity === "second") && (
         <>
-          <span className={"select-none"}>{":"}</span>
+          <span className="select-none text-muted-foreground">:</span>
           <TimePickerInput
             picker="minutes"
             date={date}
@@ -487,7 +487,7 @@ function TimePicker({
       )}
       {granularity === "second" && (
         <>
-          <span className={"select-none"}>{":"}</span>
+          <span className="select-none text-muted-foreground">:</span>
           <TimePickerInput
             picker="seconds"
             date={date}
@@ -529,12 +529,12 @@ function isValidDate(value: Date | undefined): value is Date {
 
 const dateTimePickerVariants = cva(
   [
+    "bg-transparent",
+    "hover:bg-transparent",
     "flex-1",
     "flex",
     "w-0",
     "rounded-md",
-    "border",
-    "bg-input",
     "px-3",
     "py-2",
     "text-base",
@@ -549,19 +549,14 @@ const dateTimePickerVariants = cva(
   ],
   {
     variants: {
-      size: {
-        sm: ["h-10", "min-h-10"],
-        md: ["h-12", "min-h-12"],
-      },
       icon: {
-        true: "!rounded-l-none !border-l-0",
+        true: "rounded-l-none border-l-0",
       },
       extraBtn: {
-        true: "!rounded-r-none !border-r-0",
+        true: "rounded-r-none border-r-0",
       },
     },
     defaultVariants: {
-      size: "md",
       icon: false,
       extraBtn: false,
     },
@@ -757,14 +752,15 @@ function DateTimePicker({
     <Popover>
       <div
         className={cn(
-          "relative flex flex-1 w-0 items-center rounded-md border bg-input ring-offset-input",
-          hasIcon && "!rounded-l-none !border-l-0",
-          hasExtraButton && "!rounded-r-none !border-r-0",
-          "has-[[data-popup-open]]:border-input",
-          "has-[[data-popup-open]]:outline-hidden",
-          "has-[[data-popup-open]]:ring-2",
-          "has-[[data-popup-open]]:ring-ring",
-          "has-[[data-popup-open]]:ring-offset-2"
+          "relative flex flex-1 w-0 items-center rounded-md border bg-input ring-offset-input duration-0",
+          size === "sm" ? "h-10 min-h-10" : "h-12 min-h-12",
+          hasIcon && "rounded-l-none! border-l-0!",
+          hasExtraButton && "rounded-r-none! border-r-0!",
+          "has-data-popup-open:border-input",
+          "has-data-popup-open:outline-hidden",
+          "has-data-popup-open:ring-2",
+          "has-data-popup-open:ring-ring",
+          "has-data-popup-open:ring-offset-2"
         )}
       >
         <PopoverTrigger
@@ -775,31 +771,27 @@ function DateTimePicker({
               disabled={disabled}
               className={cn(
                 dateTimePickerVariants({
-                  size,
                   icon: !!hasIcon,
                   extraBtn: !!hasExtraButton,
                 }),
-                "!rounded-none !border-0 !bg-transparent !ring-0 focus-visible:!ring-0",
                 "justify-start w-full",
                 showClear && "pr-12",
                 className
               )}
               ref={buttonRef}
-            >
-              {displayDate ? (
-                format(
-                  displayDate,
-                  hourCycle === 24
-                    ? initHourFormat.hour24
-                    : initHourFormat.hour12,
-                  { locale: loc as Locale }
-                )
-              ) : (
-                <span>{placeholder}</span>
-              )}
-            </Button>
+            />
           }
-        />
+        >
+          {displayDate ? (
+            format(
+              displayDate,
+              hourCycle === 24 ? initHourFormat.hour24 : initHourFormat.hour12,
+              { locale: loc as Locale }
+            )
+          ) : (
+            <span>{placeholder}</span>
+          )}
+        </PopoverTrigger>
 
         {showClear && (
           <Button
@@ -811,7 +803,7 @@ function DateTimePicker({
             title={clearLabel}
             className={cn(
               fieldClearButtonVariants({ edge: "end", overlay: true, size }),
-              "absolute top-px right-px z-10 !border-0 bg-input"
+              "absolute top-0 right-0 z-10 border-0 bg-input"
             )}
             onClick={handleClear}
           >
@@ -819,8 +811,16 @@ function DateTimePicker({
           </Button>
         )}
       </div>
-      <PopoverContent className="w-auto p-0">
+      <PopoverContent
+        sideOffset={size === "md" ? 12 : 8}
+        className={cn(
+          "w-fit",
+          "gap-0 rounded-md border border-border bg-input p-1.5 shadow-md ring-0",
+          "[&_.rdp-month]:gap-2 [&_.rdp-week]:mt-1 [&_.rdp-weekday]:text-xs"
+        )}
+      >
         <Calendar
+          className="bg-transparent p-1 text-sm [--cell-size:--spacing(6)]"
           mode="single"
           selected={displayDate}
           month={month}
@@ -839,7 +839,7 @@ function DateTimePicker({
           {...props}
         />
         {granularity !== "day" && (
-          <div className="border-border border-t p-3">
+          <div className="border-border/70 bg-muted/30 border-t px-2 py-1.5 rounded-b-lg">
             <TimePicker
               onChange={(newTime) => {
                 if (!newTime) return;

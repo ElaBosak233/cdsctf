@@ -152,7 +152,7 @@ function ComboboxTrigger({
     <BaseCombobox.Trigger
       data-slot="combobox-trigger"
       className={cn(
-        "inline-flex size-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-foreground/5 disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex size-9 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-foreground/5 disabled:pointer-events-none disabled:opacity-50",
         className
       )}
       {...props}
@@ -173,7 +173,7 @@ function ComboboxClear({
   return (
     <BaseCombobox.Clear
       data-slot="combobox-clear"
-      className={cn(fieldClearButtonVariants({ size }), className)}
+      className={cn(fieldClearButtonVariants({ size }))}
       {...props}
     >
       {children ?? <XIcon className="size-4" />}

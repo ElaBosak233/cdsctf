@@ -161,8 +161,8 @@ const fieldClearButtonVariants = cva(
   {
     variants: {
       size: {
-        sm: "size-10",
-        md: "size-12",
+        sm: "size-9",
+        md: "size-11",
       },
       edge: {
         middle: "rounded-none",

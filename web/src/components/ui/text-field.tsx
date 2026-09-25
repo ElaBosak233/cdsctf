@@ -38,6 +38,7 @@ const inputVariants = cva(
   [
     "flex-1",
     "flex",
+    "items-center",
     "w-0",
     "rounded-md",
     "border",
