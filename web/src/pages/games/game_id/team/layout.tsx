@@ -130,7 +130,7 @@ export default function Layout() {
           name: selfTeam?.name,
         }),
       });
-      setDisbandDialogOpen(false);
+      setLeaveDialogOpen(false);
       navigate(`/games/${currentGame?.id}`);
     } catch (error) {
       await notifyApiError(error, {
@@ -178,128 +178,153 @@ export default function Layout() {
             </SidebarMenu>
             <Separator />
             <div className={cn(["flex-1"])} />
-            <div className={cn(["flex", "gap-5", "justify-center"])}>
-              <Button
-                size={"md"}
-                icon={<UserRoundXIcon />}
-                level={"error"}
-                className={cn(["w-1/2"])}
-                disabled={selfTeam?.state !== State.Preparing || disabled}
-                onClick={() => setDisbandDialogOpen(true)}
-              >
-                {t("team:actions.disband._")}
-              </Button>
-              <Dialog
-                onOpenChange={setDisbandDialogOpen}
-                open={disbandDialogOpen}
-              >
-                <DialogContent>
-                  <Card
-                    className={cn([
-                      "w-full",
-                      "max-w-xl",
-                      "rounded-elevated",
-                      "shadow-lg",
-                      "overflow-hidden",
-                      "flex",
-                      "flex-col",
-                    ])}
-                  >
-                    <DialogHeader
-                      className="p-5 pb-0"
-                      icon={<UserRoundXIcon />}
-                      level="error"
-                      title={t("team:actions.disband._")}
-                    />
-                    <DialogBody className="px-5 py-5">
-                      <p className="text-sm leading-relaxed text-muted-foreground">
-                        {t("team:actions.disband.message")}
-                      </p>
-                    </DialogBody>
-                    <DialogFooter className="p-5 pt-0">
-                      <Button
-                        icon={<CheckCheckIcon />}
-                        level={"error"}
-                        variant={"solid"}
-                        onClick={handleDisband}
-                      >
-                        {t("common:actions.confirm")}
-                      </Button>
-                    </DialogFooter>
-                  </Card>
-                </DialogContent>
-              </Dialog>
-              <Button
-                size={"md"}
-                icon={<UserRoundMinusIcon />}
-                level={"warning"}
-                className={cn(["w-1/2"])}
-                disabled={
-                  selfTeam?.state !== State.Preparing ||
-                  members?.length === 1 ||
-                  disabled
-                }
-                onClick={() => setLeaveDialogOpen(true)}
-              >
-                {t("team:actions.leave._")}
-              </Button>
-              <Dialog onOpenChange={setLeaveDialogOpen} open={leaveDialogOpen}>
-                <DialogContent>
-                  <Card
-                    className={cn([
-                      "w-full",
-                      "max-w-xl",
-                      "rounded-elevated",
-                      "shadow-lg",
-                      "overflow-hidden",
-                      "flex",
-                      "flex-col",
-                    ])}
-                  >
-                    <DialogHeader
-                      className="p-5 pb-0"
-                      icon={<UserRoundMinusIcon />}
-                      level="warning"
-                      title={t("team:actions.leave._")}
-                    />
-                    <DialogBody className="px-5 py-5">
-                      <p className="text-sm leading-relaxed text-muted-foreground">
-                        {t("team:actions.leave.message")}
-                      </p>
-                    </DialogBody>
-                    <DialogFooter className="p-5 pt-0">
-                      <Button
-                        icon={<CheckCheckIcon />}
-                        level={"error"}
-                        variant={"solid"}
-                        onClick={handleLeave}
-                      >
-                        {t("common:actions.confirm")}
-                      </Button>
-                    </DialogFooter>
-                  </Card>
-                </DialogContent>
-              </Dialog>
-            </div>
-            <Button
-              size={"lg"}
-              className={cn(["justify-start"])}
-              icon={
-                selfTeam?.state === State.Preparing ? (
-                  <CheckIcon />
-                ) : (
-                  <LockIcon />
-                )
-              }
-              level={selfTeam?.state === State.Preparing ? "success" : "error"}
-              variant={"solid"}
-              disabled={selfTeam?.state !== State.Preparing || disabled}
-              onClick={() => setConfirmDialogOpen(true)}
+            <section className="rounded-lg border border-border/70 bg-card/60 p-3 shadow-xs">
+              <div className="flex min-w-0 items-center gap-3">
+                <div
+                  className={cn(
+                    "flex size-9 shrink-0 items-center justify-center rounded-md",
+                    selfTeam?.state === State.Preparing
+                      ? "bg-success/10 text-success"
+                      : "bg-error/10 text-error"
+                  )}
+                >
+                  {selfTeam?.state === State.Preparing ? (
+                    <CheckIcon className="size-4" />
+                  ) : (
+                    <LockIcon className="size-4" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">
+                    {t("team:state._")}
+                  </p>
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {selfTeam?.state === State.Preparing
+                      ? t("team:state.preparing")
+                      : t("team:actions.locked")}
+                  </p>
+                </div>
+              </div>
+              <Separator className="my-3" />
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  icon={<UserRoundXIcon />}
+                  level="error"
+                  className="w-full px-2 text-xs"
+                  disabled={selfTeam?.state !== State.Preparing || disabled}
+                  onClick={() => setDisbandDialogOpen(true)}
+                >
+                  {t("team:actions.disband._")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  icon={<UserRoundMinusIcon />}
+                  level="warning"
+                  className="w-full px-2 text-xs"
+                  disabled={
+                    selfTeam?.state !== State.Preparing ||
+                    members?.length === 1 ||
+                    disabled
+                  }
+                  onClick={() => setLeaveDialogOpen(true)}
+                >
+                  {t("team:actions.leave._")}
+                </Button>
+              </div>
+              {selfTeam?.state === State.Preparing && (
+                <Button
+                  size="md"
+                  className="mt-2 w-full"
+                  icon={<CheckIcon />}
+                  level="success"
+                  variant="solid"
+                  disabled={disabled}
+                  onClick={() => setConfirmDialogOpen(true)}
+                >
+                  {t("team:actions.ready._")}
+                </Button>
+              )}
+            </section>
+            <Dialog
+              onOpenChange={setDisbandDialogOpen}
+              open={disbandDialogOpen}
             >
-              {selfTeam?.state === State.Preparing
-                ? t("team:actions.ready._")
-                : t("team:actions.locked")}
-            </Button>
+              <DialogContent>
+                <Card
+                  className={cn([
+                    "w-full",
+                    "max-w-xl",
+                    "rounded-elevated",
+                    "shadow-lg",
+                    "overflow-hidden",
+                    "flex",
+                    "flex-col",
+                  ])}
+                >
+                  <DialogHeader
+                    className="p-5 pb-0"
+                    icon={<UserRoundXIcon />}
+                    level="error"
+                    title={t("team:actions.disband._")}
+                  />
+                  <DialogBody className="px-5 py-5">
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {t("team:actions.disband.message")}
+                    </p>
+                  </DialogBody>
+                  <DialogFooter className="p-5 pt-0">
+                    <Button
+                      icon={<CheckCheckIcon />}
+                      level="error"
+                      variant="solid"
+                      onClick={handleDisband}
+                    >
+                      {t("common:actions.confirm")}
+                    </Button>
+                  </DialogFooter>
+                </Card>
+              </DialogContent>
+            </Dialog>
+            <Dialog onOpenChange={setLeaveDialogOpen} open={leaveDialogOpen}>
+              <DialogContent>
+                <Card
+                  className={cn([
+                    "w-full",
+                    "max-w-xl",
+                    "rounded-elevated",
+                    "shadow-lg",
+                    "overflow-hidden",
+                    "flex",
+                    "flex-col",
+                  ])}
+                >
+                  <DialogHeader
+                    className="p-5 pb-0"
+                    icon={<UserRoundMinusIcon />}
+                    level="warning"
+                    title={t("team:actions.leave._")}
+                  />
+                  <DialogBody className="px-5 py-5">
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {t("team:actions.leave.message")}
+                    </p>
+                  </DialogBody>
+                  <DialogFooter className="p-5 pt-0">
+                    <Button
+                      icon={<CheckCheckIcon />}
+                      level="error"
+                      variant="solid"
+                      onClick={handleLeave}
+                    >
+                      {t("common:actions.confirm")}
+                    </Button>
+                  </DialogFooter>
+                </Card>
+              </DialogContent>
+            </Dialog>
             <Dialog
               onOpenChange={setConfirmDialogOpen}
               open={confirmDialogOpen}
