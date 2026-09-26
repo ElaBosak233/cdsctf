@@ -1,5 +1,3 @@
-import { StatusCodes } from "http-status-codes";
-import { HTTPError } from "ky";
 import {
   ClipboardCheckIcon,
   ClipboardIcon,
@@ -23,7 +21,7 @@ import type { Port } from "@/models/challenge";
 import type { Instance, Nat } from "@/models/instance";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
-import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import { notifyApiError } from "@/utils/query";
 import { instanceExpiresAt, secondsUntil } from "@/utils/time";
 import { Context } from "./context";
 
@@ -114,7 +112,7 @@ function InstanceSection() {
     return user?.id != null;
   }, [user?.id, challenge?.id, debug, mode, team?.game_id, team?.id]);
 
-  const fetchInstances = useCallback(() => {
+  const fetchInstances = useCallback(async () => {
     const cid = challenge?.id;
     if (cid == null || !Number.isFinite(cid)) return;
 
@@ -138,41 +136,46 @@ function InstanceSection() {
       pollUserId = user.id;
     }
 
-    getInstances({
-      challenge_id: cid,
-      user_id: pollUserId,
-      game_id: pollGameId,
-      team_id: pollTeamId,
-    }).then((res) => {
-      {
-        const p = res.instances?.[0];
-        setInstance(p);
-        const expiresAt = instanceExpiresAt(
-          p?.started_at,
-          Number(p?.duration),
-          Number(p?.renew)
-        );
-        setTimeLeft(
-          expiresAt == null ? 0 : Math.max(0, secondsUntil(expiresAt) ?? 0)
-        );
+    try {
+      const res = await getInstances({
+        challenge_id: cid,
+        user_id: pollUserId,
+        game_id: pollGameId,
+        team_id: pollTeamId,
+      });
+      const current = res.instances?.[0];
+      setInstance(current);
+      const expiresAt = instanceExpiresAt(
+        current?.started_at,
+        Number(current?.duration),
+        Number(current?.renew)
+      );
+      setTimeLeft(
+        expiresAt == null ? 0 : Math.max(0, secondsUntil(expiresAt) ?? 0)
+      );
 
-        if (p?.status !== "waiting") {
-          setInstanceCreateLoading(false);
-        }
-
-        if (p?.status === "running") {
-          toast.dismiss("instance");
-        }
-
-        if (p?.status === "waiting" && p?.reason !== "ContainerCreating") {
-          toast.warning(t("instance:actions.start.error"), {
-            id: "instance",
-            description: p?.reason,
-          });
-          setInstanceStopLoading(true);
-        }
+      if (current?.status !== "waiting") {
+        setInstanceCreateLoading(false);
       }
-    });
+
+      if (current?.status === "running") {
+        toast.dismiss("instance");
+      }
+
+      if (
+        current?.status === "waiting" &&
+        current?.reason !== "ContainerCreating"
+      ) {
+        toast.warning(t("instance:actions.start.error.title"), {
+          id: "instance",
+          description:
+            current?.reason || t("instance:actions.start.error.description"),
+        });
+        setInstanceStopLoading(true);
+      }
+    } catch (error) {
+      await notifyApiError(error, { id: "instance-poll-error" });
+    }
   }, [user?.id, challenge?.id, debug, mode, team?.game_id, team?.id, t]);
 
   async function handleInstanceRenew() {
@@ -187,30 +190,32 @@ function InstanceSection() {
         id: "renew",
       });
     } catch (error) {
-      if (!(error instanceof HTTPError)) return;
-      const body = await parseErrorResponse(error);
-
-      if (error.response.status === StatusCodes.BAD_REQUEST) {
-        toast.error(t("challenge:instance.renew_error"), {
-          id: "renew",
-          description: formatApiMsg(body.msg),
-        });
-      }
+      await notifyApiError(error, {
+        id: "renew",
+        title: t("challenge:instance.renew_error"),
+      });
     }
   }
 
   const handleInstanceStop = useCallback(async () => {
     if (!instance) return;
 
-    await stopInstance({
-      id: instance.id!,
-    });
+    try {
+      await stopInstance({
+        id: instance.id!,
+      });
 
-    toast.info(t("instance:actions.stop.sent"), {
-      id: "instance-stop",
-    });
-    setInstance(undefined);
-    setInstanceStopLoading(false);
+      toast.info(t("instance:actions.stop.sent"), {
+        id: "instance-stop",
+      });
+      setInstance(undefined);
+      setInstanceStopLoading(false);
+    } catch (error) {
+      await notifyApiError(error, {
+        id: "instance-stop",
+        title: t("instance:actions.stop.error"),
+      });
+    }
   }, [instance, t]);
 
   useEffect(() => {
@@ -261,12 +266,8 @@ function InstanceSection() {
       });
       fetchInstances();
     } catch (error) {
-      if (!(error instanceof HTTPError)) return;
-      const body = await parseErrorResponse(error);
-
-      toast.error(t("instance:error"), {
+      await notifyApiError(error, {
         id: "instance",
-        description: formatApiMsg(body.msg),
       });
     }
   }

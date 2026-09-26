@@ -17,6 +17,7 @@ import {
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 import { Context } from "../context";
 
 export default function Index() {
@@ -49,23 +50,24 @@ export default function Index() {
     );
   }, [challenge, form]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    updateWriteup({
-      id: challenge?.id,
-      writeup: values.writeup,
-    })
-      .then((res) => {
-        toast.success(
-          t("challenge:actions.writeup_update.success", {
-            title: res?.challenge?.title,
-          })
-        );
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
+    try {
+      const res = await updateWriteup({
+        id: challenge?.id,
+        writeup: values.writeup,
       });
+      toast.success(
+        t("challenge:actions.writeup_update.success", {
+          title: res?.challenge?.title,
+        })
+      );
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   return (

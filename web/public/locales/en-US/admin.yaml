@@ -117,7 +117,9 @@ idp:
     progress: "Upload progress {{percent}}%"
     success: Avatar uploaded successfully.
     error: Avatar upload failed.
-    size_error: Avatar size exceeds 5MB limit.
+    size_error:
+      title: Avatar is too large
+      description: Choose an avatar no larger than 5 MB.
   avatar_delete:
     success: Avatar removed successfully.
   form:

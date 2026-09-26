@@ -77,7 +77,7 @@ pub async fn get_team(
     Path(game_id): Path<i64>,
     Query(params): Query<GetTeamRequest>,
 ) -> Result<Json<AdminTeamsListResponse>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let (teams, total) = cds_db::team::find(
         &s.db.conn,

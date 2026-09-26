@@ -18,13 +18,85 @@ actions:
   clear_cache: Clear Cache
 tooltip:
   copy: Copy to clipboard
+editor:
+  image_upload:
+    progress: "Uploading image ({{percent}}%)"
+    error: Image upload failed
+    size_error:
+      title: Image is too large
+      description: Choose an image no larger than 10 MB.
 errors:
-  default: Something went wrong
+  default:
+    title: The request could not be completed
+    description: Try again. If the problem persists, contact an administrator.
   unexpected: Something went wrong
-  network: Network error
-  service_unavailable: Service unavailable
-  service_unavailable_description: The server could not complete the request.
-  timeout: Request timed out
+  network:
+    title: Network unavailable
+    description: Check your connection and try again.
+  service_unavailable:
+    title: Service unavailable
+    description: The server could not complete the request.
+  timeout:
+    title: Request timed out
+    description: Check your connection and try again.
+  bad_request:
+    title: Invalid request
+    description: Check your input and try again.
+  unauthorized:
+    title: Sign-in required
+    description: Sign in before continuing.
+  forbidden: You do not have permission to perform this action.
+  not_found: The requested content could not be found.
+  internal_server_error:
+    title: The server could not complete the request
+    description: Try again later.
+  conflict:
+    title: The content changed
+    description: Refresh the page and try again.
+  locked:
+    title: Content is locked
+    description: This content cannot be changed right now.
+  too_many_requests:
+    title: Too many requests
+    description: Try again later.
+  unprocessable_entity:
+    title: Information could not be processed
+    description: Check your input and try again.
+  invalid_json: The request body is not valid JSON.
+  validation_failed: Some submitted fields are invalid.
+  invalid_path: The requested URL is invalid.
+  path_parameters_missing: The requested URL is incomplete.
+  path_extraction_failed: The requested URL could not be processed.
+  invalid_query: The query parameters are invalid.
+  query_extraction_failed: The query parameters could not be processed.
+  extension_missing: A required server extension is unavailable.
+  extension_extraction_failed: A required server extension could not be loaded.
+  rate_limit_exceeded:
+    title: Too many requests
+    description: Try again later.
+  rate_limit_key_unavailable: The request could not be rate limited.
+  rate_limit_failed:
+    title: Request rate limiting failed
+    description: Try again later.
+  multipart: The uploaded file could not be processed.
+  host_extract_failed: The request host could not be determined.
+  ip_extract_failed: The client address could not be determined.
+  invalid:
+    title: Invalid request
+    description: Check your input and try again.
+  captcha:
+    not_required: A captcha is not required right now.
+  media:
+    avatar_not_found: The avatar could not be found.
+    forbidden_file_type: This file type is not supported.
+    invalid_mime_type: The file type is invalid.
+    missing_content_type: The request is missing file type information.
+    no_file:
+      title: No file selected
+      description: Select a file first.
+    size_too_large: The file exceeds the size limit.
+    upload_limit_10m: The upload limit for ten minutes has been reached.
+    upload_limit_24h: The upload limit for 24 hours has been reached.
 captcha:
   placeholder: Captcha
 language:

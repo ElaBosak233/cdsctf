@@ -38,7 +38,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -392,27 +398,14 @@ function ActionsCell({ row }: { row: Row<ChallengeDetail> }) {
               "shadow-lg",
             ])}
           >
-            <div className={cn(["flex", "flex-col", "gap-5", "p-5"])}>
-              <div className={cn(["flex", "items-center", "gap-3"])}>
-                <div
-                  className={cn([
-                    "flex",
-                    "size-10",
-                    "shrink-0",
-                    "items-center",
-                    "justify-center",
-                    "rounded-badge",
-                    "bg-error/10",
-                    "text-error",
-                  ])}
-                >
-                  <TrashIcon className="size-5" />
-                </div>
-                <h3 className="text-base font-semibold">
-                  {t("challenge:actions.delete._")}
-                </h3>
-              </div>
-              <p className="text-sm">
+            <DialogHeader
+              className="p-5 pb-0"
+              icon={<TrashIcon />}
+              level="error"
+              title={t("challenge:actions.delete._")}
+            />
+            <DialogBody className="px-5 py-5">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 <Trans
                   i18nKey="challenge:actions.delete.message"
                   values={{ title: challenge.title }}
@@ -421,17 +414,17 @@ function ActionsCell({ row }: { row: Row<ChallengeDetail> }) {
                   }}
                 />
               </p>
-              <div className="flex justify-end">
-                <Button
-                  level="error"
-                  variant="solid"
-                  size="sm"
-                  onClick={handleDelete}
-                >
-                  {t("common:actions.confirm")}
-                </Button>
-              </div>
-            </div>
+            </DialogBody>
+            <DialogFooter className="p-5 pt-0">
+              <Button
+                level="error"
+                variant="solid"
+                size="sm"
+                onClick={handleDelete}
+              >
+                {t("common:actions.confirm")}
+              </Button>
+            </DialogFooter>
           </Card>
         </DialogContent>
       </Dialog>

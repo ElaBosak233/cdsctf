@@ -10,11 +10,13 @@ import {
 } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useCallback, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Editor, type EditorProps } from "@/components/ui/editor";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
+import { notifyApiError } from "@/utils/query";
 
 type MarkdownEditorProps = Omit<EditorProps, "lang"> & {
   toolbarClassName?: string;
@@ -90,6 +92,7 @@ const toolbarItems = [
 
 function MarkdownEditor(props: MarkdownEditorProps) {
   const { value = "", onChange, className, toolbarClassName, ...rest } = props;
+  const { t } = useTranslation();
 
   const viewRef = useRef<EditorView | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -234,11 +237,21 @@ function MarkdownEditor(props: MarkdownEditorProps) {
       const placeholder = "![Uploading](...)";
       const { from, to } = insertAtCursor(placeholder);
 
-      toast.loading("0%", { id: "image-upload" });
+      toast.loading(
+        t("common:editor.image_upload.progress", { percent: "0" }),
+        {
+          id: "image-upload",
+        }
+      );
 
       try {
         const res = await uploadFile("/api/media", [file], ({ percent }) => {
-          toast.loading(`${percent.toFixed(0)}%`, { id: "image-upload" });
+          toast.loading(
+            t("common:editor.image_upload.progress", {
+              percent: percent.toFixed(0),
+            }),
+            { id: "image-upload" }
+          );
         });
         const replacement = resolveMediaMarkdown(res);
         toast.dismiss("image-upload");
@@ -260,8 +273,12 @@ function MarkdownEditor(props: MarkdownEditorProps) {
 
         const source = value ?? "";
         onChange?.(source.replace(placeholder, replacement));
-      } catch {
+      } catch (error) {
         toast.dismiss("image-upload");
+        await notifyApiError(error, {
+          id: "image-upload",
+          title: t("common:editor.image_upload.error"),
+        });
         const view = viewRef.current;
         if (view) {
           const safeFrom = Math.min(from, view.state.doc.length);
@@ -280,7 +297,7 @@ function MarkdownEditor(props: MarkdownEditorProps) {
         onChange?.(source.replace(placeholder, ""));
       }
     },
-    [insertAtCursor, onChange, value]
+    [insertAtCursor, onChange, t, value]
   );
 
   const handleImageSelected = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -289,7 +306,9 @@ function MarkdownEditor(props: MarkdownEditorProps) {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("Image size exceeds 10MB limit");
+      toast.error(t("common:editor.image_upload.size_error.title"), {
+        description: t("common:editor.image_upload.size_error.description"),
+      });
       return;
     }
 

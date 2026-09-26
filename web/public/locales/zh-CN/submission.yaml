@@ -11,21 +11,37 @@ created_at: 时间
 processing_duration: 处理时长
 solved: 已解出
 solves: "{{count}} 次解出"
-queued_review: 已进入检查队列...
 empty: 暂无提交记录
 cheated: 该题目存在作弊记录，无法继续提交
-submitted: "#{{id}} 已提交题目 {{title}} 的解答"
 actions:
   submit: 提交
   mark_cheat: 标记作弊
   mark_incorrect: 标记错误
   status_updated: 状态已更新
-result:
-  correct: 恭喜你，提交成功！
-  incorrect: 再检查一下？
-  cheat: 你存在作弊的可能，已记录。
-  timeout: 提交超时。
-  duplicate: 你已经做出过这道题了。
+notifications:
+  status_check_failed: 无法检查提交状态
+  submitted:
+    title: 答案已提交
+    description: "题目 {{title}} 的提交 #{{id}} 正在等待检查。"
+  result:
+    correct:
+      title: 答案正确
+      description: 本次答案已通过检查。
+      description_with_id: "提交 #{{id}} 已通过检查。"
+    incorrect:
+      title: 答案错误
+      description: 请检查答案后重试。
+      description_with_id: "提交 #{{id}} 的答案不正确，请检查后重试。"
+    cheat:
+      title: 提交已被标记
+      description: 检测到疑似作弊行为，相关记录已保存。
+      description_with_id: "提交 #{{id}} 已被标记并记录。"
+    expired:
+      title: 判题超时
+      description_with_id: "提交 #{{id}} 在等待检查器时超时。"
+    duplicate:
+      title: 题目已经解出
+      description_with_id: "提交 #{{id}} 为重复提交，不会改变解题结果。"
 status:
   _: 状态
   queued: 排队中
@@ -35,3 +51,13 @@ status:
   cheat: 作弊
   expired: 过期
   duplicate: 重复
+errors:
+  cheated:
+    title: 检测到异常提交
+    description: 本次提交已被拒绝。
+  too_frequent:
+    title: 提交过于频繁
+    description: 请稍后重试。
+  correct_submission_already_exists:
+    title: 已存在正确提交
+    description: 同一范围内只能将一条提交标记为正确。

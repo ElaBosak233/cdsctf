@@ -25,7 +25,9 @@ settings:
     progress: "上传进度 {{percent}}%"
     success: 头像上传成功。
     error: 头像上传失败。
-    size_error: 头像大小超过 5MB 限制。
+    size_error:
+      title: 头像过大
+      description: 请选择不超过 5 MB 的头像。
   avatar_delete_success: 头像删除成功。
 id: ID
 username: 用户名
@@ -190,5 +192,4 @@ idp:
     unbound: 已解除
     bound_toast: 第三方账号绑定成功
     unbound_toast: 第三方账号解绑成功
-    request_failed: 第三方登录失败
     signed_in: 登录成功

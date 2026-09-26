@@ -8,6 +8,7 @@ import { z } from "zod";
 import { createAdminIdp } from "@/api/admin/idps";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -20,6 +21,7 @@ import {
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 
 import defaultScript from "../idp_id/_blocks/examples/default.lua?raw";
 
@@ -46,25 +48,26 @@ function CreateDialog(props: CreateDialogProps) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    createAdminIdp({
-      name: values.name,
-      enabled: false,
-      registration_enabled: false,
-      portal: null,
-      script: defaultScript,
-    })
-      .then((res) => {
-        toast.success(
-          t("admin:idp.actions.create.success", { name: res.idp?.name })
-        );
-        onClose();
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
+    try {
+      const res = await createAdminIdp({
+        name: values.name,
+        enabled: false,
+        registration_enabled: false,
+        portal: null,
+        script: defaultScript,
       });
+      toast.success(
+        t("admin:idp.actions.create.success", { name: res.idp?.name })
+      );
+      onClose();
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   return (
@@ -80,22 +83,12 @@ function CreateDialog(props: CreateDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <div className={cn(["flex", "items-center", "gap-3"])}>
-          <div
-            className={cn([
-              "flex items-center justify-center",
-              "size-10 rounded-badge",
-              "bg-primary/10",
-              "shrink-0",
-            ])}
-          >
-            <IdCardIcon className={cn(["size-5"])} />
-          </div>
-          <h3 className={cn(["text-base", "font-semibold"])}>
-            {t("admin:idp.actions.create._")}
-          </h3>
-        </div>
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<IdCardIcon />}
+        title={t("admin:idp.actions.create._")}
+      />
+      <DialogBody className="p-5 pt-4">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -125,18 +118,20 @@ function CreateDialog(props: CreateDialogProps) {
                 </FormItem>
               )}
             />
-            <Button
-              variant="solid"
-              icon={<CheckIcon />}
-              level="success"
-              loading={loading}
-              type="submit"
-            >
-              {t("common:actions.confirm")}
-            </Button>
+            <DialogFooter>
+              <Button
+                variant="solid"
+                icon={<CheckIcon />}
+                level="success"
+                loading={loading}
+                type="submit"
+              >
+                {t("common:actions.confirm")}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
-      </div>
+      </DialogBody>
     </Card>
   );
 }

@@ -11,21 +11,37 @@ created_at: Time
 processing_duration: Processing time
 solved: Solved
 solves: "{{count}} Solves"
-queued_review: Waiting for the checker...
 empty: No submissions yet.
 cheated: This challenge has cheating records, cannot submit.
-submitted: "#{{id}} Submitted answer for {{title}}"
 actions:
   submit: Submit
   mark_cheat: Mark as Cheat
   mark_incorrect: Mark as Incorrect
   status_updated: Status updated
-result:
-  correct: Congratulations, submission accepted!
-  incorrect: Have another look?
-  cheat: Possible cheating detected, recorded.
-  timeout: Submission timed out.
-  duplicate: You have already solved this challenge.
+notifications:
+  status_check_failed: Submission status could not be checked
+  submitted:
+    title: Answer submitted
+    description: "Submission #{{id}} for {{title}} is waiting for the checker."
+  result:
+    correct:
+      title: Answer accepted
+      description: The answer is correct.
+      description_with_id: "Submission #{{id}} was accepted."
+    incorrect:
+      title: Answer incorrect
+      description: Check the answer and try again.
+      description_with_id: "Submission #{{id}} was incorrect. Check the answer and try again."
+    cheat:
+      title: Submission flagged
+      description: Possible cheating was detected and recorded.
+      description_with_id: "Submission #{{id}} was flagged and recorded."
+    expired:
+      title: Checker timed out
+      description_with_id: "Submission #{{id}} timed out while waiting for the checker."
+    duplicate:
+      title: Challenge already solved
+      description_with_id: "Submission #{{id}} was a duplicate and did not change the result."
 status:
   _: Status
   queued: Queued
@@ -35,3 +51,13 @@ status:
   cheat: Cheat
   expired: Expired
   duplicate: Duplicate
+errors:
+  cheated:
+    title: Suspicious activity detected
+    description: This submission was rejected.
+  too_frequent:
+    title: Submissions are too frequent
+    description: Try again later.
+  correct_submission_already_exists:
+    title: A correct submission already exists
+    description: Only one submission in this scope can be marked correct.

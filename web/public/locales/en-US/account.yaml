@@ -17,7 +17,9 @@ login:
     not_verified: You are not verified yet
     verify_email: Please verify your email first
 guard:
-  login_required: Please sign in to continue
+  login_required:
+    title: Sign-in required
+    description: Sign in to continue.
   unavailable: Unable to verify your sign-in status. Please try again.
   forbidden: You do not have permission to access this page.
 register:
@@ -97,8 +99,10 @@ idp:
   login:
     success: Signed in
     verifying: Verifying your third-party account...
-    error: IdP request failed
-    registration_disabled: This provider does not accept new registrations. Sign in to an existing account before binding it.
+    error: Third-party sign-in failed
+    registration_disabled:
+      title: New registrations are disabled
+      description: Sign in to an existing account before binding this provider.
   unbind:
     success: IdP unbound
   third_party: Third-party Login
@@ -106,3 +110,44 @@ captcha:
   _: Captcha
   please_refresh: Please refresh your Captcha
   expired: Captcha expired
+errors:
+  idp_request_failed:
+    title: Identity provider unavailable
+    description: Try again or choose another sign-in method.
+  idp_script_invalid: The identity provider script is invalid.
+  captcha_invalid:
+    title: Captcha is invalid
+    description: Verify the captcha and try again.
+  email_already_exists: This email address is already in use.
+  email_already_verified: This email address has already been verified.
+  email_code_expired:
+    title: Verification code expired
+    description: Request a new code and try again.
+  email_code_incorrect: The email verification code is incorrect.
+  email_disabled: Email service is currently unavailable.
+  email_not_found: The email address could not be found.
+  email_send_too_frequently:
+    title: Emails are being sent too frequently
+    description: Try again later.
+  idp_already_bound: This identity provider is already bound.
+  idp_not_found: The identity provider could not be found.
+  idp_pending_mismatch:
+    title: Identity verification expired
+    description: Start the binding flow again.
+  idp_registration_disabled: This identity provider does not allow new registrations.
+  registration_idp_cannot_be_unbound:
+    title: Primary sign-in method cannot be unbound
+    description: This provider was used to create the account and must remain connected.
+  invalid_or_expired_token: The verification token is invalid or expired.
+  password_invalid: The password is incorrect.
+  registration_conflict:
+    title: Registration details already exist
+    description: Check your information and try again.
+  registration_disabled: Registration is currently disabled.
+  session_error:
+    title: Session expired
+    description: Sign in again to continue.
+  user_idp_already_bound: This user is already bound to the identity provider.
+  user_idp_not_found: The identity provider binding could not be found.
+  user_not_found: The user could not be found.
+  username_already_exists: This username is already in use.

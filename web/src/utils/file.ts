@@ -11,6 +11,24 @@ function parseXHRResponse(xhr: XMLHttpRequest): unknown {
   }
 }
 
+export class UploadError extends Error {
+  readonly status: number;
+  readonly code?: string;
+  readonly details?: unknown;
+
+  constructor(status: number, payload: unknown) {
+    super("Upload failed");
+    this.name = "UploadError";
+    this.status = status;
+    const response =
+      typeof payload === "object" && payload !== null
+        ? (payload as { code?: unknown; details?: unknown })
+        : undefined;
+    this.code = typeof response?.code === "string" ? response.code : undefined;
+    this.details = response?.details;
+  }
+}
+
 export async function uploadFile<T = unknown>(
   url: string,
   file: File[],
@@ -36,7 +54,7 @@ export async function uploadFile<T = unknown>(
       if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 300) {
         resolve(payload as T);
       } else {
-        reject(payload);
+        reject(new UploadError(xhr.status, payload));
       }
     };
     xhr.open("POST", url, true);

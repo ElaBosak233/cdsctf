@@ -1,6 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
-import { HTTPError } from "ky";
 import { KeyIcon, LogInIcon, TypeIcon, UserPlusIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -11,6 +9,7 @@ import { createTeam } from "@/api/games/game_id/teams";
 import { joinTeam } from "@/api/games/game_id/teams/team_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -25,7 +24,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import { notifyApiError } from "@/utils/query";
 
 type Tab = "create" | "join";
 
@@ -58,24 +57,25 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     resolver: zodResolver(createFormSchema),
   });
 
-  function onCreateFormSubmit(values: z.infer<typeof createFormSchema>) {
+  async function onCreateFormSubmit(values: z.infer<typeof createFormSchema>) {
     if (!currentGame) return;
 
     setLoading(true);
-    createTeam({
-      game_id: currentGame.id!,
-      ...values,
-    })
-      .then((res) => {
-        toast.success(
-          t("team:actions.create.success", { name: res?.team?.name })
-        );
-        onClose();
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
+    try {
+      const res = await createTeam({
+        game_id: currentGame.id!,
+        ...values,
       });
+      toast.success(
+        t("team:actions.create.success", { name: res?.team?.name })
+      );
+      onClose();
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   const joinFormSchema = z.object({
@@ -92,7 +92,7 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     resolver: zodResolver(joinFormSchema),
   });
 
-  function onJoinFormSubmit(values: z.infer<typeof joinFormSchema>) {
+  async function onJoinFormSubmit(values: z.infer<typeof joinFormSchema>) {
     const tokens = values.token.split(":");
     const team_id = Number(tokens[0]);
     const token = tokens[1];
@@ -100,29 +100,20 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
     if (!currentGame) return;
 
     setLoading(true);
-    joinTeam({
-      game_id: currentGame.id!,
-      team_id: team_id,
-      token: token,
-    })
-      .then(() => {
-        toast.success(t("team:actions.join.success"));
-        onClose();
-      })
-      .catch(async (error) => {
-        if (!(error instanceof HTTPError)) return;
-        const body = await parseErrorResponse(error);
-
-        if (error.response.status === StatusCodes.BAD_REQUEST) {
-          toast.error(t("team:actions.join.error"), {
-            description: formatApiMsg(body.msg),
-          });
-        }
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
+    try {
+      await joinTeam({
+        game_id: currentGame.id!,
+        team_id,
+        token,
       });
+      toast.success(t("team:actions.join.success"));
+      onClose();
+    } catch (error) {
+      await notifyApiError(error, { title: t("team:actions.join.error") });
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   return (
@@ -177,56 +168,26 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
         </Button>
       </div>
 
+      <DialogHeader
+        className="px-6 pt-6 pb-0"
+        icon={tab === "create" ? <UserPlusIcon /> : <LogInIcon />}
+        title={t(
+          tab === "create"
+            ? "team:actions.gather.create.title"
+            : "team:actions.gather.join.title"
+        )}
+      />
+
       {/* Content area */}
-      <div className={cn(["p-6", "flex", "flex-col", "gap-6"])}>
+      <DialogBody className="p-6 gap-6">
         {tab === "create" ? (
           <>
-            {/* Section header */}
-            <div className={cn(["flex", "items-start", "gap-3.5"])}>
-              <div
-                className={cn([
-                  "flex items-center justify-center",
-                  "size-10 rounded-badge",
-                  "bg-primary/10",
-                  "shrink-0",
-                ])}
-              >
-                <UserPlusIcon className={cn(["size-5"])} />
-              </div>
-              <div className={cn(["flex flex-col gap-1", "pt-0.5"])}>
-                <h3
-                  className={cn([
-                    "text-sm",
-                    "font-semibold",
-                    "text-foreground",
-                  ])}
-                >
-                  {t("team:actions.gather.create.title")}
-                </h3>
-                <p
-                  className={cn([
-                    "text-xs",
-                    "text-muted-foreground/80",
-                    "leading-relaxed",
-                  ])}
-                >
-                  {t("team:form.name.placeholder")}
-                </p>
-              </div>
-            </div>
-
             {/* Form */}
             <Form key="create" {...createForm}>
               <form
                 onSubmit={createForm.handleSubmit(onCreateFormSubmit)}
                 autoComplete="off"
-                className={cn([
-                  "flex",
-                  "flex-wrap",
-                  "items-end",
-                  "gap-3",
-                  "sm:flex-nowrap",
-                ])}
+                className={cn(["flex", "flex-col", "gap-3"])}
               >
                 <FormField
                   control={createForm.control}
@@ -253,66 +214,28 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
                     </FormItem>
                   )}
                 />
-                <Button
-                  variant="solid"
-                  level="info"
-                  type="submit"
-                  loading={loading}
-                  className={cn(["shrink-0"])}
-                >
-                  {t("team:actions.gather.create._")}
-                </Button>
+                <DialogFooter>
+                  <Button
+                    variant="solid"
+                    level="info"
+                    type="submit"
+                    loading={loading}
+                    className={cn(["shrink-0"])}
+                  >
+                    {t("team:actions.gather.create._")}
+                  </Button>
+                </DialogFooter>
               </form>
             </Form>
           </>
         ) : (
           <>
-            {/* Section header */}
-            <div className={cn(["flex", "items-start", "gap-3.5"])}>
-              <div
-                className={cn([
-                  "flex items-center justify-center",
-                  "size-10 rounded-badge",
-                  "bg-primary/10",
-                  "shrink-0",
-                ])}
-              >
-                <LogInIcon className={cn(["size-5"])} />
-              </div>
-              <div className={cn(["flex flex-col gap-1", "pt-0.5"])}>
-                <h3
-                  className={cn([
-                    "text-sm",
-                    "font-semibold",
-                    "text-foreground",
-                  ])}
-                >
-                  {t("team:actions.gather.join.title")}
-                </h3>
-                <p
-                  className={cn([
-                    "text-xs",
-                    "text-muted-foreground/80",
-                    "leading-relaxed",
-                  ])}
-                >
-                  {t("team:form.invite_code.placeholder")}
-                </p>
-              </div>
-            </div>
-
             {/* Form */}
             <Form key="join" {...joinForm}>
               <form
                 onSubmit={joinForm.handleSubmit(onJoinFormSubmit)}
                 autoComplete="off"
-                className={cn([
-                  "flex",
-                  "flex-wrap",
-                  "items-end",
-                  "gap-3",
-                  "sm:flex-nowrap",
-                ])}
+                className={cn(["flex", "flex-col", "gap-3"])}
               >
                 <FormField
                   control={joinForm.control}
@@ -339,19 +262,21 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
                     </FormItem>
                   )}
                 />
-                <Button
-                  variant="solid"
-                  type="submit"
-                  loading={loading}
-                  className={cn(["shrink-0"])}
-                >
-                  {t("team:actions.gather.join._")}
-                </Button>
+                <DialogFooter>
+                  <Button
+                    variant="solid"
+                    type="submit"
+                    loading={loading}
+                    className={cn(["shrink-0"])}
+                  >
+                    {t("team:actions.gather.join._")}
+                  </Button>
+                </DialogFooter>
               </form>
             </Form>
           </>
         )}
-      </div>
+      </DialogBody>
     </Card>
   );
 }

@@ -9,6 +9,7 @@ import { createGame } from "@/api/admin/games";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -21,6 +22,7 @@ import {
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 
 interface CreateDialogProps {
   onClose: () => void;
@@ -49,26 +51,27 @@ function CreateDialog(props: CreateDialogProps) {
     defaultValues: {},
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    createGame({
-      ...values,
-      description: "",
-      writeup_required: false,
-      public: false,
-      started_at: values.started_at.toISOString(),
-      ended_at: values.ended_at.toISOString(),
-    })
-      .then((res) => {
-        toast.success(
-          t("game:actions.create.success", { title: res?.game?.title })
-        );
-        onClose();
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
+    try {
+      const res = await createGame({
+        ...values,
+        description: "",
+        writeup_required: false,
+        public: false,
+        started_at: values.started_at.toISOString(),
+        ended_at: values.ended_at.toISOString(),
       });
+      toast.success(
+        t("game:actions.create.success", { title: res?.game?.title })
+      );
+      onClose();
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
   return (
     <Card
@@ -83,22 +86,12 @@ function CreateDialog(props: CreateDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <div className={cn(["flex", "items-center", "gap-3"])}>
-          <div
-            className={cn([
-              "flex items-center justify-center",
-              "size-10 rounded-badge",
-              "bg-primary/10",
-              "shrink-0",
-            ])}
-          >
-            <FlagIcon className={cn(["size-5"])} />
-          </div>
-          <h3 className={cn(["text-base", "font-semibold"])}>
-            {t("game:actions.create._")}
-          </h3>
-        </div>
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<FlagIcon />}
+        title={t("game:actions.create._")}
+      />
+      <DialogBody className="p-5 pt-4">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -164,18 +157,20 @@ function CreateDialog(props: CreateDialogProps) {
                 </FormItem>
               )}
             />
-            <Button
-              type={"submit"}
-              variant={"solid"}
-              icon={<CheckIcon />}
-              level={"success"}
-              loading={loading}
-            >
-              {t("common:actions.confirm")}
-            </Button>
+            <DialogFooter>
+              <Button
+                type={"submit"}
+                variant={"solid"}
+                icon={<CheckIcon />}
+                level={"success"}
+                loading={loading}
+              >
+                {t("common:actions.confirm")}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
-      </div>
+      </DialogBody>
     </Card>
   );
 }

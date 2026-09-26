@@ -72,7 +72,7 @@ pub async fn get_team(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<TeamResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
@@ -109,7 +109,7 @@ pub async fn update_team(
     Path(game_id): Path<i64>,
     ReqJson(body): ReqJson<UpdateTeamRequest>,
 ) -> Result<Json<TeamResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
@@ -151,7 +151,7 @@ pub async fn delete_team(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
     if team.state != TState::Preparing {
@@ -186,7 +186,7 @@ pub async fn set_team_ready(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<TeamResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
@@ -204,7 +204,12 @@ pub async fn set_team_ready(
     .await?;
 
     if team_users < game.member_limit_min as u64 || team_users > game.member_limit_max as u64 {
-        return Err(WebError::BadRequest(json!("member_limit_not_satisfied")));
+        return Err(WebError::BadRequest(json!({
+            "code": "member_limit_not_satisfied",
+            "minimum": game.member_limit_min,
+            "maximum": game.member_limit_max,
+            "actual": team_users
+        })));
     }
 
     let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;

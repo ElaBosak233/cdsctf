@@ -62,7 +62,7 @@ pub async fn get_attachment(
             .media
             .presign_get(&path, &filename, 3600)
             .await
-            .map_err(|_| WebError::NotFound(json!("")))?;
+            .map_err(|_| WebError::NotFound(json!("not_found")))?;
         return Ok(Redirect::temporary(&url).into_response());
     }
 
@@ -70,7 +70,7 @@ pub async fn get_attachment(
         .media
         .get(path, filename.clone())
         .await
-        .map_err(|_| WebError::NotFound(json!("")))?;
+        .map_err(|_| WebError::NotFound(json!("not_found")))?;
 
     Ok(Response::builder()
         .status(StatusCode::OK)

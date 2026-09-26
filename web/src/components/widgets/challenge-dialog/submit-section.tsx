@@ -1,4 +1,3 @@
-import { HTTPError } from "ky";
 import { BugIcon, FlagIcon, LockIcon, SendIcon } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,7 +12,7 @@ import { useInterval } from "@/hooks/use-interval";
 import { Status } from "@/models/submission";
 import { useCheckerStore } from "@/storages/checker";
 import { cn } from "@/utils";
-import { formatApiMsg } from "@/utils/query";
+import { notifyApiError } from "@/utils/query";
 import { Context } from "./context";
 
 function SubmitSection() {
@@ -45,7 +44,7 @@ function SubmitSection() {
 
   const [flag, setFlag] = useState<string>();
 
-  function handleFlagSubmit() {
+  async function handleFlagSubmit() {
     const challengeId = challenge?.id;
     const trimmed = flag?.trim();
     if (challengeId == null || !Number.isFinite(challengeId) || !trimmed) {
@@ -59,41 +58,26 @@ function SubmitSection() {
       teamIdParam = Number(team.id);
     }
 
-    createSubmission({
-      challenge_id: challengeId,
-      content: trimmed,
-      game_id: gameIdParam,
-      team_id: teamIdParam,
-    })
-      .then((submission) => {
-        if (!submission) return;
-        setFlag("");
-        toast.loading(
-          t("submission:submitted", {
-            id: submission.id,
-            title: submission.challenge_title,
-          }),
-          {
-            id: `submission-${submission.id}`,
-            description: t("submission:queued_review"),
-          }
-        );
-        add(submission);
-      })
-      .catch(async (err) => {
-        if (err instanceof HTTPError) {
-          try {
-            const body = (await err.response.json()) as { msg?: unknown };
-            toast.error(t("common:errors.default"), {
-              description: formatApiMsg(body.msg) || err.message,
-            });
-          } catch {
-            toast.error(t("common:errors.default"));
-          }
-        } else {
-          toast.error(t("common:errors.default"));
-        }
+    try {
+      const submission = await createSubmission({
+        challenge_id: challengeId,
+        content: trimmed,
+        game_id: gameIdParam,
+        team_id: teamIdParam,
       });
+      if (!submission) return;
+      setFlag("");
+      toast.loading(t("submission:notifications.submitted.title"), {
+        id: `submission-${submission.id}`,
+        description: t("submission:notifications.submitted.description", {
+          id: submission.id,
+          title: submission.challenge_title,
+        }),
+      });
+      add(submission);
+    } catch (error) {
+      await notifyApiError(error);
+    }
   }
 
   async function handleDebugSubmit() {
@@ -110,31 +94,22 @@ function SubmitSection() {
       });
 
       if (result.status === Status.Correct) {
-        toast.success(t("submission:status.correct"), {
-          description: t("submission:result.correct"),
+        toast.success(t("submission:notifications.result.correct.title"), {
+          description: t("submission:notifications.result.correct.description"),
         });
       } else if (result.status === Status.Incorrect) {
-        toast.error(t("submission:status.incorrect"), {
-          description: t("submission:result.incorrect"),
+        toast.error(t("submission:notifications.result.incorrect.title"), {
+          description: t(
+            "submission:notifications.result.incorrect.description"
+          ),
         });
       } else if (result.status === Status.Cheat) {
-        toast.error(t("submission:status.cheat"), {
-          description: t("submission:result.cheat"),
+        toast.error(t("submission:notifications.result.cheat.title"), {
+          description: t("submission:notifications.result.cheat.description"),
         });
       }
-    } catch (err) {
-      if (!(err instanceof HTTPError)) {
-        return;
-      }
-
-      try {
-        const body = (await err.response.json()) as { msg?: unknown };
-        toast.error(t("common:errors.default"), {
-          description: formatApiMsg(body.msg) || err.message,
-        });
-      } catch {
-        toast.error(t("common:errors.default"));
-      }
+    } catch (error) {
+      await notifyApiError(error);
     }
   }
 

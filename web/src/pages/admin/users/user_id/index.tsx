@@ -38,6 +38,7 @@ import { TextField } from "@/components/ui/text-field";
 import { Group } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 import { Context } from "./context";
 
 export default function Index() {
@@ -111,23 +112,21 @@ export default function Index() {
     );
   }, [user, form]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user) return;
 
     setLoading(true);
-    updateUser({
-      id: user.id!,
-      ...values,
-    })
-      .then((res) => {
-        toast.success(
-          t("user:actions.update.success", { username: res.user?.username })
-        );
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
-      });
+    try {
+      const res = await updateUser({ id: user.id!, ...values });
+      toast.success(
+        t("user:actions.update.success", { username: res.user?.username })
+      );
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   return (

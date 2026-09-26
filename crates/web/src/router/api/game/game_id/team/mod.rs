@@ -79,7 +79,7 @@ pub async fn create_team(
     Path(game_id): Path<i64>,
     ReqJson(body): ReqJson<CreateTeamRequest>,
 ) -> Result<(StatusCode, Json<TeamResponse>), WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
@@ -111,7 +111,7 @@ pub async fn create_team(
 
     let team = cds_db::team::find_by_id(&s.db.conn, team.id, team.game_id)
         .await?
-        .ok_or(WebError::NotFound(json!("")))?;
+        .ok_or(WebError::NotFound(json!("not_found")))?;
 
     Ok((
         StatusCode::CREATED,

@@ -115,6 +115,18 @@ Pagination, filters, and page-size controls belong in a compact footer with resu
 - Use Sonner for async success, warning, error, and progress feedback. Give long-running operations stable toast IDs so progress updates replace rather than duplicate notifications.
 - Hover states should change color, opacity, shadow, or underline; avoid scale jumps that move neighboring content.
 
+### Toast Content Hierarchy
+
+Treat a toast as a compact two-level message, not a container for an undifferentiated sentence:
+
+- The title answers **what happened**. Make it brief, specific, independently understandable, and easy to scan: for example, `Team size does not meet the requirements`.
+- The description answers **why it happened or what the user should do next**. Use it for cause, relevant context, impact, or a recovery action: for example, `Adjust the number of members and try again.`
+- Prefer a concrete business outcome over generic titles such as `Something went wrong`, `Request failed`, or `Operation failed` whenever a specific result is known.
+- Do not repeat the title in the description. If there is no useful secondary information, omit the description instead of padding the toast.
+- Apply the same hierarchy to every semantic type: success titles name the completed result, warning titles name the condition requiring attention, and loading titles name the operation or current phase; descriptions add only useful context or the next step.
+- Keep title and description as separate i18n values when both are needed. Do not split translated sentences at runtime by punctuation or string position, because sentence boundaries and word order vary across locales.
+- When presenting an API error, preserve the caller's action context only when it adds information. Use the specific translated business error as the title by default; if an action title is useful, place the specific backend reason or recovery guidance in the description.
+
 ## Responsive And Accessibility Requirements
 
 - Design mobile first. Check narrow widths, tablet widths, and a wide desktop before considering the UI complete. Prefer wrapping, scroll areas, and stacked controls over clipped text.

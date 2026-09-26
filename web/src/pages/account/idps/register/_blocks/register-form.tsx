@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { StatusCodes } from "http-status-codes";
 import { HTTPError } from "ky";
 import {
   CheckIcon,
@@ -30,7 +29,7 @@ import {
 import { TextField } from "@/components/ui/text-field";
 import { setAuthenticatedUser } from "@/storages/auth";
 import { cn } from "@/utils";
-import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import { notifyApiError } from "@/utils/query";
 import {
   clearIdpRedirect,
   getIdpRedirect,
@@ -145,47 +144,31 @@ function IdpRegisterForm() {
         replace: true,
       });
     } catch (error) {
-      if (!(error instanceof HTTPError)) throw error;
-      const status = error.response.status;
-      const body = await parseErrorResponse(error);
-
-      if (status === StatusCodes.BAD_REQUEST) {
+      if (error instanceof HTTPError) {
+        const redirect = getIdpRedirect(searchParams.get("redirect"));
+        const code =
+          error.data && typeof error.data === "object"
+            ? (error.data as { code?: unknown }).code
+            : undefined;
         if (
-          body.msg === "invalid_or_expired_token" ||
-          body.msg === "idp_pending_mismatch"
+          code === "invalid_or_expired_token" ||
+          code === "idp_pending_mismatch"
         ) {
           sessionStorage.removeItem("idp_pending_identity");
-          const redirect = getIdpRedirect(searchParams.get("redirect"));
           clearIdpRedirect();
           toast.error(t("account:idp.register.failed"), {
             id: "idp-register-error",
             description: t("account:idp.register.expired"),
           });
-          navigate(withRedirect("/account/login", redirect), {
-            replace: true,
-          });
+          navigate(withRedirect("/account/login", redirect), { replace: true });
           return;
         }
-
-        toast.error(t("account:idp.register.failed"), {
-          id: "idp-register-error",
-          description: formatApiMsg(body.msg),
-        });
       }
 
-      if (status === StatusCodes.CONFLICT) {
-        toast.error(t("account:idp.register.failed"), {
-          id: "idp-register-error",
-          description: t("account:idp.register.conflict"),
-        });
-      }
-
-      if (status === StatusCodes.FORBIDDEN) {
-        toast.error(t("account:idp.register.failed"), {
-          id: "idp-register-error",
-          description: t("account:idp.login.registration_disabled"),
-        });
-      }
+      await notifyApiError(error, {
+        id: "idp-register-error",
+        title: t("account:idp.register.failed"),
+      });
     } finally {
       setLoading(false);
     }

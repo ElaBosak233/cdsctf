@@ -54,7 +54,7 @@ pub async fn get_challenge_attachment(
     Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
 ) -> Result<Json<ChallengeAttachmentsListResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id)
         .await?
@@ -63,7 +63,7 @@ pub async fn get_challenge_attachment(
         .ok_or_else(|| WebError::NotFound(json!("challenge_has_not_attachment")))?;
 
     if !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge_id).await? {
-        return Err(WebError::Forbidden(json!("")));
+        return Err(WebError::Forbidden(json!("forbidden")));
     }
 
     let path = crate::util::media::build_challenge_attachment_path(challenge_id);

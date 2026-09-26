@@ -2,7 +2,10 @@ import { z } from "zod";
 
 /** JSON body for API error responses; use `response.status` for the HTTP status code. */
 export type ErrorResponse = {
-  msg?: unknown;
+  /** Stable, translatable error identifier returned by the API. */
+  code: string;
+  /** Optional structured details for field-level or diagnostic handling. */
+  details?: unknown;
 };
 
 /** Branded RFC 3339 timestamp string. */

@@ -44,7 +44,7 @@ pub async fn list_my_idps(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
 ) -> Result<Json<UserIdpsResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let idps =
         cds_db::user_idp::find_user_idps_by_user::<UserIdpSummary>(&s.db.conn, operator.id).await?;
     Ok(Json(UserIdpsResponse { idps }))
@@ -66,7 +66,7 @@ pub async fn unbind_my_idp(
     Extension(ext): Extension<AuthPrincipal>,
     Path(user_idp_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let identity = cds_db::user_idp::find_user_idp_by_id_and_user::<UserIdpModel>(
         &s.db.conn,
         user_idp_id,

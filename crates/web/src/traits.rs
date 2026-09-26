@@ -46,14 +46,16 @@ pub struct AuthPrincipal {
     pub client_ip: String,
 }
 
-/// JSON body for failed API responses. The HTTP status code is only on the
-/// response line (not duplicated in this object).
+/// JSON body for failed API responses. `code` is the stable, translatable
+/// identifier for the error; structured validation or diagnostic data is
+/// carried separately in `details`.
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct ErrorResponse {
-    /// Error detail; may be a string, object, or other JSON depending on the
-    /// handler.
+    /// Stable machine-readable error code.
+    pub code: String,
+    /// Optional structured details for clients that need field-level context.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub msg: Option<serde_json::Value>,
+    pub details: Option<serde_json::Value>,
 }
 
 /// Empty JSON object (`{}`) for success responses that carry no fields.
@@ -235,7 +237,36 @@ impl IntoResponse for WebError {
             );
         }
 
-        let body = ErrorResponse { msg: Some(message) };
+        // Handlers pass stable snake_case codes as strings. Any other string
+        // is an implementation/framework diagnostic and must remain details,
+        // otherwise it would leak unstable text into the public protocol.
+        let (code, details) = match message {
+            serde_json::Value::String(code) if is_stable_error_code(&code) => (code, None),
+            serde_json::Value::String(_) => (error_kind.to_owned(), None),
+            serde_json::Value::Object(mut details) => {
+                let code = details
+                    .remove("code")
+                    .and_then(|value| value.as_str().map(str::to_owned))
+                    .filter(|code| is_stable_error_code(code))
+                    .unwrap_or_else(|| error_kind.to_owned());
+                let details = if details.is_empty() {
+                    None
+                } else {
+                    Some(serde_json::Value::Object(details))
+                };
+                (code, details)
+            }
+            details => (error_kind.to_owned(), Some(details)),
+        };
+        let body = ErrorResponse { code, details };
         (status, Json(body)).into_response()
     }
+}
+
+/// Returns whether a string is safe to expose as a public error code.
+fn is_stable_error_code(value: &str) -> bool {
+    !value.is_empty()
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
 }

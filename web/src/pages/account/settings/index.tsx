@@ -39,6 +39,7 @@ import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
+import { notifyApiError } from "@/utils/query";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -86,7 +87,9 @@ export default function Index() {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error(t("user:settings.avatar_upload.size_error"));
+      toast.error(t("user:settings.avatar_upload.size_error.title"), {
+        description: t("user:settings.avatar_upload.size_error.description"),
+      });
       event.target.value = "";
       return;
     }
@@ -119,8 +122,11 @@ export default function Index() {
       toast.success(t("user:settings.avatar_upload.success"), {
         id: "user-avatar-upload",
       });
-    } catch {
-      toast.error(t("user:settings.avatar_upload.error"));
+    } catch (error) {
+      await notifyApiError(error, {
+        id: "user-avatar-upload",
+        title: t("user:settings.avatar_upload.error"),
+      });
     }
 
     event.target.value = "";

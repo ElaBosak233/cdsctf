@@ -39,6 +39,7 @@ export default function GameLayout() {
     queryFn: () => getTeamProfile({ game_id: gameId! }),
     enabled: gameId != null && authStatus === "authenticated" && !!user,
     retry: false,
+    meta: { suppressErrorToast: true },
   });
 
   const teamMembersQuery = useQuery({

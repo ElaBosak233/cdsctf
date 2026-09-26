@@ -21,7 +21,13 @@ import {
 } from "@/api/admin/games/game_id/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
@@ -34,7 +40,7 @@ import type { GameChallengeView } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
-import { parseRouteNumericId } from "@/utils/query";
+import { notifyApiError, parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 import { EditDialog } from "./edit-dialog";
 
@@ -163,25 +169,23 @@ function ActionsCell({ row }: { row: Row<GameChallengeView> }) {
   const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-  function handleDelete() {
+  async function handleDelete() {
     const gid = routeGameId ?? game?.id ?? row.original.game_id;
     if (gid == null || challenge_id == null) return;
 
-    deleteGameChallenge({
-      game_id: gid,
-      challenge_id,
-    })
-      .then(() => {
-        toast.success(
-          t("game:actions.delete.success", {
-            title,
-          })
-        );
-        setDeleteDialogOpen(false);
-      })
-      .finally(() => {
-        sharedStore?.setRefresh();
-      });
+    try {
+      await deleteGameChallenge({ game_id: gid, challenge_id });
+      toast.success(
+        t("game:actions.delete.success", {
+          title,
+        })
+      );
+      setDeleteDialogOpen(false);
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore?.setRefresh();
+    }
   }
 
   return (
@@ -236,23 +240,14 @@ function ActionsCell({ row }: { row: Row<GameChallengeView> }) {
               "flex-col",
             ])}
           >
-            <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-              <div className={cn(["flex", "items-center", "gap-3"])}>
-                <div
-                  className={cn([
-                    "flex items-center justify-center",
-                    "size-10 rounded-badge",
-                    "bg-error/10 text-error",
-                    "shrink-0",
-                  ])}
-                >
-                  <TrashIcon className={cn(["size-5"])} />
-                </div>
-                <h3 className={cn(["text-base", "font-semibold"])}>
-                  {t("game:challenge.actions.delete._")}
-                </h3>
-              </div>
-              <p className={cn(["text-sm"])}>
+            <DialogHeader
+              className="p-5 pb-0"
+              icon={<TrashIcon />}
+              level="error"
+              title={t("game:challenge.actions.delete._")}
+            />
+            <DialogBody className="px-5 py-5">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 <Trans
                   i18nKey="game:challenge.actions.delete.message"
                   values={{ title }}
@@ -261,17 +256,17 @@ function ActionsCell({ row }: { row: Row<GameChallengeView> }) {
                   }}
                 />
               </p>
-              <div className={cn(["flex", "justify-end"])}>
-                <Button
-                  level={"error"}
-                  variant={"solid"}
-                  size={"sm"}
-                  onClick={handleDelete}
-                >
-                  {t("common:actions.confirm")}
-                </Button>
-              </div>
-            </div>
+            </DialogBody>
+            <DialogFooter className="p-5 pt-0">
+              <Button
+                level={"error"}
+                variant={"solid"}
+                size={"sm"}
+                onClick={handleDelete}
+              >
+                {t("common:actions.confirm")}
+              </Button>
+            </DialogFooter>
           </Card>
         </DialogContent>
       </Dialog>

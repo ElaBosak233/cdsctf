@@ -16,6 +16,7 @@ import { z } from "zod";
 import { createUser } from "@/api/admin/users";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -36,6 +37,7 @@ import { TextField } from "@/components/ui/text-field";
 import { Group } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 
 interface CreateUserDialogProps {
   onClose: () => void;
@@ -74,21 +76,20 @@ function CreateUserDialog(props: CreateUserDialogProps) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    createUser({
-      ...values,
-    })
-      .then(() => {
-        toast.success(
-          t("user:actions.create.success", { username: values.username })
-        );
-        onClose();
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
-      });
+    try {
+      await createUser({ ...values });
+      toast.success(
+        t("user:actions.create.success", { username: values.username })
+      );
+      onClose();
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   const groupOptions = [
@@ -109,22 +110,12 @@ function CreateUserDialog(props: CreateUserDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <div className={cn(["flex", "items-center", "gap-3"])}>
-          <div
-            className={cn([
-              "flex items-center justify-center",
-              "size-10 rounded-badge",
-              "bg-primary/10",
-              "shrink-0",
-            ])}
-          >
-            <UserRoundPlusIcon className={cn(["size-5"])} />
-          </div>
-          <h3 className={cn(["text-base", "font-semibold"])}>
-            {t("user:actions.create._")}
-          </h3>
-        </div>
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<UserRoundPlusIcon />}
+        title={t("user:actions.create._")}
+      />
+      <DialogBody className="p-5 pt-4">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -279,18 +270,20 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                 </FormItem>
               )}
             />
-            <Button
-              type={"submit"}
-              variant={"solid"}
-              icon={<CheckIcon />}
-              level={"success"}
-              loading={loading}
-            >
-              {t("common:actions.confirm")}
-            </Button>
+            <DialogFooter>
+              <Button
+                type={"submit"}
+                variant={"solid"}
+                icon={<CheckIcon />}
+                level={"success"}
+                loading={loading}
+              >
+                {t("common:actions.confirm")}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
-      </div>
+      </DialogBody>
     </Card>
   );
 }

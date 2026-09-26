@@ -59,7 +59,7 @@ pub async fn get_team_write_up(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let team = util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
     util::media::get_write_up(s.media.clone(), game_id, team.id).await
@@ -87,7 +87,7 @@ pub async fn save_team_write_up(
     Path(game_id): Path<i64>,
     multipart: Multipart,
 ) -> Result<Json<TeamResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let game = util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = util::loader::prepare_self_team(&s.db.conn, game.id, operator.id).await?;
     let path = format!("games/{}/teams/{}/writeup", game.id, team.id);
@@ -106,7 +106,7 @@ pub async fn save_team_write_up(
     s.media
         .save(path, filename, data)
         .await
-        .map_err(|_| WebError::InternalServerError(json!("")))?;
+        .map_err(|_| WebError::InternalServerError(json!("internal_server_error")))?;
 
     let team = cds_db::team::update::<TeamView>(
         &s.db.conn,

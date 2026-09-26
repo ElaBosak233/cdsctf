@@ -81,7 +81,7 @@ pub async fn admin_only(
     req: Request,
     next: Next,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ap.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ap.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     if operator.group < Group::Admin {
         warn!(

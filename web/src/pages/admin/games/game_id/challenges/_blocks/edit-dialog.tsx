@@ -25,6 +25,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -41,7 +42,7 @@ import type { GameChallengeView } from "@/models/game_challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { curve } from "@/utils/math";
-import { parseRouteNumericId } from "@/utils/query";
+import { notifyApiError, parseRouteNumericId } from "@/utils/query";
 import { parseTimestamp } from "@/utils/time";
 import { Context } from "../../context";
 
@@ -128,17 +129,18 @@ function EditDialog(props: EditDialogProps) {
     );
   }
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     const gid = routeGameId ?? game?.id ?? gameChallenge.game_id;
     const cid = gameChallenge.challenge_id;
     if (gid == null || cid == null) return;
 
-    updateGameChallenge({
-      game_id: gid,
-      challenge_id: cid,
-      ...values,
-      frozen_at: values.frozen_at ? values.frozen_at.toISOString() : null,
-    }).then(() => {
+    try {
+      await updateGameChallenge({
+        game_id: gid,
+        challenge_id: cid,
+        ...values,
+        frozen_at: values.frozen_at ? values.frozen_at.toISOString() : null,
+      });
       toast.success(
         t("game:challenge.actions.edit_config_success", {
           title: gameChallenge?.challenge_title,
@@ -146,7 +148,9 @@ function EditDialog(props: EditDialogProps) {
       );
       sharedStore?.setRefresh();
       onClose();
-    });
+    } catch (error) {
+      await notifyApiError(error);
+    }
   }
 
   return (
@@ -162,22 +166,12 @@ function EditDialog(props: EditDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <div className={cn(["flex", "items-center", "gap-3"])}>
-          <div
-            className={cn([
-              "flex items-center justify-center",
-              "size-10 rounded-badge",
-              "bg-primary/10",
-              "shrink-0",
-            ])}
-          >
-            <LibraryIcon className={cn(["size-5"])} />
-          </div>
-          <h3 className={cn(["text-base", "font-semibold"])}>
-            {t("game:challenge.actions.edit._")}
-          </h3>
-        </div>
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<LibraryIcon />}
+        title={t("game:challenge.actions.edit._")}
+      />
+      <DialogBody className="p-5 pt-4">
         <ScrollArea className={cn(["max-h-144", "overflow-y-auto"])}>
           <Form {...form}>
             <form
@@ -279,7 +273,7 @@ function EditDialog(props: EditDialogProps) {
                   <FormItem>
                     <FormLabel>{t("game:challenge.form.frozen_at")}</FormLabel>
                     <FormControl>
-                      <Field>
+                      <Field size={"sm"}>
                         <FieldIcon>
                           <ClockFadingIcon />
                         </FieldIcon>
@@ -388,13 +382,15 @@ function EditDialog(props: EditDialogProps) {
                   />
                 </AreaChart>
               </ChartContainer>
-              <Button type={"submit"} variant={"solid"} icon={<SaveIcon />}>
-                {t("common:actions.save")}
-              </Button>
+              <DialogFooter>
+                <Button type={"submit"} variant={"solid"} icon={<SaveIcon />}>
+                  {t("common:actions.save")}
+                </Button>
+              </DialogFooter>
             </form>
           </Form>
         </ScrollArea>
-      </div>
+      </DialogBody>
     </Card>
   );
 }

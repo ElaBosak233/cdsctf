@@ -13,6 +13,7 @@ import { z } from "zod";
 import { addEmail } from "@/api/admin/users/user_id/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -75,89 +76,94 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
   }
 
   return (
-    <Card
-      className={cn(["w-full", "max-w-xl", "p-6", "flex", "flex-col", "gap-6"])}
-    >
-      <div className={cn(["flex", "items-center", "gap-2", "text-sm"])}>
-        <MailPlusIcon className={cn(["size-4"])} />
-        {t("user:emails.actions.create._")}
-      </div>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          autoComplete={"off"}
-          className={cn(["flex", "flex-col", "gap-6"])}
-        >
-          <FormField
-            control={form.control}
-            name={"email"}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("user:emails.form.email._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <MailIcon />
-                    </FieldIcon>
-                    <TextField
-                      {...field}
-                      placeholder={t("user:emails.form.email.placeholder")}
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                    />
-                  </Field>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name={"verified"}
-            render={({ field }) => (
-              <FormItem
-                className={cn([
-                  "flex",
-                  "flex-row",
-                  "items-center",
-                  "justify-between",
-                  "rounded-lg",
-                  "border",
-                  "p-4",
-                ])}
-              >
-                <div className={cn(["space-y-1"])}>
-                  <FormLabel className={cn(["flex", "items-center", "gap-2"])}>
-                    <ShieldCheckIcon className={cn(["size-4"])} />
-                    {t("user:emails.form.verified._")}
-                  </FormLabel>
-                  <p className={cn(["text-muted-foreground", "text-sm"])}>
-                    {t("user:emails.form.verified.message")}
-                  </p>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={(checked) => field.onChange(!!checked)}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <Button
-            type={"submit"}
-            variant={"solid"}
-            icon={<CheckIcon />}
-            size={"lg"}
-            loading={loading}
-            level={"success"}
+    <Card className={cn(["w-full", "max-w-xl", "flex", "flex-col"])}>
+      <DialogHeader
+        className="px-6 pt-6"
+        icon={<MailPlusIcon />}
+        title={t("user:emails.actions.create._")}
+      />
+      <DialogBody className="p-6 pt-4">
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            autoComplete={"off"}
+            className={cn(["flex", "flex-col", "gap-6"])}
           >
-            {t("common:actions.confirm")}
-          </Button>
-        </form>
-      </Form>
+            <FormField
+              control={form.control}
+              name={"email"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("user:emails.form.email._")}</FormLabel>
+                  <FormControl>
+                    <Field>
+                      <FieldIcon>
+                        <MailIcon />
+                      </FieldIcon>
+                      <TextField
+                        {...field}
+                        placeholder={t("user:emails.form.email.placeholder")}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                      />
+                    </Field>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name={"verified"}
+              render={({ field }) => (
+                <FormItem
+                  className={cn([
+                    "flex",
+                    "flex-row",
+                    "items-center",
+                    "justify-between",
+                    "rounded-lg",
+                    "border",
+                    "p-4",
+                  ])}
+                >
+                  <div className={cn(["space-y-1"])}>
+                    <FormLabel
+                      className={cn(["flex", "items-center", "gap-2"])}
+                    >
+                      <ShieldCheckIcon className={cn(["size-4"])} />
+                      {t("user:emails.form.verified._")}
+                    </FormLabel>
+                    <p className={cn(["text-muted-foreground", "text-sm"])}>
+                      {t("user:emails.form.verified.message")}
+                    </p>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(!!checked)}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button
+                type={"submit"}
+                variant={"solid"}
+                icon={<CheckIcon />}
+                size={"lg"}
+                loading={loading}
+                level={"success"}
+              >
+                {t("common:actions.confirm")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogBody>
     </Card>
   );
 }

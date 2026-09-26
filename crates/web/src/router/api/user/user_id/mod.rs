@@ -53,7 +53,7 @@ pub async fn get_user(
 ) -> Result<Json<UserPublicResponse>, WebError> {
     let user = cds_db::user::find_by_id::<cds_db::UserAccountView>(&s.db.conn, user_id)
         .await?
-        .ok_or(WebError::NotFound(json!("")))?;
+        .ok_or(WebError::NotFound(json!("not_found")))?;
     Ok(Json(UserPublicResponse {
         user: UserProfile::from(&user),
     }))

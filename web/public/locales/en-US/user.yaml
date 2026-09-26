@@ -25,7 +25,9 @@ settings:
     progress: "Upload progress {{percent}}%"
     success: Avatar uploaded successfully.
     error: Avatar upload failed.
-    size_error: Avatar size exceeds 5MB limit.
+    size_error:
+      title: Avatar is too large
+      description: Choose an avatar no larger than 5 MB.
   avatar_delete_success: Avatar deleted successfully.
 id: ID
 username: Username
@@ -194,5 +196,4 @@ idp:
     unbound: Unbound
     bound_toast: IdP bound
     unbound_toast: IdP unbound
-    request_failed: IdP request failed
     signed_in: Signed in

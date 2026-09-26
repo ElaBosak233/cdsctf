@@ -12,10 +12,10 @@ await i18n
     supportedLngs: ["en-US", "zh-CN", "zh-TW", "ja-JP"],
     fallbackLng: {
       en: ["en-US"],
-      zh: ["zh-CN"],
-      "zh-TW": ["zh-TW", "zh-CN"],
-      ja: ["ja-JP"],
-      "ja-JP": ["ja-JP"],
+      zh: ["zh-CN", "en-US"],
+      "zh-TW": ["zh-TW", "zh-CN", "en-US"],
+      ja: ["ja-JP", "en-US"],
+      "ja-JP": ["ja-JP", "en-US"],
       default: ["en-US"],
     },
     ns: [

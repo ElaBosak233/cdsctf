@@ -23,7 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { parseRouteNumericId } from "@/utils/query";
+import { notifyApiError, parseRouteNumericId } from "@/utils/query";
 import { Context } from "./context";
 
 export default function Layout() {
@@ -114,23 +114,24 @@ export default function Layout() {
         t("game:actions.update.success", { title: res.game.title })
       );
       sharedStore.setRefresh();
-    } catch {
+    } catch (error) {
       setGameState((current) => ({ ...current, [state]: previous }));
-      toast.error(t("common:errors.network"));
+      await notifyApiError(error);
     } finally {
       setUpdatingState(null);
     }
   }
 
-  function handleRecalculate() {
+  async function handleRecalculate() {
     setLoading(true);
-    calculateGame({ game_id: gameId! })
-      .then(() => {
-        toast.success(t("game:edit.recalculate"));
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    try {
+      await calculateGame({ game_id: gameId! });
+      toast.success(t("game:edit.recalculate"));
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

@@ -87,7 +87,9 @@ avatar:
     progress: "上传进度 {{percent}}%"
     success: 头像上传成功。
     error: 头像上传失败。
-    size_error: 头像大小超过 5MB 限制。
+    size_error:
+      title: 头像过大
+      description: 请选择不超过 5 MB 的头像。
   delete:
     success: 头像删除成功。
   team_delete_success: "团队 {{name}} 头像删除成功。"
@@ -101,3 +103,16 @@ form:
     placeholder: 请输入你的邀请码
     required: 请输入你的邀请码
     invalid: 无效的邀请码
+errors:
+  invalid_invite_token: 邀请码无效或已过期。
+  invalid_team: 团队信息无效。
+  member_limit_not_satisfied:
+    title: 团队人数不符合参赛要求
+    description: 请调整成员数量后重试。
+  no_invite_token:
+    title: 暂无可用邀请码
+    description: 请先生成邀请码。
+  no_other_member: 团队至少需要保留一名其他成员。
+  not_found: 未找到团队。
+  not_preparing: 团队当前不处于准备状态。
+  user_already_in_game: 你已经参加了这场比赛。

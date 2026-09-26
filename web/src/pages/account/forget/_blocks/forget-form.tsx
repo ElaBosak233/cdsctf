@@ -1,6 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { StatusCodes } from "http-status-codes";
-import { HTTPError } from "ky";
 import { CheckIcon, LockIcon, MailIcon, SendIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -24,7 +22,7 @@ import { TextField } from "@/components/ui/text-field";
 import { Captcha, type CaptchaRef } from "@/components/widgets/captcha";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import { notifyApiError } from "@/utils/query";
 
 function ForgetForm() {
   const configStore = useConfigStore();
@@ -71,13 +69,7 @@ function ForgetForm() {
       navigate("/account/login");
       captchaRef.current?.refresh();
     } catch (error) {
-      if (!(error instanceof HTTPError)) throw error;
-      const body = await parseErrorResponse(error);
-      if (error.response.status === StatusCodes.BAD_REQUEST) {
-        toast.error(t("common:errors.default"), {
-          description: formatApiMsg(body.msg),
-        });
-      }
+      await notifyApiError(error);
       captchaRef.current?.refresh();
     } finally {
       setLoading(false);
@@ -91,17 +83,7 @@ function ForgetForm() {
       });
       toast.success(t("account:forget.toast.code_sent"));
     } catch (error) {
-      if (!(error instanceof HTTPError)) return;
-      const body = await parseErrorResponse(error);
-      const status = error.response.status;
-      if (status === StatusCodes.BAD_REQUEST) {
-        toast.error(t("common:errors.default"), {
-          description: formatApiMsg(body.msg),
-        });
-      }
-      if (status === StatusCodes.NOT_FOUND) {
-        toast.error(t("account:forget.toast.not_found"));
-      }
+      await notifyApiError(error);
     }
   }
 

@@ -51,7 +51,7 @@ pub async fn get_attachment(
     Extension(ext): Extension<AuthPrincipal>,
     Path((challenge_id, filename)): Path<(i64, String)>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id)
         .await?
         .has_attachment
@@ -59,7 +59,7 @@ pub async fn get_attachment(
         .ok_or_else(|| WebError::NotFound(json!("challenge_has_not_attachment")))?;
 
     if !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge_id).await? {
-        return Err(WebError::Forbidden(json!("")));
+        return Err(WebError::Forbidden(json!("forbidden")));
     }
 
     let path = crate::util::media::build_challenge_attachment_path(challenge_id);
@@ -69,7 +69,7 @@ pub async fn get_attachment(
             .media
             .presign_get(&path, &filename, 3600)
             .await
-            .map_err(|_| WebError::NotFound(json!("")))?;
+            .map_err(|_| WebError::NotFound(json!("not_found")))?;
         return Ok(Redirect::temporary(&url).into_response());
     }
 
@@ -77,7 +77,7 @@ pub async fn get_attachment(
         .media
         .get(path, filename.clone())
         .await
-        .map_err(|_| WebError::NotFound(json!("")))?;
+        .map_err(|_| WebError::NotFound(json!("not_found")))?;
 
     Ok(Response::builder()
         .status(StatusCode::OK)

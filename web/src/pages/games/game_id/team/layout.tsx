@@ -1,5 +1,3 @@
-import { StatusCodes } from "http-status-codes";
-import { HTTPError } from "ky";
 import {
   CheckCheckIcon,
   CheckIcon,
@@ -19,7 +17,13 @@ import { deleteTeam, setTeamReady } from "@/api/games/game_id/teams/us";
 import { leaveTeam } from "@/api/games/game_id/teams/us/users";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
@@ -34,7 +38,7 @@ import { State } from "@/models/team";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import { notifyApiError } from "@/utils/query";
 import { getGamePhase, isGameActive } from "@/utils/time";
 
 export default function Layout() {
@@ -84,14 +88,7 @@ export default function Layout() {
       });
       setConfirmDialogOpen(false);
     } catch (error) {
-      if (!(error instanceof HTTPError)) throw error;
-      const body = await parseErrorResponse(error);
-
-      if (error.response.status === StatusCodes.BAD_REQUEST) {
-        toast.error(t("common:errors.default"), {
-          description: formatApiMsg(body.msg),
-        });
-      }
+      await notifyApiError(error);
     }
     sharedStore.setRefresh();
   }
@@ -133,17 +130,12 @@ export default function Layout() {
           name: selfTeam?.name,
         }),
       });
-      setDisbandDialogOpen(false);
+      setLeaveDialogOpen(false);
       navigate(`/games/${currentGame?.id}`);
     } catch (error) {
-      if (!(error instanceof HTTPError)) return;
-      const body = await parseErrorResponse(error);
-
-      if (error.response.status === StatusCodes.BAD_REQUEST) {
-        toast.error(t("team:actions.leave.error"), {
-          description: formatApiMsg(body.msg),
-        });
-      }
+      await notifyApiError(error, {
+        title: t("team:actions.leave.error"),
+      });
     } finally {
       sharedStore.setRefresh();
     }
@@ -186,172 +178,153 @@ export default function Layout() {
             </SidebarMenu>
             <Separator />
             <div className={cn(["flex-1"])} />
-            <div className={cn(["flex", "gap-5", "justify-center"])}>
-              <Button
-                size={"md"}
-                icon={<UserRoundXIcon />}
-                level={"error"}
-                className={cn(["w-1/2"])}
-                disabled={selfTeam?.state !== State.Preparing || disabled}
-                onClick={() => setDisbandDialogOpen(true)}
-              >
-                {t("team:actions.disband._")}
-              </Button>
-              <Dialog
-                onOpenChange={setDisbandDialogOpen}
-                open={disbandDialogOpen}
-              >
-                <DialogContent>
-                  <Card
-                    className={cn([
-                      "w-full",
-                      "max-w-xl",
-                      "rounded-elevated",
-                      "shadow-lg",
-                      "overflow-hidden",
-                      "flex",
-                      "flex-col",
-                    ])}
-                  >
-                    <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-                      <div className={cn(["flex", "items-start", "gap-3.5"])}>
-                        <div
-                          className={cn([
-                            "flex items-center justify-center",
-                            "size-10 rounded-badge",
-                            "bg-error/10 text-error",
-                            "shadow-xs shrink-0",
-                          ])}
-                        >
-                          <UserRoundXIcon className={cn(["size-5"])} />
-                        </div>
-                        <div
-                          className={cn([
-                            "flex",
-                            "flex-col",
-                            "gap-1",
-                            "pt-0.5",
-                          ])}
-                        >
-                          <h3
-                            className={cn([
-                              "text-sm",
-                              "font-semibold",
-                              "text-foreground",
-                            ])}
-                          >
-                            {t("team:actions.disband._")}
-                          </h3>
-                        </div>
-                      </div>
-                      <p className={cn(["text-sm", "text-muted-foreground"])}>
-                        {t("team:actions.disband.message")}
-                      </p>
-                      <Button
-                        icon={<CheckCheckIcon />}
-                        level={"error"}
-                        variant={"solid"}
-                        onClick={handleDisband}
-                      >
-                        {t("common:actions.confirm")}
-                      </Button>
-                    </div>
-                  </Card>
-                </DialogContent>
-              </Dialog>
-              <Button
-                size={"md"}
-                icon={<UserRoundMinusIcon />}
-                level={"warning"}
-                className={cn(["w-1/2"])}
-                disabled={
-                  selfTeam?.state !== State.Preparing ||
-                  members?.length === 1 ||
-                  disabled
-                }
-                onClick={() => setLeaveDialogOpen(true)}
-              >
-                {t("team:actions.leave._")}
-              </Button>
-              <Dialog onOpenChange={setLeaveDialogOpen} open={leaveDialogOpen}>
-                <DialogContent>
-                  <Card
-                    className={cn([
-                      "w-full",
-                      "max-w-xl",
-                      "rounded-elevated",
-                      "shadow-lg",
-                      "overflow-hidden",
-                      "flex",
-                      "flex-col",
-                    ])}
-                  >
-                    <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-                      <div className={cn(["flex", "items-start", "gap-3.5"])}>
-                        <div
-                          className={cn([
-                            "flex items-center justify-center",
-                            "size-10 rounded-badge",
-                            "bg-warning/10 text-warning",
-                            "shadow-xs shrink-0",
-                          ])}
-                        >
-                          <UserRoundMinusIcon className={cn(["size-5"])} />
-                        </div>
-                        <div
-                          className={cn([
-                            "flex",
-                            "flex-col",
-                            "gap-1",
-                            "pt-0.5",
-                          ])}
-                        >
-                          <h3
-                            className={cn([
-                              "text-sm",
-                              "font-semibold",
-                              "text-foreground",
-                            ])}
-                          >
-                            {t("team:actions.leave._")}
-                          </h3>
-                        </div>
-                      </div>
-                      <p className={cn(["text-sm", "text-muted-foreground"])}>
-                        {t("team:actions.leave.message")}
-                      </p>
-                      <Button
-                        icon={<CheckCheckIcon />}
-                        level={"error"}
-                        variant={"solid"}
-                        onClick={handleLeave}
-                      >
-                        {t("common:actions.confirm")}
-                      </Button>
-                    </div>
-                  </Card>
-                </DialogContent>
-              </Dialog>
-            </div>
-            <Button
-              size={"lg"}
-              className={cn(["justify-start"])}
-              icon={
-                selfTeam?.state === State.Preparing ? (
-                  <CheckIcon />
-                ) : (
-                  <LockIcon />
-                )
-              }
-              level={selfTeam?.state === State.Preparing ? "success" : "error"}
-              variant={"solid"}
-              disabled={selfTeam?.state !== State.Preparing || disabled}
-              onClick={() => setConfirmDialogOpen(true)}
+            <section className="rounded-lg border border-border/70 bg-card/60 p-3 shadow-xs">
+              <div className="flex min-w-0 items-center gap-3">
+                <div
+                  className={cn(
+                    "flex size-9 shrink-0 items-center justify-center rounded-md",
+                    selfTeam?.state === State.Preparing
+                      ? "bg-success/10 text-success"
+                      : "bg-error/10 text-error"
+                  )}
+                >
+                  {selfTeam?.state === State.Preparing ? (
+                    <CheckIcon className="size-4" />
+                  ) : (
+                    <LockIcon className="size-4" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">
+                    {t("team:state._")}
+                  </p>
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {selfTeam?.state === State.Preparing
+                      ? t("team:state.preparing")
+                      : t("team:actions.locked")}
+                  </p>
+                </div>
+              </div>
+              <Separator className="my-3" />
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  icon={<UserRoundXIcon />}
+                  level="error"
+                  className="w-full px-2 text-xs"
+                  disabled={selfTeam?.state !== State.Preparing || disabled}
+                  onClick={() => setDisbandDialogOpen(true)}
+                >
+                  {t("team:actions.disband._")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  icon={<UserRoundMinusIcon />}
+                  level="warning"
+                  className="w-full px-2 text-xs"
+                  disabled={
+                    selfTeam?.state !== State.Preparing ||
+                    members?.length === 1 ||
+                    disabled
+                  }
+                  onClick={() => setLeaveDialogOpen(true)}
+                >
+                  {t("team:actions.leave._")}
+                </Button>
+              </div>
+              {selfTeam?.state === State.Preparing && (
+                <Button
+                  size="md"
+                  className="mt-2 w-full"
+                  icon={<CheckIcon />}
+                  level="success"
+                  variant="solid"
+                  disabled={disabled}
+                  onClick={() => setConfirmDialogOpen(true)}
+                >
+                  {t("team:actions.ready._")}
+                </Button>
+              )}
+            </section>
+            <Dialog
+              onOpenChange={setDisbandDialogOpen}
+              open={disbandDialogOpen}
             >
-              {selfTeam?.state === State.Preparing
-                ? t("team:actions.ready._")
-                : t("team:actions.locked")}
-            </Button>
+              <DialogContent>
+                <Card
+                  className={cn([
+                    "w-full",
+                    "max-w-xl",
+                    "rounded-elevated",
+                    "shadow-lg",
+                    "overflow-hidden",
+                    "flex",
+                    "flex-col",
+                  ])}
+                >
+                  <DialogHeader
+                    className="p-5 pb-0"
+                    icon={<UserRoundXIcon />}
+                    level="error"
+                    title={t("team:actions.disband._")}
+                  />
+                  <DialogBody className="px-5 py-5">
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {t("team:actions.disband.message")}
+                    </p>
+                  </DialogBody>
+                  <DialogFooter className="p-5 pt-0">
+                    <Button
+                      icon={<CheckCheckIcon />}
+                      level="error"
+                      variant="solid"
+                      onClick={handleDisband}
+                    >
+                      {t("common:actions.confirm")}
+                    </Button>
+                  </DialogFooter>
+                </Card>
+              </DialogContent>
+            </Dialog>
+            <Dialog onOpenChange={setLeaveDialogOpen} open={leaveDialogOpen}>
+              <DialogContent>
+                <Card
+                  className={cn([
+                    "w-full",
+                    "max-w-xl",
+                    "rounded-elevated",
+                    "shadow-lg",
+                    "overflow-hidden",
+                    "flex",
+                    "flex-col",
+                  ])}
+                >
+                  <DialogHeader
+                    className="p-5 pb-0"
+                    icon={<UserRoundMinusIcon />}
+                    level="warning"
+                    title={t("team:actions.leave._")}
+                  />
+                  <DialogBody className="px-5 py-5">
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {t("team:actions.leave.message")}
+                    </p>
+                  </DialogBody>
+                  <DialogFooter className="p-5 pt-0">
+                    <Button
+                      icon={<CheckCheckIcon />}
+                      level="error"
+                      variant="solid"
+                      onClick={handleLeave}
+                    >
+                      {t("common:actions.confirm")}
+                    </Button>
+                  </DialogFooter>
+                </Card>
+              </DialogContent>
+            </Dialog>
             <Dialog
               onOpenChange={setConfirmDialogOpen}
               open={confirmDialogOpen}
@@ -368,35 +341,18 @@ export default function Layout() {
                     "flex-col",
                   ])}
                 >
-                  <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-                    <div className={cn(["flex", "items-start", "gap-3.5"])}>
-                      <div
-                        className={cn([
-                          "flex items-center justify-center",
-                          "size-10 rounded-badge",
-                          "bg-warning/10 text-warning",
-                          "shadow-xs shrink-0",
-                        ])}
-                      >
-                        <TriangleAlertIcon className={cn(["size-5"])} />
-                      </div>
-                      <div
-                        className={cn(["flex", "flex-col", "gap-1", "pt-0.5"])}
-                      >
-                        <h3
-                          className={cn([
-                            "text-sm",
-                            "font-semibold",
-                            "text-foreground",
-                          ])}
-                        >
-                          {t("team:actions.ready.title")}
-                        </h3>
-                      </div>
-                    </div>
-                    <p className={cn(["text-sm", "text-muted-foreground"])}>
+                  <DialogHeader
+                    className="p-5 pb-0"
+                    icon={<TriangleAlertIcon />}
+                    level="warning"
+                    title={t("team:actions.ready.title")}
+                  />
+                  <DialogBody className="px-5 py-5">
+                    <p className="text-sm leading-relaxed text-muted-foreground">
                       {t("team:actions.ready.message")}
                     </p>
+                  </DialogBody>
+                  <DialogFooter className="p-5 pt-0">
                     <Button
                       icon={<CheckCheckIcon />}
                       level={"warning"}
@@ -405,7 +361,7 @@ export default function Layout() {
                     >
                       {t("team:actions.ready.of_course")}
                     </Button>
-                  </div>
+                  </DialogFooter>
                 </Card>
               </DialogContent>
             </Dialog>

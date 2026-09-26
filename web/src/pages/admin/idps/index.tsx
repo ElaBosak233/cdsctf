@@ -31,6 +31,7 @@ import type { IdpView } from "@/models/idp";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
 
@@ -69,8 +70,8 @@ export default function Index() {
         auth: response.config.auth,
       });
       toast.success(t("admin:idp.local_registration.updated"));
-    } catch {
-      toast.error(t("common:errors.default"));
+    } catch (error) {
+      await notifyApiError(error);
     } finally {
       setConfigSaving(false);
     }

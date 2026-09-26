@@ -6,11 +6,18 @@ import { toast } from "sonner";
 import { deleteChallengeAttachment } from "@/api/admin/challenges/challenge_id/attachments/filename";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import type { Metadata } from "@/models/media";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 import { Context } from "../context";
 
 function ActionsCell({ row }: { row: Row<Metadata> }) {
@@ -21,19 +28,20 @@ function ActionsCell({ row }: { row: Row<Metadata> }) {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
 
-  function handleDelete() {
-    deleteChallengeAttachment(challenge?.id, row.original.filename)
-      .then(() => {
-        toast.success(
-          t("challenge:attachment.actions.delete.success", {
-            filename: row.original.filename,
-          })
-        );
-        setDeleteDialogOpen(false);
-      })
-      .finally(() => {
-        sharedStore?.setRefresh();
-      });
+  async function handleDelete() {
+    try {
+      await deleteChallengeAttachment(challenge?.id, row.original.filename);
+      toast.success(
+        t("challenge:attachment.actions.delete.success", {
+          filename: row.original.filename,
+        })
+      );
+      setDeleteDialogOpen(false);
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore?.setRefresh();
+    }
   }
 
   return (
@@ -67,23 +75,14 @@ function ActionsCell({ row }: { row: Row<Metadata> }) {
               "flex-col",
             ])}
           >
-            <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-              <div className={cn(["flex", "items-center", "gap-3"])}>
-                <div
-                  className={cn([
-                    "flex items-center justify-center",
-                    "size-10 rounded-badge",
-                    "bg-error/10 text-error",
-                    "shrink-0",
-                  ])}
-                >
-                  <TrashIcon className={cn(["size-5"])} />
-                </div>
-                <h3 className={cn(["text-base", "font-semibold"])}>
-                  {t("challenge:attachment.actions.delete._")}
-                </h3>
-              </div>
-              <p className={cn(["text-sm"])}>
+            <DialogHeader
+              className="p-5 pb-0"
+              icon={<TrashIcon />}
+              level="error"
+              title={t("challenge:attachment.actions.delete._")}
+            />
+            <DialogBody className="px-5 py-5">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 <Trans
                   i18nKey="challenge:attachment.actions.delete.message"
                   values={{ filename: row.original.filename }}
@@ -92,17 +91,17 @@ function ActionsCell({ row }: { row: Row<Metadata> }) {
                   }}
                 />
               </p>
-              <div className={cn(["flex", "justify-end"])}>
-                <Button
-                  level={"error"}
-                  variant={"tonal"}
-                  size={"sm"}
-                  onClick={handleDelete}
-                >
-                  {t("common:actions.confirm")}
-                </Button>
-              </div>
-            </div>
+            </DialogBody>
+            <DialogFooter className="p-5 pt-0">
+              <Button
+                level={"error"}
+                variant={"tonal"}
+                size={"sm"}
+                onClick={handleDelete}
+              >
+                {t("common:actions.confirm")}
+              </Button>
+            </DialogFooter>
           </Card>
         </DialogContent>
       </Dialog>

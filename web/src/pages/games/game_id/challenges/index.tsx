@@ -55,6 +55,7 @@ export default function Index() {
       });
     },
     enabled: gameId != null && !currentGame?.paused,
+    meta: { suppressErrorToast: true },
   });
 
   const categories = useMemo(() => {
@@ -82,11 +83,15 @@ export default function Index() {
 
     if (error.response.status === StatusCodes.FORBIDDEN) {
       navigate(`/games/${currentGame?.id}`);
-      toast.error(t("game:challenges.no_permission"));
+      toast.error(t("game:challenges.no_permission.title"), {
+        description: t("game:challenges.no_permission.description"),
+      });
     }
     if (error.response.status === StatusCodes.LOCKED) {
       navigate(`/games/${currentGame?.id}`);
-      toast.error(t("game:paused.title"));
+      toast.error(t("game:paused.title"), {
+        description: t("game:paused.description"),
+      });
     }
   }, [error, navigate, currentGame?.id, t]);
 

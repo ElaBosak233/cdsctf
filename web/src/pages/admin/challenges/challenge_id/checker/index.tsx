@@ -32,6 +32,7 @@ import {
 import { useDebounce } from "@/hooks/use-debounce";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 import { Context } from "../context";
 
 import leetChecker from "./_blocks/examples/leet.lua?raw";
@@ -82,23 +83,21 @@ export default function Index() {
     });
   }, [challenge, form]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    updateChallengeChecker({
-      id: challenge?.id,
-      ...values,
-    })
-      .then(() => {
-        toast.success(
-          t("challenge:checker.actions.update_success", {
-            title: challenge?.title,
-          })
-        );
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
-      });
+    try {
+      await updateChallengeChecker({ id: challenge?.id, ...values });
+      toast.success(
+        t("challenge:checker.actions.update_success", {
+          title: challenge?.title,
+        })
+      );
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   const checker = form.watch("checker");
@@ -115,22 +114,26 @@ export default function Index() {
     }
 
     setLintState("checking");
-    lintChallengeChecker({
-      id: challenge.id,
-      checker: debouncedChecker,
-    })
-      .then((res) => {
+    const challengeId = challenge.id;
+    async function lintChecker() {
+      try {
+        const res = await lintChallengeChecker({
+          id: challengeId,
+          checker: debouncedChecker,
+        });
         if (active) {
           setLint(res.markers);
           setLintState(res.markers.length === 0 ? "valid" : "invalid");
         }
-      })
-      .catch(() => {
+      } catch {
         if (active) {
           setLint([]);
           setLintState("error");
         }
-      });
+      }
+    }
+
+    void lintChecker();
 
     return () => {
       active = false;

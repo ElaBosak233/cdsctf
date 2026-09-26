@@ -22,7 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import type { EmailView } from "@/models/email";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { parseRouteNumericId } from "@/utils/query";
+import { notifyApiError, parseRouteNumericId } from "@/utils/query";
 import { CreateEmailDialog } from "./_blocks/create-dialog";
 import { DeleteEmailDialog } from "./_blocks/delete-dialog";
 
@@ -58,19 +58,18 @@ export default function Emails() {
     sharedStore.setRefresh();
   }
 
-  function handleToggle(email: string, verified: boolean) {
+  async function handleToggle(email: string, verified: boolean) {
     if (userId == null) return;
     setUpdatingEmail(email);
-    updateEmail({
-      user_id: userId,
-      email,
-      verified,
-    })
-      .then(() => {
-        toast.success(t("user:emails.actions.update.success", { email }));
-        handleRefresh();
-      })
-      .finally(() => setUpdatingEmail(undefined));
+    try {
+      await updateEmail({ user_id: userId, email, verified });
+      toast.success(t("user:emails.actions.update.success", { email }));
+      handleRefresh();
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      setUpdatingEmail(undefined);
+    }
   }
 
   return (

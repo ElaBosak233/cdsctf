@@ -9,6 +9,7 @@ import { z } from "zod";
 import { createGameNotice } from "@/api/admin/games/game_id/notices";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -22,7 +23,7 @@ import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
-import { parseRouteNumericId } from "@/utils/query";
+import { notifyApiError, parseRouteNumericId } from "@/utils/query";
 import { Context } from "../../context";
 
 interface CreateDialogProps {
@@ -51,20 +52,20 @@ function CreateDialog(props: CreateDialogProps) {
     resolver: zodResolver(formSchema),
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     const gid = routeGameId ?? game?.id;
     if (gid == null) return;
 
-    createGameNotice({
-      game_id: gid,
-      ...values,
-    }).then((res) => {
+    try {
+      const res = await createGameNotice({ game_id: gid, ...values });
       toast.success(
         t("game:notice.actions.create.success", { title: res?.notice?.title })
       );
       sharedStore?.setRefresh();
       onClose();
-    });
+    } catch (error) {
+      await notifyApiError(error);
+    }
   }
 
   return (
@@ -80,22 +81,12 @@ function CreateDialog(props: CreateDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <div className={cn(["flex", "items-center", "gap-3"])}>
-          <div
-            className={cn([
-              "flex items-center justify-center",
-              "size-10 rounded-badge",
-              "bg-primary/10",
-              "shrink-0",
-            ])}
-          >
-            <MessageCircleIcon className={cn(["size-5"])} />
-          </div>
-          <h3 className={cn(["text-base", "font-semibold"])}>
-            {t("game:notice.actions.create._")}
-          </h3>
-        </div>
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<MessageCircleIcon />}
+        title={t("game:notice.actions.create._")}
+      />
+      <DialogBody className="p-5 pt-4">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -140,12 +131,14 @@ function CreateDialog(props: CreateDialogProps) {
                 </FormItem>
               )}
             />
-            <Button icon={<SaveIcon />} variant={"solid"} type={"submit"}>
-              {t("common:actions.save")}
-            </Button>
+            <DialogFooter>
+              <Button icon={<SaveIcon />} variant={"solid"} type={"submit"}>
+                {t("common:actions.save")}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
-      </div>
+      </DialogBody>
     </Card>
   );
 }

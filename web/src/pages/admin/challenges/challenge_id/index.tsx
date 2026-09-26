@@ -39,6 +39,7 @@ import { TextField } from "@/components/ui/text-field";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
+import { notifyApiError } from "@/utils/query";
 import { Context } from "./context";
 
 export default function Index() {
@@ -76,23 +77,21 @@ export default function Index() {
     });
   }, [challenge, form]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    updateChallenge({
-      id: challenge?.id,
-      ...values,
-    })
-      .then((res) => {
-        toast.success(
-          t("challenge:actions.update.success", {
-            title: res?.challenge?.title,
-          })
-        );
-      })
-      .finally(() => {
-        sharedStore.setRefresh();
-        setLoading(false);
-      });
+    try {
+      const res = await updateChallenge({ id: challenge?.id, ...values });
+      toast.success(
+        t("challenge:actions.update.success", {
+          title: res?.challenge?.title,
+        })
+      );
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      sharedStore.setRefresh();
+      setLoading(false);
+    }
   }
 
   return (

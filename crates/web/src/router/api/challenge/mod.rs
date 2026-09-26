@@ -71,7 +71,7 @@ pub async fn list_challenges(
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<ListChallengesRequest>,
 ) -> Result<Json<ChallengesListResponse>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
@@ -145,7 +145,7 @@ pub async fn query_challenge_status(
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<QueryChallengeStatusRequest>,
 ) -> Result<Json<ChallengeStatusesResponse>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("")))?;
+    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     if !valid_status_scope(body.user_id, body.team_id, body.game_id) {
         return Err(WebError::BadRequest(json!("either_user_or_team")));

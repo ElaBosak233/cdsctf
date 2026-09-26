@@ -1,5 +1,3 @@
-import { StatusCodes } from "http-status-codes";
-import { HTTPError } from "ky";
 import { CheckIcon, MailCheckIcon, SendIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,12 +5,13 @@ import { toast } from "sonner";
 import { sendVerifyEmail, verifyEmail } from "@/api/users/me/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { patchAuthenticatedUser, useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
-import { formatApiMsg, parseErrorResponse } from "@/utils/query";
+import { notifyApiError } from "@/utils/query";
 
 interface VerifyDialogProps {
   email: string;
@@ -37,12 +36,7 @@ function VerifyDialog(props: VerifyDialogProps) {
 
       toast.success(t("user:emails.actions.send_verify.success", { email }));
     } catch (error) {
-      if (!(error instanceof HTTPError)) return;
-      const body = await parseErrorResponse(error);
-
-      if (error.response.status === StatusCodes.BAD_REQUEST) {
-        toast.error(formatApiMsg(body.msg));
-      }
+      await notifyApiError(error);
     }
   }
 
@@ -60,12 +54,7 @@ function VerifyDialog(props: VerifyDialogProps) {
       onClose();
       bump();
     } catch (error) {
-      if (!(error instanceof HTTPError)) return;
-      const body = await parseErrorResponse(error);
-
-      if (error.response.status === StatusCodes.BAD_REQUEST) {
-        toast.error(formatApiMsg(body.msg));
-      }
+      await notifyApiError(error);
     }
   }
 
@@ -81,22 +70,12 @@ function VerifyDialog(props: VerifyDialogProps) {
         "flex-col",
       ])}
     >
-      <div className={cn(["p-5", "flex", "flex-col", "gap-5"])}>
-        <div className={cn(["flex", "items-center", "gap-3"])}>
-          <div
-            className={cn([
-              "flex items-center justify-center",
-              "size-10 rounded-badge",
-              "bg-primary/10",
-              "shrink-0",
-            ])}
-          >
-            <MailCheckIcon className={cn(["size-5"])} />
-          </div>
-          <h3 className={cn(["text-base", "font-semibold"])}>
-            {t("user:emails.actions.verify._")}
-          </h3>
-        </div>
+      <DialogHeader
+        className="p-5 pb-0"
+        icon={<MailCheckIcon />}
+        title={t("user:emails.actions.verify._")}
+      />
+      <DialogBody className="p-5 pt-4">
         {configStore?.config?.email?.enabled ? (
           <div className={cn(["flex", "gap-2", "items-center"])}>
             <Field size={"sm"} className={cn(["flex-1"])}>
@@ -121,16 +100,18 @@ function VerifyDialog(props: VerifyDialogProps) {
             })}
           </div>
         )}
-        <Button
-          size={"sm"}
-          level={"success"}
-          variant={"solid"}
-          icon={<CheckIcon />}
-          onClick={handleVerify}
-        >
-          {t("common:actions.confirm")}
-        </Button>
-      </div>
+        <DialogFooter>
+          <Button
+            size={"sm"}
+            level={"success"}
+            variant={"solid"}
+            icon={<CheckIcon />}
+            onClick={handleVerify}
+          >
+            {t("common:actions.confirm")}
+          </Button>
+        </DialogFooter>
+      </DialogBody>
     </Card>
   );
 }

@@ -105,11 +105,11 @@ pub async fn update_submission_status(
             .map_err(cds_db::DbError::from)?;
     let initial = cds_db::submission::find_by_id(&transaction, submission_id)
         .await?
-        .ok_or_else(|| WebError::NotFound(json!("")))?;
+        .ok_or_else(|| WebError::NotFound(json!("not_found")))?;
     cds_db::submission::lock_solve_owner(&transaction, &initial).await?;
     let previous = cds_db::submission::find_by_id(&transaction, submission_id)
         .await?
-        .ok_or_else(|| WebError::NotFound(json!("")))?;
+        .ok_or_else(|| WebError::NotFound(json!("not_found")))?;
 
     if body.status == Status::Correct
         && previous.status != Status::Correct
@@ -202,11 +202,11 @@ pub async fn delete_submission(
             .map_err(cds_db::DbError::from)?;
     let initial = cds_db::submission::find_by_id(&transaction, submission_id)
         .await?
-        .ok_or_else(|| WebError::NotFound(json!("")))?;
+        .ok_or_else(|| WebError::NotFound(json!("not_found")))?;
     cds_db::submission::lock_solve_owner(&transaction, &initial).await?;
     let submission = cds_db::submission::find_by_id(&transaction, submission_id)
         .await?
-        .ok_or_else(|| WebError::NotFound(json!("")))?;
+        .ok_or_else(|| WebError::NotFound(json!("not_found")))?;
     let score_game_id = match (submission.game_id, &submission.status) {
         (Some(game_id), Status::Correct) => {
             cds_db::game::lock_score_recalculation(&transaction, game_id).await?;
