@@ -26,7 +26,7 @@
 - 认证使用 `tower-sessions` 的 session cookie，当前 cookie 名为 `cds.id`。
 - session 中的 `user_id` 由认证 middleware 解析为 `AuthPrincipal`。
 - `Group::Banned` 在 middleware 层直接拒绝，返回 `403`。
-- 管理路由统一挂载 `admin_only`，只有 `Group::Admin` 或更高等级可以访问。
+- 当前 `/api/admin/*` 路由统一挂载 `admin_only`，只有 `Group::Admin` 或更高等级可以访问；目标设计移除这个路由前缀，将权限下沉到资源操作。
 - 普通路由是否需要登录由 handler 自己检查；未登录通常返回 `401`。
 - 当前没有 `game_admins` 表，也没有比赛级管理员授权检查。
 
@@ -102,7 +102,7 @@ POST /api/instances/{instance_id}/stop
 GET  /api/instances/{instance_id}/wsrx
 ```
 
-管理员资源树挂载在 `/api/admin`，并由 `admin_only` middleware 保护：
+当前管理员资源树挂载在 `/api/admin`，并由 `admin_only` middleware 保护：
 
 ```text
 /api/admin/configs
@@ -114,7 +114,7 @@ GET  /api/instances/{instance_id}/wsrx
 /api/admin/submissions
 ```
 
-管理员路由覆盖题目、题目附件/checker/writeup/instance 配置、Game、队伍、公告、用户、IdP、站点配置、调试实例和调试提交。
+管理员路由覆盖题目、题目附件/checker/writeup/instance 配置、Game、队伍、公告、用户、IdP、站点配置、调试实例和调试提交。目标设计不再为这些资源建立第二套 URL；它们应合并到同一资源路由，或改名为独立的调试/命令资源。
 
 ### 1.5 当前响应契约
 
@@ -144,7 +144,7 @@ GET  /api/instances/{instance_id}/wsrx
 
 这些问题不影响继续维护旧 API，但新接口不能复制它们：
 
-1. API 没有版本前缀，公共资源和管理员资源分别维护，造成相同聚合的 DTO、路由和权限逻辑重复。
+1. API 没有版本前缀，公共资源和管理员资源分别维护，造成相同聚合的 DTO、路由和权限逻辑重复；`/api/admin` 只是权限边界的 URL 表达，不是领域资源。
 2. `POST /instances/{id}/renew`、`POST /instances/{id}/stop`、`POST /challenges/status` 等动作路径把命令直接编码进 URL；它们应在新版本中建模为子资源或资源状态转换。
 3. 多个更新接口使用 `PUT`，请求体却是部分字段；新接口应使用 `PATCH`，只有完整替换才使用 `PUT`。
 4. 删除和无内容成功响应目前大量返回 `200 {}`；新接口统一使用 `204 No Content`，创建使用 `201 Created` 和 `Location`。
@@ -221,7 +221,7 @@ waiting | running | failed | stopped | expired
 
 ## 4. 新 API 的 REST 约束
 
-新接口使用 `/api/v1`。默认使用顶层复数资源和不透明 id；关系资源（例如 `game_challenges`、`game_admins`）也优先使用独立顶层集合，只有确实需要表达强父子约束时才使用嵌套路径。创建请求中的 `challenge_id`、`game_id` 等是直接字段，不再包在额外的 `context` JSON 中。动词只保留登录、验证、重算、lint 等确实不是 CRUD 的命令。
+新接口使用 `/api/v1`，并沿用当前代码已经建立的资源层级和命名：`games/{game_id}/challenges`、`games/{game_id}/teams`、`challenges/{challenge_id}/attachments` 等关系路径继续保留。要扁平化的是权限命名空间：管理员不使用 `/admin` URL 前缀，公共用户和管理员共用一棵资源树；权限由 session、资源关系和 HTTP 操作决定。创建请求中的 `challenge_id`、`game_id` 等是直接字段，不再包在额外的 `context` JSON 中。动词只保留登录、验证、重算、lint 等确实不是 CRUD 的命令。
 
 ### 4.1 方法与状态码
 
@@ -242,6 +242,7 @@ waiting | running | failed | stopped | expired
 - 当前用户从 session 推导，不在 self 资源的请求体中接收 `user_id`。
 - 正式比赛中的当前队伍由服务端根据 `game_id` 和 session 用户的成员关系推导，不让普通用户提交任意 `team_id`；Team 不是实例的父资源。
 - Game 上下文可以作为资源字段或查询过滤出现；handler 必须先验证资源关系和调用者权限，再执行操作。路径是否嵌套不改变授权边界。
+- `Admin` 是授权主体，不是资源命名空间。普通用户和管理员访问同一个资源路径；handler 根据权限返回不同 projection，或拒绝不允许的写操作。
 - `404` 用于隐藏调用者无权访问的资源；必须明确区分时使用 `403`。
 - 管理权限来自全局 `Admin` 或 `game_admins` 关系，不能只检查 URL 中的 id。
 
@@ -262,24 +263,68 @@ waiting | running | failed | stopped | expired
 
 至少统一以下状态：`400` 请求格式错误、`401` 未认证、`403` 无权限、`404` 不存在或不可见、`409` 状态冲突、`422` 语义校验失败、`423` Game 暂停、`429` 限流、`500` 服务错误。
 
+### 4.4 移除 `/admin` 路由
+
+当前代码把 `crates/web/src/router/api/admin` 作为第二棵路由树，并在 `nest("/admin", ...)` 上统一挂载 `admin_only`。目标不是把这棵树原样挂到 `/api/v1` 根路径，因为它会与现有的 `challenges`、`games`、`submissions`、`instances` 等同方法路由冲突。正确做法是把权限从 URL 前缀移动到资源操作：
+
+1. 为每个聚合建立一个唯一的资源 router。普通用户和管理员使用同一个 path；handler 先读取 `AuthPrincipal`，再根据操作和资源关系选择授权策略。
+2. 合并重复 DTO 和 handler。普通用户返回公开或脱敏 projection，管理员返回管理 projection；不能让两个 handler 通过不同 URL 暴露同一资源的不同版本。
+3. 对同一路径上的不同方法分别授权。例如 `GET /api/v1/challenges` 可以向普通用户返回公开题目，`POST /api/v1/challenges` 只允许全局 Admin；`PATCH /api/v1/challenges/{challenge_id}` 再根据全局题目或 Game 独有题目的归属检查 Game admin 权限。
+4. 调试和异步命令使用独立资源名，不伪装成普通 CRUD：例如 `POST /api/v1/debug-instances`、`POST /api/v1/debug-checks`、`POST /api/v1/submissions/{submission_id}/rechecks`。
+5. 管理员过滤不能扩大可见范围。`GET /api/v1/submissions`、`GET /api/v1/instances` 等集合在普通用户调用时只能返回本人的结果或本人所属 Team 的资源，在 Admin 调用时才启用全局过滤字段和 review projection。
+6. 所有资源操作共用 application service 和 policy 函数；旧 admin handler 不能继续保留一份独立业务逻辑。
+
+目标路由示意：
+
+```text
+/api/v1/challenges
+/api/v1/challenges/{challenge_id}
+/api/v1/games
+/api/v1/games/{game_id}
+/api/v1/users
+/api/v1/users/{user_id}
+/api/v1/idps
+/api/v1/configs
+/api/v1/submissions
+/api/v1/instances
+/api/v1/debug-instances
+/api/v1/debug-checks
+```
+
+`/api/v1/users`、`/api/v1/idps`、`/api/v1/configs` 的写操作仍然是管理员操作，但不再出现 `/admin` 前缀。`/api/v1/users/me` 等 self 资源继续使用普通用户权限。Game、Team、GameChallenge、Notice、附件和 checker 等资源同样合并到已有的 Game 或 Challenge 资源树，由操作级策略区分普通读取、Game admin 和全局 Admin。
+
+迁移必须按以下顺序执行：
+
+1. 抽取并测试 `require_admin`、`require_game_admin`、`require_team_member` 等 policy 函数；`admin_only` 只作为过渡兼容层。
+2. 先在同一个 application service 下实现合并后的资源 handler 和 OpenAPI 路径，暂时保留 `/api/admin` 适配路由调用这些 handler。
+3. 将前端 `web/src/api/admin/**` 的请求改为同一资源路径，并让管理员页面继续通过权限和 projection 工作。
+4. 为旧 `/api/admin/*` 返回 `Deprecation` 与 `Sunset`，监控调用量；兼容层不得拥有独立业务逻辑。
+5. 调用量归零后删除 `api::admin` 模块、`admin_only` 路由层、旧 OpenAPI tags 和前端 `admin/` URL 前缀。
+
+验收要求包括：同一资源只有一个目标 URL；普通用户访问管理员写操作得到 `403`；管理员访问同一路径得到管理 projection；旧 `/api/admin/*` 只在过渡期存在；OpenAPI 中不再出现重复的 admin 操作。
+
 ## 5. 目标资源树
 
 以下是目标结构，不代表当前已实现：
 
 ```text
-/api/v1/config
+/api/v1/configs
 /api/v1/version
 /api/v1/users
 /api/v1/users/me
 /api/v1/challenges
 /api/v1/challenges/{challenge_id}
+/api/v1/challenges/{challenge_id}/attachments
+/api/v1/challenges/{challenge_id}/checker
+/api/v1/challenges/{challenge_id}/writeup
+/api/v1/challenges/{challenge_id}/instance-config
 /api/v1/games
 /api/v1/games/{game_id}
-/api/v1/game-admins
-/api/v1/game-challenges
-/api/v1/teams
-/api/v1/notices
-/api/v1/scoreboards
+/api/v1/games/{game_id}/admins
+/api/v1/games/{game_id}/challenges
+/api/v1/games/{game_id}/teams
+/api/v1/games/{game_id}/notices
+/api/v1/games/{game_id}/scoreboard
 /api/v1/submissions
 /api/v1/instances/{instance_id}
 /api/v1/instances
@@ -288,6 +333,8 @@ waiting | running | failed | stopped | expired
 /api/v1/submissions/{submission_id}/status
 /api/v1/notes
 /api/v1/idps
+/api/v1/debug-instances
+/api/v1/debug-checks
 ```
 
 ### 5.1 Challenge
@@ -302,48 +349,48 @@ PATCH /api/v1/challenges/{challenge_id}
 GET   /api/v1/challenges?public=true
 ```
 
-GameChallenge 是独立的关系资源；Game 上下文通过字段筛选，不需要作为 URL 父资源：
+GameChallenge 的归属由 Game 明确限定，沿用当前代码中的 Game 子资源路径：
 
 ```http
-GET    /api/v1/game-challenges?game_id=456
-POST   /api/v1/game-challenges
-GET    /api/v1/game-challenges/{game_challenge_id}
-PATCH  /api/v1/game-challenges/{game_challenge_id}
-DELETE /api/v1/game-challenges/{game_challenge_id}
+GET    /api/v1/games/{game_id}/challenges
+POST   /api/v1/games/{game_id}/challenges
+GET    /api/v1/games/{game_id}/challenges/{challenge_id}
+PATCH  /api/v1/games/{game_id}/challenges/{challenge_id}
+DELETE /api/v1/games/{game_id}/challenges/{challenge_id}
 ```
 
-`POST /game-challenges` 只创建关系，必须引用已有 Challenge：
+`POST /games/{game_id}/challenges` 只创建关系，必须引用已有 Challenge：
 
 ```json
-{ "game_id": 456, "challenge_id": 123, "difficulty": 5, "max_pts": 2000 }
+{ "challenge_id": 123, "difficulty": 5, "max_pts": 2000 }
 ```
 
 如果需要创建 Game 独有题目，先通过 `POST /api/v1/challenges` 创建带 `owner_game_id` 的 Challenge，再创建关系。全局 Admin 或被授权的 Game admin 才能执行对应创建。若要让独有题目变为全局资源，使用显式的迁移命令资源：
 
 ```http
-POST /api/v1/game-challenges/{game_challenge_id}/releases
+POST /api/v1/games/{game_id}/challenges/{challenge_id}/releases
 ```
 
 该命令只能单向释放；全局题目需要独立内容时使用 clone 创建新资源。
 
-附件、checker、writeup 和实例配置也是顶层资源，通过 `game_id`、`challenge_id` 字段选择关系：
+附件、checker、writeup 和实例配置属于 Challenge 的子资源。它们使用同一条路径，普通用户只能读取公开 projection，Admin 才能创建或修改：
 
 ```text
-/api/v1/attachments?game_id=456&challenge_id=123
-/api/v1/checkers?game_id=456&challenge_id=123
-/api/v1/writeups?game_id=456&challenge_id=123
-/api/v1/instance-configs?game_id=456&challenge_id=123
+/api/v1/challenges/{challenge_id}/attachments
+/api/v1/challenges/{challenge_id}/checker
+/api/v1/challenges/{challenge_id}/writeup
+/api/v1/challenges/{challenge_id}/instance-config
 ```
 
 ### 5.2 Game admin 关系
 
 ```http
-GET    /api/v1/game-admins?game_id=456
-POST   /api/v1/game-admins
-DELETE /api/v1/game-admins/{game_admin_id}
+GET    /api/v1/games/{game_id}/admins
+PUT    /api/v1/games/{game_id}/admins/{user_id}
+DELETE /api/v1/games/{game_id}/admins/{user_id}
 ```
 
-请求体包含 `game_id` 和 `user_id`。数据库唯一约束 `(game_id, user_id)` 保证关系幂等；重复添加返回 `409` 或现有关系资源，具体选择必须在 OpenAPI 中固定。关系表只保存当前授权；历史审计写入统一 audit log，而不是混入业务关系表。
+`PUT` 是幂等的，重复添加不会产生重复关系。关系表只保存当前授权；历史审计写入统一 audit log，而不是混入业务关系表。
 
 ### 5.3 Submissions
 
@@ -465,14 +512,14 @@ Submission 旧接口的兼容层必须按调用者分流：旧的 `POST /api/sub
 | 当前接口 | 目标接口 |
 | --- | --- |
 | `GET /api/challenges` | `GET /api/v1/challenges` |
-| `GET /api/games/{game_id}/challenges` | `GET /api/v1/game-challenges?game_id=...` |
+| `GET /api/games/{game_id}/challenges` | `GET /api/v1/games/{game_id}/challenges` |
 | `GET /api/submissions` | 管理员使用 `GET /api/v1/submissions` 加过滤参数；普通用户只使用已知 id 的 result |
 | `POST /api/submissions` | `POST /api/v1/submissions`，请求体直接包含 `challenge_id` 和可选 `game_id` |
 | `GET /api/instances?challenge_id=...` | `GET /api/v1/instances?challenge_id=...&game_id=...`；普通用户只返回有权访问的实例 |
 | `POST /api/instances/{id}/renew` | `POST /api/v1/instances/{id}/renewals` |
 | `POST /api/instances/{id}/stop` | `DELETE /api/v1/instances/{id}` |
 | `GET /api/instances/{id}/wsrx?port=...` | `GET /api/v1/instances/{id}/connections/{port}` |
-| `/api/admin/*` | `/api/v1` 对应的资源上下文与权限 |
+| `/api/admin/*` | `/api/v1` 同一资源路径上的操作级权限 |
 
 迁移顺序：
 
