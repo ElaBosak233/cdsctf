@@ -182,7 +182,7 @@ function SelectItem({
           <CheckIcon className="size-4" />
         </BaseSelect.ItemIndicator>
       </span>
-      <BaseSelect.ItemText>{children}</BaseSelect.ItemText>
+      {children}
     </BaseSelect.Item>
   );
 }
