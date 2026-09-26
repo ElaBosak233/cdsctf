@@ -1,339 +1,304 @@
-# CdsCTF API、权限与题目归属重构方案
+# CdsCTF API 与领域扩展规范
 
-状态：设计稿
+状态：提案（目标架构尚未全部实现）
+适用版本：当前 `/api` 与后续 `/api/v1` 迁移
+最后核对：2026-09-26
 
-实施分支：`codex/api-cleanup`
+这份文档同时记录两件事：代码当前已经提供的 HTTP 契约，以及平台继续扩展时必须遵守的目标契约。带有“目标”标记的路径、字段和数据库表不能被当作当前已实现功能。
 
-## 1. 目标
+## 1. 当前实现基线
 
-这次改动同时解决四个问题：
+### 1.1 HTTP 入口
 
-1. API 当前同时维护公共资源树和 `/api/admin` 资源树，造成路由、DTO、service 和前端 client 重复。
-2. `Group::Admin` 与 `admin_only` 只能表达粗粒度的管理员身份，无法表达比赛范围内的管理权限。
-3. `Challenge` 虽然需要保留全局检索和复用能力，但比赛管理员又需要能够直接创建和维护比赛内的题目。
-4. 题目的归属、可见性、创建者和最后修改者目前没有清晰分离。
+当前服务由 `crates/web` 组装，入口如下：
 
-目标是让使用者只需要理解三件事：
+| 路径 | 当前行为 |
+| --- | --- |
+| `GET /healthz` | 健康检查 |
+| `/docs` | Scalar 渲染的 OpenAPI 文档 |
+| `/api` | 当前唯一的 HTTP API 版本 |
+| 其他路径 | 交给反向代理路由 |
 
-```text
-system_admin 管理整个系统
-game_admin 管理被分配的比赛
-Challenge 可以被全局检索，并且可以是某场比赛独有的题目
-```
+`/api` 的 OpenAPI 文档由各个 Axum 子路由合并生成。新增 API 必须通过 `utoipa` 路由注册，否则实现与文档会分离。
 
-## 2. 不变的产品能力
+### 1.2 认证与权限
 
-重构必须保留：
+- 认证使用 `tower-sessions` 的 session cookie，当前 cookie 名为 `cds.id`。
+- session 中的 `user_id` 由认证 middleware 解析为 `AuthPrincipal`。
+- `Group::Banned` 在 middleware 层直接拒绝，返回 `403`。
+- 管理路由统一挂载 `admin_only`，只有 `Group::Admin` 或更高等级可以访问。
+- 普通路由是否需要登录由 handler 自己检查；未登录通常返回 `401`。
+- 当前没有 `game_admins` 表，也没有比赛级管理员授权检查。
 
-- 全局 Challenge 搜索。
-- Challenge 被多个 Game 引用。
-- Game 内创建 Challenge。
-- 比赛题目的 checker、writeup、附件、实例和计分配置。
-- 练习场（playground）。
-- 正式比赛中的队伍、提交、计分、公告和实例。
-- 现有题目、提交、笔记和媒体数据。
+因此，当前系统只有全局用户组权限；“某个用户只管理某一场 Game”目前不是代码能力。
 
-首期不引入 Challenge revision/version 系统。共享题目如果需要独立修改，使用 clone 创建新的 Challenge；版本系统可以作为后续扩展。
+### 1.3 当前资源与存储模型
 
-## 3. 领域模型
+当前 PostgreSQL schema 已有以下聚合：
 
-### 3.1 Game
+| 聚合 | 主要数据 |
+| --- | --- |
+| `users` | 账号、全局 `group`、密码摘要、软删除时间 |
+| `emails` | 用户邮箱与验证状态 |
+| `idps`、`user_idps` | Lua 脚本 IdP 与用户绑定 |
+| `games` | 比赛设置、时间段、暂停、黑屏和计分版本 |
+| `challenges` | 题目内容、公开状态、checker、writeup、实例配置、软删除时间 |
+| `game_challenges` | 题目在某场比赛中的难度、分值、启用和冻结配置；复合主键为 `(game_id, challenge_id)` |
+| `teams`、`team_users` | 比赛队伍及成员关系 |
+| `submissions` | 用户提交、可选队伍和比赛上下文、状态与得分 |
+| `game_notices` | 比赛公告 |
+| `notes` | 用户对题目的笔记；`(user_id, challenge_id)` 唯一 |
+| `configs` | 单行 JSON 配置 |
 
-Game 是比赛范围的权限边界，包含：
+实例当前由 Kubernetes Pod 和 labels/annotations 表示，尚未有实例历史表。媒体对象由 S3 兼容存储提供，公开资源通常通过 hash 或预签名 URL 获取。
 
-```text
-Game settings
-GameChallenge
-Teams
-Submissions
-Notices
-Instances
-Scoreboard
-```
+### 1.4 当前 API 路由
 
-为保留练习场，给 Game 增加类型：
-
-```text
-competition
-practice
-```
-
-练习场是一个特殊的 Game，而不是一套独立的 Challenge 模型。
-
-### 3.2 Challenge
-
-Challenge 继续是全局资源，可以被全局搜索，也可以被多个 Game 引用。
-
-新增字段：
+公共资源树挂载在 `/api`：
 
 ```text
-owner_game_id   nullable
-created_by      nullable user id
-updated_by      nullable user id
+/api/
+/api/configs
+/api/users
+/api/challenges
+/api/games
+/api/idps
+/api/instances
+/api/notes
+/api/media
+/api/submissions
 ```
 
-字段语义：
+典型公共接口包括：
 
 ```text
-owner_game_id = NULL
-  全局题目，可以被多个 Game 引用
+POST /api/users/login
+POST /api/users/register
+POST /api/users/logout
+GET  /api/users/me
+PUT  /api/users/me
+DELETE /api/users/me
+PUT  /api/users/me/password
 
-owner_game_id = 某个 game id
-  Game 独有题目，只能被该 Game 引用
+GET  /api/challenges
+GET  /api/challenges/{challenge_id}
+POST /api/challenges/status
+GET  /api/challenges/{challenge_id}/attachments
 
-created_by
-  首次创建题目的用户，创建后不变
+GET  /api/games
+GET  /api/games/{game_id}
+GET  /api/games/{game_id}/scoreboard
+GET  /api/games/{game_id}/events
+GET  /api/games/{game_id}/challenges
+GET  /api/games/{game_id}/teams
+GET  /api/games/{game_id}/teams/us
 
-updated_by
-  最近修改题目内容、归属或生命周期状态的用户
+GET  /api/submissions
+POST /api/submissions
+GET  /api/instances
+POST /api/instances
+POST /api/instances/{instance_id}/renew
+POST /api/instances/{instance_id}/stop
+GET  /api/instances/{instance_id}/wsrx
 ```
 
-`owner_game_id` 不等同于 `public`：
+管理员资源树挂载在 `/api/admin`，并由 `admin_only` middleware 保护：
 
 ```text
-public        是否可被公共检索或展示
-owner_game_id 谁拥有内容修改和引用控制权
-deleted_at    生命周期状态
+/api/admin/configs
+/api/admin/users
+/api/admin/challenges
+/api/admin/games
+/api/admin/idps
+/api/admin/instances
+/api/admin/submissions
 ```
 
-一个 Game 独有的 Challenge 仍然可以是公开可搜索的，但其他 Game 不能引用它。
+管理员路由覆盖题目、题目附件/checker/writeup/instance 配置、Game、队伍、公告、用户、IdP、站点配置、调试实例和调试提交。
 
-### 3.3 GameChallenge
+### 1.5 当前响应契约
 
-保留 `game_challenges`，因为它表达题目在某个 Game 中的使用配置：
-
-```text
-game_id
-challenge_id
-difficulty
-max_pts
-min_pts
-bonus_ratios
-enabled
-frozen_at
-pts
-```
-
-它不是另一种题目，而是 Challenge 在 Game 中的配置和关联。
-
-约束：
-
-- 全局 Challenge 可以有多个 `game_challenges`。
-- Game 独有 Challenge 只能有一个 `game_challenges`，且 `game_id == owner_game_id`。
-- 该跨表约束由 application service 和事务保证，并通过集成测试覆盖。
-
-## 4. 权限模型
-
-### 4.1 全局角色
-
-每个用户绑定一个全局 role：
-
-```text
-user
-platform_operator
-system_admin
-```
-
-`system_admin` 是最高角色，但不使用数字大小比较。它在授权策略中拥有全局 bypass 能力。
-
-`banned`、`suspended` 等状态属于账号状态，不属于 role。账号状态检查优先于权限检查。
-
-### 4.2 Game 角色
-
-用户还可以在每场 Game 中拥有一个预设角色：
-
-```text
-game_admin
-game_viewer
-```
-
-第一期只实现这两个角色。需要细分职责时再增加 `game_content_editor`、`game_judge` 等预设。
-
-Game admin 的核心权限是：
-
-```text
-game:manage
-```
-
-它覆盖该 Game 下的所有内容：
-
-```text
-game:update
-game:manage_staff
-game:challenges:manage
-game:teams:manage
-game:submissions:manage
-game:notices:manage
-game:instances:manage
-game:scoreboard:recalculate
-```
-
-Game admin 不需要额外拥有全局 `challenge:write`。
-
-### 4.3 Challenge 权限规则
-
-对 Game 独有 Challenge：
-
-```text
-owner_game_id == current_game_id
-且 actor 是该 Game 的 game_admin
-=> 可以修改题目内容
-```
-
-对全局 Challenge：
-
-```text
-game_admin
-  可以修改本 Game 的 GameChallenge 配置
-
-challenge_catalog_admin 或 system_admin
-  才能修改 Challenge 全局内容
-```
-
-Game admin 可以修改全局题目的：
-
-```text
-difficulty
-max_pts
-min_pts
-bonus_ratios
-enabled
-frozen_at
-```
-
-不能修改全局题目的：
-
-```text
-title
-description
-category
-tags
-checker
-writeup
-instance
-attachments
-```
-
-## 5. Challenge 生命周期
-
-### 5.1 在 Game 中创建
-
-```http
-POST /api/v1/games/{game_id}/challenges
-```
-
-请求：
+成功列表目前返回资源专用字段和 `total`，例如：
 
 ```json
 {
-  "title": "SQL Injection",
-  "description": "...",
-  "category": 2,
-  "tags": ["web"],
-  "checker": "...",
-  "writeup": "...",
-  "difficulty": 5,
-  "max_pts": 2000,
-  "min_pts": 500
+  "challenges": [],
+  "total": 0
 }
 ```
 
-后端在一个事务中：
+分页查询通常使用 `page`、`size`、`sorts`，不同资源的上限由 handler 单独设定。当前没有统一的 `data`/`pagination` envelope。
 
-1. 验证 actor 是否有该 Game 的 `game:manage`。
-2. 创建 Challenge，并设置 `owner_game_id = game_id`。
-3. 设置 `created_by = actor.id` 和 `updated_by = actor.id`。
-4. 创建对应的 `game_challenges`。
-5. 初始化计分配置。
-
-### 5.2 引用全局题目
-
-```http
-POST /api/v1/games/{game_id}/challenges
-```
-
-请求：
+错误响应已经有稳定的机器可读格式：
 
 ```json
 {
-  "challenge_id": 123,
-  "difficulty": 5,
-  "max_pts": 2000
+  "code": "challenge_not_found",
+  "details": null
 }
 ```
 
-这只创建 `game_challenges`，不改变 Challenge 的全局归属。
+`code` 必须是小写 snake_case。`details` 只承载字段校验或诊断信息，不能把内部错误文本当成稳定 API 字段。
 
-### 5.3 删除
+## 2. 当前实现需要修正的地方
 
-```http
-DELETE /api/v1/games/{game_id}/challenges/{challenge_id}
-```
+这些问题不影响继续维护旧 API，但新接口不能复制它们：
 
-如果 Challenge 是该 Game 独有的：
+1. API 没有版本前缀，公共资源和管理员资源分别维护，造成相同聚合的 DTO、路由和权限逻辑重复。
+2. `POST /instances/{id}/renew`、`POST /instances/{id}/stop`、`POST /challenges/status` 等动作路径把命令直接编码进 URL；它们应在新版本中建模为子资源或资源状态转换。
+3. 多个更新接口使用 `PUT`，请求体却是部分字段；新接口应使用 `PATCH`，只有完整替换才使用 `PUT`。
+4. 删除和无内容成功响应目前大量返回 `200 {}`；新接口统一使用 `204 No Content`，创建使用 `201 Created` 和 `Location`。
+5. `user_id`、`team_id`、`game_id` 由客户端传入的查询或请求字段较多。自我视角的资源必须从 session 和资源上下文推导主体，不能信任客户端声明的所有者。
+6. `GET /api/instances` 通过多个可选过滤字段表达访问范围，容易把授权上下文和搜索过滤混在一起。新接口先进入明确的 playground、Game、Team 或 debug 资源，再使用有限的过滤参数。
+7. 当前 OpenAPI tag 和响应结构虽已存在，但没有一份跨资源的状态码和命名规则。新接口必须先遵守第 4 节的规范；现有资源的分页和排序约定继续保留。
+8. 当前普通用户通过 `GET /api/submissions?id=...` 轮询刚创建的记录，比赛页面也复用了这个集合接口。目标 API 应把用户的单次结果查询与管理员的 submission 审阅集合拆开，普通用户不再拥有 submission 历史列表。
 
-```text
-软删除 Challenge
-删除 GameChallenge 关联
-保留 submissions、notes 和审计历史
-```
+## 3. 目标领域模型
 
-如果 Challenge 是全局的：
+### 3.1 Game 是权限边界
 
-```text
-只删除 GameChallenge 关联
-不删除 Challenge
-不影响其他 Game
-```
+Game 只表示一场正式比赛，包含比赛设置以及该比赛内的题目配置、队伍、提交、公告、计分和实例。练习场不是 Game，也不创建隐藏的 practice Game。
 
-### 5.4 转移到全局
+练习场是前端 `/playground` 对应的用户练习上下文：它面向所有 `public = true` 的 Challenge，题目是否加入某场 Game、Game 是否启用，不改变题目在 playground 中的公开练习资格。练习场的提交和实例以当前用户为主体，不属于队伍，也不带 `game_id`。
 
-```http
-POST /api/v1/games/{game_id}/challenges/{challenge_id}/release
-```
+### 3.2 Challenge 与 GameChallenge 分离
 
-要求：
+Challenge 是可全局检索的题目内容；`game_challenges` 是题目在某个 Game 中的使用配置。两者不能合并。
+
+目标字段：
 
 ```text
-Challenge.owner_game_id == game_id
-actor 是该 Game 的 game_admin
+challenges.owner_game_id   nullable
+challenges.created_by      nullable user id
+challenges.updated_by      nullable user id
 ```
 
-操作：
+语义：
 
 ```text
-owner_game_id = NULL
-updated_by = actor.id
-保留当前 GameChallenge
-记录审计日志
+owner_game_id = NULL       全局题目，可被符合规则的多个 Game 引用
+owner_game_id = game_id    该 Game 独有，只能由该 Game 引用
+created_by                  首次创建者，创建后不变
+updated_by                  最近一次内容、归属或生命周期修改者
 ```
 
-转移后，原 Game admin 仍可修改该题目在本场比赛中的计分和启用配置，但不能修改全局内容。
+`public` 表示可见性，不表示谁拥有编辑权。`deleted_at` 表示生命周期状态。Game 独有题目可以公开展示，但不能被其他 Game 引用。
 
-该操作建议单向进行。全局题目如果想成为某个 Game 的独有题目，应当 clone，而不是直接改变归属。
+### 3.3 Game admin 是关系，不是全局角色
 
-## 6. API 目标结构
-
-### 6.1 版本和资源
-
-新 API 使用 `/api/v1`：
+目标新增关系表：
 
 ```text
+game_admins
+  game_id BIGINT NOT NULL
+  user_id BIGINT NOT NULL
+  PRIMARY KEY (game_id, user_id)
+```
+
+Game admin 可以管理所属 Game 的设置、题目关联、队伍、公告、提交、实例和计分；全局 `Admin` 对所有 Game 自动拥有同等能力。首期不增加可配置 permission 表，也不把 `game_admin` 写入用户的全局 `group`。
+
+### 3.4 Playground 与 Instance
+
+Playground 不是持久化聚合。它是对公开 Challenge 的筛选和用户操作视图：
+
+```text
+playground challenges = challenges WHERE public = true AND deleted_at IS NULL
+```
+
+普通用户只能在这个集合中查看题目、提交答案、创建自己的实例和维护自己的笔记。Challenge 的 `public` 字段决定它能否出现在 playground；GameChallenge 只决定它是否出现在某场正式比赛中。
+
+Instance 是运行时资源
+
+Instance 属于 Challenge 在具体上下文中的运行时资源，不是 Challenge 字段，也不是 `game_challenges` 配置。第一阶段可以继续使用 Kubernetes Pod 作为 backing store，但对外 id 必须是稳定的不透明标识。
+
+建议统一状态：
+
+```text
+waiting | running | failed | stopped | expired
+```
+
+如果需要可靠历史、审计、租期查询或重试记录，再增加 `instances` 表；在此之前不得把 Kubernetes label 当作公开数据库 schema。
+
+## 4. 新 API 的 REST 约束
+
+新接口使用 `/api/v1`。路径使用复数名词，小写，资源关系用嵌套路径表达；动词只保留登录、验证、重算、lint 等确实不是 CRUD 的命令。
+
+### 4.1 方法与状态码
+
+| 语义 | 方法 | 成功响应 |
+| --- | --- | --- |
+| 列表 | `GET /resources` | `200` |
+| 获取 | `GET /resources/{id}` | `200` |
+| 创建 | `POST /resources` | `201`，返回 `Location` |
+| 部分更新 | `PATCH /resources/{id}` | `200` |
+| 完整替换或幂等设置 | `PUT /resources/{id}` | `200` 或 `204` |
+| 删除/解除关联 | `DELETE /resources/{id}` | `204` |
+| 异步任务已接收 | `POST` 命令资源 | `202` |
+
+资源已不存在时，重复 `DELETE` 应保持幂等；异步任务返回任务资源或明确的 `202` 响应，不返回伪造的同步结果。
+
+### 4.2 身份、主体和权限
+
+- 当前用户从 session 推导，不在 self 资源的请求体中接收 `user_id`。
+- 当前队伍从 `games/{game_id}/teams/me` 推导，不让普通用户提交任意 `team_id`。
+- Game 上下文必须出现在需要授权的嵌套路径中；handler 先验证父资源和子资源关系，再执行操作。
+- `404` 用于隐藏调用者无权访问的资源；必须明确区分时使用 `403`。
+- 管理权限来自全局 `Admin` 或 `game_admins` 关系，不能只检查 URL 中的 id。
+
+### 4.3 错误
+
+继续使用当前稳定格式，并在 OpenAPI 中为每个操作声明可能的错误状态：
+
+```json
+{
+  "code": "validation_failed",
+  "details": {
+    "fields": {
+      "title": "required"
+    }
+  }
+}
+```
+
+至少统一以下状态：`400` 请求格式错误、`401` 未认证、`403` 无权限、`404` 不存在或不可见、`409` 状态冲突、`422` 语义校验失败、`423` Game 暂停、`429` 限流、`500` 服务错误。
+
+## 5. 目标资源树
+
+以下是目标结构，不代表当前已实现：
+
+```text
+/api/v1/config
+/api/v1/version
 /api/v1/users
+/api/v1/users/me
+/api/v1/challenges
+/api/v1/challenges/{challenge_id}
 /api/v1/games
+/api/v1/games/{game_id}
+/api/v1/games/{game_id}/admins
 /api/v1/games/{game_id}/challenges
-/api/v1/teams
+/api/v1/games/{game_id}/teams
+/api/v1/games/{game_id}/submissions
+/api/v1/games/{game_id}/instances
+/api/v1/games/{game_id}/notices
+/api/v1/games/{game_id}/scoreboard
+/api/v1/playground/challenges
+/api/v1/playground/challenges/{challenge_id}
+/api/v1/playground/challenges/{challenge_id}/submissions
+/api/v1/playground/challenges/{challenge_id}/instances
+/api/v1/games/{game_id}/teams/me/challenges/{challenge_id}/instances
 /api/v1/submissions
-/api/v1/instances
-/api/v1/identity-providers
-/api/v1/settings
+/api/v1/instances/{instance_id}
+/api/v1/submissions/{submission_id}
+/api/v1/submissions/{submission_id}/result
+/api/v1/submissions/{submission_id}/status
+/api/v1/notes
+/api/v1/idps
 ```
 
-前端管理页面继续使用 `/admin`，但 `/admin` 只属于前端路由，不代表 API 必须使用 `/api/admin`。
+### 5.1 Challenge
 
-### 6.2 Challenge 路由
-
-全局目录：
+全局目录只由全局 `Admin` 创建和修改题目内容：
 
 ```http
 GET   /api/v1/challenges
@@ -342,9 +307,7 @@ POST  /api/v1/challenges
 PATCH /api/v1/challenges/{challenge_id}
 ```
 
-其中创建和修改全局 Challenge 需要 `challenge_catalog:manage`。
-
-比赛上下文：
+Game 上下文管理题目关联和比赛配置：
 
 ```http
 GET    /api/v1/games/{game_id}/challenges
@@ -352,348 +315,203 @@ POST   /api/v1/games/{game_id}/challenges
 GET    /api/v1/games/{game_id}/challenges/{challenge_id}
 PATCH  /api/v1/games/{game_id}/challenges/{challenge_id}
 DELETE /api/v1/games/{game_id}/challenges/{challenge_id}
-POST   /api/v1/games/{game_id}/challenges/{challenge_id}/release
 ```
 
-附件、checker、writeup 和 instance 都应带有 Game 上下文，避免只凭 challenge id 越权：
+`POST /games/{game_id}/challenges` 使用两种明确的请求形态：
+
+```json
+{ "challenge_id": 123, "difficulty": 5, "max_pts": 2000 }
+```
+
+表示引用已有全局题目；不带 `challenge_id` 则表示在一个事务中创建 Game 独有题目并创建对应 `game_challenges`。如果需要让独有题目变为全局资源，使用显式的迁移命令资源：
 
 ```http
+POST /api/v1/games/{game_id}/challenges/{challenge_id}/releases
+```
+
+该命令只能单向释放；全局题目需要独立内容时使用 clone 创建新资源。
+
+附件、checker、writeup 和实例配置必须带 Challenge 的 Game 上下文：
+
+```text
 /api/v1/games/{game_id}/challenges/{challenge_id}/attachments
 /api/v1/games/{game_id}/challenges/{challenge_id}/checker
 /api/v1/games/{game_id}/challenges/{challenge_id}/writeup
-/api/v1/games/{game_id}/challenges/{challenge_id}/instance
+/api/v1/games/{game_id}/challenges/{challenge_id}/instance-config
 ```
 
-### 6.3 HTTP 约定
+### 5.2 Game admin 关系
 
-```text
-POST   创建资源，201 + Location
-PATCH  部分更新
-DELETE 删除资源，204
-202    异步任务已接收
-401    未认证
-403    无权限
-404    资源不存在
-409    资源冲突
-422    参数校验失败
+```http
+GET    /api/v1/games/{game_id}/admins
+PUT    /api/v1/games/{game_id}/admins/{user_id}
+DELETE /api/v1/games/{game_id}/admins/{user_id}
 ```
 
-列表响应统一使用：
+`PUT` 是幂等的，重复添加不会产生重复关系。关系表只保存当前授权；历史审计写入统一 audit log，而不是混入业务关系表。
+
+### 5.3 Submissions
+
+Submission 是独立的、创建后不可变的资源。嵌套路径只用于表达创建时的业务上下文；创建成功后，规范资源地址始终是 `/api/v1/submissions/{submission_id}`。
+
+普通用户的提交使用明确的 Playground 或 Game/Challenge 上下文，作者和队伍由服务端推导：
+
+```http
+POST /api/v1/playground/challenges/{challenge_id}/submissions
+POST /api/v1/games/{game_id}/challenges/{challenge_id}/submissions
+```
+
+请求体只包含提交内容：
 
 ```json
 {
-  "data": [],
-  "pagination": {
-    "page": 1,
-    "page_size": 20,
-    "total": 100
-  }
+  "content": "flag{...}"
 }
 ```
 
-## 7. 数据库迁移
+请求不能包含 `user_id`、`team_id` 或 `game_id`。服务端从 session 和父资源推导这些字段。创建成功返回 `201 Created` 和 `Location: /api/v1/submissions/{submission_id}`。
 
-### 7.1 RBAC 表
+由于提交是不可变事件，客户端应发送 `Idempotency-Key`。同一用户在同一上下文中使用相同 key 和相同内容重试时，服务端返回同一个 submission；同一 key 对应不同内容或不同上下文时返回 `409`。
 
-新增：
+提交是不可变事件，不能用通用 `PATCH` 修改 content，也不提供普通用户的删除接口。用户没有 submission 历史列表权限；为了让前端等待异步 checker 的结果，用户只能查询本次创建响应返回的资源结果：
 
-```text
-roles
-permissions
-role_permissions
-users.global_role_id
-game_staff
+```http
+GET /api/v1/submissions/{submission_id}/result
 ```
 
-推荐在 `users` 上使用 `global_role_id`，确保每个用户只有一个全局 role；使用 `game_staff(game_id, user_id, role_id)` 表达比赛范围的 role。
+该接口只返回面向提交者的最小结果 projection，例如 `id`、`status`、`checked_at`，不返回提交内容，也不返回其他 submission。服务端必须验证当前用户是该 submission 的提交者；如果结果查询需要短期有效期，应由服务端设置过期策略，而不是把历史列表开放给用户。
 
-### 7.2 Challenge 字段
+只有管理员可以审阅 submission 集合：
 
-新增：
-
-```sql
-ALTER TABLE challenges
-    ADD COLUMN owner_game_id BIGINT,
-    ADD COLUMN created_by BIGINT,
-    ADD COLUMN updated_by BIGINT;
+```http
+GET /api/v1/submissions
+GET /api/v1/games/{game_id}/submissions
+GET /api/v1/games/{game_id}/challenges/{challenge_id}/submissions
+GET /api/v1/submissions/{submission_id}
 ```
 
-外键均使用 `ON DELETE SET NULL`，以保护历史数据。旧题目的 `owner_game_id`、`created_by`、`updated_by` 初始保持 `NULL`，不伪造历史信息。
+全局 Admin 可以访问所有范围；Game admin 只能访问自己管理的 Game。管理员集合接口才允许使用 `status`、`user_id`、`team_id`、`challenge_id` 等过滤条件，并且过滤不能扩大授权范围。
 
-新增索引：
+管理员读取的是完整 review projection，可以包含提交内容、作者、队伍、Game、判题时间和计分字段。普通用户接口与管理员接口不能复用同一个可自由筛选的集合 handler。
 
-```text
-challenges(owner_game_id)
-challenges(created_by)
-challenges(updated_by)
+公开 scoreboard 或 challenge status 如果需要展示解题时间线，只能使用单独的脱敏派生 projection；它不提供 submission 集合、提交内容或任意 submission 详情访问，不能被视为普通用户的审阅权限。
+
+Checker worker 负责正常状态转换，普通客户端不能写入 `status`。如果管理员需要人工修正判题状态，可以使用状态子资源：
+
+```http
+PUT /api/v1/submissions/{submission_id}/status
 ```
 
-### 7.3 Game 类型
+该接口仅允许 Admin 或对应 Game admin，必须校验状态转换、正确提交冲突和计分重算，并保留审计记录。`PUT` 在这里表示完整替换 status 子资源，重复提交相同状态必须是幂等的。
 
-给 `games` 增加：
+如果未来需要重新执行 checker，应创建单独的任务资源，而不是直接伪造状态变化：
 
-```text
-kind = competition | practice
+```http
+POST /api/v1/submissions/{submission_id}/rechecks
 ```
 
-创建或迁移一个默认 Practice Game。练习场使用普通 GameChallenge，提交时设置 `game_id`，不需要独立的 Challenge 逻辑。
+该接口可以返回 `202 Accepted`。当前没有判题尝试历史表，因此第一阶段可以只保留 worker 内部重试，不公开 `rechecks` 资源。
 
-### 7.4 旧数据
+管理员调试提交不创建 Submission 资源。它是一次同步的 checker 预览操作，应继续与正式 submission 分离：
 
-旧 Challenge 默认迁移为全局题目：
-
-```text
-owner_game_id = NULL
+```http
+POST /api/v1/challenges/{challenge_id}/debug-checks
 ```
 
-原因是旧数据可能被多个 Game 使用，不能根据现有关联自动推断独占关系。
+它返回即时判题结果，不计入 submission、scoreboard 或用户结果历史。
 
-旧 `game_challenges` 保留，先由新 service 继续读写。所有代码完成迁移后再考虑删除或改为兼容 view。
+### 5.4 Instances
 
-## 8. 代码结构
+练习场和正式比赛使用不同的资源上下文。练习场不需要 Game、Team 或 GameChallenge：
 
-当前 `crates/web/src/router/api/admin` 与公共资源树重复。目标结构：
+```http
+GET    /api/v1/playground/challenges
+GET    /api/v1/playground/challenges/{challenge_id}
+POST   /api/v1/playground/challenges/{challenge_id}/instances
+GET    /api/v1/playground/challenges/{challenge_id}/instances/current
+DELETE /api/v1/playground/challenges/{challenge_id}/instances/current
 
-```text
-crates/web/src/
-  router/api/v1/
-    mod.rs
-    users.rs
-    games.rs
-    challenges.rs
-    submissions.rs
-  application/
-    users.rs
-    games.rs
-    challenges.rs
-    submissions.rs
-  policy.rs
-  dto/
-    users.rs
-    games.rs
-    challenges.rs
+POST   /api/v1/games/{game_id}/teams/me/challenges/{challenge_id}/instances
+GET    /api/v1/games/{game_id}/teams/me/challenges/{challenge_id}/instances/current
+DELETE /api/v1/games/{game_id}/teams/me/challenges/{challenge_id}/instances/current
+
+GET    /api/v1/instances/{instance_id}
+POST   /api/v1/instances/{instance_id}/renewals
+DELETE /api/v1/instances/{instance_id}
+GET    /api/v1/instances/{instance_id}/connections/{port}
 ```
 
-分层职责：
+练习场实例的 owner 始终从 session 当前用户推导，创建时不得接收 `user_id`、`team_id` 或 `game_id`。练习场提交使用 `POST /api/v1/playground/challenges/{challenge_id}/submissions`，其 `game_id` 和 `team_id` 保持为空。`renewals` 是可重复提交的命令资源；停止实例使用 `DELETE`。WebSocket upgrade 仍然是特殊传输，但资源授权必须先验证实例 owner；正式比赛实例再额外验证同队伍成员、Game admin 或全局 Admin。
 
-```text
-router       路径、HTTP 方法、OpenAPI、middleware
-handler      参数提取、DTO 校验、调用 application service
-application  业务流程、事务、授权上下文
-policy       全局 role、game role、资源归属检查
-db           SeaORM entity 和 repository
-dto          HTTP 请求和响应模型
+管理员调试实例也保留父资源上下文：
+
+```http
+POST /api/v1/games/{game_id}/challenges/{challenge_id}/debug-instances
+POST /api/v1/challenges/{challenge_id}/debug-instances
 ```
 
-handler 不应直接在每个接口中构造 ActiveModel 并执行完整业务流程。
+debug instance 不属于玩家或队伍，不参与计分，也不出现在玩家的 `current` 查询中。
 
-授权 service 示例：
+## 6. 旧 API 兼容与迁移
 
-```rust
-authorize_game(actor, game_id, GameAction::Manage)?;
-let challenge = load_game_challenge(conn, game_id, challenge_id).await?;
+迁移期间保留旧路由，但旧 handler 只能做参数转换并调用同一套 application service，不能复制业务逻辑。新响应应增加 `Deprecation`，并在确定下线日期后增加 `Sunset`。
 
-if challenge.owner_game_id == Some(game_id) {
-    authorize_game_owned_challenge(actor, game_id)?;
-} else {
-    authorize_catalog_challenge_update(actor)?;
-}
-```
+Submission 旧接口的兼容层必须按调用者分流：旧的 `POST /api/submissions` 先解析公开 playground 或 Game 上下文，再调用新的创建 service；旧的 `GET /api/submissions?id=...` 只允许 submission owner 轮询自己的结果，并转换为 result projection；旧的任意历史过滤组合不再对普通用户开放。比赛 scoreboard 的旧查询迁移到 scoreboard 专用的脱敏 projection，不能继续依赖公共 submission 集合。
 
-## 9. 前端迁移
+| 当前接口 | 目标接口 |
+| --- | --- |
+| `GET /api/challenges` | `GET /api/v1/challenges` |
+| `GET /api/games/{game_id}/challenges` | `GET /api/v1/games/{game_id}/challenges` |
+| `GET /api/submissions` | 管理员使用 `GET /api/v1/submissions` 或 Game 级集合；普通用户只使用已知 id 的 result |
+| `POST /api/submissions` | `POST /api/v1/playground/challenges/{challenge_id}/submissions` 或 Game 级提交入口 |
+| `GET /api/instances?challenge_id=...` | playground 或 `teams/me` 的 current instance 资源 |
+| `POST /api/instances/{id}/renew` | `POST /api/v1/instances/{id}/renewals` |
+| `POST /api/instances/{id}/stop` | `DELETE /api/v1/instances/{id}` |
+| `GET /api/instances/{id}/wsrx?port=...` | `GET /api/v1/instances/{id}/connections/{port}` |
+| `/api/admin/*` | `/api/v1` 对应的资源上下文与权限 |
 
-保留页面路由：
+迁移顺序：
 
-```text
-/admin
-/admin/games
-/admin/challenges
-```
+1. 抽取共享 application service 和授权策略，旧路由先继续工作。
+2. 增加数据库迁移：`game_admins`、Challenge owner/audit 字段；不为 playground 创建 Game 或 `games.kind`。
+3. 实现 `/api/v1` 资源树和 OpenAPI，补齐统一 envelope 与状态码。
+4. 前端迁移到 `/api/v1`，按 Game admin 显示管理能力。
+5. 监控旧路径使用量，发布弃用通知，最后删除兼容路由。
 
-迁移 API client：
+## 7. 数据迁移规则
 
-```text
-web/src/api/admin/games
-  -> web/src/api/games
+- 旧 Challenge 的 `owner_game_id`、`created_by`、`updated_by` 初始为 `NULL`，不根据历史关联猜测独占关系。
+- 旧题目默认视为全局题目；只有显式操作才能标记为 Game 独有。
+- `game_admins` 使用 `(game_id, user_id)` 复合主键，外键删除时级联。
+- 新增字段的外键建议使用 `ON DELETE SET NULL`，保留历史资源的可读性。
+- 计分配置属于 `game_challenges`，不能写入 Challenge 的全局内容字段。
+- Playground 不新增比赛或 GameChallenge 数据；它只查询 `public = true` 且未删除的 Challenge。
+- Playground 实例和提交不带 `game_id`、`team_id`；实例 owner 和提交 user 从 session 推导。
+- 普通用户没有 submission 历史列表；只能轮询自己刚创建的 submission result。
+- scoreboard 和 challenge status 的公开 submission 信息必须是脱敏派生 projection，不授予 submission 审阅权限。
+- 实例在没有持久化表之前不能承诺历史查询；API 只承诺当前 backing store 能提供的状态。
 
-web/src/api/admin/challenges
-  -> web/src/api/games/game_id/challenges
-```
+## 8. 验收标准
 
-前端不再依赖数字 `Group`：
-
-```ts
-type AccessPolicy = {
-  permissions?: Permission[];
-};
-```
-
-Game 管理页面显示的是预设 role：
-
-```text
-game_admin
-game_viewer
-```
-
-数据库和 API 保存稳定 key，界面通过 i18n 显示名称。建议新增：
-
-```text
-web/public/locales/zh-CN/roles.yaml
-web/public/locales/en-US/roles.yaml
-web/public/locales/ja-JP/roles.yaml
-web/public/locales/zh-TW/roles.yaml
-```
-
-不允许普通用户创建自定义 role 或直接修改 permission。
-
-## 10. 迁移阶段
-
-### 阶段 0：基线
-
-- 生成当前 OpenAPI 快照。
-- 列出所有 `/api/admin` 调用点。
-- 统计 Challenge 被哪些 Game 引用。
-- 统计没有 Game 关联的 Challenge。
-- 统计 playground、submission、note、instance 依赖。
-
-验收：有完整的旧 API 路径、权限和数据关系清单。
-
-### 阶段 1：RBAC 基础设施
-
-- 创建 role、permission、game staff 数据结构。
-- 回填 `Group::Admin` 为 `system_admin`。
-- 回填普通用户为 `user`。
-- 实现 `Subject` 和 `Permission`。
-- 将 `admin_only` 改为具体权限检查。
-
-验收：匿名、普通用户、system_admin 的授权测试通过。
-
-### 阶段 2：Challenge 归属和审计
-
-- 添加 `owner_game_id`、`created_by`、`updated_by`。
-- 修改 Game 内创建题目逻辑。
-- 实现独有题目删除规则。
-- 实现 release-to-catalog。
-- 增加跨 Game 引用检查。
-
-验收：独有题目、全局题目、转移、删除和审计字段测试通过。
-
-### 阶段 3：Practice Game
-
-- 增加 `games.kind`。
-- 创建默认 practice game。
-- 将 playground 查询改为 practice game 查询。
-- 保留全局 Challenge 搜索。
-- 统一 practice submission 的 `game_id`。
-
-验收：练习场浏览、提交、状态查询和笔记功能不受影响。
-
-### 阶段 4：新 API
-
-- 新增 `/api/v1` 路由。
-- 迁移 users、games、challenges、submissions 等资源。
-- 将 GameChallenge 作为 Game 的嵌套资源。
-- 统一状态码、分页和错误响应。
-
-验收：OpenAPI 文档无重复 admin 资源，前端可以只调用 `/api/v1`。
-
-### 阶段 5：前端迁移
-
-- 合并或重写 `web/src/api/admin/*`。
-- 替换硬编码 `/api/admin` 路径。
-- 将 Group 路由判断替换为 permission 判断。
-- 增加 Game staff 管理界面。
-- 增加 Challenge 独有、全局和已释放状态展示。
-
-验收：管理后台所有页面可以完成原有操作。
-
-### 阶段 6：兼容和清理
-
-- `/api/admin/*` 变成薄兼容层。
-- 旧写接口直接调用新 application service，不复制业务逻辑。
-- 增加 `Deprecation` 和 `Sunset` 响应头。
-- 监控旧 API 使用量。
-- 确认前端和外部客户端完成迁移后删除旧路由。
-
-## 11. 测试和验证
-
-必须增加：
-
-### 权限测试
-
-```text
-普通用户不能管理 Game
-game_viewer 不能修改 Game
-game_admin 可以管理该 Game 的所有资源
-game_admin 不能管理别的 Game
-game_admin 可以修改自己拥有的 Challenge
-game_admin 不能修改全局 Challenge 内容
-game_admin 可以修改全局 Challenge 的比赛配置
-system_admin 可以管理全部资源
-被封禁用户始终返回 403
-```
-
-### Challenge 生命周期测试
-
-```text
-在 Game 中创建独有 Challenge
-全局搜索独有 Challenge
-其他 Game 不能引用独有 Challenge
-删除独有 Challenge 会软删除
-删除全局 Challenge 关联只解除当前 Game
-release 后其他 Game 可以引用
-release 后原 game_admin 不能编辑题目内容
-clone 后新题目拥有新的 created_by
-```
-
-### 数据和构建检查
+实现目标架构前，至少应通过以下检查：
 
 ```text
 cargo check --workspace
 cargo test --workspace
-pnpm --dir web tsc:build
-pnpm --dir web check
-OpenAPI snapshot diff
+OpenAPI 文档包含每个新路由且没有重复 admin 操作
+所有新创建接口返回 201 和 Location
+所有新删除接口返回 204
+所有部分更新接口使用 PATCH
+所有 self/team 资源不接受客户端声明的 owner
+普通 User 不能访问其他 Game 的资源
+game_admin 只能管理被授权的 Game
+全局 Admin 可以管理所有 Game
+全局 Challenge 删除不会误删其他 Game 的关联
+Game 独有 Challenge 不能被其他 Game 引用
+playground 只展示 `public = true` 且未删除的 Challenge
+playground 操作不创建隐藏 Game，不写入 `game_challenges`
+playground 提交和实例不带 Game/Team 上下文
+旧路由和新路由调用同一 application service
 ```
 
-## 12. 风险和处理方式
-
-### 题目归属误判
-
-旧数据不自动推断 `owner_game_id`，默认全局。之后通过管理工具显式标记独有题目。
-
-### 全局题目被误删
-
-Game admin 删除全局题目时只删除关联，绝不删除 Challenge 本身。
-
-### 跨 Game 越权
-
-所有 GameChallenge、附件、checker、writeup 和 instance 操作都必须带 `game_id`，并验证 Challenge 归属关系。
-
-### 审计字段不准确
-
-`created_by` 只在创建时写入，`updated_by` 只记录题目内容、归属或生命周期改变。比赛计分配置应单独审计。
-
-### 多语言角色名称不稳定
-
-数据库只保存稳定 role key，所有显示名称和说明由前端 i18n 提供。
-
-## 13. 最终验收标准
-
-重构完成后应满足：
-
-```text
-Challenge 仍可全局搜索
-Challenge 可以被多个 Game 引用
-Game admin 可以在 Game 内创建题目
-Game 独有题目不能被其他 Game 引用
-Game admin 可以管理自己 Game 的全部内容
-Game admin 不能编辑已经释放到全局的题目内容
-删除行为根据题目归属正确区分
-练习场继续使用普通 Game 模型
-用户只有预设 role，没有直接 permission 配置
-API 不再依赖 /api/admin 资源复制
-旧 API 可以在迁移期间兼容
-```
-
-这套方案保留 Challenge 的全局资源属性，同时使用 `owner_game_id` 将“谁能修改”和“谁能引用”表达清楚；`game_challenges` 继续负责比赛配置，Game admin 只需要理解比赛边界，不需要理解底层权限组合。
+任何新增资源都必须同时提交：数据库约束、application service、授权测试、handler 测试和 OpenAPI 元数据。这样扩展平台能力时，资源边界、权限边界和 HTTP 语义会保持一致。
