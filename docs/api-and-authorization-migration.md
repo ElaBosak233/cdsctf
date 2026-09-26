@@ -114,7 +114,7 @@ GET  /api/instances/{instance_id}/wsrx
 /api/admin/submissions
 ```
 
-管理员路由覆盖题目、题目附件/checker/writeup/instance 配置、Game、队伍、公告、用户、IdP、站点配置、调试实例和调试提交。目标设计不再为这些资源建立第二套 URL；它们应合并到同一资源路由，或改名为独立的调试/命令资源。
+管理员路由覆盖题目、题目附件/checker/writeup/instance 配置、Game、队伍、公告、用户、IdP、站点配置、调试实例和调试提交。目标设计不再为这些资源建立第二套 URL；它们应合并到同一资源路由，调试用途则挂在所属资源下。
 
 ### 1.5 当前响应契约
 
@@ -270,7 +270,7 @@ waiting | running | failed | stopped | expired
 1. 为每个聚合建立一个唯一的资源 router。普通用户和管理员使用同一个 path；handler 先读取 `AuthPrincipal`，再根据操作和资源关系选择授权策略。
 2. 合并重复 DTO 和 handler。普通用户返回公开或脱敏 projection，管理员返回管理 projection；不能让两个 handler 通过不同 URL 暴露同一资源的不同版本。
 3. 对同一路径上的不同方法分别授权。例如 `GET /api/v1/challenges` 可以向普通用户返回公开题目，`POST /api/v1/challenges` 只允许全局 Admin；`PATCH /api/v1/challenges/{challenge_id}` 再根据全局题目或 Game 独有题目的归属检查 Game admin 权限。
-4. 调试和异步命令使用独立资源名，不伪装成普通 CRUD：例如 `POST /api/v1/debug-instances`、`POST /api/v1/debug-checks`、`POST /api/v1/submissions/{submission_id}/rechecks`。
+4. 调试操作仍然使用所属资源的集合：实例调试使用 `POST /api/v1/instances` 的 `purpose: "debug"` 表示，checker 预览使用 `POST /api/v1/challenges/{challenge_id}/checks`；重新判题使用 `POST /api/v1/submissions/{submission_id}/rechecks`。URL 表达资源类型，不把管理员用途写成顶层资源名。
 5. 管理员过滤不能扩大可见范围。`GET /api/v1/submissions`、`GET /api/v1/instances` 等集合在普通用户调用时只能返回本人的结果或本人所属 Team 的资源，在 Admin 调用时才启用全局过滤字段和 review projection。
 6. 所有资源操作共用 application service 和 policy 函数；旧 admin handler 不能继续保留一份独立业务逻辑。
 
@@ -287,8 +287,7 @@ waiting | running | failed | stopped | expired
 /api/v1/configs
 /api/v1/submissions
 /api/v1/instances
-/api/v1/debug-instances
-/api/v1/debug-checks
+/api/v1/challenges/{challenge_id}/checks
 ```
 
 `/api/v1/users`、`/api/v1/idps`、`/api/v1/configs` 的写操作仍然是管理员操作，但不再出现 `/admin` 前缀。`/api/v1/users/me` 等 self 资源继续使用普通用户权限。Game、Team、GameChallenge、Notice、附件和 checker 等资源同样合并到已有的 Game 或 Challenge 资源树，由操作级策略区分普通读取、Game admin 和全局 Admin。
@@ -318,6 +317,7 @@ waiting | running | failed | stopped | expired
 /api/v1/challenges/{challenge_id}/checker
 /api/v1/challenges/{challenge_id}/writeup
 /api/v1/challenges/{challenge_id}/instance-config
+/api/v1/challenges/{challenge_id}/checks
 /api/v1/games
 /api/v1/games/{game_id}
 /api/v1/games/{game_id}/admins
@@ -333,8 +333,6 @@ waiting | running | failed | stopped | expired
 /api/v1/submissions/{submission_id}/status
 /api/v1/notes
 /api/v1/idps
-/api/v1/debug-instances
-/api/v1/debug-checks
 ```
 
 ### 5.1 Challenge
@@ -453,13 +451,13 @@ POST /api/v1/submissions/{submission_id}/rechecks
 
 该接口可以返回 `202 Accepted`。当前没有判题尝试历史表，因此第一阶段可以只保留 worker 内部重试，不公开 `rechecks` 资源。
 
-管理员调试提交不创建 Submission 资源。它是一次同步的 checker 预览操作，应继续与正式 submission 分离：
+管理员调试提交不创建 Submission 资源。它是 Challenge 下的一次同步 checker `Check`，应继续与正式 Submission 分离：
 
 ```http
-POST /api/v1/challenges/{challenge_id}/debug-checks
+POST /api/v1/challenges/{challenge_id}/checks
 ```
 
-它返回即时判题结果，不计入 submission、scoreboard 或用户结果历史。
+请求体只包含待检查的 `content`，服务端从路径推导 `challenge_id`。它返回即时检查结果，不计入 Submission、scoreboard 或用户结果历史；该 Check 不要求持久化为历史资源。
 
 ### 5.4 Instances
 
@@ -493,13 +491,23 @@ POST /api/v1/instances
 
 普通用户的 `GET /instances` 只能返回自己在 Playground 中的实例和自己所属 Team 的正式比赛实例；管理员可以使用 `game_id`、`team_id`、`user_id`、`challenge_id` 和状态过滤审阅实例集合，但过滤不能扩大授权范围。创建成功后，客户端使用响应中的 instance id 访问规范资源；停止实例使用 `DELETE`，续期使用 `POST /renewals`。WebSocket upgrade 仍然是特殊传输，但资源授权必须先验证实例 owner 或同队成员关系。
 
-管理员调试实例也使用顶层命令资源：
+管理员调试实例仍然是 Instance 资源，和玩家实例共用集合：
 
 ```http
-POST /api/v1/debug-instances
+POST /api/v1/instances
 ```
 
-请求体可以包含 `challenge_id` 和可选的 `game_id`；它不创建玩家 Instance 资源。
+管理员请求可以额外指定：
+
+```json
+{
+  "challenge_id": 123,
+  "game_id": 456,
+  "purpose": "debug"
+}
+```
+
+`purpose` 缺省表示玩家实例；`purpose: "debug"` 只能由全局 Admin 或有权管理该 Game 的 Game admin 使用。服务端不从 session 推导 debug instance 的玩家或 Team owner；它仍返回标准的 `/api/v1/instances/{instance_id}` 资源，但不会出现在普通用户的实例集合中。
 
 debug instance 不属于玩家或队伍，不参与计分，也不出现在普通用户的实例集合中。
 
@@ -516,6 +524,8 @@ Submission 旧接口的兼容层必须按调用者分流：旧的 `POST /api/sub
 | `GET /api/submissions` | 管理员使用 `GET /api/v1/submissions` 加过滤参数；普通用户只使用已知 id 的 result |
 | `POST /api/submissions` | `POST /api/v1/submissions`，请求体直接包含 `challenge_id` 和可选 `game_id` |
 | `GET /api/instances?challenge_id=...` | `GET /api/v1/instances?challenge_id=...&game_id=...`；普通用户只返回有权访问的实例 |
+| `POST /api/admin/instances` | `POST /api/v1/instances`，管理员请求使用 `purpose: "debug"` |
+| `POST /api/admin/submissions/debug` | `POST /api/v1/challenges/{challenge_id}/checks` |
 | `POST /api/instances/{id}/renew` | `POST /api/v1/instances/{id}/renewals` |
 | `POST /api/instances/{id}/stop` | `DELETE /api/v1/instances/{id}` |
 | `GET /api/instances/{id}/wsrx?port=...` | `GET /api/v1/instances/{id}/connections/{port}` |
