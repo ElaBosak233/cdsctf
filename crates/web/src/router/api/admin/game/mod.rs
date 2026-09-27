@@ -1,7 +1,7 @@
 //! HTTP routing for `game` — Axum router wiring and OpenAPI route registration.
 
 /// Defines the `game_id` submodule (see sibling `*.rs` files).
-mod game_id;
+pub(crate) mod game_id;
 
 use std::sync::Arc;
 
@@ -20,8 +20,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Query, VJson},
-    traits::{AppState, WebError},
+    extract::{Extension, Query, VJson},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -124,8 +124,10 @@ pub struct CreateGameRequest {
 #[tracing::instrument(skip_all, fields(handler = "create_game"))]
 pub async fn create_game(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     VJson(body): VJson<CreateGameRequest>,
 ) -> Result<(StatusCode, Json<AdminGameDetailResponse>), WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let game = cds_db::game::create::<GameDetail>(
         &s.db.conn,
         cds_db::game::ActiveModel {

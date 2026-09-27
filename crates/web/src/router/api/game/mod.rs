@@ -23,6 +23,9 @@ use crate::{
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(list_games).with_state(state.clone()))
+        .routes(
+            routes!(crate::router::api::admin::game::create_game).with_state(state.clone()),
+        )
         .nest("/{game_id}", game_id::router(state.clone()))
 }
 

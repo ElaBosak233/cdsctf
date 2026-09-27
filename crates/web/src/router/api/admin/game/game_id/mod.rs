@@ -35,9 +35,9 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Path, VJson},
+    extract::{Extension, Path, VJson},
     router::api::admin::game::AdminGameDetailResponse,
-    traits::{AppState, EmptyJson, WebError},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -120,9 +120,11 @@ pub struct UpdateGameRequest {
 #[tracing::instrument(skip_all, fields(handler = "update_game"))]
 pub async fn update_game(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     VJson(body): VJson<UpdateGameRequest>,
 ) -> Result<Json<AdminGameDetailResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     let game = cds_db::game::update(
@@ -169,8 +171,10 @@ pub async fn update_game(
 #[tracing::instrument(skip_all, fields(handler = "delete_game"))]
 pub async fn delete_game(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let _ = cds_db::game::delete(&s.db.conn, game.id).await?;
     Ok(Json(EmptyJson::default()))
@@ -192,8 +196,10 @@ pub async fn delete_game(
 #[tracing::instrument(skip_all, fields(handler = "calculate_game"))]
 pub async fn calculate_game(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     calculator::request(&s.db.conn, &s.queue, game.id).await?;

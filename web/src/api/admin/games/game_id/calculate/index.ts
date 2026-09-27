@@ -6,6 +6,6 @@ export type CalculateGameRequest = {
 
 export async function calculateGame(request: CalculateGameRequest) {
   return api
-    .post(`admin/games/${request.game_id}/calculate`)
+    .post(`games/${request.game_id}/calculate`)
     .json<Record<string, never>>();
 }

@@ -6,7 +6,7 @@ export type GetGameRequest = {
 };
 
 export async function getGame(request: GetGameRequest) {
-  return api.get(`admin/games/${request.id}`).json<{ game: GameDetail }>();
+  return api.get(`games/${request.id}`).json<{ game: GameDetail }>();
 }
 
 export type UpdateGameBody = {
@@ -32,7 +32,7 @@ export type UpdateGameRequest = UpdateGameBody & {
 export async function updateGame(request: UpdateGameRequest) {
   const { id, ...body } = request;
   return api
-    .put(`admin/games/${id}`, { json: body })
+    .put(`games/${id}`, { json: body })
     .json<{ game: GameDetail }>();
 }
 
@@ -41,5 +41,5 @@ export type DeleteGameRequest = {
 };
 
 export async function deleteGame(request: DeleteGameRequest) {
-  return api.delete(`admin/games/${request.id}`).json<Record<string, never>>();
+  return api.delete(`games/${request.id}`).json<Record<string, never>>();
 }

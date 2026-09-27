@@ -8,7 +8,7 @@ pub(crate) mod challenge;
 mod config;
 
 /// Defines the `game` submodule (see sibling `*.rs` files).
-mod game;
+pub(crate) mod game;
 
 /// Defines the `instance` submodule (see sibling `*.rs` files).
 mod instance;

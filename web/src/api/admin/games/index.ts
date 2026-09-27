@@ -35,7 +35,7 @@ export type CreateGameRequest = {
 
 export async function createGame(request: CreateGameRequest) {
   return api
-    .post("admin/games", {
+    .post("games", {
       json: request,
     })
     .json<{ game: GameDetail }>();

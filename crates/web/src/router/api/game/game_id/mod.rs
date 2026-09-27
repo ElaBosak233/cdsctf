@@ -46,6 +46,18 @@ use crate::{
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_game).with_state(state.clone()))
+        .routes(
+            routes!(crate::router::api::admin::game::game_id::update_game)
+                .with_state(state.clone()),
+        )
+        .routes(
+            routes!(crate::router::api::admin::game::game_id::delete_game)
+                .with_state(state.clone()),
+        )
+        .routes(
+            routes!(crate::router::api::admin::game::game_id::calculate_game)
+                .with_state(state.clone()),
+        )
         .routes(routes!(get_game_scoreboard).with_state(state.clone()))
         .routes(routes!(get_events).with_state(state.clone()))
         .nest("/challenges", challenge::router(state.clone()))
