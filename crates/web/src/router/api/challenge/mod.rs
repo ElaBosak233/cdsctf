@@ -32,6 +32,10 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(query_challenge_status).with_state(state.clone()))
         .routes(routes!(list_challenges).with_state(state.clone()))
+        .routes(
+            routes!(crate::router::api::admin::challenge::create_challenge)
+                .with_state(state.clone()),
+        )
         .nest("/{challenge_id}", challenge_id::router(state.clone()))
 }
 

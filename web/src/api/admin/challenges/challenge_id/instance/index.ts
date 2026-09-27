@@ -10,6 +10,6 @@ export async function updateChallengeInstance(
   request: UpdateChallengeInstanceRequest
 ) {
   return api
-    .put(`admin/challenges/${request?.id}/instance`, { json: request })
+    .put(`challenges/${request?.id}/instance`, { json: request })
     .json<Record<string, never>>();
 }

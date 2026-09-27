@@ -33,6 +33,18 @@ use crate::{
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_challenge).with_state(state.clone()))
+        .routes(
+            routes!(crate::router::api::admin::challenge::challenge_id::update_challenge)
+                .with_state(state.clone()),
+        )
+        .routes(
+            routes!(crate::router::api::admin::challenge::challenge_id::delete_challenge)
+                .with_state(state.clone()),
+        )
+        .routes(
+            routes!(crate::router::api::admin::challenge::challenge_id::update_challenge_instance)
+                .with_state(state.clone()),
+        )
         .nest("/checker", checker::router(state.clone()))
         .nest("/checks", checks::router(state.clone()))
         .nest("/writeup", writeup::router(state.clone()))

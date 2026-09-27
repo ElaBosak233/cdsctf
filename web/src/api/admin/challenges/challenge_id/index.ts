@@ -24,7 +24,7 @@ export type UpdateChallengeRequest = {
 
 export async function updateChallenge(request: UpdateChallengeRequest) {
   return api
-    .put(`admin/challenges/${request?.id}`, { json: request })
+    .put(`challenges/${request?.id}`, { json: request })
     .json<{ challenge: ChallengeDetail }>();
 }
 
@@ -34,6 +34,6 @@ export type DeleteChallengeRequest = {
 
 export async function deleteChallenge(request: DeleteChallengeRequest) {
   return api
-    .delete(`admin/challenges/${request.id}`)
+    .delete(`challenges/${request.id}`)
     .json<Record<string, never>>();
 }

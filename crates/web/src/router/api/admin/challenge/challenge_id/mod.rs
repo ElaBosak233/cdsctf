@@ -20,8 +20,8 @@ use utoipa_axum::{
 
 use super::AdminChallengeResponse;
 use crate::{
-    extract::{Path, VJson},
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Path, VJson},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -98,9 +98,11 @@ pub struct UpdateChallengeRequest {
 #[tracing::instrument(skip_all, fields(handler = "update_challenge"))]
 pub async fn update_challenge(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateChallengeRequest>,
 ) -> Result<Json<AdminChallengeResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
     let challenge = cds_db::challenge::update(
@@ -139,8 +141,10 @@ pub async fn update_challenge(
 #[tracing::instrument(skip_all, fields(handler = "delete_challenge"))]
 pub async fn delete_challenge(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
     cds_db::challenge::delete(&s.db.conn, challenge.id).await?;
     Ok(Json(EmptyJson::default()))
@@ -169,9 +173,11 @@ pub struct UpdateChallengeInstanceRequest {
 #[tracing::instrument(skip_all, fields(handler = "update_challenge_instance"))]
 pub async fn update_challenge_instance(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateChallengeInstanceRequest>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
     let _ = cds_db::challenge::update::<ChallengeDetail>(

@@ -22,8 +22,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Json as ReqJson, Query},
-    traits::{AppState, WebError},
+    extract::{Extension, Json as ReqJson, Query},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -125,8 +125,10 @@ pub struct AdminChallengeResponse {
 #[tracing::instrument(skip_all, fields(handler = "create_challenge"))]
 pub async fn create_challenge(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateChallengeRequest>,
 ) -> Result<(StatusCode, Json<AdminChallengeResponse>), WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let challenge = create_challenge_with_key(
         &s.db.conn,
         &s.media,

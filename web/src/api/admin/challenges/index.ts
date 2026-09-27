@@ -32,6 +32,6 @@ export type CreateChallengeRequest = {
 
 export async function createChallenge(request: CreateChallengeRequest) {
   return api
-    .post("admin/challenges", { json: request })
+    .post("challenges", { json: request })
     .json<{ challenge: ChallengeDetail }>();
 }
