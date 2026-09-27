@@ -198,7 +198,7 @@ pub async fn create_instance(
 ) -> Result<(StatusCode, Json<CreateInstanceResponse>), WebError> {
     if matches!(body.purpose, InstancePurpose::Debug) {
         crate::middleware::auth::require_admin(&ext)?;
-        if body.game_id.is_some() || body.team_id.is_some() {
+        if body.team_id.is_some() {
             return Err(WebError::BadRequest(json!("debug_instance_context_invalid")));
         }
     }
@@ -206,6 +206,12 @@ pub async fn create_instance(
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
+
+    if matches!(body.purpose, InstancePurpose::Debug)
+        && let Some(game_id) = body.game_id
+    {
+        let _ = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+    }
 
     if matches!(body.purpose, InstancePurpose::Player) {
         if let Some(game_id) = body.game_id {

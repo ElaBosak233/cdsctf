@@ -120,10 +120,9 @@ function InstanceSection() {
     let pollTeamId: number | undefined;
 
     if (debug) {
-      pollUserId = mode !== "game" ? user?.id : undefined;
-      if (mode === "game" && team?.id != null && team.game_id != null) {
+      pollUserId = user?.id;
+      if (mode === "game" && team?.game_id != null) {
         pollGameId = Number(team.game_id);
-        pollTeamId = Number(team.id);
       }
     } else if (mode === "game") {
       if (team?.id == null || team.game_id == null) return;
@@ -231,9 +230,8 @@ function InstanceSection() {
     let createGameId: number | undefined;
     let createTeamId: number | undefined;
     if (debug) {
-      if (mode === "game" && team?.id != null && team.game_id != null) {
+      if (mode === "game" && team?.game_id != null) {
         createGameId = Number(team.game_id);
-        createTeamId = Number(team.id);
       }
     } else if (mode === "game") {
       if (team?.id == null || team.game_id == null) return;
