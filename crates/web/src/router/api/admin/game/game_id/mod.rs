@@ -14,10 +14,10 @@ pub(crate) mod notice;
 pub(crate) mod poster;
 
 /// Defines the `team` submodule (see sibling `*.rs` files).
-mod team;
+pub(crate) mod team;
 
 /// Defines the game-scoped `user` submodule.
-mod user;
+pub(crate) mod user;
 
 use std::sync::Arc;
 

@@ -8,17 +8,17 @@ use cds_db::{
     EmailView,
     sea_orm::{Set, Unchanged},
 };
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use crate::{
-    extract::{Json as ReqJson, Path},
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Json as ReqJson, Path},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -42,7 +42,7 @@ pub struct AdminEmailsListResponse {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-user",
+    tag = "user",
     params(
         ("user_id" = i64, Path, description = "User id"),
     ),
@@ -54,8 +54,10 @@ pub struct AdminEmailsListResponse {
 #[tracing::instrument(skip_all, fields(handler = "get_email"))]
 pub async fn get_email(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(user_id): Path<i64>,
 ) -> Result<Json<AdminEmailsListResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let emails = cds_db::email::find_by_user_id(&s.db.conn, user_id).await?;
     let total = emails.len() as u64;
     Ok(Json(AdminEmailsListResponse { emails, total }))
@@ -78,7 +80,7 @@ pub struct AdminEmailResponse {
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-user",
+    tag = "user",
     params(
         ("user_id" = i64, Path, description = "User id"),
     ),
@@ -91,9 +93,11 @@ pub struct AdminEmailResponse {
 #[tracing::instrument(skip_all, fields(handler = "add_email"))]
 pub async fn add_email(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(user_id): Path<i64>,
     ReqJson(body): ReqJson<AdminAddEmailRequest>,
 ) -> Result<Json<AdminEmailResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let email = cds_db::email::create::<EmailView>(
         &s.db.conn,
         cds_db::email::ActiveModel {
@@ -116,7 +120,7 @@ pub struct AdminUpdateEmailRequest {
 #[utoipa::path(
     put,
     path = "/{mailbox}",
-    tag = "admin-user",
+    tag = "user",
     params(
         ("user_id" = i64, Path, description = "User id"),
         ("mailbox" = String, Path, description = "Email"),
@@ -131,9 +135,11 @@ pub struct AdminUpdateEmailRequest {
 #[tracing::instrument(skip_all, fields(handler = "update_email"))]
 pub async fn update_email(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path((user_id, email)): Path<(i64, String)>,
     ReqJson(body): ReqJson<AdminUpdateEmailRequest>,
 ) -> Result<Json<AdminEmailResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let email =
         cds_db::email::find_by_email::<cds_db::email::Model>(&s.db.conn, email.to_lowercase())
             .await?
@@ -161,7 +167,7 @@ pub async fn update_email(
 #[utoipa::path(
     delete,
     path = "/{mailbox}",
-    tag = "admin-user",
+    tag = "user",
     params(
         ("user_id" = i64, Path, description = "User id"),
         ("mailbox" = String, Path, description = "Email"),
@@ -174,8 +180,10 @@ pub async fn update_email(
 #[tracing::instrument(skip_all, fields(handler = "delete_email"))]
 pub async fn delete_email(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path((user_id, email)): Path<(i64, String)>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let email = email.to_lowercase();
     let _ = cds_db::email::delete(&s.db.conn, user_id, email).await?;
     Ok(Json(EmptyJson::default()))
@@ -185,7 +193,7 @@ pub async fn delete_email(
 #[utoipa::path(
     post,
     path = "/{mailbox}/verify",
-    tag = "admin-user",
+    tag = "user",
     params(
         ("user_id" = i64, Path, description = "User id"),
         ("mailbox" = String, Path, description = "Email"),
@@ -199,8 +207,10 @@ pub async fn delete_email(
 #[tracing::instrument(skip_all, fields(handler = "verify_email"))]
 pub async fn verify_email(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path((user_id, email)): Path<(i64, String)>,
 ) -> Result<Json<AdminEmailResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let email =
         cds_db::email::find_by_email::<cds_db::email::Model>(&s.db.conn, email.to_lowercase())
             .await?

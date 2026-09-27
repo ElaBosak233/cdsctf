@@ -6,8 +6,10 @@ mod filename;
 
 use std::sync::Arc;
 
-use axum::{Json, Router, extract::State};
-use axum::extract::{DefaultBodyLimit, Multipart};
+use axum::{
+    Json, Router,
+    extract::{DefaultBodyLimit, Multipart, State},
+};
 use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -60,7 +62,9 @@ pub async fn get_challenge_attachment(
     Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
 ) -> Result<Json<ChallengeAttachmentsListResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id)
         .await?
@@ -68,7 +72,10 @@ pub async fn get_challenge_attachment(
         .then_some(())
         .ok_or_else(|| WebError::NotFound(json!("challenge_has_not_attachment")))?;
 
-    if !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge_id).await? {
+    let is_admin = operator.group >= cds_db::user::Group::Admin;
+    if !is_admin
+        && !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge_id).await?
+    {
         return Err(WebError::Forbidden(json!("forbidden")));
     }
 

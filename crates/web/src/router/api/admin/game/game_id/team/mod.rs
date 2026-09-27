@@ -1,7 +1,7 @@
 //! HTTP routing for `team` — Axum router wiring and OpenAPI route registration.
 
 /// Defines the `team_id` submodule (see sibling `*.rs` files).
-mod team_id;
+pub(crate) mod team_id;
 
 use std::sync::Arc;
 
@@ -11,7 +11,6 @@ use cds_db::{
     team::{FindTeamOptions, State as TState, TeamView},
 };
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -59,7 +58,7 @@ pub struct AdminTeamResponse {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
         GetTeamRequest,
@@ -77,7 +76,7 @@ pub async fn get_team(
     Path(game_id): Path<i64>,
     Query(params): Query<GetTeamRequest>,
 ) -> Result<Json<AdminTeamsListResponse>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    crate::middleware::auth::require_admin(&ext)?;
 
     let (teams, total) = cds_db::team::find(
         &s.db.conn,
@@ -109,7 +108,7 @@ pub struct CreateTeamRequest {
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
     ),

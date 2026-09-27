@@ -15,6 +15,7 @@ use cds_db::{
     sea_orm::{ActiveValue::Set, ConnectionTrait, NotSet, SqlErr, TransactionTrait},
     user::Group,
 };
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_sessions::Session;
@@ -23,7 +24,6 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use crate::{
     extract::{Extension, Json as ReqJson},
@@ -40,7 +40,16 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .nest(
             "/avatar",
             OpenApiRouter::from(Router::new())
-                .routes(routes!(avatar::get_idp_avatar).with_state(state.clone())),
+                .routes(routes!(avatar::get_idp_avatar).with_state(state.clone()))
+                .routes(
+                    routes!(crate::router::api::admin::idp::avatar::save_idp_avatar)
+                        .with_state(state.clone())
+                        .layer(axum::extract::DefaultBodyLimit::max(5 * 1024 * 1024)),
+                )
+                .routes(
+                    routes!(crate::router::api::admin::idp::avatar::delete_idp_avatar)
+                        .with_state(state.clone()),
+                ),
         )
 }
 
@@ -67,12 +76,20 @@ pub struct IdpResponse {
 #[tracing::instrument(skip_all, fields(handler = "get_idp"))]
 pub async fn get_idp(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(idp_id): Path<i64>,
-) -> Result<Json<IdpResponse>, WebError> {
+) -> Result<Json<serde_json::Value>, WebError> {
+    if principal
+        .operator
+        .is_some_and(|user| user.group >= Group::Admin)
+    {
+        let idp = cds_db::idp::find_idp_by_id::<IdpView>(&s.db.conn, idp_id)
+            .await?
+            .ok_or(WebError::NotFound(json!("idp_not_found")))?;
+        return Ok(Json(serde_json::json!({ "idp": idp })));
+    }
     let idp = enabled_idp(&s, idp_id).await?;
-    Ok(Json(IdpResponse {
-        idp: IdpSummary::from(&idp),
-    }))
+    Ok(Json(serde_json::json!({ "idp": IdpSummary::from(&idp) })))
 }
 
 #[utoipa::path(
@@ -94,7 +111,9 @@ pub async fn bind(
     Path(idp_id): Path<i64>,
     ReqJson(body): ReqJson<IdpAuthRequest>,
 ) -> Result<(StatusCode, Json<IdpBindResponse>), WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let idp = enabled_idp(&s, idp_id).await?;
     cds_idp::Idp::preload(idp.id, &idp.script)
         .await

@@ -6,7 +6,7 @@ export type GetUserRequest = {
 };
 
 export async function getUser(request: GetUserRequest) {
-  return api.get(`admin/users/${request.id}`).json<{ user: UserAccountView }>();
+  return api.get(`users/${request.id}`).json<{ user: UserAccountView }>();
 }
 
 export type DeleteUserRequest = {
@@ -15,7 +15,7 @@ export type DeleteUserRequest = {
 
 export async function deleteUser(request: DeleteUserRequest) {
   return api
-    .delete(`admin/users/${request.id}`, { json: request })
+    .delete(`users/${request.id}`, { json: request })
     .json<Record<string, never>>();
 }
 
@@ -32,6 +32,6 @@ export type UpdateUserRequest = {
 
 export async function updateUser(request: UpdateUserRequest) {
   return api
-    .put(`admin/users/${request.id}`, { json: request })
+    .put(`users/${request.id}`, { json: request })
     .json<{ user: UserAccountView }>();
 }

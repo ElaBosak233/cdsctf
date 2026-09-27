@@ -14,7 +14,7 @@ export type GetTeamRequest = {
 
 export async function getTeams(request: GetTeamRequest) {
   return api
-    .get(`admin/games/${request.game_id}/teams`, {
+    .get(`games/${request.game_id}/teams`, {
       searchParams: toSearchParams(request),
     })
     .json<{ teams: TeamView[]; total: number }>();
@@ -30,6 +30,6 @@ export type CreateTeamRequest = {
 
 export async function createTeam(request: CreateTeamRequest) {
   return api
-    .post(`admin/games/${request.game_id}/teams`, { json: request })
+    .post(`games/${request.game_id}/teams`, { json: request })
     .json<{ team: TeamView }>();
 }

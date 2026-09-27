@@ -25,6 +25,8 @@ import {
 } from "@/hooks/use-data-table";
 import type { ScoreboardTeam } from "@/models/game";
 import { Status, type SubmissionSummary } from "@/models/submission";
+import { Group } from "@/models/user";
+import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 import { parseTimestamp } from "@/utils/time";
@@ -36,6 +38,9 @@ interface TeamDetailsDialogProps {
 function TeamDetailsDialog(props: TeamDetailsDialogProps) {
   const { team } = props;
   const { currentGame } = useGameStore();
+  const canReviewSubmissions = useAuthStore(
+    (state) => (state.user?.group ?? Group.Guest) >= Group.Admin
+  );
 
   const [size, _setSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
@@ -58,7 +63,7 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
       total: response.total || 0,
     }),
     placeholderData: keepPreviousData,
-    enabled: gameId != null && team.id != null,
+    enabled: canReviewSubmissions && gameId != null && team.id != null,
   });
 
   const { t } = useTranslation();
@@ -176,85 +181,92 @@ function TeamDetailsDialog(props: TeamDetailsDialogProps) {
           </span>
         </Badge>
       </div>
-      <ScrollArea className={cn(["h-128", "rounded-md", "border", "relative"])}>
-        <LoadingOverlay loading={loading} />
-        <Table className={cn(["text-foreground"])}>
-          <TableHeader
+      {canReviewSubmissions && (
+        <>
+          <ScrollArea
+            className={cn(["h-128", "rounded-md", "border", "relative"])}
+          >
+            <LoadingOverlay loading={loading} />
+            <Table className={cn(["text-foreground"])}>
+              <TableHeader
+                className={cn([
+                  "sticky",
+                  "top-0",
+                  "z-2",
+                  "bg-muted/70",
+                  "backdrop-blur-md",
+                ])}
+              >
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {!header.isPlaceholder &&
+                            flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                        </TableHead>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length
+                  ? table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.original.id}
+                        data-state={row.getIsSelected() && "selected"}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  : !loading && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={columns.length}
+                          className={cn(["h-24", "text-center"])}
+                        >
+                          {t("game:scoreboard.empty")}
+                        </TableCell>
+                      </TableRow>
+                    )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+          <div
             className={cn([
-              "sticky",
-              "top-0",
-              "z-2",
-              "bg-muted/70",
-              "backdrop-blur-md",
+              "flex",
+              "items-center",
+              "justify-between",
+              "space-x-2",
+              "px-4",
             ])}
           >
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {!header.isPlaceholder &&
-                        flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length
-              ? table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.original.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : !loading && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className={cn(["h-24", "text-center"])}
-                    >
-                      {t("game:scoreboard.empty")}
-                    </TableCell>
-                  </TableRow>
-                )}
-          </TableBody>
-        </Table>
-      </ScrollArea>
-      <div
-        className={cn([
-          "flex",
-          "items-center",
-          "justify-between",
-          "space-x-2",
-          "px-4",
-        ])}
-      >
-        <div className={cn(["flex-1", "text-sm", "text-muted-foreground"])}>
-          {table.getFilteredRowModel().rows.length} / {submissionData?.total}
-        </div>
-        <div className={cn(["flex", "items-center", "gap-5"])}>
-          <Pagination
-            size={"sm"}
-            value={page}
-            total={Math.ceil((submissionData?.total || 0) / size)}
-            onChange={setPage}
-          />
-        </div>
-      </div>
+            <div className={cn(["flex-1", "text-sm", "text-muted-foreground"])}>
+              {table.getFilteredRowModel().rows.length} /{" "}
+              {submissionData?.total}
+            </div>
+            <div className={cn(["flex", "items-center", "gap-5"])}>
+              <Pagination
+                size={"sm"}
+                value={page}
+                total={Math.ceil((submissionData?.total || 0) / size)}
+                onChange={setPage}
+              />
+            </div>
+          </div>
+        </>
+      )}
     </Card>
   );
 }

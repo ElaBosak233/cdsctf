@@ -1,7 +1,7 @@
 //! HTTP routing for `user` — Axum router wiring and OpenAPI route registration.
 
 /// Defines the `user_id` submodule (see sibling `*.rs` files).
-mod user_id;
+pub(crate) mod user_id;
 
 use std::sync::Arc;
 
@@ -21,9 +21,9 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Query, VJson},
+    extract::{Extension, Query, VJson},
     router::api::user::UserResponse,
-    traits::{AppState, WebError},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -56,7 +56,7 @@ pub struct AdminUsersListResponse {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-user",
+    tag = "user",
     params(GetUsersRequest),
     responses(
         (status = 200, description = "Users", body = AdminUsersListResponse),
@@ -66,8 +66,10 @@ pub struct AdminUsersListResponse {
 #[tracing::instrument(skip_all, fields(handler = "get_users"))]
 pub async fn get_users(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Query(params): Query<GetUsersRequest>,
 ) -> Result<Json<AdminUsersListResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
@@ -103,7 +105,7 @@ pub struct CreateUserRequest {
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-user",
+    tag = "user",
     request_body = CreateUserRequest,
     responses(
         (status = 201, description = "Created user", body = UserResponse),
@@ -114,8 +116,10 @@ pub struct CreateUserRequest {
 #[tracing::instrument(skip_all, fields(handler = "create_user"))]
 pub async fn create_user(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     VJson(mut body): VJson<CreateUserRequest>,
 ) -> Result<(StatusCode, Json<UserResponse>), WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     body.username = body.username.to_lowercase();
     if !cds_db::user::is_username_unique(&s.db.conn, 0, &body.username).await? {
         return Err(WebError::Conflict(json!("username_already_exists")));

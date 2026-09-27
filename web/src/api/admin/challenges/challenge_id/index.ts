@@ -7,7 +7,7 @@ export type GetChallengeRequest = {
 
 export async function getChallenge(request: GetChallengeRequest) {
   return api
-    .get(`admin/challenges/${request.id}`)
+    .get(`challenges/${request.id}`)
     .json<{ challenge: ChallengeDetail }>();
 }
 
@@ -33,7 +33,5 @@ export type DeleteChallengeRequest = {
 };
 
 export async function deleteChallenge(request: DeleteChallengeRequest) {
-  return api
-    .delete(`challenges/${request.id}`)
-    .json<Record<string, never>>();
+  return api.delete(`challenges/${request.id}`).json<Record<string, never>>();
 }

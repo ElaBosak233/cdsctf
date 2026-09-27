@@ -12,8 +12,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Json as ReqJson, Query},
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Json as ReqJson, Query},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -41,7 +41,7 @@ pub struct EmailTemplateResponse {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-config",
+    tag = "config",
     params(GetEmailRequest),
     responses(
         (status = 200, description = "Template HTML/text", body = EmailTemplateResponse),
@@ -51,8 +51,10 @@ pub struct EmailTemplateResponse {
 #[tracing::instrument(skip_all, fields(handler = "get_email"))]
 pub async fn get_email(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Query(params): Query<GetEmailRequest>,
 ) -> Result<Json<EmailTemplateResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     Ok(Json(EmailTemplateResponse {
         content: s.media.config().email().get_email(params.type_).await?,
     }))
@@ -70,7 +72,7 @@ pub struct SaveEmailRequest {
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-config",
+    tag = "config",
     request_body = SaveEmailRequest,
     responses(
         (status = 200, description = "Saved", body = EmptyJson),
@@ -80,8 +82,10 @@ pub struct SaveEmailRequest {
 #[tracing::instrument(skip_all, fields(handler = "save_email"))]
 pub async fn save_email(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<SaveEmailRequest>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     s.media
         .config()
         .email()

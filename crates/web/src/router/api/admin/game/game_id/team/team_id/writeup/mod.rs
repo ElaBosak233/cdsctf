@@ -10,8 +10,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::Path,
-    traits::{AppState, WebError},
+    extract::{Extension, Path},
+    traits::{AppState, AuthPrincipal, WebError},
     util,
 };
 
@@ -26,7 +26,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
         ("team_id" = i64, Path, description = "Team id"),
@@ -39,8 +39,9 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[tracing::instrument(skip_all, fields(handler = "get_team_write_up"))]
 pub async fn get_team_write_up(
     State(s): State<Arc<AppState>>,
-
+    Extension(principal): Extension<AuthPrincipal>,
     Path((game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<impl IntoResponse, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     util::media::get_write_up(s.media.clone(), game_id, team_id).await
 }

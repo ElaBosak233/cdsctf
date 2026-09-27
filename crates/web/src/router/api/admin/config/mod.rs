@@ -2,10 +2,10 @@
 //! registration.
 
 /// Defines the `email` submodule (see sibling `*.rs` files).
-mod email;
+pub(crate) mod email;
 
 /// Defines the `logo` submodule (see sibling `*.rs` files).
-mod logo;
+pub(crate) mod logo;
 
 use std::sync::Arc;
 
@@ -18,8 +18,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::Json as ReqJson,
-    traits::{AppState, WebError},
+    extract::{Extension, Json as ReqJson},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -42,7 +42,7 @@ pub struct AdminConfigResponse {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-config",
+    tag = "config",
     responses(
         (status = 200, description = "Full config", body = AdminConfigResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
@@ -61,7 +61,7 @@ pub async fn get_config(
 #[utoipa::path(
     put,
     path = "/",
-    tag = "admin-config",
+    tag = "config",
     request_body = Config,
     responses(
         (status = 200, description = "Saved config", body = AdminConfigResponse),
@@ -71,8 +71,10 @@ pub async fn get_config(
 #[tracing::instrument(skip_all, fields(handler = "update_config"))]
 pub async fn update_config(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<Config>,
 ) -> Result<Json<AdminConfigResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let config = cds_db::config::save(&s.db.conn, body).await?;
     Ok(Json(AdminConfigResponse { config }))
 }
@@ -106,7 +108,7 @@ pub struct StatisticsResponse {
 #[utoipa::path(
     get,
     path = "/statistics",
-    tag = "admin-config",
+    tag = "config",
     responses(
         (status = 200, description = "Counts", body = StatisticsResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
@@ -115,7 +117,9 @@ pub struct StatisticsResponse {
 #[tracing::instrument(skip_all, fields(handler = "get_statistics"))]
 pub async fn get_statistics(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
 ) -> Result<Json<StatisticsResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     Ok(Json(StatisticsResponse {
         statistics: Statistics {
             users: cds_db::user::count(&s.db.conn).await?,

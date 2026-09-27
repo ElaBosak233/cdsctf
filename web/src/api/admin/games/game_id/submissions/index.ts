@@ -15,7 +15,7 @@ export type GetSubmissionsRequest = {
 
 export async function getSubmissions(request: GetSubmissionsRequest) {
   return api
-    .get("admin/submissions", {
+    .get("submissions", {
       searchParams: toSearchParams(request),
     })
     .json<{ submissions: SubmissionView[]; total: number }>();

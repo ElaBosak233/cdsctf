@@ -1,7 +1,7 @@
 //! HTTP routing for `submission` — Axum router wiring and OpenAPI route
 //! registration.
 
-mod submission_id;
+pub(crate) mod submission_id;
 
 use std::sync::Arc;
 
@@ -55,7 +55,7 @@ pub struct ListSubmissionsResponse {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-submission",
+    tag = "submission",
     params(GetSubmissionsRequest),
     responses(
         (status = 200, description = "Submissions", body = ListSubmissionsResponse),
@@ -111,7 +111,7 @@ pub struct CreateDebugSubmissionResponse {
 #[utoipa::path(
     post,
     path = "/debug",
-    tag = "admin-submission",
+    tag = "submission",
     request_body = CreateDebugSubmissionRequest,
     responses(
         (status = 200, description = "Debug check result", body = CreateDebugSubmissionResponse),
@@ -129,7 +129,9 @@ pub async fn create_debug_submission(
     ReqJson(body): ReqJson<CreateDebugSubmissionRequest>,
 ) -> Result<Json<CreateDebugSubmissionResponse>, WebError> {
     crate::middleware::auth::require_admin(&ext)?;
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let result = crate::router::api::challenge::challenge_id::checks::run_check(
         &s,
@@ -138,5 +140,7 @@ pub async fn create_debug_submission(
         &body.content,
     )
     .await?;
-    Ok(Json(CreateDebugSubmissionResponse { status: result.status }))
+    Ok(Json(CreateDebugSubmissionResponse {
+        status: result.status,
+    }))
 }

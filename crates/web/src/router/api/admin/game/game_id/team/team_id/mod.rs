@@ -2,13 +2,13 @@
 //! registration.
 
 /// Defines the `token` submodule (see sibling `*.rs` files).
-mod token;
+pub(crate) mod token;
 
 /// Defines the `user` submodule (see sibling `*.rs` files).
-mod user;
+pub(crate) mod user;
 
 /// Defines the `writeup` submodule (see sibling `*.rs` files).
-mod writeup;
+pub(crate) mod writeup;
 
 use std::sync::Arc;
 
@@ -30,9 +30,9 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Json as ReqJson, Path},
+    extract::{Extension, Json as ReqJson, Path},
     router::api::admin::game::game_id::team::AdminTeamResponse,
-    traits::{AppState, EmptyJson, WebError},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -59,7 +59,7 @@ pub struct UpdateTeamRequest {
 #[utoipa::path(
     put,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
         ("team_id" = i64, Path, description = "Team id"),
@@ -73,9 +73,11 @@ pub struct UpdateTeamRequest {
 #[tracing::instrument(skip_all, fields(handler = "update_team"))]
 pub async fn update_team(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path((game_id, team_id)): Path<(i64, i64)>,
     ReqJson(body): ReqJson<UpdateTeamRequest>,
 ) -> Result<Json<AdminTeamResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
     let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
@@ -110,7 +112,7 @@ pub async fn update_team(
 #[utoipa::path(
     delete,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
         ("team_id" = i64, Path, description = "Team id"),
@@ -124,8 +126,10 @@ pub async fn update_team(
 #[tracing::instrument(skip_all, fields(handler = "delete_team"))]
 pub async fn delete_team(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path((game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
     if team.state != TState::Preparing {

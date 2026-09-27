@@ -6,7 +6,7 @@ pub mod game_id;
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::{GameSummary, game::FindGameOptions};
+use cds_db::{GameDetail, GameSummary, game::FindGameOptions, user::Group};
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -14,8 +14,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::Query,
-    traits::{AppState, WebError},
+    extract::{Extension, Query},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -23,16 +23,16 @@ use crate::{
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(list_games).with_state(state.clone()))
-        .routes(
-            routes!(crate::router::api::admin::game::create_game).with_state(state.clone()),
-        )
+        .routes(routes!(crate::router::api::admin::game::create_game).with_state(state.clone()))
         .nest("/{game_id}", game_id::router(state.clone()))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
 #[into_params(parameter_in = Query)]
 pub struct ListGamesRequest {
+    pub id: Option<i64>,
     pub title: Option<String>,
+    pub enabled: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -59,15 +59,36 @@ pub struct GamesListResponse {
 #[tracing::instrument(skip_all, fields(handler = "list_games"))]
 pub async fn list_games(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Query(params): Query<ListGamesRequest>,
-) -> Result<Json<GamesListResponse>, WebError> {
+) -> Result<Json<serde_json::Value>, WebError> {
     let page = params.page.unwrap_or(1);
-    let size = params.size.unwrap_or(10).min(20);
+    let size = params.size.unwrap_or(10).min(100);
 
-    let (games, total) = cds_db::game::find(
+    if principal
+        .operator
+        .is_some_and(|user| user.group >= Group::Admin)
+    {
+        let (games, total) = cds_db::game::find::<GameDetail>(
+            &s.db.conn,
+            FindGameOptions {
+                id: params.id,
+                title: params.title,
+                enabled: params.enabled,
+                page: Some(page),
+                size: Some(size),
+                sorts: params.sorts,
+                ..Default::default()
+            },
+        )
+        .await?;
+        return Ok(Json(serde_json::json!({ "games": games, "total": total })));
+    }
+
+    let (games, total) = cds_db::game::find::<GameSummary>(
         &s.db.conn,
         FindGameOptions {
-            id: None,
+            id: params.id,
             title: params.title,
             enabled: Some(true),
             page: Some(page),
@@ -78,5 +99,5 @@ pub async fn list_games(
     )
     .await?;
 
-    Ok(Json(GamesListResponse { games, total }))
+    Ok(Json(serde_json::json!({ "games": games, "total": total })))
 }

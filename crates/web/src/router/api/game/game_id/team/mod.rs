@@ -30,6 +30,10 @@ use crate::{
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(
+            routes!(crate::router::api::admin::game::game_id::team::get_team)
+                .with_state(state.clone()),
+        )
         .routes(routes!(create_team).with_state(state.clone()))
         .nest("/us", us::router(state.clone()))
         .nest("/{team_id}", team_id::router(state.clone()))
@@ -66,7 +70,7 @@ pub struct CreateTeamRequest {
     ),
     request_body = CreateTeamRequest,
     responses(
-        (status = 201, description = "Team created", body = TeamResponse),
+        (status = 201, description = "Team created", body = serde_json::Value),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
@@ -78,10 +82,31 @@ pub async fn create_team(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     ReqJson(body): ReqJson<CreateTeamRequest>,
-) -> Result<(StatusCode, Json<TeamResponse>), WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+) -> Result<(StatusCode, Json<serde_json::Value>), WebError> {
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+
+    if operator.group >= cds_db::user::Group::Admin {
+        let team = cds_db::team::create::<TeamView>(
+            &s.db.conn,
+            cds_db::team::ActiveModel {
+                name: Set(body.name),
+                email: Set(body.email),
+                slogan: Set(body.slogan),
+                game_id: Set(game.id),
+                state: Set(TState::Preparing),
+                ..Default::default()
+            },
+        )
+        .await?;
+        return Ok((
+            StatusCode::CREATED,
+            Json(serde_json::json!({ "team": team })),
+        ));
+    }
 
     if cds_db::team::contains_user_in_game(&s.db.conn, game.id, operator.id, None).await? {
         return Err(WebError::BadRequest(json!("user_already_in_game")));
@@ -115,6 +140,8 @@ pub async fn create_team(
 
     Ok((
         StatusCode::CREATED,
-        Json(TeamResponse::new(team, game.blacked_out)),
+        Json(serde_json::json!({
+            "team": TeamResponse::new(team, game.blacked_out)
+        })),
     ))
 }

@@ -12,8 +12,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Json as ReqJson, Path},
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Json as ReqJson, Path},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -35,7 +35,7 @@ pub struct AdminTeamUsersListResponse {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
         ("team_id" = i64, Path, description = "Team id"),
@@ -48,8 +48,10 @@ pub struct AdminTeamUsersListResponse {
 #[tracing::instrument(skip_all, fields(handler = "get_team_user"))]
 pub async fn get_team_user(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path((game_id, team_id)): Path<(i64, i64)>,
 ) -> Result<Json<AdminTeamUsersListResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
     let team_users = cds_db::user::find_by_team_id(&s.db.conn, team.id).await?;
@@ -70,7 +72,7 @@ pub struct CreateTeamUserRequest {
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
         ("team_id" = i64, Path, description = "Team id"),
@@ -85,9 +87,11 @@ pub struct CreateTeamUserRequest {
 #[tracing::instrument(skip_all, fields(handler = "create_team_user"))]
 pub async fn create_team_user(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path((game_id, team_id)): Path<(i64, i64)>,
     ReqJson(body): ReqJson<CreateTeamUserRequest>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let user = crate::util::loader::prepare_user(&s.db.conn, body.user_id).await?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
@@ -116,7 +120,7 @@ pub async fn create_team_user(
 #[utoipa::path(
     delete,
     path = "/{user_id}",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
         ("team_id" = i64, Path, description = "Team id"),
@@ -131,8 +135,10 @@ pub async fn create_team_user(
 #[tracing::instrument(skip_all, fields(handler = "delete_team_user"))]
 pub async fn delete_team_user(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path((game_id, team_id, user_id)): Path<(i64, i64, i64)>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
     if team.state != TState::Preparing {

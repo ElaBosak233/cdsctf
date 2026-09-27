@@ -17,8 +17,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::Path,
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Path},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
     util::media::handle_multipart,
 };
 
@@ -35,7 +35,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-idp",
+    tag = "idp",
     params(("idp_id" = i64, Path, description = "IdP id")),
     responses(
         (status = 200, description = "Avatar saved", body = EmptyJson),
@@ -45,9 +45,11 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[tracing::instrument(skip_all, fields(handler = "save_idp_avatar"))]
 pub async fn save_idp_avatar(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(idp_id): Path<i64>,
     multipart: Multipart,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let data = handle_multipart(multipart, mime::IMAGE).await?;
     let data = cds_media::util::img_convert_to_webp(data).await?;
 
@@ -71,7 +73,7 @@ pub async fn save_idp_avatar(
 #[utoipa::path(
     delete,
     path = "/",
-    tag = "admin-idp",
+    tag = "idp",
     params(("idp_id" = i64, Path, description = "IdP id")),
     responses(
         (status = 200, description = "Avatar removed", body = EmptyJson),
@@ -81,8 +83,10 @@ pub async fn save_idp_avatar(
 #[tracing::instrument(skip_all, fields(handler = "delete_idp_avatar"))]
 pub async fn delete_idp_avatar(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(idp_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let idp = cds_db::idp::find_idp_by_id::<IdpView>(&s.db.conn, idp_id)
         .await?
         .ok_or(WebError::NotFound(json!("idp_not_found")))?;

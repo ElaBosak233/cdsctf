@@ -24,16 +24,33 @@ use crate::traits::{AppState, WebError};
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_config).with_state(state.clone()))
+        .routes(routes!(crate::router::api::admin::config::update_config).with_state(state.clone()))
+        .routes(
+            routes!(crate::router::api::admin::config::get_statistics).with_state(state.clone()),
+        )
         .routes(routes!(get_version).with_state(state.clone()))
         .nest(
             "/logo",
             OpenApiRouter::from(Router::new().with_state(state.clone()))
-                .routes(routes!(logo::get_logo).with_state(state.clone())),
+                .routes(routes!(logo::get_logo).with_state(state.clone()))
+                .routes(
+                    routes!(crate::router::api::admin::config::logo::save_logo)
+                        .with_state(state.clone())
+                        .layer(axum::extract::DefaultBodyLimit::max(5 * 1024 * 1024)),
+                )
+                .routes(
+                    routes!(crate::router::api::admin::config::logo::delete_logo)
+                        .with_state(state.clone()),
+                ),
         )
         .nest(
             "/captcha",
             OpenApiRouter::from(Router::new().with_state(state.clone()))
                 .routes(routes!(captcha::generate_captcha).with_state(state.clone())),
+        )
+        .nest(
+            "/mailbox",
+            crate::router::api::admin::config::email::router(state.clone()),
         )
 }
 
@@ -54,10 +71,20 @@ pub struct ConfigResponse {
     )
 )]
 #[tracing::instrument(skip_all, fields(handler = "get_config"))]
-pub async fn get_config(State(s): State<Arc<AppState>>) -> Result<Json<ConfigResponse>, WebError> {
-    Ok(Json(ConfigResponse {
-        config: PublicConfig::from(&cds_db::get_config(&s.db.conn).await),
-    }))
+pub async fn get_config(
+    State(s): State<Arc<AppState>>,
+    crate::extract::Extension(principal): crate::extract::Extension<crate::traits::AuthPrincipal>,
+) -> Result<Json<serde_json::Value>, WebError> {
+    let config = cds_db::get_config(&s.db.conn).await;
+    if principal
+        .operator
+        .is_some_and(|user| user.group >= cds_db::user::Group::Admin)
+    {
+        return Ok(Json(serde_json::json!({ "config": config })));
+    }
+    Ok(Json(serde_json::json!({
+        "config": PublicConfig::from(&config)
+    })))
 }
 
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]

@@ -9,6 +9,7 @@ use cds_db::{
     sea_orm::{ActiveValue::NotSet, Set},
     submission::{FindSubmissionsOptions, Status},
     team::{FindTeamOptions, State as TState},
+    user::Group,
 };
 use cds_worker::checker::SUBJECT;
 use serde::{Deserialize, Serialize};
@@ -30,6 +31,10 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(list_submissions).with_state(state.clone()))
         .routes(routes!(create_submission).with_state(state.clone()))
+        .nest(
+            "/{submission_id}",
+            crate::router::api::admin::submission::submission_id::router(state.clone()),
+        )
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
@@ -80,24 +85,46 @@ pub async fn list_submissions(
 
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<ListSubmissionsRequest>,
-) -> Result<Json<ListSubmissionsResponse>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+) -> Result<Json<serde_json::Value>, WebError> {
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
-    let page = params.page.unwrap_or(1);
-    let size = params.size.unwrap_or(10).min(100);
+    if operator.group >= Group::Admin {
+        let page = params.page.unwrap_or(1);
+        let size = params.size.unwrap_or(10).min(100);
+        let (submissions, total) = cds_db::submission::find(
+            &s.db.conn,
+            FindSubmissionsOptions {
+                id: params.id,
+                user_id: params.user_id,
+                team_id: params.team_id,
+                game_id: params.game_id,
+                challenge_id: params.challenge_id,
+                status: params.status,
+                page: Some(page),
+                size: Some(size),
+                sorts: params.sorts,
+            },
+        )
+        .await?;
+        return Ok(Json(
+            serde_json::json!({ "submissions": submissions, "total": total }),
+        ));
+    }
+
+    let Some(submission_id) = params.id else {
+        return Err(WebError::Forbidden(json!("submission_result_id_required")));
+    };
 
     let (submissions, total) = cds_db::submission::find(
         &s.db.conn,
         FindSubmissionsOptions {
-            id: params.id,
-            user_id: params.user_id,
-            team_id: params.team_id,
-            game_id: params.game_id,
-            challenge_id: params.challenge_id,
-            status: params.status,
-            page: Some(page),
-            size: Some(size),
-            sorts: params.sorts,
+            id: Some(submission_id),
+            user_id: Some(operator.id),
+            page: Some(1),
+            size: Some(1),
+            ..Default::default()
         },
     )
     .await?;
@@ -106,15 +133,11 @@ pub async fn list_submissions(
         .iter()
         .map(SubmissionSummary::from)
         .collect::<Vec<_>>();
-    debug!(
-        page,
-        size,
-        returned = submissions.len(),
-        total,
-        "submissions listed"
-    );
+    debug!(returned = submissions.len(), total, "submissions listed");
 
-    Ok(Json(ListSubmissionsResponse { submissions, total }))
+    Ok(Json(
+        serde_json::json!({ "submissions": submissions, "total": total }),
+    ))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
@@ -149,7 +172,9 @@ pub async fn create_submission(
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateSubmissionRequest>,
 ) -> Result<(StatusCode, Json<SubmissionSummary>), WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 

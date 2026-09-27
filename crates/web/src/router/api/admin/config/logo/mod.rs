@@ -13,7 +13,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    traits::{AppState, EmptyJson, WebError},
+    extract::Extension,
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
     util::media::handle_multipart,
 };
 
@@ -33,7 +34,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-config",
+    tag = "config",
     responses(
         (status = 200, description = "Logo saved", body = EmptyJson),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
@@ -42,8 +43,10 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[tracing::instrument(skip_all, fields(handler = "save_logo"))]
 pub async fn save_logo(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     multipart: Multipart,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let data = handle_multipart(multipart, mime::IMAGE).await?;
     let data = cds_media::util::img_convert_to_webp(data).await?;
 
@@ -62,14 +65,18 @@ pub async fn save_logo(
 #[utoipa::path(
     delete,
     path = "/",
-    tag = "admin-config",
+    tag = "config",
     responses(
         (status = 200, description = "Logo removed", body = EmptyJson),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
 #[tracing::instrument(skip_all, fields(handler = "delete_logo"))]
-pub async fn delete_logo(State(s): State<Arc<AppState>>) -> Result<Json<EmptyJson>, WebError> {
+pub async fn delete_logo(
+    State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
+) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let mut config = get_config(&s.db.conn).await?;
 
     if let Some(hash) = config.logo_hash.take() {

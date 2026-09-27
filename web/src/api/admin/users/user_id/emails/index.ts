@@ -7,7 +7,7 @@ export type GetEmailsRequest = {
 
 export async function getEmails(request: GetEmailsRequest) {
   return api
-    .get(`admin/users/${request.user_id}/emails`)
+    .get(`users/${request.user_id}/emails`)
     .json<{ emails: EmailView[]; total: number }>();
 }
 
@@ -19,7 +19,7 @@ export type AddEmailRequest = {
 
 export async function addEmail(request: AddEmailRequest) {
   return api
-    .post(`admin/users/${request.user_id}/emails`, {
+    .post(`users/${request.user_id}/emails`, {
       json: { email: request.email, verified: request.verified },
     })
     .json<{ email: EmailView }>();
@@ -34,7 +34,7 @@ export type UpdateEmailRequest = {
 export async function updateEmail(request: UpdateEmailRequest) {
   return api
     .put(
-      `admin/users/${request.user_id}/emails/${encodeURIComponent(request.email)}`,
+      `users/${request.user_id}/emails/${encodeURIComponent(request.email)}`,
       {
         json: { verified: request.verified },
       }
@@ -50,7 +50,7 @@ export type DeleteEmailRequest = {
 export async function deleteEmail(request: DeleteEmailRequest) {
   return api
     .delete(
-      `admin/users/${request.user_id}/emails/${encodeURIComponent(request.email)}`
+      `users/${request.user_id}/emails/${encodeURIComponent(request.email)}`
     )
     .json<Record<string, never>>();
 }

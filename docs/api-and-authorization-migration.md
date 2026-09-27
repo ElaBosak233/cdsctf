@@ -26,7 +26,7 @@
 - 认证使用 `tower-sessions` 的 session cookie，当前 cookie 名为 `cds.id`。
 - session 中的 `user_id` 由认证 middleware 解析为 `AuthPrincipal`。
 - `Group::Banned` 在 middleware 层直接拒绝，返回 `403`。
-- 当前 `/api/admin/*` 路由统一挂载 `admin_only`，只有 `Group::Admin` 或更高等级可以访问；目标设计移除这个路由前缀，将权限下沉到资源操作。
+- 改造前 `/api/admin/*` 由 `admin_only` 统一保护；当前权限已下沉到资源操作，路由树不再注册 `/admin`。
 - 普通路由是否需要登录由 handler 自己检查；未登录通常返回 `401`。
 - 当前没有 `game_admins` 表，也没有比赛级管理员授权检查。
 
@@ -102,7 +102,7 @@ POST /api/instances/{instance_id}/stop
 GET  /api/instances/{instance_id}/wsrx
 ```
 
-当前管理员资源树挂载在 `/api/admin`，并由 `admin_only` middleware 保护：
+改造前的管理员资源树挂载在 `/api/admin`，并由 `admin_only` middleware 保护：
 
 ```text
 /api/admin/configs
@@ -265,7 +265,7 @@ waiting | running | failed | stopped | expired
 
 ### 4.4 移除 `/admin` 路由
 
-当前代码把 `crates/web/src/router/api/admin` 作为第二棵路由树，并在 `nest("/admin", ...)` 上统一挂载 `admin_only`。目标不是把这棵树原样挂到 `/api/v1` 根路径，因为它会与现有的 `challenges`、`games`、`submissions`、`instances` 等同方法路由冲突。正确做法是把权限从 URL 前缀移动到资源操作：
+改造前代码把 `crates/web/src/router/api/admin` 作为第二棵路由树并统一挂载 `admin_only`。不能将这棵树原样挂到 `/api/v1` 根路径，因为它会与现有资源路由冲突；当前实现将权限放在资源操作中：
 
 1. 为每个聚合建立一个唯一的资源 router。普通用户和管理员使用同一个 path；handler 先读取 `AuthPrincipal`，再根据操作和资源关系选择授权策略。
 2. 合并重复 DTO 和 handler。普通用户返回公开或脱敏 projection，管理员返回管理 projection；不能让两个 handler 通过不同 URL 暴露同一资源的不同版本。
@@ -292,15 +292,9 @@ waiting | running | failed | stopped | expired
 
 `/api/v1/users`、`/api/v1/idps`、`/api/v1/configs` 的写操作仍然是管理员操作，但不再出现 `/admin` 前缀。`/api/v1/users/me` 等 self 资源继续使用普通用户权限。Game、Team、GameChallenge、Notice、附件和 checker 等资源同样合并到已有的 Game 或 Challenge 资源树，由操作级策略区分普通读取、Game admin 和全局 Admin。
 
-迁移必须按以下顺序执行：
+迁移采用一次性切换，不提供旧路由兼容层。前后端必须在同一变更中完成：资源操作挂在现有资源树，权限在 handler/policy 中校验，管理员与普通用户共享 URL 并按权限返回对应 projection。`/api/admin/*` 不再注册，OpenAPI 也不得包含该路径或独立的 admin 操作 tag。
 
-1. 抽取并测试 `require_admin`、`require_game_admin`、`require_team_member` 等 policy 函数；`admin_only` 只作为过渡兼容层。
-2. 先在同一个 application service 下实现合并后的资源 handler 和 OpenAPI 路径，暂时保留 `/api/admin` 适配路由调用这些 handler。
-3. 将前端 `web/src/api/admin/**` 的请求改为同一资源路径，并让管理员页面继续通过权限和 projection 工作。
-4. 为旧 `/api/admin/*` 返回 `Deprecation` 与 `Sunset`，监控调用量；兼容层不得拥有独立业务逻辑。
-5. 调用量归零后删除 `api::admin` 模块、`admin_only` 路由层、旧 OpenAPI tags 和前端 `admin/` URL 前缀。
-
-验收要求包括：同一资源只有一个目标 URL；普通用户访问管理员写操作得到 `403`；管理员访问同一路径得到管理 projection；旧 `/api/admin/*` 只在过渡期存在；OpenAPI 中不再出现重复的 admin 操作。
+验收要求包括：同一资源只有一个 URL；普通用户访问管理员写操作得到 `403`；管理员访问同一路径得到管理 projection；旧 `/api/admin/*` 返回 `404`；OpenAPI 与前端 API 调用均使用资源路径。
 
 ## 5. 目标资源树
 
@@ -518,13 +512,13 @@ POST /api/v1/instances
 
 debug instance 不属于玩家或队伍，不参与计分，也不出现在普通用户的实例集合中。
 
-## 6. 旧 API 兼容与迁移
+## 6. API 切换
 
-迁移期间保留旧路由，但旧 handler 只能做参数转换并调用同一套 application service，不能复制业务逻辑。新响应应增加 `Deprecation`，并在确定下线日期后增加 `Sunset`。
+前端与后端同步切换到资源路径，不保留兼容路由，也不设置弃用期。旧 `/api/admin/*` 路径下线后应返回 `404`。
 
-Submission 旧接口的兼容层必须按调用者分流：旧的 `POST /api/submissions` 先解析公开 playground 或 Game 上下文，再调用新的创建 service；旧的 `GET /api/submissions?id=...` 只允许 submission owner 轮询自己的结果，并转换为 result projection；旧的任意历史过滤组合不再对普通用户开放。比赛 scoreboard 的旧查询迁移到 scoreboard 专用的脱敏 projection，不能继续依赖公共 submission 集合。
+Submission 使用单一资源路由：`POST /api/v1/submissions` 创建提交；普通用户的 `GET /api/v1/submissions?id=...` 只允许读取自己已知 id 的脱敏结果，不能查询提交历史；管理员可通过同一个集合路由筛选并审阅所有提交。比赛 scoreboard 不向普通用户展示历史提交列表。
 
-| 当前接口 | 目标接口 |
+| 旧接口 | 当前资源接口 |
 | --- | --- |
 | `GET /api/challenges` | `GET /api/v1/challenges` |
 | `GET /api/games/{game_id}/challenges` | `GET /api/v1/games/{game_id}/challenges` |
@@ -536,15 +530,9 @@ Submission 旧接口的兼容层必须按调用者分流：旧的 `POST /api/sub
 | `POST /api/instances/{id}/renew` | `POST /api/v1/instances/{id}/renewals` |
 | `POST /api/instances/{id}/stop` | `DELETE /api/v1/instances/{id}` |
 | `GET /api/instances/{id}/wsrx?port=...` | `GET /api/v1/instances/{id}/connections/{port}` |
-| `/api/admin/*` | `/api/v1` 同一资源路径上的操作级权限 |
+| `/api/admin/*` | 已删除；操作级权限由 `/api/v1` 资源 handler 执行 |
 
-迁移顺序：
-
-1. 抽取共享 application service 和授权策略，旧路由先继续工作。
-2. 增加数据库迁移：`game_admins`、Challenge owner/audit 字段；不为 playground 创建 Game 或 `games.kind`。
-3. 实现 `/api/v1` 资源树和 OpenAPI，固定现有资源专用列表字段和错误状态码。
-4. 前端迁移到 `/api/v1`，按 Game admin 显示管理能力。
-5. 监控旧路径使用量，发布弃用通知，最后删除兼容路由。
+资源操作与前端调用必须同步维护；新增管理员能力时扩展现有资源 handler 和 policy，不重新引入 `/admin` URL 前缀。数据库迁移不为 Playground 创建 Game 或 `games.kind`。
 
 ## 7. 数据迁移规则
 

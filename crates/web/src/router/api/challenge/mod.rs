@@ -11,8 +11,8 @@ use std::{
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    ChallengeSummary, GameChallengeView, SubmissionSummary, challenge::FindChallengeOptions,
-    game_challenge::FindGameChallengeOptions,
+    ChallengeDetail, ChallengeSummary, GameChallengeView, SubmissionSummary,
+    challenge::FindChallengeOptions, game_challenge::FindGameChallengeOptions,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -46,6 +46,8 @@ pub struct ListChallengesRequest {
     pub title: Option<String>,
     pub category: Option<i32>,
     pub tag: Option<String>,
+    pub public: Option<bool>,
+    pub has_instance: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -74,31 +76,40 @@ pub async fn list_challenges(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<ListChallengesRequest>,
-) -> Result<Json<ChallengesListResponse>, WebError> {
-    let _ = ext
+) -> Result<Json<serde_json::Value>, WebError> {
+    let is_admin = ext
         .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+        .is_some_and(|user| user.group >= cds_db::user::Group::Admin);
 
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let (challenges, total) = cds_db::challenge::find::<ChallengeSummary>(
-        &s.db.conn,
-        FindChallengeOptions {
-            id: params.id,
-            title: params.title,
-            category: params.category,
-            tag: params.tag,
-            public: Some(true),
-            sorts: params.sorts,
-            page: Some(page),
-            size: Some(size),
-            ..Default::default()
-        },
-    )
-    .await?;
+    let options = FindChallengeOptions {
+        id: params.id,
+        title: params.title,
+        category: params.category,
+        tag: params.tag,
+        public: if is_admin { params.public } else { Some(true) },
+        has_instance: if is_admin { params.has_instance } else { None },
+        sorts: params.sorts,
+        page: Some(page),
+        size: Some(size),
+    };
 
-    Ok(Json(ChallengesListResponse { challenges, total }))
+    if is_admin {
+        let (challenges, total) =
+            cds_db::challenge::find::<ChallengeDetail>(&s.db.conn, options).await?;
+        return Ok(Json(
+            serde_json::json!({ "challenges": challenges, "total": total }),
+        ));
+    }
+
+    let (challenges, total) =
+        cds_db::challenge::find::<ChallengeSummary>(&s.db.conn, options).await?;
+
+    Ok(Json(
+        serde_json::json!({ "challenges": challenges, "total": total }),
+    ))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]

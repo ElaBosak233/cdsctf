@@ -1,25 +1,21 @@
-//! Session-based authentication helpers and an admin-only gate.
+//! Session-based authentication and resource-level authorization helpers.
 //!
 //! [`extract`] hydrates [`crate::traits::AuthPrincipal`] from `tower-sessions`
-//! (`user_id` key). [`admin_only`] rejects callers whose
-//! [`cds_db::user::Group`] is below Admin.
+//! (`user_id` key).
 
 use std::sync::Arc;
 
 use axum::{
     extract::{FromRequestParts, Request, State},
     middleware::Next,
-    response::{IntoResponse, Response},
+    response::Response,
 };
 use cds_db::{UserAccountView, user::Group};
 use serde_json::json;
 use tower_sessions::Session;
 use tracing::{Span, debug, warn};
 
-use crate::{
-    extract::Extension,
-    traits::{AppState, AuthPrincipal, WebError},
-};
+use crate::traits::{AppState, AuthPrincipal, WebError};
 
 /// Loads the signed-in user (if any), enforces banned accounts, bumps a session
 /// counter, then continues the chain.
@@ -71,35 +67,6 @@ pub async fn extract(
 
     req.extensions_mut().insert(ext);
 
-    Ok(next.run(req).await)
-}
-
-/// Requires an authenticated operator with [`Group::Admin`] or higher
-/// privileges.
-pub async fn admin_only(
-    Extension(ap): Extension<AuthPrincipal>,
-    req: Request,
-    next: Next,
-) -> Result<impl IntoResponse, WebError> {
-    let operator = ap.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
-
-    if operator.group < Group::Admin {
-        warn!(
-            user_id = operator.id,
-            username = %operator.username,
-            group = ?operator.group,
-            "non-admin user rejected"
-        );
-        return Err(WebError::Forbidden(json!("forbidden")));
-    }
-
-    debug!(
-        user_id = operator.id,
-        username = %operator.username,
-        group = ?operator.group,
-        "admin access granted"
-    );
-    Span::current().record("username", operator.username.as_str());
     Ok(next.run(req).await)
 }
 

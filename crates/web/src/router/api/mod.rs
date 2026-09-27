@@ -1,11 +1,11 @@
-//! Public HTTP API under `/api`: nests feature routers and attaches admin auth
-//! middleware.
+//! HTTP API under `/api`, organized around resource routes.
 //!
 //! [`openapi_documented_under_api`] is the **single** OpenAPI-aware tree merged
 //! into the top-level [`crate::docs::ApiDoc`] in [`crate::router::router`].
 
-/// Defines the `admin` submodule (see sibling `*.rs` files).
-pub mod admin;
+/// Defines shared administrator resource handlers.
+#[allow(dead_code)]
+pub(crate) mod admin;
 
 /// Defines the `challenge` submodule (see sibling `*.rs` files).
 pub mod challenge;
@@ -59,12 +59,6 @@ pub fn openapi_documented_under_api(state: Arc<AppState>) -> OpenApiRouter<Arc<A
         .nest("/notes", note::router(state.clone()))
         .nest("/media", media::router(state.clone()))
         .nest("/submissions", submission::router(state.clone()))
-        .nest(
-            "/admin",
-            admin::router(state.clone()).route_layer(axum::middleware::from_fn(
-                crate::middleware::auth::admin_only,
-            )),
-        )
 }
 
 /// Welcome payload for `GET /api/`.

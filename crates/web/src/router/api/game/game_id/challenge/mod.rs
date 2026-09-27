@@ -5,7 +5,8 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    GameChallengeSummary, game_challenge::FindGameChallengeOptions, team::State as TState,
+    GameChallengeSummary, GameChallengeView, game_challenge::FindGameChallengeOptions,
+    team::State as TState,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -42,6 +43,7 @@ pub struct GetGameChallengeRequest {
     pub game_id: Option<i64>,
     pub challenge_id: Option<i64>,
     pub category: Option<i32>,
+    pub enabled: Option<bool>,
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
@@ -73,8 +75,31 @@ pub async fn get_game_challenge(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameChallengeRequest>,
-) -> Result<Json<GameChallengesListResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+) -> Result<Json<serde_json::Value>, WebError> {
+    if ext
+        .operator
+        .as_ref()
+        .is_some_and(|user| user.group >= cds_db::user::Group::Admin)
+    {
+        let (challenges, total) = cds_db::game_challenge::find::<GameChallengeView>(
+            &s.db.conn,
+            FindGameChallengeOptions {
+                game_id: Some(game_id),
+                challenge_id: params.challenge_id,
+                category: params.category,
+                enabled: params.enabled,
+                ..Default::default()
+            },
+        )
+        .await?;
+        return Ok(Json(
+            serde_json::json!({ "challenges": challenges, "total": total }),
+        ));
+    }
+
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
@@ -104,8 +129,8 @@ pub async fn get_game_challenge(
     )
     .await?;
 
-    Ok(Json(GameChallengesListResponse {
-        challenges: game_challenges,
-        total,
-    }))
+    Ok(Json(serde_json::json!({
+        "challenges": game_challenges,
+        "total": total
+    })))
 }

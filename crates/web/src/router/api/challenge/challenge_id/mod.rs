@@ -76,18 +76,22 @@ pub async fn get_challenge(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
-) -> Result<Json<ChallengeDetailResponse>, WebError> {
+) -> Result<Json<serde_json::Value>, WebError> {
     let operator = ext
         .operator
         .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
+    if operator.group >= cds_db::user::Group::Admin {
+        return Ok(Json(serde_json::json!({ "challenge": challenge })));
+    }
+
     if !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge.id).await? {
         return Err(WebError::Forbidden(json!("forbidden")));
     }
 
-    Ok(Json(ChallengeDetailResponse {
-        challenge: ChallengeView::from(&challenge),
-    }))
+    Ok(Json(serde_json::json!({
+        "challenge": ChallengeView::from(&challenge)
+    })))
 }

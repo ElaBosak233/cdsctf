@@ -44,7 +44,7 @@ export function AttachmentSection() {
               target={"_blank"}
               href={
                 debug
-                  ? `/api/admin/challenges/${challenge?.id}/attachments/${m.filename}`
+                  ? `/api/challenges/${challenge?.id}/attachments/${m.filename}`
                   : `/api/challenges/${challenge?.id}/attachments/${m.filename}`
               }
               rel="noopener"

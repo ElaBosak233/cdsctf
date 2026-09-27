@@ -12,7 +12,7 @@ export type GetGameUsersRequest = {
 
 export async function getGameUsers(request: GetGameUsersRequest) {
   return api
-    .get(`admin/games/${request.game_id}/users`, {
+    .get(`games/${request.game_id}/users`, {
       searchParams: toSearchParams(request),
     })
     .json<{ users: UserAccountView[]; total: number }>();

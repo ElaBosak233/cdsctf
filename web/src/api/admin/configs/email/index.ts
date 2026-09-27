@@ -2,7 +2,7 @@ import { api, toSearchParams } from "@/utils/query";
 
 export function getEmail(type: "verify" | "forget") {
   return api
-    .get("admin/configs/mailbox", { searchParams: toSearchParams({ type }) })
+    .get("configs/mailbox", { searchParams: toSearchParams({ type }) })
     .json<{ content: string }>();
 }
 
@@ -13,6 +13,6 @@ export type SaveEmailRequest = {
 
 export function saveEmail(request: SaveEmailRequest) {
   return api
-    .post("admin/configs/mailbox", { json: request })
+    .post("configs/mailbox", { json: request })
     .json<Record<string, never>>();
 }

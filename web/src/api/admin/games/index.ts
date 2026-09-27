@@ -12,7 +12,7 @@ export type GetGamesRequest = {
 
 export async function getGames(request: GetGamesRequest) {
   return api
-    .get("admin/games", {
+    .get("games", {
       searchParams: toSearchParams(request),
     })
     .json<{ games: GameDetail[]; total: number }>();

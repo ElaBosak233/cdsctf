@@ -159,18 +159,14 @@ export default function Index() {
     );
 
     try {
-      await uploadFile(
-        `/api/admin/idps/${idpId}/avatar`,
-        [file],
-        ({ percent }) => {
-          toast.loading(
-            t("admin:idp.avatar_upload.progress", {
-              percent: percent.toFixed(0),
-            }),
-            { id: "idp-avatar-upload" }
-          );
-        }
-      );
+      await uploadFile(`/api/idps/${idpId}/avatar`, [file], ({ percent }) => {
+        toast.loading(
+          t("admin:idp.avatar_upload.progress", {
+            percent: percent.toFixed(0),
+          }),
+          { id: "idp-avatar-upload" }
+        );
+      });
       toast.success(t("admin:idp.avatar_upload.success"), {
         id: "idp-avatar-upload",
       });

@@ -11,8 +11,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Path, Query},
-    traits::{AppState, WebError},
+    extract::{Extension, Path, Query},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 /// Builds the game-scoped user search router.
@@ -42,7 +42,7 @@ pub struct GameUsersListResponse {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
         GetGameUsersRequest,
@@ -54,9 +54,11 @@ pub struct GameUsersListResponse {
 )]
 pub async fn get_game_users(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameUsersRequest>,
 ) -> Result<Json<GameUsersListResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let _ = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);

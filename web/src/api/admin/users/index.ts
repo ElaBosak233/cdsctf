@@ -14,7 +14,7 @@ export type GetUsersRequest = {
 
 export async function getUsers(request: GetUsersRequest) {
   return api
-    .get("admin/users", {
+    .get("users", {
       searchParams: toSearchParams(request),
     })
     .json<{ users: UserAccountView[]; total: number }>();
@@ -30,7 +30,7 @@ export type CreateUserRequest = {
 
 export async function createUser(request: CreateUserRequest) {
   return api
-    .post("admin/users", {
+    .post("users", {
       json: request,
     })
     .json<{ user: UserAccountView }>();

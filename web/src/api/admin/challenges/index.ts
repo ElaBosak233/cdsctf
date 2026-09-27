@@ -15,7 +15,7 @@ export type GetChallengesRequest = {
 
 export async function getChallenges(request: GetChallengesRequest) {
   return api
-    .get("admin/challenges", {
+    .get("challenges", {
       searchParams: toSearchParams(request),
     })
     .json<{ challenges: ChallengeDetail[]; total: number }>();

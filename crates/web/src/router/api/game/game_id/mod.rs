@@ -26,7 +26,7 @@ use axum::{
         sse::{Event as SseEvent, KeepAlive},
     },
 };
-use cds_db::{GameView, ScoreboardEntry};
+use cds_db::{GameDetail, GameView, ScoreboardEntry, user::Group};
 use cds_event::SubscribeOptions;
 use futures_util::StreamExt as _;
 use serde::{Deserialize, Serialize};
@@ -37,8 +37,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Path, Query},
-    traits::{AppState, WebError},
+    extract::{Extension, Path, Query},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -62,6 +62,10 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(get_events).with_state(state.clone()))
         .nest("/challenges", challenge::router(state.clone()))
         .nest("/teams", team::router(state.clone()))
+        .nest(
+            "/users",
+            crate::router::api::admin::game::game_id::user::router(state.clone()),
+        )
         .nest("/notices", notice::router(state.clone()))
         .nest(
             "/notices",
@@ -101,17 +105,26 @@ pub struct GameDetailResponse {
 #[tracing::instrument(skip_all, fields(handler = "get_game"))]
 pub async fn get_game(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
-) -> Result<Json<GameDetailResponse>, WebError> {
+) -> Result<Json<serde_json::Value>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+
+    if principal
+        .operator
+        .is_some_and(|user| user.group >= Group::Admin)
+    {
+        let game = cds_db::game::find_by_id::<GameDetail>(&s.db.conn, game_id)
+            .await?
+            .ok_or(WebError::NotFound(json!("not_found")))?;
+        return Ok(Json(serde_json::json!({ "game": game })));
+    }
 
     if !game.enabled {
         return Err(WebError::NotFound(json!("not_found")));
     }
 
-    Ok(Json(GameDetailResponse {
-        game: GameView::from(&game),
-    }))
+    Ok(Json(serde_json::json!({ "game": GameView::from(&game) })))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]

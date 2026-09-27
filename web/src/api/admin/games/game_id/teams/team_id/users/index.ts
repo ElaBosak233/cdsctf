@@ -8,7 +8,7 @@ export type GetTeamUserRequest = {
 
 export async function getTeamUser(request: GetTeamUserRequest) {
   return api
-    .get(`admin/games/${request.game_id}/teams/${request.team_id}/users`)
+    .get(`games/${request.game_id}/teams/${request.team_id}/users`)
     .json<{ users: UserSummary[]; total: number }>();
 }
 
@@ -20,7 +20,7 @@ export type CreateTeamUserRequest = {
 
 export async function createTeamUser(request: CreateTeamUserRequest) {
   return api
-    .post(`admin/games/${request.game_id}/teams/${request.team_id}/users`, {
+    .post(`games/${request.game_id}/teams/${request.team_id}/users`, {
       json: request,
     })
     .json<Record<string, never>>();
@@ -35,7 +35,7 @@ export type DeleteTeamUserRequest = {
 export async function deleteTeamUser(request: DeleteTeamUserRequest) {
   return api
     .delete(
-      `admin/games/${request.game_id}/teams/${request.team_id}/users/${request.user_id}`,
+      `games/${request.game_id}/teams/${request.team_id}/users/${request.user_id}`,
       { json: request }
     )
     .json<Record<string, never>>();

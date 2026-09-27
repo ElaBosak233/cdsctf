@@ -29,7 +29,7 @@ export async function updateSubmissionStatus(
   request: UpdateSubmissionStatusRequest
 ) {
   return api
-    .put(`admin/submissions/${request.submission_id}/status`, {
+    .put(`submissions/${request.submission_id}/status`, {
       json: { status: request.status },
     })
     .json<SubmissionView>();

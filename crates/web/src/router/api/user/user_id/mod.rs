@@ -13,8 +13,8 @@ use utoipa_axum::{
 
 use super::UserPublicResponse;
 use crate::{
-    extract::Path,
-    traits::{AppState, WebError},
+    extract::{Extension, Path},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 /// Defines the `avatar` submodule (see sibling `*.rs` files).
@@ -25,6 +25,18 @@ mod avatar;
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_user).with_state(state.clone()))
+        .routes(
+            routes!(crate::router::api::admin::user::user_id::update_user)
+                .with_state(state.clone()),
+        )
+        .routes(
+            routes!(crate::router::api::admin::user::user_id::delete_user)
+                .with_state(state.clone()),
+        )
+        .nest(
+            "/emails",
+            crate::router::api::admin::user::user_id::email::router(state.clone()),
+        )
         .nest(
             "/avatar",
             OpenApiRouter::from(Router::new().with_state(state.clone()))
@@ -49,12 +61,20 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[tracing::instrument(skip_all, fields(handler = "get_user"))]
 pub async fn get_user(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(user_id): Path<i64>,
-) -> Result<Json<UserPublicResponse>, WebError> {
+) -> Result<Json<serde_json::Value>, WebError> {
     let user = cds_db::user::find_by_id::<cds_db::UserAccountView>(&s.db.conn, user_id)
         .await?
         .ok_or(WebError::NotFound(json!("not_found")))?;
-    Ok(Json(UserPublicResponse {
-        user: UserProfile::from(&user),
-    }))
+    if principal
+        .operator
+        .as_ref()
+        .is_some_and(|operator| operator.group >= cds_db::user::Group::Admin)
+    {
+        return Ok(Json(serde_json::json!({ "user": user })));
+    }
+    Ok(Json(serde_json::json!({
+        "user": UserProfile::from(&user)
+    })))
 }

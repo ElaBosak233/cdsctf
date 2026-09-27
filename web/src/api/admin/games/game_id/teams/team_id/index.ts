@@ -13,7 +13,7 @@ export type UpdateTeamRequest = {
 
 export async function updateTeam(request: UpdateTeamRequest) {
   return api
-    .put(`admin/games/${request.game_id}/teams/${request.team_id}`, {
+    .put(`games/${request.game_id}/teams/${request.team_id}`, {
       json: request,
     })
     .json<{ team: TeamView }>();
@@ -26,7 +26,7 @@ export type DeleteTeamRequest = {
 
 export async function deleteTeam(request: DeleteTeamRequest) {
   return api
-    .delete(`admin/games/${request.game_id}/teams/${request.team_id}`, {
+    .delete(`games/${request.game_id}/teams/${request.team_id}`, {
       json: request,
     })
     .json<Record<string, never>>();

@@ -2,7 +2,7 @@
 //! registration.
 
 /// Defines the `email` submodule (see sibling `*.rs` files).
-mod email;
+pub(crate) mod email;
 
 use std::sync::Arc;
 
@@ -15,50 +15,26 @@ use cds_db::{
     },
     user::Group,
 };
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use crate::{
-    extract::{Path, VJson},
+    extract::{Extension, Path, VJson},
     router::api::user::UserResponse,
-    traits::{AppState, EmptyJson, WebError},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
-        .routes(routes!(get_user).with_state(state.clone()))
         .routes(routes!(update_user).with_state(state.clone()))
         .routes(routes!(delete_user).with_state(state.clone()))
         .nest("/emails", email::router(state.clone()))
-}
-
-/// Returns user.
-#[utoipa::path(
-    get,
-    path = "/",
-    tag = "admin-user",
-    params(
-        ("user_id" = i64, Path, description = "User id"),
-    ),
-    responses(
-        (status = 200, description = "User", body = UserResponse),
-        (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
-        (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
-    )
-)]
-#[tracing::instrument(skip_all, fields(handler = "get_user"))]
-pub async fn get_user(
-    State(s): State<Arc<AppState>>,
-    Path(user_id): Path<i64>,
-) -> Result<Json<UserResponse>, WebError> {
-    let user = crate::util::loader::prepare_user(&s.db.conn, user_id).await?;
-    Ok(Json(UserResponse { user }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
@@ -74,7 +50,7 @@ pub struct UpdateUserRequest {
 #[utoipa::path(
     put,
     path = "/",
-    tag = "admin-user",
+    tag = "user",
     params(
         ("user_id" = i64, Path, description = "User id"),
     ),
@@ -87,9 +63,11 @@ pub struct UpdateUserRequest {
 #[tracing::instrument(skip_all, fields(handler = "update_user"))]
 pub async fn update_user(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(user_id): Path<i64>,
     VJson(mut body): VJson<UpdateUserRequest>,
 ) -> Result<Json<UserResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let user = crate::util::loader::prepare_user(&s.db.conn, user_id).await?;
 
     if let Some(password) = body.password {
@@ -120,7 +98,7 @@ pub async fn update_user(
 #[utoipa::path(
     delete,
     path = "/",
-    tag = "admin-user",
+    tag = "user",
     params(
         ("user_id" = i64, Path, description = "User id"),
     ),
@@ -132,8 +110,10 @@ pub async fn update_user(
 #[tracing::instrument(skip_all, fields(handler = "delete_user"))]
 pub async fn delete_user(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(user_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
     cds_db::user::delete(&transaction, user_id).await?;
     transaction.commit().await.map_err(cds_db::DbError::from)?;

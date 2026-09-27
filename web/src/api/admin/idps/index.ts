@@ -19,33 +19,31 @@ export type DiagnosticMarker = {
 };
 
 export async function getAdminIdps() {
-  return api.get("admin/idps").json<{ idps: IdpView[] }>();
+  return api.get("idps").json<{ idps: IdpView[] }>();
 }
 
 export async function createAdminIdp(request: IdpRequest) {
-  return api.post("admin/idps", { json: request }).json<{ idp: IdpView }>();
+  return api.post("idps", { json: request }).json<{ idp: IdpView }>();
 }
 
 export async function getAdminIdp(idpId: number) {
-  return api.get(`admin/idps/${idpId}`).json<{ idp: IdpView }>();
+  return api.get(`idps/${idpId}`).json<{ idp: IdpView }>();
 }
 
 export async function updateAdminIdp(idpId: number, request: IdpRequest) {
-  return api
-    .put(`admin/idps/${idpId}`, { json: request })
-    .json<{ idp: IdpView }>();
+  return api.put(`idps/${idpId}`, { json: request }).json<{ idp: IdpView }>();
 }
 
 export async function deleteAdminIdp(idpId: number) {
-  return api.delete(`admin/idps/${idpId}`).json<Record<string, never>>();
+  return api.delete(`idps/${idpId}`).json<Record<string, never>>();
 }
 
 export async function deleteAdminIdpAvatar(idpId: number) {
-  return api.delete(`admin/idps/${idpId}/avatar`).json<Record<string, never>>();
+  return api.delete(`idps/${idpId}/avatar`).json<Record<string, never>>();
 }
 
 export async function lintIdpScript(script: string) {
   return api
-    .post("admin/idps/lint", { json: { script } })
+    .post("idps/lint", { json: { script } })
     .json<{ markers: DiagnosticMarker[] }>();
 }

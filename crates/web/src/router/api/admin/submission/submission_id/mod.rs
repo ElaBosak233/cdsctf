@@ -1,4 +1,4 @@
-//! Resource-level handlers for `/api/admin/submissions/{submission_id}`.
+//! Administrator review actions for `/api/submissions/{submission_id}`.
 
 use std::sync::Arc;
 
@@ -22,8 +22,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Json as ReqJson, Path},
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Json as ReqJson, Path},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -76,7 +76,7 @@ fn score_recalculation_game_id(
 #[utoipa::path(
     put,
     path = "/status",
-    tag = "admin-submission",
+    tag = "submission",
     params(
         ("submission_id" = i64, Path, description = "Submission id"),
     ),
@@ -91,10 +91,11 @@ fn score_recalculation_game_id(
 #[tracing::instrument(skip_all, fields(handler = "update_submission_status"))]
 pub async fn update_submission_status(
     State(s): State<Arc<AppState>>,
-
+    Extension(principal): Extension<AuthPrincipal>,
     Path(submission_id): Path<i64>,
     ReqJson(body): ReqJson<UpdateSubmissionStatusRequest>,
 ) -> Result<Json<SubmissionView>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let transaction =
         s.db.conn
             .begin_with_config(
@@ -176,7 +177,7 @@ pub async fn update_submission_status(
 #[utoipa::path(
     delete,
     path = "/",
-    tag = "admin-submission",
+    tag = "submission",
     params(
         ("submission_id" = i64, Path, description = "Submission id"),
     ),
@@ -189,9 +190,10 @@ pub async fn update_submission_status(
 #[tracing::instrument(skip_all, fields(handler = "delete_submission"))]
 pub async fn delete_submission(
     State(s): State<Arc<AppState>>,
-
+    Extension(principal): Extension<AuthPrincipal>,
     Path(submission_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let transaction =
         s.db.conn
             .begin_with_config(

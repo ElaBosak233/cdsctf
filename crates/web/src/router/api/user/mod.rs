@@ -17,6 +17,7 @@ use cds_db::{
     sea_orm::ActiveValue::Set,
     user::{FindUserOptions, Group},
 };
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_sessions::Session;
@@ -25,7 +26,6 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use crate::{
     extract::{Extension, Json as ReqJson},
@@ -37,6 +37,8 @@ use crate::{
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(crate::router::api::admin::user::get_users).with_state(state.clone()))
+        .routes(routes!(crate::router::api::admin::user::create_user).with_state(state.clone()))
         .routes(routes!(user_login).with_state(state.clone()))
         .routes(routes!(user_register).with_state(state.clone()))
         .routes(routes!(user_logout).with_state(state.clone()))

@@ -166,7 +166,7 @@ function useColumns(): Array<ColumnDef<TeamView>> {
                         <Link
                           to={
                             resolvedGameId != null
-                              ? `/api/admin/games/${resolvedGameId}/teams/${row.original.id}/writeup`
+                              ? `/api/games/${resolvedGameId}/teams/${row.original.id}/writeup`
                               : "#"
                           }
                           target={"_blank"}

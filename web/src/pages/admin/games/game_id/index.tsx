@@ -170,7 +170,7 @@ export default function Index() {
 
     try {
       await uploadFile(
-        `/api/admin/games/${resolvedGameId}/poster`,
+        `/api/games/${resolvedGameId}/poster`,
         [file],
         ({ percent }) => {
           toast.loading(
@@ -228,7 +228,7 @@ export default function Index() {
 
     try {
       await uploadFile(
-        `/api/admin/games/${resolvedGameId}/icon`,
+        `/api/games/${resolvedGameId}/icon`,
         [file],
         ({ percent }) => {
           toast.loading(

@@ -4,8 +4,7 @@
 use std::sync::Arc;
 
 use axum::{
-    Json,
-    Router,
+    Json, Router,
     body::Body,
     extract::State,
     http::{Response, StatusCode, header},
@@ -53,14 +52,19 @@ pub async fn get_attachment(
     Extension(ext): Extension<AuthPrincipal>,
     Path((challenge_id, filename)): Path<(i64, String)>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id)
         .await?
         .has_attachment
         .then_some(())
         .ok_or_else(|| WebError::NotFound(json!("challenge_has_not_attachment")))?;
 
-    if !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge_id).await? {
+    let is_admin = operator.group >= cds_db::user::Group::Admin;
+    if !is_admin
+        && !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge_id).await?
+    {
         return Err(WebError::Forbidden(json!("forbidden")));
     }
 

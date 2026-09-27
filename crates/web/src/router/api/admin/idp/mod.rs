@@ -1,7 +1,7 @@
 //! Admin IdP management.
 
 /// Defines the `avatar` submodule (see sibling `*.rs` files).
-mod avatar;
+pub(crate) mod avatar;
 
 use std::sync::Arc;
 
@@ -15,6 +15,7 @@ use cds_db::{
     sea_orm::ActiveValue::{NotSet, Set, Unchanged},
 };
 use cds_engine::traits::EngineError;
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::error;
@@ -22,11 +23,10 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use crate::{
-    extract::Json as ReqJson,
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Json as ReqJson},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 #[derive(Debug, Serialize, utoipa::ToSchema)]
@@ -80,7 +80,7 @@ fn default_true() -> bool {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-idp",
+    tag = "idp",
     responses((status = 200, description = "IdPs", body = AdminIdpsResponse))
 )]
 #[tracing::instrument(skip_all, fields(handler = "admin_list_idps"))]
@@ -94,7 +94,7 @@ pub async fn list_idps(
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-idp",
+    tag = "idp",
     request_body = AdminIdpRequest,
     responses(
         (status = 201, description = "Created IdP", body = AdminIdpResponse),
@@ -104,8 +104,10 @@ pub async fn list_idps(
 #[tracing::instrument(skip_all, fields(handler = "admin_create_idp"))]
 pub async fn create_idp(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<AdminIdpRequest>,
 ) -> Result<(StatusCode, Json<AdminIdpResponse>), WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     body.validate()
         .map_err(|_| WebError::UnprocessableEntity(json!("validation_failed")))?;
     cds_idp::Idp::lint(&body.script)
@@ -139,7 +141,7 @@ pub async fn create_idp(
 #[utoipa::path(
     get,
     path = "/{idp_id}",
-    tag = "admin-idp",
+    tag = "idp",
     params(("idp_id" = i64, Path, description = "IdP id")),
     responses((status = 200, description = "IdP", body = AdminIdpResponse))
 )]
@@ -157,7 +159,7 @@ pub async fn get_idp(
 #[utoipa::path(
     put,
     path = "/{idp_id}",
-    tag = "admin-idp",
+    tag = "idp",
     params(("idp_id" = i64, Path, description = "IdP id")),
     request_body = AdminIdpRequest,
     responses((status = 200, description = "Updated IdP", body = AdminIdpResponse))
@@ -165,9 +167,11 @@ pub async fn get_idp(
 #[tracing::instrument(skip_all, fields(handler = "admin_update_idp"))]
 pub async fn update_idp(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(idp_id): Path<i64>,
     ReqJson(body): ReqJson<AdminIdpRequest>,
 ) -> Result<Json<AdminIdpResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     body.validate()
         .map_err(|_| WebError::UnprocessableEntity(json!("validation_failed")))?;
     let _ = cds_db::idp::find_idp_by_id::<IdpView>(&s.db.conn, idp_id)
@@ -204,15 +208,17 @@ pub async fn update_idp(
 #[utoipa::path(
     delete,
     path = "/{idp_id}",
-    tag = "admin-idp",
+    tag = "idp",
     params(("idp_id" = i64, Path, description = "IdP id")),
     responses((status = 200, description = "Deleted", body = EmptyJson))
 )]
 #[tracing::instrument(skip_all, fields(handler = "admin_delete_idp"))]
 pub async fn delete_idp(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(idp_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     cds_db::idp::delete_idp(&s.db.conn, idp_id).await?;
     Ok(Json(EmptyJson::default()))
 }
@@ -220,7 +226,7 @@ pub async fn delete_idp(
 #[utoipa::path(
     post,
     path = "/lint",
-    tag = "admin-idp",
+    tag = "idp",
     request_body = LintIdpScriptRequest,
     responses(
         (status = 200, description = "Lint markers (empty if clean)", body = IdpLintResponse),
@@ -229,8 +235,10 @@ pub async fn delete_idp(
 )]
 #[tracing::instrument(skip_all, fields(handler = "admin_lint_idp_script"))]
 pub async fn lint_idp_script(
+    Extension(principal): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<LintIdpScriptRequest>,
 ) -> Result<Json<IdpLintResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let lint = cds_idp::Idp::lint(&body.script).await;
     let diagnostics = if let Err(lint) = lint {
         match lint {
