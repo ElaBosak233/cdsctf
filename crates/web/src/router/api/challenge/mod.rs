@@ -2,7 +2,7 @@
 //! registration.
 
 /// Defines the `challenge_id` submodule (see sibling `*.rs` files).
-mod challenge_id;
+pub(crate) mod challenge_id;
 
 use std::{
     collections::{HashMap, HashSet},

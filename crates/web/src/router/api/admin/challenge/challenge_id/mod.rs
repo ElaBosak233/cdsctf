@@ -4,9 +4,6 @@
 /// Defines the `attachment` submodule (see sibling `*.rs` files).
 mod attachment;
 
-/// Defines the `checker` submodule (see sibling `*.rs` files).
-mod checker;
-
 /// Defines the `writeup` submodule (see sibling `*.rs` files).
 mod writeup;
 
@@ -41,7 +38,10 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(update_challenge).with_state(state.clone()))
         .routes(routes!(delete_challenge).with_state(state.clone()))
         .routes(routes!(update_challenge_instance).with_state(state.clone()))
-        .nest("/checker", checker::router(state.clone()))
+        .nest(
+            "/checker",
+            crate::router::api::challenge::challenge_id::checker::router(state.clone()),
+        )
         .nest("/writeup", writeup::router(state.clone()))
         .nest("/attachments", attachment::router(state.clone()))
 }

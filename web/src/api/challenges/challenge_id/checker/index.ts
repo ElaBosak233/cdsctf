@@ -6,8 +6,9 @@ export type UpdateCheckerRequest = {
 };
 
 export async function updateChallengeChecker(request: UpdateCheckerRequest) {
+  const { id, ...body } = request;
   return api
-    .put(`admin/challenges/${request?.id}/checker`, { json: request })
+    .put(`challenges/${id}/checker`, { json: body })
     .json<Record<string, never>>();
 }
 
@@ -26,7 +27,8 @@ export type DiagnosticMarker = {
 };
 
 export async function lintChallengeChecker(request: LintCheckerRequest) {
+  const { id, ...body } = request;
   return api
-    .post(`admin/challenges/${request?.id}/checker/lint`, { json: request })
+    .post(`challenges/${id}/checker/lint`, { json: body })
     .json<{ markers: DiagnosticMarker[] }>();
 }

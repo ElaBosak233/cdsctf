@@ -380,6 +380,13 @@ POST /api/v1/games/{game_id}/challenges/{challenge_id}/releases
 /api/v1/challenges/{challenge_id}/instance-config
 ```
 
+Checker 脚本的静态 lint 也留在 Checker 子资源下；该操作只返回诊断信息，不创建 Submission：
+
+```http
+PUT  /api/v1/challenges/{challenge_id}/checker
+POST /api/v1/challenges/{challenge_id}/checker/lint
+```
+
 ### 5.2 Game admin 关系
 
 ```http

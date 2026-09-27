@@ -2,7 +2,7 @@
 //! registration.
 
 /// Defines the `challenge` submodule (see sibling `*.rs` files).
-mod challenge;
+pub(crate) mod challenge;
 
 /// Defines the `config` submodule (see sibling `*.rs` files).
 mod config;

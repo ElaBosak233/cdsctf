@@ -16,7 +16,7 @@ import {
   type DiagnosticMarker,
   lintChallengeChecker,
   updateChallengeChecker,
-} from "@/api/admin/challenges/challenge_id/checker";
+} from "@/api/challenges/challenge_id/checker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Editor } from "@/components/ui/editor";
