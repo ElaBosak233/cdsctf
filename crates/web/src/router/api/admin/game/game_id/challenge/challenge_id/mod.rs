@@ -19,8 +19,8 @@ use utoipa_axum::{
 
 use super::GameChallengeResponse;
 use crate::{
-    extract::{Json as ReqJson, Path},
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Json as ReqJson, Path},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -63,9 +63,11 @@ pub struct UpdateGameChallengeRequest {
 #[tracing::instrument(skip_all, fields(handler = "update_game_challenge"))]
 pub async fn update_game_challenge(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path((game_id, challenge_id)): Path<(i64, i64)>,
     ReqJson(body): ReqJson<UpdateGameChallengeRequest>,
 ) -> Result<Json<GameChallengeResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let game_challenge =
         crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge_id).await?;
 
@@ -133,8 +135,10 @@ pub async fn update_game_challenge(
 #[tracing::instrument(skip_all, fields(handler = "delete_game_challenge"))]
 pub async fn delete_game_challenge(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path((game_id, challenge_id)): Path<(i64, i64)>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let game_challenge =
         crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge_id).await?;
 

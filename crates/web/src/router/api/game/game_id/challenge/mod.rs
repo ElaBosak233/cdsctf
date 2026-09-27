@@ -24,6 +24,16 @@ use crate::{
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_game_challenge).with_state(state.clone()))
+        .routes(
+            routes!(crate::router::api::admin::game::game_id::challenge::create_game_challenge)
+                .with_state(state.clone()),
+        )
+        .nest(
+            "/{challenge_id}",
+            crate::router::api::admin::game::game_id::challenge::challenge_id::router(
+                state.clone(),
+            ),
+        )
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]

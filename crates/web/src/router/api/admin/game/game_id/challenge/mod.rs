@@ -18,12 +18,12 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Json as ReqJson, Path, Query},
-    traits::{AppState, WebError},
+    extract::{Extension, Json as ReqJson, Path, Query},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 /// Defines the `challenge_id` submodule (see sibling `*.rs` files).
-mod challenge_id;
+pub(crate) mod challenge_id;
 
 /// Builds the Axum router fragment for this module.
 
@@ -121,9 +121,11 @@ pub struct GameChallengeResponse {
 #[tracing::instrument(skip_all, fields(handler = "create_game_challenge"))]
 pub async fn create_game_challenge(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     ReqJson(body): ReqJson<CreateGameChallengeRequest>,
 ) -> Result<Json<GameChallengeResponse>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;

@@ -14,7 +14,7 @@ export type UpdateGameChallengeRequest = {
 
 export async function updateGameChallenge(request: UpdateGameChallengeRequest) {
   return api
-    .put(`admin/games/${request.game_id}/challenges/${request.challenge_id}`, {
+    .put(`games/${request.game_id}/challenges/${request.challenge_id}`, {
       json: request,
     })
     .json<{ game_challenge: GameChallengeView }>();
@@ -28,7 +28,7 @@ export type DeleteGameChallengeRequest = {
 export async function deleteGameChallenge(request: DeleteGameChallengeRequest) {
   return api
     .delete(
-      `admin/games/${request.game_id}/challenges/${request.challenge_id}`,
+      `games/${request.game_id}/challenges/${request.challenge_id}`,
       { json: request }
     )
     .json<Record<string, never>>();

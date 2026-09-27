@@ -10,7 +10,7 @@ export type GetGameChallengeRequest = {
 
 export async function getGameChallenges(request: GetGameChallengeRequest) {
   return api
-    .get(`admin/games/${request.game_id}/challenges`, {
+    .get(`games/${request.game_id}/challenges`, {
       searchParams: toSearchParams(request),
     })
     .json<{ challenges: GameChallengeView[]; total: number }>();
@@ -29,7 +29,7 @@ export type CreateGameChallengeRequest = {
 
 export async function createGameChallenge(request: CreateGameChallengeRequest) {
   return api
-    .post(`admin/games/${request.game_id}/challenges`, {
+    .post(`games/${request.game_id}/challenges`, {
       json: request,
     })
     .json<{ game_challenge: GameChallengeView }>();
