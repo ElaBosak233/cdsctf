@@ -12,7 +12,6 @@ use cds_db::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tracing::{info, warn};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -129,36 +128,15 @@ pub async fn create_debug_submission(
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateDebugSubmissionRequest>,
 ) -> Result<Json<CreateDebugSubmissionResponse>, WebError> {
+    crate::middleware::auth::require_admin(&ext)?;
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
-    // Validate challenge exists.
-    let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
-
-    // Run the Lua checker synchronously (no queue, no DB record).
-    let result = s
-        .checker
-        .check(&challenge, operator.id, &body.content)
-        .await;
-
-    let status = match result {
-        Ok(cds_checker::Status::Correct) => Status::Correct,
-        Ok(cds_checker::Status::Cheat(peer_id)) => {
-            warn!(
-                user_id = operator.id,
-                peer_team_id = peer_id,
-                "cheat detected in debug submit"
-            );
-            Status::Cheat
-        }
-        _ => Status::Incorrect,
-    };
-
-    info!(
-        user_id = operator.id,
-        challenge_id = body.challenge_id,
-        status = ?status,
-        "debug submit result"
-    );
-
-    Ok(Json(CreateDebugSubmissionResponse { status }))
+    let result = crate::router::api::challenge::challenge_id::checks::run_check(
+        &s,
+        operator.id,
+        body.challenge_id,
+        &body.content,
+    )
+    .await?;
+    Ok(Json(CreateDebugSubmissionResponse { status: result.status }))
 }

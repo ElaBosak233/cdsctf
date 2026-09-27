@@ -14,8 +14,8 @@ export async function debugCreateSubmission(
   request: DebugCreateSubmissionRequest
 ) {
   return api
-    .post("admin/submissions/debug", {
-      json: request,
+    .post(`challenges/${request.challenge_id}/checks`, {
+      json: { content: request.content },
     })
     .json<DebugCreateSubmissionResponse>();
 }

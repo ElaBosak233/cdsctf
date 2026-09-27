@@ -2,7 +2,7 @@ import { BugIcon, FlagIcon, LockIcon, SendIcon } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { debugCreateSubmission } from "@/api/admin/submissions";
+import { createChallengeCheck } from "@/api/challenges/challenge_id/checks";
 import { createSubmission } from "@/api/submissions";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -88,8 +88,8 @@ function SubmitSection() {
     }
 
     try {
-      const result = await debugCreateSubmission({
-        challenge_id: challengeId,
+      const result = await createChallengeCheck({
+        id: challengeId,
         content: trimmed,
       });
 
