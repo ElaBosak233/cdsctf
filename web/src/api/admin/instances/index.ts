@@ -1,11 +1,12 @@
-import { api } from "@/utils/query";
+import { createInstance } from "@/api/instances";
 
 export type CreateDebugInstanceRequest = {
   challenge_id?: number;
 };
 
 export async function createDebugInstance(request: CreateDebugInstanceRequest) {
-  return api
-    .post("admin/instances", { json: request })
-    .json<{ instance_id: string }>();
+  return createInstance({
+    challenge_id: request.challenge_id,
+    purpose: "debug",
+  });
 }

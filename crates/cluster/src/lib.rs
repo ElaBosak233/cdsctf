@@ -380,6 +380,7 @@ impl Cluster {
         team: Option<cds_db::TeamView>,
         game: Option<cds_db::GameDetail>,
         challenge: cds_db::ChallengeDetail,
+        purpose: &str,
     ) -> Result<String, ClusterError> {
         let id = util::gen_safe_nanoid();
         let name = format!("cds-{}", id);
@@ -423,6 +424,7 @@ impl Cluster {
                     ),
                 ),
                 ("cds/challenge_id".to_owned(), format!("{}", challenge.id)),
+                ("cds/purpose".to_owned(), purpose.to_owned()),
             ])),
             annotations: Some(BTreeMap::from([
                 ("cds/challenge".to_owned(), json!(challenge).to_string()),

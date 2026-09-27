@@ -9,7 +9,6 @@ import {
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { createDebugInstance } from "@/api/admin/instances";
 import { createInstance, getInstances } from "@/api/instances";
 import { renewInstance, stopInstance } from "@/api/instances/instance_id";
 import { Button } from "@/components/ui/button";
@@ -142,6 +141,7 @@ function InstanceSection() {
         user_id: pollUserId,
         game_id: pollGameId,
         team_id: pollTeamId,
+        purpose: debug ? "debug" : "player",
       });
       const current = res.instances?.[0];
       setInstance(current);
@@ -248,17 +248,12 @@ function InstanceSection() {
       id: "instance",
     });
     try {
-      if (debug) {
-        await createDebugInstance({
-          challenge_id: cid,
-        });
-      } else {
-        await createInstance({
-          challenge_id: cid,
-          game_id: createGameId,
-          team_id: createTeamId,
-        });
-      }
+      await createInstance({
+        challenge_id: cid,
+        game_id: createGameId,
+        team_id: createTeamId,
+        purpose: debug ? "debug" : "player",
+      });
 
       toast.loading(t("instance:actions.start.sent"), {
         id: "instance",

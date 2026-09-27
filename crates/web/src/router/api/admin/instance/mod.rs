@@ -130,6 +130,7 @@ pub async fn create_debug_instance(
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateDebugInstanceRequest>,
 ) -> Result<(StatusCode, Json<CreateDebugInstanceResponse>), WebError> {
+    crate::middleware::auth::require_admin(&ext)?;
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
@@ -156,7 +157,7 @@ pub async fn create_debug_instance(
 
     let instance_id = s
         .cluster
-        .create_challenge_instance(operator, None, None, challenge)
+        .create_challenge_instance(operator, None, None, challenge, "debug")
         .await?;
 
     Ok((

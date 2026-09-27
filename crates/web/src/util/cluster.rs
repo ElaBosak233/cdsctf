@@ -12,6 +12,7 @@ pub struct Instance {
     pub team_id: i64,
     pub game_id: i64,
     pub challenge_id: i64,
+    pub purpose: String,
 
     pub ports: Vec<Port>,
     pub public_entry: Option<String>,
@@ -72,6 +73,10 @@ impl From<Pod> for Instance {
             .to_owned()
             .parse::<i64>()
             .unwrap_or(0);
+        let purpose = labels
+            .get("cds/purpose")
+            .cloned()
+            .unwrap_or_else(|| "player".to_owned());
 
         let annotations = pod.metadata.annotations.unwrap_or_default();
 
@@ -143,6 +148,7 @@ impl From<Pod> for Instance {
             team_id,
             game_id,
             challenge_id,
+            purpose,
             ports,
             nats,
             status,

@@ -7,7 +7,7 @@ mod instance_id;
 use std::{collections::BTreeMap, sync::Arc};
 
 use axum::{Json, Router, extract::State, http::StatusCode};
-use cds_db::{TeamUserView, team_user::FindTeamUserOptions};
+use cds_db::{TeamUserView, team_user::FindTeamUserOptions, user::Group};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -38,6 +38,24 @@ pub struct GetInstanceRequest {
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub challenge_id: Option<i64>,
+    pub purpose: Option<InstancePurpose>,
+}
+
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, utoipa::ToSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum InstancePurpose {
+    #[default]
+    Player,
+    Debug,
+}
+
+impl InstancePurpose {
+    fn as_label(self) -> &'static str {
+        match self {
+            Self::Player => "player",
+            Self::Debug => "debug",
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
@@ -71,28 +89,43 @@ pub async fn list_instances(
 ) -> Result<Json<ListInstancesResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let mut map: BTreeMap<String, String> = BTreeMap::new();
+    let is_admin = operator.group >= Group::Admin;
 
-    match (params.user_id, params.team_id, params.game_id) {
-        (Some(user_id), None, None) => {
-            if operator.id != user_id {
-                return Err(WebError::Forbidden(json!("forbidden")));
-            }
+    if is_admin {
+        if let Some(id) = &params.id {
+            map.insert("cds/instance_id".to_owned(), id.clone());
+        }
+        if let Some(user_id) = params.user_id {
             map.insert("cds/user_id".to_owned(), format!("{}", user_id));
         }
-        (_, Some(team_id), Some(game_id)) => {
-            let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
-            crate::util::loader::ensure_game_not_paused(&game)?;
-            let team =
-                crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
-            if team.id != team_id {
-                return Err(WebError::Forbidden(json!("forbidden")));
-            }
+        if let Some(team_id) = params.team_id {
             map.insert("cds/team_id".to_owned(), format!("{}", team_id));
+        }
+        if let Some(game_id) = params.game_id {
             map.insert("cds/game_id".to_owned(), format!("{}", game_id));
         }
-        _ => {
-            return Err(WebError::BadRequest(json!("bad_request")));
+    } else {
+        match (params.user_id, params.team_id, params.game_id) {
+            (Some(user_id), None, None) => {
+                if operator.id != user_id {
+                    return Err(WebError::Forbidden(json!("forbidden")));
+                }
+                map.insert("cds/user_id".to_owned(), format!("{}", user_id));
+            }
+            (_, Some(team_id), Some(game_id)) => {
+                let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+                crate::util::loader::ensure_game_not_paused(&game)?;
+                let team =
+                    crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
+                if team.id != team_id {
+                    return Err(WebError::Forbidden(json!("forbidden")));
+                }
+                map.insert("cds/team_id".to_owned(), format!("{}", team_id));
+                map.insert("cds/game_id".to_owned(), format!("{}", game_id));
+            }
+            _ => return Err(WebError::BadRequest(json!("bad_request"))),
         }
+        map.insert("cds/purpose".to_owned(), "player".to_owned());
     }
 
     if let Some(id) = params.id {
@@ -101,6 +134,12 @@ pub async fn list_instances(
 
     if let Some(challenge_id) = params.challenge_id {
         map.insert("cds/challenge_id".to_owned(), format!("{}", challenge_id));
+    }
+    if is_admin {
+        map.insert(
+            "cds/purpose".to_owned(),
+            params.purpose.unwrap_or_default().as_label().to_owned(),
+        );
     }
 
     let labels = map
@@ -124,6 +163,8 @@ pub struct CreateInstanceRequest {
     pub challenge_id: i64,
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
+    #[serde(default)]
+    pub purpose: InstancePurpose,
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
@@ -155,20 +196,31 @@ pub async fn create_instance(
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateInstanceRequest>,
 ) -> Result<(StatusCode, Json<CreateInstanceResponse>), WebError> {
+    if matches!(body.purpose, InstancePurpose::Debug) {
+        crate::middleware::auth::require_admin(&ext)?;
+        if body.game_id.is_some() || body.team_id.is_some() {
+            return Err(WebError::BadRequest(json!("debug_instance_context_invalid")));
+        }
+    }
+
     let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
-    if let Some(game_id) = body.game_id {
-        let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
-        if !game.enabled {
-            return Err(WebError::NotFound(json!("game_not_found")));
+    if matches!(body.purpose, InstancePurpose::Player) {
+        if let Some(game_id) = body.game_id {
+            let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+            if !game.enabled {
+                return Err(WebError::NotFound(json!("game_not_found")));
+            }
+            crate::util::loader::ensure_game_not_paused(&game)?;
+            crate::util::loader::ensure_game_ongoing(&game, time::OffsetDateTime::now_utc())?;
         }
-        crate::util::loader::ensure_game_not_paused(&game)?;
-        crate::util::loader::ensure_game_ongoing(&game, time::OffsetDateTime::now_utc())?;
     }
 
-    if !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge.id).await? {
+    if matches!(body.purpose, InstancePurpose::Player)
+        && !cds_db::challenge::can_user_access(&s.db.conn, operator.id, challenge.id).await?
+    {
         return Err(WebError::NotFound(json!("challenge_not_found")));
     }
 
@@ -177,11 +229,15 @@ pub async fn create_instance(
         .instance
         .ok_or(WebError::BadRequest(json!("challenge_instance_invalid")))?;
 
-    if body.game_id.is_some() != body.team_id.is_some() {
+    if matches!(body.purpose, InstancePurpose::Player)
+        && body.game_id.is_some() != body.team_id.is_some()
+    {
         return Err(WebError::BadRequest(json!("invalid")));
     }
 
-    if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
+    if matches!(body.purpose, InstancePurpose::Player)
+        && let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id)
+    {
         let _ = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
         let _ =
             crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge.id).await?;
@@ -216,13 +272,14 @@ pub async fn create_instance(
         if member_count == existing_pods.len() as u64 {
             return Err(WebError::TooManyRequests(json!("too_many_team_pods")));
         }
-    } else {
+    } else if matches!(body.purpose, InstancePurpose::Player) {
         let existing_pods = s
             .cluster
             .get_pods_by_label(
                 &BTreeMap::from([("cds/user_id", format!("{}", operator.id))])
                     .iter()
                     .map(|(k, v)| format!("{}={}", k, v))
+                    .chain(std::iter::once("cds/purpose=player".to_owned()))
                     .collect::<Vec<String>>()
                     .join(","),
             )
@@ -243,7 +300,7 @@ pub async fn create_instance(
 
     let instance_id = s
         .cluster
-        .create_challenge_instance(operator, team, game, challenge)
+        .create_challenge_instance(operator, team, game, challenge, body.purpose.as_label())
         .await?;
 
     Ok((

@@ -7,6 +7,7 @@ export type Instance = {
   user_id: number;
   team_id: number;
   challenge_id: number;
+  purpose?: "player" | "debug";
   nats?: Array<Nat>;
   ports?: Array<Port>;
   public_entry?: string;

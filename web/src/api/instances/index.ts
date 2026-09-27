@@ -7,6 +7,7 @@ export type GetInstanceRequest = {
   user_id?: number;
   team_id?: number;
   challenge_id?: number;
+  purpose?: "player" | "debug";
 };
 
 export async function getInstances(request: GetInstanceRequest) {
@@ -21,6 +22,7 @@ export type CreateInstanceRequest = {
   game_id?: number;
   team_id?: number;
   challenge_id?: number;
+  purpose?: "player" | "debug";
 };
 
 export async function createInstance(request: CreateInstanceRequest) {
