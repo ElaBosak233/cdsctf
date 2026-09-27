@@ -288,6 +288,18 @@ pub async fn create_instance(
         if existing_pods.len() == 1 {
             return Err(WebError::TooManyRequests(json!("too_many_user_pods")));
         }
+    } else {
+        let existing_pods = s
+            .cluster
+            .get_pods_by_label(&format!(
+                "cds/user_id={},cds/purpose=debug",
+                operator.id
+            ))
+            .await?;
+
+        if !existing_pods.is_empty() {
+            return Err(WebError::TooManyRequests(json!("too_many_debug_pods")));
+        }
     }
 
     let (team, game) = match (body.team_id, body.game_id) {
