@@ -17,8 +17,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::Path,
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Path},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
     util::media::handle_multipart,
 };
 
@@ -50,9 +50,11 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[tracing::instrument(skip_all, fields(handler = "save_game_icon"))]
 pub async fn save_game_icon(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     multipart: Multipart,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let data = handle_multipart(multipart, mime::IMAGE).await?;
     let data = cds_media::util::img_convert_to_webp(data).await?;
 
@@ -89,8 +91,10 @@ pub async fn save_game_icon(
 #[tracing::instrument(skip_all, fields(handler = "delete_game_icon"))]
 pub async fn delete_game_icon(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let game = cds_db::game::find_by_id::<cds_db::GameDetail>(&s.db.conn, game_id)
         .await?
         .ok_or(WebError::NotFound(json!("game_not_found")))?;

@@ -5,13 +5,13 @@
 pub(crate) mod challenge;
 
 /// Defines the `icon` submodule (see sibling `*.rs` files).
-mod icon;
+pub(crate) mod icon;
 
 /// Defines the `notice` submodule (see sibling `*.rs` files).
 pub(crate) mod notice;
 
 /// Defines the `poster` submodule (see sibling `*.rs` files).
-mod poster;
+pub(crate) mod poster;
 
 /// Defines the `team` submodule (see sibling `*.rs` files).
 mod team;

@@ -6,6 +6,6 @@ type DeleteGameIconRequest = {
 
 export async function deleteGameIcon(request: DeleteGameIconRequest) {
   return api
-    .delete(`admin/games/${request.game_id}/icon`)
+    .delete(`games/${request.game_id}/icon`)
     .json<Record<string, never>>();
 }

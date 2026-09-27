@@ -69,6 +69,14 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         )
         .nest("/icon", icon::router(state.clone()))
         .nest("/poster", poster::router(state.clone()))
+        .nest(
+            "/icon",
+            crate::router::api::admin::game::game_id::icon::router(state.clone()),
+        )
+        .nest(
+            "/poster",
+            crate::router::api::admin::game::game_id::poster::router(state.clone()),
+        )
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]

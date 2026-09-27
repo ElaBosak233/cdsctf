@@ -6,6 +6,6 @@ type DeleteGamePosterRequest = {
 
 export async function deleteGamePoster(request: DeleteGamePosterRequest) {
   return api
-    .delete(`admin/games/${request.game_id}/poster`)
+    .delete(`games/${request.game_id}/poster`)
     .json<Record<string, never>>();
 }
