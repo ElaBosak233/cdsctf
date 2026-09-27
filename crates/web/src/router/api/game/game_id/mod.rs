@@ -63,6 +63,10 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .nest("/challenges", challenge::router(state.clone()))
         .nest("/teams", team::router(state.clone()))
         .nest("/notices", notice::router(state.clone()))
+        .nest(
+            "/notices",
+            crate::router::api::admin::game::game_id::notice::router(state.clone()),
+        )
         .nest("/icon", icon::router(state.clone()))
         .nest("/poster", poster::router(state.clone()))
 }

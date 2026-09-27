@@ -12,8 +12,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Json as ReqJson, Path},
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Json as ReqJson, Path},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -52,9 +52,11 @@ pub struct GameNoticeResponse {
 #[tracing::instrument(skip_all, fields(handler = "create_game_notice"))]
 pub async fn create_game_notice(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
     ReqJson(body): ReqJson<CreateGameNoticeRequest>,
 ) -> Result<(StatusCode, Json<GameNoticeResponse>), WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     let game_notice = cds_db::game_notice::create(
         &s.db.conn,
         cds_db::game_notice::ActiveModel {
@@ -91,8 +93,10 @@ pub async fn create_game_notice(
 #[tracing::instrument(skip_all, fields(handler = "delete_game_notice"))]
 pub async fn delete_game_notice(
     State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path((game_id, notice_id)): Path<(i64, i64)>,
 ) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
     cds_db::game_notice::delete(&s.db.conn, notice_id, game_id).await?;
     Ok(Json(EmptyJson::default()))
 }

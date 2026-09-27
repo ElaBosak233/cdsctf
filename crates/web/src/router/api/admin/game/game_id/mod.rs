@@ -8,7 +8,7 @@ pub(crate) mod challenge;
 mod icon;
 
 /// Defines the `notice` submodule (see sibling `*.rs` files).
-mod notice;
+pub(crate) mod notice;
 
 /// Defines the `poster` submodule (see sibling `*.rs` files).
 mod poster;
