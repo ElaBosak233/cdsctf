@@ -1,12 +1,6 @@
 //! HTTP routing for `challenge_id` — Axum router wiring and OpenAPI route
 //! registration.
 
-/// Defines the `attachment` submodule (see sibling `*.rs` files).
-mod attachment;
-
-/// Defines the `writeup` submodule (see sibling `*.rs` files).
-mod writeup;
-
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -17,12 +11,12 @@ use cds_db::{
         NotSet,
     },
 };
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use super::AdminChallengeResponse;
 use crate::{
@@ -42,8 +36,14 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
             "/checker",
             crate::router::api::challenge::challenge_id::checker::router(state.clone()),
         )
-        .nest("/writeup", writeup::router(state.clone()))
-        .nest("/attachments", attachment::router(state.clone()))
+        .nest(
+            "/writeup",
+            crate::router::api::challenge::challenge_id::writeup::router(state.clone()),
+        )
+        .nest(
+            "/attachments",
+            crate::router::api::challenge::challenge_id::attachment::router(state.clone()),
+        )
 }
 
 /// Returns challenge.

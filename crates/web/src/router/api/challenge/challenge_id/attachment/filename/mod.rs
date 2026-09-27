@@ -4,6 +4,7 @@
 use std::sync::Arc;
 
 use axum::{
+    Json,
     Router,
     body::Body,
     extract::State,
@@ -18,7 +19,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Path},
-    traits::{AppState, AuthPrincipal, WebError},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -26,6 +27,7 @@ use crate::{
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_attachment).with_state(state.clone()))
+        .routes(routes!(delete_attachment).with_state(state))
 }
 
 /// Returns attachment.
@@ -87,4 +89,39 @@ pub async fn get_attachment(
             format!("attachment; filename=\"{}\"", filename),
         )
         .body(Body::from(buffer))?)
+}
+
+/// Deletes an attachment. Only a global administrator may mutate attachments.
+#[utoipa::path(
+    delete,
+    path = "/",
+    tag = "challenge",
+    params(
+        ("challenge_id" = i64, Path, description = "Challenge id"),
+        ("filename" = String, Path, description = "File name"),
+    ),
+    responses(
+        (status = 200, description = "Deleted", body = EmptyJson),
+        (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Forbidden", body = crate::traits::ErrorResponse),
+        (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
+        (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
+    )
+)]
+#[tracing::instrument(skip_all, fields(handler = "delete_attachment"))]
+pub async fn delete_attachment(
+    State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
+    Path((challenge_id, filename)): Path<(i64, String)>,
+) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
+    let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id)
+        .await?
+        .has_attachment
+        .then_some(())
+        .ok_or_else(|| WebError::NotFound(json!("challenge_has_not_attachment")))?;
+
+    let path = crate::util::media::build_challenge_attachment_path(challenge_id);
+    s.media.delete(path, filename).await?;
+    Ok(Json(EmptyJson::default()))
 }

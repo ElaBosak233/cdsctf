@@ -102,3 +102,17 @@ pub async fn admin_only(
     Span::current().record("username", operator.username.as_str());
     Ok(next.run(req).await)
 }
+
+/// Requires an authenticated global administrator for resource-level writes.
+pub fn require_admin(ap: &AuthPrincipal) -> Result<(), WebError> {
+    let operator = ap
+        .operator
+        .as_ref()
+        .ok_or_else(|| WebError::Unauthorized(json!("unauthorized")))?;
+
+    if operator.group < Group::Admin {
+        return Err(WebError::Forbidden(json!("forbidden")));
+    }
+
+    Ok(())
+}

@@ -58,7 +58,7 @@ export default function Index() {
 
       try {
         await uploadFile(
-          `/api/admin/challenges/${challenge?.id}/attachments`,
+          `/api/challenges/${challenge?.id}/attachments`,
           [file],
           ({ percent }) => {
             toast.loading(

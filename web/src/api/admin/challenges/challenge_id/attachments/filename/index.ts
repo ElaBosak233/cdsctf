@@ -5,6 +5,6 @@ export async function deleteChallengeAttachment(
   filename?: string
 ) {
   return api
-    .delete(`admin/challenges/${id}/attachments/${filename}`)
+    .delete(`challenges/${id}/attachments/${filename}`)
     .json<Record<string, never>>();
 }

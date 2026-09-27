@@ -8,6 +8,6 @@ export type UpdateWriteupRequest = {
 
 export async function updateWriteup(request: UpdateWriteupRequest) {
   return api
-    .put(`admin/challenges/${request?.id}/writeup`, { json: request })
+    .put(`challenges/${request?.id}/writeup`, { json: request })
     .json<{ challenge: ChallengeDetail }>();
 }

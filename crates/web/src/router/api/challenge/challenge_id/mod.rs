@@ -2,7 +2,10 @@
 //! registration.
 
 /// Defines the `attachment` submodule (see sibling `*.rs` files).
-mod attachment;
+pub(crate) mod attachment;
+
+/// Defines writeup management operations for this challenge.
+pub(crate) mod writeup;
 
 /// Defines Checker management operations for this challenge.
 pub(crate) mod checker;
@@ -28,6 +31,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_challenge).with_state(state.clone()))
         .nest("/checker", checker::router(state.clone()))
+        .nest("/writeup", writeup::router(state.clone()))
         .nest("/attachments", attachment::router(state.clone()))
 }
 
@@ -57,7 +61,9 @@ pub async fn get_challenge(
     Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
 ) -> Result<Json<ChallengeDetailResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 

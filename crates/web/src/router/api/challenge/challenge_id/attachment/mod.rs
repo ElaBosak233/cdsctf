@@ -7,6 +7,7 @@ mod filename;
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
+use axum::extract::{DefaultBodyLimit, Multipart};
 use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -16,7 +17,7 @@ use utoipa_axum::{
 use crate::{
     extract::{Extension, Path},
     model::Metadata,
-    traits::{AppState, AuthPrincipal, WebError},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -24,6 +25,11 @@ use crate::{
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_challenge_attachment).with_state(state.clone()))
+        .routes(
+            routes!(save_challenge_attachment)
+                .with_state(state.clone())
+                .layer(DefaultBodyLimit::max(200 * 1024 * 1024)),
+        )
         .nest("/{filename}", filename::router(state.clone()))
 }
 
@@ -80,4 +86,55 @@ pub async fn get_challenge_attachment(
         attachments: metadata,
         total,
     }))
+}
+
+/// Uploads an attachment. Only a global administrator may mutate attachments.
+#[utoipa::path(
+    post,
+    path = "/",
+    tag = "challenge",
+    params(("challenge_id" = i64, Path, description = "Challenge id")),
+    responses(
+        (status = 200, description = "Uploaded", body = EmptyJson),
+        (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Forbidden", body = crate::traits::ErrorResponse),
+        (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
+    )
+)]
+#[tracing::instrument(skip_all, fields(handler = "save_challenge_attachment"))]
+pub async fn save_challenge_attachment(
+    State(s): State<Arc<AppState>>,
+    Extension(principal): Extension<AuthPrincipal>,
+    Path(challenge_id): Path<i64>,
+    mut multipart: Multipart,
+) -> Result<Json<EmptyJson>, WebError> {
+    crate::middleware::auth::require_admin(&principal)?;
+    let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
+
+    let path = crate::util::media::build_challenge_attachment_path(challenge_id);
+    let mut filename = String::new();
+    let mut data = Vec::<u8>::new();
+    while let Some(field) = multipart.next_field().await? {
+        if let Some(name) = field.file_name() {
+            filename = name.to_owned();
+            data = field
+                .bytes()
+                .await
+                .map_err(|_| WebError::BadRequest(serde_json::json!("size_too_large")))?
+                .to_vec();
+            break;
+        }
+    }
+
+    if filename.is_empty() {
+        return Err(WebError::BadRequest(serde_json::json!("file_required")));
+    }
+
+    s.media
+        .save(path, filename, data)
+        .await
+        .map_err(|_| WebError::InternalServerError(serde_json::json!("internal_server_error")))?;
+
+    Ok(Json(EmptyJson::default()))
 }

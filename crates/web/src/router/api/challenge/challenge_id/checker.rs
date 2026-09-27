@@ -30,25 +30,12 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(lint_checker).with_state(state.clone()))
 }
 
-fn require_admin(principal: &AuthPrincipal) -> Result<(), WebError> {
-    let operator = principal
-        .operator
-        .as_ref()
-        .ok_or_else(|| WebError::Unauthorized(serde_json::json!("unauthorized")))?;
-
-    if operator.group < cds_db::user::Group::Admin {
-        return Err(WebError::Forbidden(serde_json::json!("forbidden")));
-    }
-
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use cds_db::{UserAccountView, user::Group};
 
-    use super::require_admin;
     use crate::traits::AuthPrincipal;
+    use crate::middleware::auth::require_admin;
 
     fn principal(group: Group) -> AuthPrincipal {
         AuthPrincipal {
@@ -111,7 +98,7 @@ pub async fn update_checker(
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateCheckerRequest>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    require_admin(&principal)?;
+    crate::middleware::auth::require_admin(&principal)?;
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
     let _ = cds_db::challenge::update::<ChallengeDetail>(
@@ -161,7 +148,7 @@ pub async fn lint_checker(
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<LintCheckerRequest>,
 ) -> Result<Json<CheckerLintResponse>, WebError> {
-    require_admin(&principal)?;
+    crate::middleware::auth::require_admin(&principal)?;
     let mut challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 
     challenge.checker = body.checker;
