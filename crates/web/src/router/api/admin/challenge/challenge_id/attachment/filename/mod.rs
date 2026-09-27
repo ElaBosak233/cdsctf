@@ -33,7 +33,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-challenge",
+    tag = "challenge",
     params(
         ("challenge_id" = i64, Path, description = "Challenge id"),
         ("filename" = String, Path, description = "File name"),
@@ -86,7 +86,7 @@ pub async fn get_attachment(
 #[utoipa::path(
     delete,
     path = "/",
-    tag = "admin-challenge",
+    tag = "challenge",
     params(
         ("challenge_id" = i64, Path, description = "Challenge id"),
         ("filename" = String, Path, description = "File name"),

@@ -60,7 +60,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
     ),
@@ -107,7 +107,7 @@ pub struct UpdateGameRequest {
 #[utoipa::path(
     put,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
     ),
@@ -159,7 +159,7 @@ pub async fn update_game(
 #[utoipa::path(
     delete,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
     ),
@@ -184,7 +184,7 @@ pub async fn delete_game(
 #[utoipa::path(
     post,
     path = "/calculate",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
     ),

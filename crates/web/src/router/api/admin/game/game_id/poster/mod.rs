@@ -39,7 +39,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
     ),
@@ -80,7 +80,7 @@ pub async fn save_game_poster(
 #[utoipa::path(
     delete,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
     ),

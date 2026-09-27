@@ -49,7 +49,7 @@ pub struct UpdateGameChallengeRequest {
 #[utoipa::path(
     put,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
         ("challenge_id" = i64, Path, description = "Challenge id"),
@@ -122,7 +122,7 @@ pub async fn update_game_challenge(
 #[utoipa::path(
     delete,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
         ("challenge_id" = i64, Path, description = "Challenge id"),

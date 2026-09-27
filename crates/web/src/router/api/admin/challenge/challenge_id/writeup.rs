@@ -34,7 +34,7 @@ pub struct UpdateWriteupRequest {
 #[utoipa::path(
     put,
     path = "/",
-    tag = "admin-challenge",
+    tag = "challenge",
     params(
         ("challenge_id" = i64, Path, description = "Challenge id"),
     ),

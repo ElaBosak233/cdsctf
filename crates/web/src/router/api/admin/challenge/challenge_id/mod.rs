@@ -50,7 +50,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-challenge",
+    tag = "challenge",
     params(
         ("challenge_id" = i64, Path, description = "Challenge id"),
     ),
@@ -85,7 +85,7 @@ pub struct UpdateChallengeRequest {
 #[utoipa::path(
     put,
     path = "/",
-    tag = "admin-challenge",
+    tag = "challenge",
     params(
         ("challenge_id" = i64, Path, description = "Challenge id"),
     ),
@@ -129,7 +129,7 @@ pub async fn update_challenge(
 #[utoipa::path(
     delete,
     path = "/",
-    tag = "admin-challenge",
+    tag = "challenge",
     params(
         ("challenge_id" = i64, Path, description = "Challenge id"),
     ),
@@ -160,7 +160,7 @@ pub struct UpdateChallengeInstanceRequest {
 #[utoipa::path(
     put,
     path = "/instance",
-    tag = "admin-challenge",
+    tag = "challenge",
     params(
         ("challenge_id" = i64, Path, description = "Challenge id"),
     ),

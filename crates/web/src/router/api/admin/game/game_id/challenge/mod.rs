@@ -52,7 +52,7 @@ pub struct AdminGameChallengesListResponse {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
         GetGameChallengeRequest,
@@ -107,7 +107,7 @@ pub struct GameChallengeResponse {
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
     ),

@@ -45,7 +45,7 @@ pub struct AdminChallengeAttachmentsListResponse {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-challenge",
+    tag = "challenge",
     params(
         ("challenge_id" = i64, Path, description = "Challenge id"),
     ),
@@ -86,7 +86,7 @@ pub async fn get_challenge_attachment(
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-challenge",
+    tag = "challenge",
     params(
         ("challenge_id" = i64, Path, description = "Challenge id"),
     ),

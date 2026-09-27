@@ -59,7 +59,7 @@ pub struct AdminChallengesListResponse {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-challenge",
+    tag = "challenge",
     params(GetChallengeRequest),
     responses(
         (status = 200, description = "Challenges", body = AdminChallengesListResponse),
@@ -115,7 +115,7 @@ pub struct AdminChallengeResponse {
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-challenge",
+    tag = "challenge",
     request_body = CreateChallengeRequest,
     responses(
         (status = 201, description = "Created", body = AdminChallengeResponse),

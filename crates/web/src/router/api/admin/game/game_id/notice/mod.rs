@@ -39,7 +39,7 @@ pub struct GameNoticeResponse {
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
     ),
@@ -80,7 +80,7 @@ pub async fn create_game_notice(
 #[utoipa::path(
     delete,
     path = "/{notice_id}",
-    tag = "admin-game",
+    tag = "game",
     params(
         ("game_id" = i64, Path, description = "Game id"),
         ("notice_id" = i64, Path, description = "Notice id"),

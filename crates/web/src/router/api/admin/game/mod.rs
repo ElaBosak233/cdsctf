@@ -59,7 +59,7 @@ pub struct AdminGamesListResponse {
 #[utoipa::path(
     get,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     params(GetGameRequest),
     responses(
         (status = 200, description = "Games", body = AdminGamesListResponse),
@@ -114,7 +114,7 @@ pub struct CreateGameRequest {
 #[utoipa::path(
     post,
     path = "/",
-    tag = "admin-game",
+    tag = "game",
     request_body = CreateGameRequest,
     responses(
         (status = 201, description = "Created game", body = AdminGameDetailResponse),
