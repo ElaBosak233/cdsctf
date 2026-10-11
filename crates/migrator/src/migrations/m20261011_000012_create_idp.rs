@@ -1,4 +1,4 @@
-//! SeaORM migration `m20260915_000012_create_idp` — creates script-backed IdP
+//! SeaORM migration `m20261011_000012_create_idp` — creates script-backed IdP
 //! and user binding tables.
 
 use async_trait::async_trait;
@@ -9,7 +9,7 @@ pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m20260915_000012_create_idp"
+        "m20261011_000012_create_idp"
     }
 }
 
@@ -40,18 +40,7 @@ impl MigrationTrait for Migration {
         Ok(())
     }
 
-    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        let db = manager.get_connection();
-
-        db.execute_raw(Statement::from_string(
-            manager.get_database_backend(),
-            r#"
-                DROP TABLE IF EXISTS "idps";
-            "#
-            .to_owned(),
-        ))
-        .await?;
-
+    async fn down(&self, _manager: &SchemaManager) -> Result<(), DbErr> {
         Ok(())
     }
 }

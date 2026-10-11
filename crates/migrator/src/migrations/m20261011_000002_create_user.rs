@@ -1,4 +1,4 @@
-//! SeaORM migration `m20260915_000002_create_user` — applies forward/backward
+//! SeaORM migration `m20261011_000002_create_user` — applies forward/backward
 //! schema changes.
 
 use async_trait::async_trait;
@@ -10,7 +10,7 @@ pub struct Migration;
 impl MigrationName for Migration {
     /// Stable migration name string for SeaORM.
     fn name(&self) -> &str {
-        "m20260915_000002_create_user"
+        "m20261011_000002_create_user"
     }
 }
 
@@ -28,7 +28,8 @@ impl MigrationTrait for Migration {
                     "name" VARCHAR NOT NULL,
                     "username" VARCHAR UNIQUE NOT NULL,
                     "description" TEXT,
-                    "group" INTEGER NOT NULL,
+                    "banned" BOOLEAN NOT NULL DEFAULT FALSE,
+                    "permissions" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
                     "hashed_password" VARCHAR NOT NULL,
                     "avatar_hash" VARCHAR,
                     "deleted_at" TIMESTAMPTZ,
@@ -43,19 +44,7 @@ impl MigrationTrait for Migration {
         Ok(())
     }
 
-    /// Rolls back this migration (reverse DDL/DML).
-    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        let db = manager.get_connection();
-
-        db.execute_raw(Statement::from_string(
-            manager.get_database_backend(),
-            r#"
-                DROP TABLE IF EXISTS "users";
-            "#
-            .to_owned(),
-        ))
-        .await?;
-
+    async fn down(&self, _manager: &SchemaManager) -> Result<(), DbErr> {
         Ok(())
     }
 }

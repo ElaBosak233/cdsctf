@@ -20,23 +20,19 @@ impl MigratorTrait for Migrator {
     /// Returns every boxed migration in chronological order.
     fn migrations() -> Vec<Box<dyn MigrationTrait>> {
         vec![
-            Box::new(migrations::m20260915_000001_create_config::Migration),
-            Box::new(migrations::m20260915_000002_create_user::Migration),
-            Box::new(migrations::m20260915_000003_create_email::Migration),
-            Box::new(migrations::m20260915_000004_create_game::Migration),
-            Box::new(migrations::m20260915_000005_create_challenge::Migration),
-            Box::new(migrations::m20260915_000006_create_team::Migration),
-            Box::new(migrations::m20260915_000007_create_game_notice::Migration),
-            Box::new(migrations::m20260915_000008_create_game_challenge::Migration),
-            Box::new(migrations::m20260915_000009_create_team_user::Migration),
-            Box::new(migrations::m20260915_000010_create_submission::Migration),
-            Box::new(migrations::m20260915_000011_create_note::Migration),
-            Box::new(migrations::m20260915_000012_create_idp::Migration),
-            Box::new(migrations::m20260915_000013_create_user_idp::Migration),
-            Box::new(migrations::m20261011_000014_add_user_permissions::Migration),
-            Box::new(migrations::m20261011_000015_expand_management_permissions::Migration),
-            Box::new(migrations::m20261011_000016_normalize_permissions::Migration),
-            Box::new(migrations::m20261011_000017_remove_wildcard_permissions::Migration),
+            Box::new(migrations::m20261011_000001_create_config::Migration),
+            Box::new(migrations::m20261011_000002_create_user::Migration),
+            Box::new(migrations::m20261011_000003_create_email::Migration),
+            Box::new(migrations::m20261011_000004_create_game::Migration),
+            Box::new(migrations::m20261011_000005_create_challenge::Migration),
+            Box::new(migrations::m20261011_000006_create_team::Migration),
+            Box::new(migrations::m20261011_000007_create_game_notice::Migration),
+            Box::new(migrations::m20261011_000008_create_game_challenge::Migration),
+            Box::new(migrations::m20261011_000009_create_team_user::Migration),
+            Box::new(migrations::m20261011_000010_create_submission::Migration),
+            Box::new(migrations::m20261011_000011_create_note::Migration),
+            Box::new(migrations::m20261011_000012_create_idp::Migration),
+            Box::new(migrations::m20261011_000013_create_user_idp::Migration),
         ]
     }
 }
