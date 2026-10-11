@@ -6,13 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Image } from "@/components/ui/image";
 import { Separator } from "@/components/ui/separator";
 import { DefaultLogo } from "@/components/widgets/default-logo";
-import {
-  hasPermission,
-  MANAGEMENT_CHALLENGE_PERMISSION,
-  MANAGEMENT_GAME_PERMISSION,
-  MANAGEMENT_USER_PERMISSION,
-} from "@/models/user";
-import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
@@ -59,7 +52,6 @@ function StatCard({ icon, label, value }: StatCardProps) {
 export default function AdminDashboard() {
   const { t } = useTranslation();
 
-  const { user } = useAuthStore();
   const { config } = useConfigStore();
 
   const { data: statistics } = useStatisticsQuery();
@@ -128,37 +120,26 @@ export default function AdminDashboard() {
             "gap-6",
           ])}
         >
-          {hasPermission(user?.permissions, MANAGEMENT_USER_PERMISSION) && (
-            <StatCard
-              icon={<UserRoundIcon className={cn(["size-5"])} />}
-              label={t("admin:home.statistics.users")}
-              value={statistics?.users}
-            />
-          )}
-          {hasPermission(user?.permissions, MANAGEMENT_GAME_PERMISSION) && (
-            <StatCard
-              icon={<FlagIcon className={cn(["size-5"])} />}
-              label={t("admin:home.statistics.games")}
-              value={statistics?.games}
-            />
-          )}
-          {hasPermission(
-            user?.permissions,
-            MANAGEMENT_CHALLENGE_PERMISSION
-          ) && (
-            <StatCard
-              icon={<LibraryIcon className={cn(["size-5"])} />}
-              label={t("admin:home.statistics.challenges")}
-              value={statistics?.challenges?.total}
-            />
-          )}
-          {hasPermission(user?.permissions, MANAGEMENT_GAME_PERMISSION) && (
-            <StatCard
-              icon={<SendIcon className={cn(["size-5"])} />}
-              label={t("admin:home.statistics.submissions")}
-              value={statistics?.submissions?.total}
-            />
-          )}
+          <StatCard
+            icon={<UserRoundIcon className={cn(["size-5"])} />}
+            label={t("admin:home.statistics.users")}
+            value={statistics?.users}
+          />
+          <StatCard
+            icon={<FlagIcon className={cn(["size-5"])} />}
+            label={t("admin:home.statistics.games")}
+            value={statistics?.games}
+          />
+          <StatCard
+            icon={<LibraryIcon className={cn(["size-5"])} />}
+            label={t("admin:home.statistics.challenges")}
+            value={statistics?.challenges?.total}
+          />
+          <StatCard
+            icon={<SendIcon className={cn(["size-5"])} />}
+            label={t("admin:home.statistics.submissions")}
+            value={statistics?.submissions?.total}
+          />
         </div>
       </div>
     </>
