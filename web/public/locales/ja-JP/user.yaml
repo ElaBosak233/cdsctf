@@ -19,6 +19,7 @@ settings:
   email: メールアドレス
   password: パスワードの変更
   idp: ID プロバイダー
+  personal_access_tokens: パーソナルアクセストークン
   delete: アカウント削除
   profile_update_success: プロフィールが更新されました。
   avatar_upload:
@@ -27,6 +28,42 @@ settings:
     error: アバターのアップロードに失敗しました。
     size_error: アバターサイズが 5 MB の制限を超えています。
   avatar_delete_success: アバターが正常に削除されました。
+personal_access_tokens:
+  description: スクリプトや自動化クライアント用の認証情報を作成します。トークンは作成直後に一度だけ表示されます。
+  _: パーソナルアクセストークン
+  active: 有効なトークン
+  revoked: 取り消したトークン
+  inactive: 無効なトークン
+  empty: 有効なパーソナルアクセストークンはありません。
+  created_at: 作成日時 {{date}}
+  expires_at: 有効期限 {{date}}
+  last_used_at: 最終使用 {{date}}
+  revoked_at: 取り消し日時 {{date}}
+  expired_at: 有効期限切れ {{date}}
+  errors:
+    name_required: トークン名を入力してください。
+    invalid_expiration: 1年以内の未来の日付を選択してください。
+    session_required: この操作には現在のログインセッションが必要です。
+  create:
+    _: パーソナルアクセストークンを作成
+    description: スクリプトや自動化クライアント用の取り消し可能な認証情報を作成します。
+    name: 名前
+    name_placeholder: 例：デプロイスクリプト
+    expires_at: 有効期限
+    submit: トークンを作成
+    success: パーソナルアクセストークンを作成しました。
+    error: パーソナルアクセストークンを作成できませんでした
+  created:
+    title: トークンを作成しました
+    description: 今すぐコピーして保存してください。安全上の理由から、完全なトークンを再表示することはできません。
+    dismiss: トークンを隠す
+  copy:
+    _: コピー
+    success: トークンをコピーしました。
+  revoke:
+    _: 取り消す
+    success: トークンを取り消しました。
+    error: トークンを取り消せませんでした
 id: ID
 username: ユーザー名
 name: ニックネーム

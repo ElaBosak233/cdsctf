@@ -26,15 +26,15 @@ pub use config::Config;
 pub use dto::{
     ChallengeDetail, ChallengeSummary, ChallengeView, EmailView, GameChallengeSummary,
     GameChallengeView, GameDetail, GameNoticeView, GameSummary, GameView, IdpSummary, IdpView,
-    NoteView, Permission, PlayerTeamView, PublicCaptchaConfig, PublicCaptchaSiteConfig,
-    PublicConfig, PublicEmailConfig, ScoreboardEntry, ScoreboardSubmission, ScoreboardTeam,
-    SubmissionSummary, SubmissionView, TeamUserView, TeamView, UserAccountView, UserIdpSummary,
-    UserIdpView, UserProfile, UserSummary,
+    NoteView, Permission, PersonalAccessTokenView, PlayerTeamView, PublicCaptchaConfig,
+    PublicCaptchaSiteConfig, PublicConfig, PublicEmailConfig, ScoreboardEntry,
+    ScoreboardSubmission, ScoreboardTeam, SubmissionSummary, SubmissionView, TeamUserView,
+    TeamView, UserAccountView, UserIdpSummary, UserIdpView, UserProfile, UserSummary,
 };
 pub use entity::user_idp::Source as UserIdpSource;
 pub use repository::{
-    challenge, config, email, game, game_challenge, game_notice, idp, note, submission, team,
-    team_user, user, user_idp,
+    challenge, config, email, game, game_challenge, game_notice, idp, note, personal_access_token,
+    submission, team, team_user, user, user_idp,
 };
 pub use sea_orm;
 

@@ -19,6 +19,7 @@ settings:
   email: 电子邮箱
   password: 修改密码
   idp: 第三方认证服务
+  personal_access_tokens: 个人访问令牌
   delete: 注销账号
   profile_update_success: 个人资料更新成功。
   avatar_upload:
@@ -29,6 +30,42 @@ settings:
       title: 头像过大
       description: 请选择不超过 5 MB 的头像。
   avatar_delete_success: 头像删除成功。
+personal_access_tokens:
+  description: 为脚本和自动化客户端创建访问凭据。令牌只会在创建成功后显示一次。
+  _: 个人访问令牌
+  active: 有效令牌
+  revoked: 已撤销令牌
+  inactive: 已失效令牌
+  empty: 暂无有效的个人访问令牌。
+  created_at: 创建于 {{date}}
+  expires_at: 过期于 {{date}}
+  last_used_at: 最近使用于 {{date}}
+  revoked_at: 撤销于 {{date}}
+  expired_at: 过期于 {{date}}
+  errors:
+    name_required: 请输入令牌名称。
+    invalid_expiration: 请选择一年以内的未来日期。
+    session_required: 此操作必须通过当前登录会话完成。
+  create:
+    _: 创建个人访问令牌
+    description: 为脚本或自动化客户端创建一个可撤销的访问凭据。
+    name: 名称
+    name_placeholder: 例如：部署脚本
+    expires_at: 过期日期
+    submit: 创建令牌
+    success: 个人访问令牌创建成功。
+    error: 创建个人访问令牌失败
+  created:
+    title: 令牌已创建
+    description: 请立即复制并保存。出于安全原因，之后无法再次查看完整令牌。
+    dismiss: 隐藏令牌
+  copy:
+    _: 复制
+    success: 令牌已复制。
+  revoke:
+    _: 撤销
+    success: 令牌已撤销。
+    error: 撤销令牌失败
 id: ID
 username: 用户名
 name: 昵称

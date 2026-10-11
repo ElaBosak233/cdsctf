@@ -12,6 +12,7 @@ pub mod game_challenge;
 pub mod game_notice;
 pub mod idp;
 pub mod note;
+pub mod personal_access_token;
 pub mod submission;
 pub mod team;
 pub mod team_user;

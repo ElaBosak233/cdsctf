@@ -51,3 +51,6 @@ pub mod m20261011_000012_create_idp;
 /// Defines the `m20261011_000013_create_user_idp` submodule (see sibling `*.rs`
 /// files).
 pub mod m20261011_000013_create_user_idp;
+
+/// Defines the personal access token migration.
+pub mod m20261011_000014_create_personal_access_token;

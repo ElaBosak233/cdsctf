@@ -223,6 +223,16 @@ const router = createBrowserRouter([
                 }),
               },
               {
+                path: "personal-access-tokens",
+                lazy: async () => ({
+                  Component: (
+                    await import(
+                      "@/pages/account/settings/personal-access-tokens"
+                    )
+                  ).default,
+                }),
+              },
+              {
                 path: "delete",
                 lazy: async () => ({
                   Component: (await import("@/pages/account/settings/delete"))

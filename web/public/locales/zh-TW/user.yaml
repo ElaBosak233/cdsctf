@@ -19,6 +19,7 @@ settings:
   email: 電子郵件
   password: 修改密碼
   idp: 第三方認證服務
+  personal_access_tokens: 個人存取令牌
   delete: 刪除帳號
   profile_update_success: 個人資料更新成功。
   avatar_upload:
@@ -27,6 +28,42 @@ settings:
     error: 頭像上傳失敗。
     size_error: 頭像大小超過 5 MB 限制。
   avatar_delete_success: 頭像刪除成功。
+personal_access_tokens:
+  description: 為腳本與自動化客戶端建立存取憑證。令牌只會在建立成功後顯示一次。
+  _: 個人存取令牌
+  active: 有效令牌
+  revoked: 已撤銷令牌
+  inactive: 已失效令牌
+  empty: 目前沒有有效的個人存取令牌。
+  created_at: 建立於 {{date}}
+  expires_at: 到期於 {{date}}
+  last_used_at: 最近使用於 {{date}}
+  revoked_at: 撤銷於 {{date}}
+  expired_at: 到期於 {{date}}
+  errors:
+    name_required: 請輸入令牌名稱。
+    invalid_expiration: 請選擇一年內的未來日期。
+    session_required: 此操作必須透過目前登入工作階段完成。
+  create:
+    _: 建立個人存取令牌
+    description: 為腳本或自動化客戶端建立可撤銷的存取憑證。
+    name: 名稱
+    name_placeholder: 例如：部署腳本
+    expires_at: 到期日期
+    submit: 建立令牌
+    success: 個人存取令牌建立成功。
+    error: 建立個人存取令牌失敗
+  created:
+    title: 令牌已建立
+    description: 請立即複製並保存。基於安全原因，之後無法再次查看完整令牌。
+    dismiss: 隱藏令牌
+  copy:
+    _: 複製
+    success: 令牌已複製。
+  revoke:
+    _: 撤銷
+    success: 令牌已撤銷。
+    error: 撤銷令牌失敗
 id: ID
 username: 使用者名稱
 name: 暱稱

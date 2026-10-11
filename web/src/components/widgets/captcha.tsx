@@ -33,11 +33,12 @@ export type CaptchaRef = {
 
 interface CaptchaProps {
   onChange: (captcha?: { id?: string; content?: string }) => void;
+  size?: "sm" | "md";
   ref?: Ref<CaptchaRef>;
 }
 
 export function Captcha(props: CaptchaProps) {
-  const { onChange, ref } = props;
+  const { onChange, ref, size = "md" } = props;
   const configStore = useConfigStore();
   const themeStore = useApperanceStore();
   const { tick, bump } = useRefresh();
@@ -62,9 +63,9 @@ export function Captcha(props: CaptchaProps) {
           />
         );
       case "pow":
-        return <PowCaptcha onChange={onChange} />;
+        return <PowCaptcha onChange={onChange} size={size} />;
       case "image":
-        return <ImageCaptcha onChange={onChange} />;
+        return <ImageCaptcha onChange={onChange} size={size} />;
       default:
         return null;
     }
@@ -83,7 +84,7 @@ export function Captcha(props: CaptchaProps) {
 }
 
 function PowCaptcha(props: CaptchaProps) {
-  const { onChange } = props;
+  const { onChange, size } = props;
 
   const { refresh, setRefresh } = useContext(Context);
   const [loading, setLoading] = useState<boolean>(false);
@@ -132,7 +133,7 @@ function PowCaptcha(props: CaptchaProps) {
   }, [id, result, onChange]);
 
   return (
-    <Field>
+    <Field size={size}>
       <FieldIcon>
         <BotIcon />
       </FieldIcon>
@@ -148,7 +149,7 @@ function PowCaptcha(props: CaptchaProps) {
 }
 
 function ImageCaptcha(props: CaptchaProps) {
-  const { onChange } = props;
+  const { onChange, size } = props;
   const { t } = useTranslation();
 
   const sharedStore = useSharedStore();
@@ -181,7 +182,7 @@ function ImageCaptcha(props: CaptchaProps) {
   }, [id, result, onChange]);
 
   return (
-    <Field>
+    <Field size={size}>
       <FieldIcon>
         <ImageIcon />
       </FieldIcon>
@@ -202,7 +203,11 @@ function ImageCaptcha(props: CaptchaProps) {
               : undefined
           }
           alt=""
-          className={cn(["h-10", "w-18", "object-contain"])}
+          className={cn([
+            size === "sm" ? "h-8" : "h-10",
+            "w-18",
+            "object-contain",
+          ])}
           draggable={false}
         />
       </FieldButton>
