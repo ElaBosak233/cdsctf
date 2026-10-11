@@ -57,3 +57,4 @@ pub mod m20261011_000014_add_user_permissions;
 
 /// Defines the management permission expansion migration.
 pub mod m20261011_000015_expand_management_permissions;
+pub mod m20261011_000016_normalize_permissions;

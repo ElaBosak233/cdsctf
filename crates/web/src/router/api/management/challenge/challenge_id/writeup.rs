@@ -4,12 +4,12 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::sea_orm::{Set, Unchanged};
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use super::AdminChallengeResponse;
 use crate::{

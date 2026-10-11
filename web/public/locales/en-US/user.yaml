@@ -41,6 +41,25 @@ banned:
 permissions:
   _: Permissions
   management: Management access
+  options:
+    basic:
+      _: Basic
+      description: Use platform features such as practice and contests.
+    config:
+      _: Configuration
+      description: Manage platform configuration.
+    challenge:
+      _: Challenges
+      description: Manage challenges and attachments.
+    game:
+      _: Games
+      description: Manage games, teams, and game content.
+    idp:
+      _: Identity providers
+      description: Manage third-party identity providers.
+    user:
+      _: Users
+      description: Manage user accounts and permissions.
 avatar: Avatar
 description: Description
 created_at: Registered At
@@ -70,12 +89,9 @@ form:
       _: Please enter a password
       min: Password must be at least 6 characters
     placeholder: P4ssw0rd!
-  banned:
-    _: Banned
-    message: Prevent this account from signing in
   permissions:
     _: Permissions
-    placeholder: management:access, management:games
+    placeholder: Select permissions to grant
   description:
     _: Description
     message: Please enter a description
@@ -95,6 +111,12 @@ actions:
     _: Delete User
     message: "Are you sure you want to delete the user <muted>{{username}}</muted>?"
     success: "User {{username}} deleted successfully."
+  ban:
+    _: Ban account
+    success: "User {{username}} was banned."
+  unban:
+    _: Unban account
+    success: "User {{username}} was unbanned."
 emails:
   _: Emails
   brief: Add or edit this user's email addresses

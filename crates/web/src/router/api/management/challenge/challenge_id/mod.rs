@@ -20,12 +20,12 @@ use cds_db::{
         NotSet,
     },
 };
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use super::AdminChallengeResponse;
 use crate::{

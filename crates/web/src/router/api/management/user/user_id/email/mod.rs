@@ -8,13 +8,13 @@ use cds_db::{
     EmailView,
     sea_orm::{Set, Unchanged},
 };
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use crate::{
     extract::{Json as ReqJson, Path},

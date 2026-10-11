@@ -9,7 +9,7 @@ mod logo;
 
 use std::sync::Arc;
 
-use axum::{Json, Router, extract::State};
+use axum::{Json, Router, extract::State, middleware::from_fn};
 use cds_db::Config;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
@@ -19,18 +19,23 @@ use utoipa_axum::{
 
 use crate::{
     extract::Json as ReqJson,
+    middleware::auth::require_management_config,
     traits::{AppState, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
-    OpenApiRouter::from(Router::new().with_state(state.clone()))
+    let protected = OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_config).with_state(state.clone()))
         .routes(routes!(update_config).with_state(state.clone()))
-        .routes(routes!(get_statistics).with_state(state.clone()))
         .nest("/logo", logo::router(state.clone()))
         .nest("/mailbox", email::router(state.clone()))
+        .route_layer(from_fn(require_management_config));
+
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_statistics).with_state(state))
+        .merge(protected)
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]

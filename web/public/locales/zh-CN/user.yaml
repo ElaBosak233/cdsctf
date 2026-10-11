@@ -41,6 +41,25 @@ banned:
 permissions:
   _: 权限
   management: 管理权限
+  options:
+    basic:
+      _: 基础权限
+      description: 使用练习场、参加比赛等平台功能。
+    config:
+      _: 配置管理
+      description: 管理平台配置。
+    challenge:
+      _: 题目管理
+      description: 管理题目和题目附件。
+    game:
+      _: 比赛管理
+      description: 管理比赛、队伍和比赛内容。
+    idp:
+      _: 身份认证管理
+      description: 管理第三方身份认证服务。
+    user:
+      _: 用户管理
+      description: 管理用户账号和权限。
 avatar: 头像
 description: 个人简介
 created_at: 注册于
@@ -70,12 +89,9 @@ form:
       _: 请输入密码
       min: 密码至少6个字符
     placeholder: P4ssw0rd!
-  banned:
-    _: 封禁账号
-    message: 禁止该账号登录
   permissions:
     _: 权限
-    placeholder: management:access, management:games
+    placeholder: 选择要授予的权限
   description:
     _: 描述
     message: 请输入描述
@@ -95,6 +111,12 @@ actions:
     _: 删除用户
     message: "您确定要删除用户 <muted>{{username}}</muted> 吗？"
     success: "用户 {{username}} 删除成功。"
+  ban:
+    _: 封禁账号
+    success: "用户 {{username}} 已封禁。"
+  unban:
+    _: 解除封禁
+    success: "用户 {{username}} 已解除封禁。"
 emails:
   _: 邮箱
   brief: 添加、编辑该用户的绑定邮箱

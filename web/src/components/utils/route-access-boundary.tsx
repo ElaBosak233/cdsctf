@@ -7,14 +7,14 @@ import type { PropsWithChildren } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useLocation, useMatches } from "react-router";
 import { useSession } from "@/hooks/use-session";
-import { hasPermission } from "@/models/user";
+import { hasPermission, type Permission } from "@/models/user";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { getLocationTarget, getLoginUrl } from "@/utils/redirect";
 
 export type AccessPolicy = {
   authenticated?: boolean;
-  permissions?: string[];
+  permissions?: Permission[];
 };
 
 type RouteHandle = {
@@ -34,13 +34,14 @@ function RouteAccessBoundary({ children }: PropsWithChildren) {
 
     return {
       authenticated: result.authenticated || access?.authenticated,
-      permissions: [...new Set([...(result.permissions ?? []), ...permissions])],
+      permissions: [
+        ...new Set([...(result.permissions ?? []), ...permissions]),
+      ],
     };
   }, {});
 
   const protectedRoute =
-    policy.authenticated ||
-    (policy.permissions?.length ?? 0) > 0;
+    policy.authenticated || (policy.permissions?.length ?? 0) > 0;
 
   if (protectedRoute && status === "checking") {
     return (
@@ -78,7 +79,7 @@ function RouteAccessBoundary({ children }: PropsWithChildren) {
   }
 
   const permissionForbidden = (policy.permissions ?? []).some(
-    (permission) => !hasPermission(user?.permissions, permission),
+    (permission) => !hasPermission(user?.permissions, permission)
   );
 
   if (permissionForbidden) {

@@ -39,6 +39,25 @@ banned:
 permissions:
   _: 權限
   management: 管理權限
+  options:
+    basic:
+      _: 基礎權限
+      description: 使用練習場、參加比賽等平台功能。
+    config:
+      _: 設定管理
+      description: 管理平台設定。
+    challenge:
+      _: 題目管理
+      description: 管理題目與附件。
+    game:
+      _: 比賽管理
+      description: 管理比賽、隊伍與比賽內容。
+    idp:
+      _: 身份驗證管理
+      description: 管理第三方身份驗證服務。
+    user:
+      _: 使用者管理
+      description: 管理使用者帳號與權限。
 avatar: 頭像
 description: 個人簡介
 created_at: 註冊於
@@ -68,12 +87,9 @@ form:
       _: 請輸入密碼
       min: 密碼至少 6 個字元
     placeholder: P4ssw0rd!
-  banned:
-    _: 封禁帳號
-    message: 禁止此帳號登入
   permissions:
     _: 權限
-    placeholder: management:access, management:games
+    placeholder: 選擇要授予的權限
   description:
     _: 描述
     message: 請輸入描述
@@ -93,6 +109,12 @@ actions:
     _: 刪除使用者
     message: "您確定要刪除使用者 <muted>{{username}}</muted> 嗎？"
     success: "使用者 {{username}} 刪除成功。"
+  ban:
+    _: 封禁帳號
+    success: "使用者 {{username}} 已封禁。"
+  unban:
+    _: 解除封禁
+    success: "使用者 {{username}} 已解除封禁。"
 emails:
   _: 電子郵件
   brief: 新增或編輯此使用者綁定的電子郵件地址

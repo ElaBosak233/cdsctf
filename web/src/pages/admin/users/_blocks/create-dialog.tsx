@@ -25,11 +25,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
 import { TextField } from "@/components/ui/text-field";
+import { BASIC_PERMISSION, PERMISSIONS } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { notifyApiError } from "@/utils/query";
+import { PermissionChecklist } from "./permission-checklist";
 
 interface CreateUserDialogProps {
   onClose: () => void;
@@ -52,15 +53,13 @@ function CreateUserDialog(props: CreateUserDialogProps) {
     password: z
       .string()
       .min(6, { message: t("user:form.password.messages.min") }),
-    banned: z.boolean(),
-    permissions: z.string(),
+    permissions: z.array(z.enum(PERMISSIONS)),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      banned: false,
-      permissions: "",
+      permissions: [BASIC_PERMISSION],
       username: "",
       name: "",
       email: "",
@@ -73,10 +72,6 @@ function CreateUserDialog(props: CreateUserDialogProps) {
     try {
       await createUser({
         ...values,
-        permissions: values.permissions
-          .split(",")
-          .map((permission) => permission.trim())
-          .filter(Boolean),
       });
       toast.success(
         t("user:actions.create.success", { username: values.username })
@@ -220,43 +215,12 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                 <FormItem>
                   <FormLabel>{t("user:form.permissions._")}</FormLabel>
                   <FormControl>
-                    <Field size="sm">
-                      <FieldIcon>
-                        <UserRoundCheckIcon />
-                      </FieldIcon>
-                      <TextField
-                        {...field}
-                        placeholder={t("user:form.permissions.placeholder")}
-                        value={field.value || ""}
-                      />
-                    </Field>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="banned"
-              render={({ field }) => (
-                <FormItem
-                  className={cn([
-                    "flex",
-                    "flex-row",
-                    "items-center",
-                    "justify-between",
-                    "rounded-lg",
-                    "border",
-                    "p-4",
-                  ])}
-                >
-                  <FormLabel>{t("user:form.banned._")}</FormLabel>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={(checked) => field.onChange(!!checked)}
+                    <PermissionChecklist
+                      value={field.value}
+                      onChange={field.onChange}
                     />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />

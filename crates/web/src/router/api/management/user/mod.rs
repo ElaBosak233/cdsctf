@@ -130,7 +130,7 @@ pub async fn create_user(
             username: Set(body.username),
             hashed_password: Set(hashed_password),
             banned: body.banned.map_or(NotSet, Set),
-            permissions: body.permissions.map_or(NotSet, Set),
+            permissions: Set(body.permissions.unwrap_or_else(|| vec![Permission::Basic])),
             ..Default::default()
         },
     )

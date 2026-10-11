@@ -39,6 +39,25 @@ banned:
 permissions:
   _: 権限
   management: 管理権限
+  options:
+    basic:
+      _: 基本
+      description: 練習場の利用やコンテストへの参加など、プラットフォームの基本機能を利用します。
+    config:
+      _: 設定管理
+      description: プラットフォーム設定を管理します。
+    challenge:
+      _: チャレンジ管理
+      description: チャレンジと添付ファイルを管理します。
+    game:
+      _: ゲーム管理
+      description: ゲーム、チーム、ゲーム内容を管理します。
+    idp:
+      _: 認証プロバイダー管理
+      description: 外部認証プロバイダーを管理します。
+    user:
+      _: ユーザー管理
+      description: ユーザーアカウントと権限を管理します。
 avatar: アバター
 description: 自己紹介
 created_at: 登録日時
@@ -68,12 +87,9 @@ form:
       _: パスワードを入力してください
       min: パスワードは6文字以上でなければなりません
     placeholder: P4ssw0rd!
-  banned:
-    _: アカウントを利用停止
-    message: このアカウントのログインを禁止します
   permissions:
     _: 権限
-    placeholder: management:access, management:games
+    placeholder: 付与する権限を選択
   description:
     _: 自己紹介
     message: 自己紹介を入力してください
@@ -93,6 +109,12 @@ actions:
     _: ユーザーを削除
     message: ユーザー <muted>{{username}}</muted> を削除しますか？
     success: ユーザー {{username}} を削除しました。
+  ban:
+    _: アカウントを利用停止
+    success: ユーザー {{username}} を利用停止にしました。
+  unban:
+    _: 利用停止を解除
+    success: ユーザー {{username}} の利用停止を解除しました。
 emails:
   _: メールアドレス
   brief: このユーザーのメールアドレスを追加または編集します

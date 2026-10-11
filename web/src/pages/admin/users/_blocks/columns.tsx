@@ -3,6 +3,7 @@ import {
   ArrowDownIcon,
   ArrowUpDownIcon,
   ArrowUpIcon,
+  BanIcon,
   CircleCheckIcon,
   ClipboardCheckIcon,
   ClipboardCopyIcon,
@@ -10,6 +11,7 @@ import {
   EllipsisIcon,
   ShieldIcon,
   TrashIcon,
+  UserRoundCheckIcon,
   UserRoundIcon,
   UserRoundXIcon,
 } from "lucide-react";
@@ -17,7 +19,7 @@ import { useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
-import { deleteUser } from "@/api/management/users/user_id";
+import { deleteUser, updateUser } from "@/api/management/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,12 +45,13 @@ import {
 import { useClipboard } from "@/hooks/use-clipboard";
 import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 import {
-  hasPermissions,
-  MANAGEMENT_PERMISSIONS,
+  hasPermission,
+  MANAGEMENT_PERMISSION,
   type UserAccountView,
 } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 import { parseTimestamp } from "@/utils/time";
 
 function UserCell({ row }: { row: Row<UserAccountView> }) {
@@ -126,8 +129,11 @@ function AccountStatusCell({ row }: { row: Row<UserAccountView> }) {
         {row.original.banned ? <UserRoundXIcon /> : <UserRoundIcon />}
         {t(row.original.banned ? "user:banned.true" : "user:banned.false")}
       </Badge>
-      {hasPermissions(row.original.permissions, MANAGEMENT_PERMISSIONS) && (
-        <Badge variant="outline" className="border-info/20 bg-info/10 text-info">
+      {hasPermission(row.original.permissions, MANAGEMENT_PERMISSION) && (
+        <Badge
+          variant="outline"
+          className="border-info/20 bg-info/10 text-info"
+        >
           <ShieldIcon />
           {t("user:permissions.management")}
         </Badge>
@@ -200,6 +206,31 @@ function ActionsCell({ row }: { row: Row<UserAccountView> }) {
   const username = row.original.username;
   const sharedStore = useSharedStore();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const isManagementUser = hasPermission(
+    row.original.permissions,
+    MANAGEMENT_PERMISSION
+  );
+
+  async function handleBanToggle() {
+    setStatusLoading(true);
+    try {
+      await updateUser({ id, banned: !row.original.banned });
+      toast.success(
+        t(
+          row.original.banned
+            ? "user:actions.unban.success"
+            : "user:actions.ban.success",
+          { username }
+        )
+      );
+      sharedStore.setRefresh();
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      setStatusLoading(false);
+    }
+  }
 
   async function handleDelete() {
     await deleteUser({ id: id! });
@@ -247,12 +278,20 @@ function ActionsCell({ row }: { row: Row<UserAccountView> }) {
         ></DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem
+            onClick={handleBanToggle}
+            disabled={statusLoading || isManagementUser}
+          >
+            {row.original.banned ? <UserRoundCheckIcon /> : <BanIcon />}
+            {t(
+              row.original.banned
+                ? "user:actions.unban._"
+                : "user:actions.ban._"
+            )}
+          </DropdownMenuItem>
+          <DropdownMenuItem
             onClick={() => setDeleteDialogOpen(true)}
             className="text-error"
-            disabled={hasPermissions(
-              row.original.permissions,
-              MANAGEMENT_PERMISSIONS,
-            )}
+            disabled={isManagementUser}
           >
             <TrashIcon />
             {t("user:actions.delete._")}

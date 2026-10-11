@@ -6,35 +6,74 @@ export type UserAccountView = {
   username: string;
   verified: boolean | null;
   banned: boolean;
-  permissions: string[];
+  permissions: Permission[];
   description: string | null;
   avatar_hash: string | null;
   created_at: Timestamp;
   updated_at: Timestamp;
 };
 
+export const BASIC_PERMISSION = "basic" as const;
+export const ANY_PERMISSION = "*" as const;
+export const MANAGEMENT_PERMISSION = "management:*" as const;
+export const MANAGEMENT_CONFIG_PERMISSION = "management:config" as const;
+export const MANAGEMENT_CHALLENGE_PERMISSION = "management:challenge" as const;
+export const MANAGEMENT_GAME_PERMISSION = "management:game" as const;
+export const MANAGEMENT_IDP_PERMISSION = "management:idp" as const;
+export const MANAGEMENT_USER_PERMISSION = "management:user" as const;
+
 export const MANAGEMENT_PERMISSIONS = [
-  "management:config",
-  "management:challenge",
-  "management:game",
-  "management:idp",
-  "management:instance",
-  "management:submission",
-  "management:user",
+  MANAGEMENT_CONFIG_PERMISSION,
+  MANAGEMENT_CHALLENGE_PERMISSION,
+  MANAGEMENT_GAME_PERMISSION,
+  MANAGEMENT_IDP_PERMISSION,
+  MANAGEMENT_USER_PERMISSION,
 ] as const;
 
+export const PERMISSIONS = [
+  ANY_PERMISSION,
+  BASIC_PERMISSION,
+  MANAGEMENT_PERMISSION,
+  ...MANAGEMENT_PERMISSIONS,
+] as const;
+
+export type Permission = (typeof PERMISSIONS)[number];
+
+export const PERMISSION_OPTIONS = [
+  { value: BASIC_PERMISSION, key: "basic" },
+  { value: MANAGEMENT_CONFIG_PERMISSION, key: "config" },
+  { value: MANAGEMENT_CHALLENGE_PERMISSION, key: "challenge" },
+  { value: MANAGEMENT_GAME_PERMISSION, key: "game" },
+  { value: MANAGEMENT_IDP_PERMISSION, key: "idp" },
+  { value: MANAGEMENT_USER_PERMISSION, key: "user" },
+] as const satisfies ReadonlyArray<{ value: Permission; key: string }>;
+
 export function hasPermission(
-  permissions: readonly string[] | undefined,
-  required: string,
+  permissions: readonly Permission[] | undefined,
+  required: Permission
 ) {
-  return (permissions ?? []).some(
-    (granted) => granted === required,
-  );
+  return (permissions ?? []).some((granted) => {
+    if (granted === ANY_PERMISSION || required === ANY_PERMISSION) return true;
+    if (granted === MANAGEMENT_PERMISSION) {
+      return (
+        required === MANAGEMENT_PERMISSION ||
+        MANAGEMENT_PERMISSIONS.includes(
+          required as (typeof MANAGEMENT_PERMISSIONS)[number]
+        )
+      );
+    }
+    if (required === MANAGEMENT_PERMISSION) {
+      return MANAGEMENT_PERMISSIONS.includes(
+        granted as (typeof MANAGEMENT_PERMISSIONS)[number]
+      );
+    }
+    return granted === required;
+  });
 }
 
 export function hasPermissions(
-  permissions: readonly string[] | undefined,
-  required: readonly string[],
+  permissions: readonly Permission[] | undefined,
+  required: readonly Permission[]
 ) {
   return required.every((permission) => hasPermission(permissions, permission));
 }

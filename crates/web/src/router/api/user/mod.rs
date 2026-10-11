@@ -13,7 +13,8 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    EmailView, UserAccountView, UserProfile, sea_orm::ActiveValue::Set, user::FindUserOptions,
+    EmailView, Permission, UserAccountView, UserProfile, sea_orm::ActiveValue::Set,
+    user::FindUserOptions,
 };
 use garde::Validate;
 use serde::{Deserialize, Serialize};
@@ -193,9 +194,11 @@ pub async fn user_register(
             name: Set(body.name),
             hashed_password: Set(hashed_password),
             permissions: Set(if is_first_user {
-                MANAGEMENT_PERMISSIONS.to_vec()
+                std::iter::once(Permission::Basic)
+                    .chain(MANAGEMENT_PERMISSIONS.iter().copied())
+                    .collect()
             } else {
-                Vec::new()
+                vec![Permission::Basic]
             }),
             ..Default::default()
         },

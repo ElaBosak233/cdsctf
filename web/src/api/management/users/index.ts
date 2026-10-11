@@ -1,4 +1,4 @@
-import type { UserAccountView } from "@/models/user";
+import type { Permission, UserAccountView } from "@/models/user";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetUsersRequest = {
@@ -25,7 +25,7 @@ export type CreateUserRequest = {
   username?: string;
   email?: string;
   banned?: boolean;
-  permissions?: string[];
+  permissions?: Permission[];
   password?: string;
 };
 

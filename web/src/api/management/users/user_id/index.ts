@@ -1,4 +1,4 @@
-import type { UserAccountView } from "@/models/user";
+import type { Permission, UserAccountView } from "@/models/user";
 import { api } from "@/utils/query";
 
 export type GetUserRequest = {
@@ -6,7 +6,9 @@ export type GetUserRequest = {
 };
 
 export async function getUser(request: GetUserRequest) {
-  return api.get(`management/users/${request.id}`).json<{ user: UserAccountView }>();
+  return api
+    .get(`management/users/${request.id}`)
+    .json<{ user: UserAccountView }>();
 }
 
 export type DeleteUserRequest = {
@@ -25,7 +27,7 @@ export type UpdateUserRequest = {
   name?: string;
   email?: string;
   banned?: boolean;
-  permissions?: string[];
+  permissions?: Permission[];
   password?: string;
   verified?: boolean;
   description?: string | null;

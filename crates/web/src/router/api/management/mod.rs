@@ -24,20 +24,44 @@ mod user;
 
 use std::sync::Arc;
 
-use axum::Router;
+use axum::{Router, middleware::from_fn};
 use utoipa_axum::router::OpenApiRouter;
 
-use crate::traits::AppState;
+use crate::{
+    middleware::auth::{
+        require_management_challenge, require_management_game, require_management_idp,
+        require_management_user,
+    },
+    traits::AppState,
+};
 
 /// Builds the Axum router fragment for this module.
 
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
-        .nest("/instances", instance::router(state.clone()))
-        .nest("/submissions", submission::router(state.clone()))
-        .nest("/users", user::router(state.clone()))
-        .nest("/challenges", challenge::router(state.clone()))
-        .nest("/games", game::router(state.clone()))
-        .nest("/idps", idp::router(state.clone()))
+        .nest(
+            "/instances",
+            instance::router(state.clone()).route_layer(from_fn(require_management_challenge)),
+        )
+        .nest(
+            "/submissions",
+            submission::router(state.clone()).route_layer(from_fn(require_management_game)),
+        )
+        .nest(
+            "/users",
+            user::router(state.clone()).route_layer(from_fn(require_management_user)),
+        )
+        .nest(
+            "/challenges",
+            challenge::router(state.clone()).route_layer(from_fn(require_management_challenge)),
+        )
+        .nest(
+            "/games",
+            game::router(state.clone()).route_layer(from_fn(require_management_game)),
+        )
+        .nest(
+            "/idps",
+            idp::router(state.clone()).route_layer(from_fn(require_management_idp)),
+        )
         .nest("/configs", config::router(state.clone()))
 }

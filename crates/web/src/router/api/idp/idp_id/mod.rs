@@ -323,7 +323,7 @@ pub async fn register(
             username: Set(body.username),
             name: Set(body.name),
             hashed_password: Set(hashed_password),
-            permissions: Set(Vec::new()),
+            permissions: Set(vec![cds_db::Permission::Basic]),
             ..Default::default()
         },
     )

@@ -1,10 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  InfoIcon,
-  SaveIcon,
-  ShieldIcon,
-  UserRoundIcon,
-} from "lucide-react";
+import { InfoIcon, SaveIcon, UserRoundIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -25,11 +20,12 @@ import {
 } from "@/components/ui/form";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 import { TextField } from "@/components/ui/text-field";
+import { PERMISSIONS } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { notifyApiError } from "@/utils/query";
+import { PermissionChecklist } from "../_blocks/permission-checklist";
 import { Context } from "./context";
 
 export default function Index() {
@@ -46,8 +42,7 @@ export default function Index() {
     name: z.string({
       message: t("user:form.name.messages._"),
     }),
-    banned: z.boolean(),
-    permissions: z.string(),
+    permissions: z.array(z.enum(PERMISSIONS)),
     description: z.string().nullish(),
   });
 
@@ -56,8 +51,7 @@ export default function Index() {
     defaultValues: {
       username: user?.username ?? "",
       name: user?.name ?? "",
-      banned: user?.banned ?? false,
-      permissions: user?.permissions.join(", ") ?? "",
+      permissions: user?.permissions ?? [],
       description: user?.description ?? null,
     },
   });
@@ -68,8 +62,7 @@ export default function Index() {
       {
         username: user.username,
         name: user.name,
-        banned: user.banned,
-        permissions: user.permissions.join(", "),
+        permissions: user.permissions,
         description: user.description,
       },
       {
@@ -86,10 +79,6 @@ export default function Index() {
       const res = await updateUser({
         id: user.id!,
         ...values,
-        permissions: values.permissions
-          .split(",")
-          .map((permission) => permission.trim())
-          .filter(Boolean),
       });
       toast.success(
         t("user:actions.update.success", { username: res.user?.username })
@@ -134,7 +123,7 @@ export default function Index() {
           className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
         >
           <div
-            className={cn(["grid", "grid-cols-1", "md:grid-cols-3", "gap-4"])}
+            className={cn(["grid", "grid-cols-1", "md:grid-cols-2", "gap-4"])}
           >
             <FormField
               control={form.control}
@@ -183,32 +172,6 @@ export default function Index() {
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="banned"
-              render={({ field }) => (
-                <FormItem
-                  className={cn([
-                    "flex",
-                    "flex-row",
-                    "items-center",
-                    "justify-between",
-                    "rounded-lg",
-                    "border",
-                    "p-3",
-                  ])}
-                >
-                  <FormLabel>{t("user:form.banned._")}</FormLabel>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={(checked) => field.onChange(!!checked)}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
           </div>
 
           <FormField
@@ -218,16 +181,10 @@ export default function Index() {
               <FormItem>
                 <FormLabel>{t("user:form.permissions._")}</FormLabel>
                 <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <ShieldIcon />
-                    </FieldIcon>
-                    <TextField
-                      {...field}
-                      placeholder={t("user:form.permissions.placeholder")}
-                      value={field.value || ""}
-                    />
-                  </Field>
+                  <PermissionChecklist
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

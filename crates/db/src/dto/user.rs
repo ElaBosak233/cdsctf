@@ -19,6 +19,15 @@ use serde::{Deserialize, Serialize};
 )]
 #[sea_orm(rs_type = "String", db_type = "String(StringLen::None)")]
 pub enum Permission {
+    #[sea_orm(string_value = "*")]
+    #[serde(rename = "*")]
+    Any,
+    #[sea_orm(string_value = "basic")]
+    #[serde(rename = "basic")]
+    Basic,
+    #[sea_orm(string_value = "management:*")]
+    #[serde(rename = "management:*")]
+    ManagementAny,
     #[sea_orm(string_value = "management:config")]
     #[serde(rename = "management:config")]
     ManagementConfig,
@@ -31,12 +40,6 @@ pub enum Permission {
     #[sea_orm(string_value = "management:idp")]
     #[serde(rename = "management:idp")]
     ManagementIdp,
-    #[sea_orm(string_value = "management:instance")]
-    #[serde(rename = "management:instance")]
-    ManagementInstance,
-    #[sea_orm(string_value = "management:submission")]
-    #[serde(rename = "management:submission")]
-    ManagementSubmission,
     #[sea_orm(string_value = "management:user")]
     #[serde(rename = "management:user")]
     ManagementUser,
