@@ -115,15 +115,6 @@ export default function Index() {
       ),
     [tokens]
   );
-  const inactiveTokens = useMemo(
-    () =>
-      tokens.filter(
-        (token) =>
-          Boolean(token.revoked_at) || new Date(token.expires_at) <= new Date()
-      ),
-    [tokens]
-  );
-
   async function handleCreate(values: z.infer<typeof formSchema>) {
     setLoading(true);
     try {
@@ -247,7 +238,7 @@ export default function Index() {
                 <FieldIcon>
                   <KeyRoundIcon />
                 </FieldIcon>
-                <TextField value={createdToken} />
+                <TextField value={createdToken} readOnly />
               </Field>
               <Button
                 icon={<ClipboardIcon />}
@@ -262,9 +253,6 @@ export default function Index() {
         )}
 
         <div className={cn(["space-y-3"])}>
-          <h3 className={cn(["text-base", "font-semibold"])}>
-            {t("user:personal_access_tokens.active")}
-          </h3>
           {activeTokens.length === 0 ? (
             <div
               className={cn([
@@ -348,55 +336,6 @@ export default function Index() {
             </ItemGroup>
           )}
         </div>
-
-        {inactiveTokens.length > 0 && (
-          <div className={cn(["space-y-3"])}>
-            <h3
-              className={cn([
-                "text-base",
-                "font-semibold",
-                "text-muted-foreground",
-              ])}
-            >
-              {t("user:personal_access_tokens.inactive")}
-            </h3>
-            <ItemGroup
-              className={cn([
-                "overflow-hidden",
-                "rounded-xl",
-                "border",
-                "bg-card",
-                "text-card-foreground",
-              ])}
-            >
-              {inactiveTokens.map((token, index) => (
-                <Fragment key={token.id}>
-                  <Item
-                    className={cn([
-                      "bg-card",
-                      "text-card-foreground",
-                      "opacity-70",
-                    ])}
-                  >
-                    <ItemContent className="gap-1">
-                      <ItemTitle>{token.name}</ItemTitle>
-                      <ItemDescription>
-                        {token.revoked_at
-                          ? t("user:personal_access_tokens.revoked_at", {
-                              date: formatDate(token.revoked_at),
-                            })
-                          : t("user:personal_access_tokens.expired_at", {
-                              date: formatDate(token.expires_at),
-                            })}
-                      </ItemDescription>
-                    </ItemContent>
-                  </Item>
-                  {index !== inactiveTokens.length - 1 && <ItemSeparator />}
-                </Fragment>
-              ))}
-            </ItemGroup>
-          </div>
-        )}
       </div>
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent>

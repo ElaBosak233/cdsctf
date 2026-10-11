@@ -31,15 +31,10 @@ settings:
 personal_access_tokens:
   description: スクリプトや自動化クライアント用の認証情報を作成します。トークンは作成直後に一度だけ表示されます。
   _: パーソナルアクセストークン
-  active: 有効なトークン
-  revoked: 取り消したトークン
-  inactive: 無効なトークン
   empty: 有効なパーソナルアクセストークンはありません。
   created_at: 作成日時 {{date}}
   expires_at: 有効期限 {{date}}
   last_used_at: 最終使用 {{date}}
-  revoked_at: 取り消し日時 {{date}}
-  expired_at: 有効期限切れ {{date}}
   errors:
     name_required: トークン名を入力してください。
     invalid_expiration: 1年以内の未来の日付を選択してください。

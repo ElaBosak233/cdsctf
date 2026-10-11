@@ -33,15 +33,10 @@ settings:
 personal_access_tokens:
   description: Create credentials for scripts and automation. A token is shown only once after creation.
   _: Personal Access Tokens
-  active: Active tokens
-  revoked: Revoked tokens
-  inactive: Inactive tokens
   empty: No active personal access tokens.
   created_at: Created {{date}}
   expires_at: Expires {{date}}
   last_used_at: Last used {{date}}
-  revoked_at: Revoked {{date}}
-  expired_at: Expired {{date}}
   errors:
     name_required: Enter a name for the token.
     invalid_expiration: Choose a future date within one year.

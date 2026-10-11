@@ -31,15 +31,10 @@ settings:
 personal_access_tokens:
   description: 為腳本與自動化客戶端建立存取憑證。令牌只會在建立成功後顯示一次。
   _: 個人存取令牌
-  active: 有效令牌
-  revoked: 已撤銷令牌
-  inactive: 已失效令牌
   empty: 目前沒有有效的個人存取令牌。
   created_at: 建立於 {{date}}
   expires_at: 到期於 {{date}}
   last_used_at: 最近使用於 {{date}}
-  revoked_at: 撤銷於 {{date}}
-  expired_at: 到期於 {{date}}
   errors:
     name_required: 請輸入令牌名稱。
     invalid_expiration: 請選擇一年內的未來日期。

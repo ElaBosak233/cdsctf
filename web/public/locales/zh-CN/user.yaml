@@ -33,15 +33,10 @@ settings:
 personal_access_tokens:
   description: 为脚本和自动化客户端创建访问凭据。令牌只会在创建成功后显示一次。
   _: 个人访问令牌
-  active: 有效令牌
-  revoked: 已撤销令牌
-  inactive: 已失效令牌
   empty: 暂无有效的个人访问令牌。
   created_at: 创建于 {{date}}
   expires_at: 过期于 {{date}}
   last_used_at: 最近使用于 {{date}}
-  revoked_at: 撤销于 {{date}}
-  expired_at: 过期于 {{date}}
   errors:
     name_required: 请输入令牌名称。
     invalid_expiration: 请选择一年以内的未来日期。
