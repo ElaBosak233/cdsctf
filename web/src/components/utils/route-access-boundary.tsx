@@ -15,6 +15,7 @@ import { getLocationTarget, getLoginUrl } from "@/utils/redirect";
 export type AccessPolicy = {
   authenticated?: boolean;
   permissions?: Permission[];
+  anyPermissions?: Permission[];
 };
 
 type RouteHandle = {
@@ -31,17 +32,23 @@ function RouteAccessBoundary({ children }: PropsWithChildren) {
   const policy = matches.reduce<AccessPolicy>((result, match) => {
     const access = (match.handle as RouteHandle | undefined)?.access;
     const permissions = access?.permissions ?? [];
+    const anyPermissions = access?.anyPermissions ?? [];
 
     return {
       authenticated: result.authenticated || access?.authenticated,
       permissions: [
         ...new Set([...(result.permissions ?? []), ...permissions]),
       ],
+      anyPermissions: [
+        ...new Set([...(result.anyPermissions ?? []), ...anyPermissions]),
+      ],
     };
   }, {});
 
   const protectedRoute =
-    policy.authenticated || (policy.permissions?.length ?? 0) > 0;
+    policy.authenticated ||
+    (policy.permissions?.length ?? 0) > 0 ||
+    (policy.anyPermissions?.length ?? 0) > 0;
 
   if (protectedRoute && status === "checking") {
     return (
@@ -81,8 +88,13 @@ function RouteAccessBoundary({ children }: PropsWithChildren) {
   const permissionForbidden = (policy.permissions ?? []).some(
     (permission) => !hasPermission(user?.permissions, permission)
   );
+  const anyPermissionForbidden =
+    (policy.anyPermissions?.length ?? 0) > 0 &&
+    !(policy.anyPermissions ?? []).some((permission) =>
+      hasPermission(user?.permissions, permission)
+    );
 
-  if (permissionForbidden) {
+  if (permissionForbidden || anyPermissionForbidden) {
     return (
       <div
         className={cn([

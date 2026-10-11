@@ -45,8 +45,8 @@ import {
 import { useClipboard } from "@/hooks/use-clipboard";
 import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 import {
-  hasPermission,
-  MANAGEMENT_PERMISSION,
+  hasAnyPermission,
+  MANAGEMENT_PERMISSIONS,
   type UserAccountView,
 } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
@@ -129,7 +129,7 @@ function AccountStatusCell({ row }: { row: Row<UserAccountView> }) {
         {row.original.banned ? <UserRoundXIcon /> : <UserRoundIcon />}
         {t(row.original.banned ? "user:banned.true" : "user:banned.false")}
       </Badge>
-      {hasPermission(row.original.permissions, MANAGEMENT_PERMISSION) && (
+      {hasAnyPermission(row.original.permissions, MANAGEMENT_PERMISSIONS) && (
         <Badge
           variant="outline"
           className="border-info/20 bg-info/10 text-info"
@@ -207,9 +207,9 @@ function ActionsCell({ row }: { row: Row<UserAccountView> }) {
   const sharedStore = useSharedStore();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
-  const isManagementUser = hasPermission(
+  const isManagementUser = hasAnyPermission(
     row.original.permissions,
-    MANAGEMENT_PERMISSION
+    MANAGEMENT_PERMISSIONS
   );
 
   async function handleBanToggle() {

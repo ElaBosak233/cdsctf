@@ -7,7 +7,7 @@ import {
   MANAGEMENT_CONFIG_PERMISSION,
   MANAGEMENT_GAME_PERMISSION,
   MANAGEMENT_IDP_PERMISSION,
-  MANAGEMENT_PERMISSION,
+  MANAGEMENT_PERMISSIONS,
   MANAGEMENT_USER_PERMISSION,
 } from "@/models/user";
 
@@ -238,7 +238,7 @@ const router = createBrowserRouter([
         handle: {
           access: {
             authenticated: true,
-            permissions: [MANAGEMENT_PERMISSION],
+            anyPermissions: [...MANAGEMENT_PERMISSIONS],
           } satisfies AccessPolicy,
         },
         lazy: async () => ({

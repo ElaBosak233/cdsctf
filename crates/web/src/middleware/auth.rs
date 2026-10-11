@@ -22,7 +22,7 @@ use crate::{
     traits::{AppState, AuthPrincipal, WebError},
 };
 
-/// Permissions required to access the complete management API.
+/// Permissions that grant access to the management area.
 pub const MANAGEMENT_PERMISSIONS: &[Permission] = &[
     Permission::ManagementConfig,
     Permission::ManagementChallenge,
@@ -31,34 +31,18 @@ pub const MANAGEMENT_PERMISSIONS: &[Permission] = &[
     Permission::ManagementUser,
 ];
 
-/// Wildcard permission used to grant access to the management area.
-pub const MANAGEMENT_PERMISSION: Permission = Permission::ManagementAny;
-
-fn permission_matches(granted: Permission, required: Permission) -> bool {
-    match (granted, required) {
-        (Permission::Any, _) | (_, Permission::Any) => true,
-        (Permission::ManagementAny, permission) | (permission, Permission::ManagementAny) => {
-            matches!(
-                permission,
-                Permission::ManagementConfig
-                    | Permission::ManagementChallenge
-                    | Permission::ManagementGame
-                    | Permission::ManagementIdp
-                    | Permission::ManagementUser
-                    | Permission::ManagementAny
-            )
-        }
-        (granted, required) => granted == required,
-    }
-}
-
 /// Returns whether an account has every requested permission.
 pub fn has_permissions(user: &UserAccountView, required: &[Permission]) -> bool {
-    required.iter().all(|required| {
-        user.permissions
-            .iter()
-            .any(|granted| permission_matches(*granted, *required))
-    })
+    required
+        .iter()
+        .all(|required| user.permissions.iter().any(|granted| granted == required))
+}
+
+/// Returns whether an account has at least one permission from a set.
+pub fn has_any_permissions(user: &UserAccountView, required: &[Permission]) -> bool {
+    user.permissions
+        .iter()
+        .any(|granted| required.iter().any(|required| granted == required))
 }
 
 /// Checks a permission set and returns the standard forbidden response.
@@ -136,7 +120,8 @@ pub async fn require_management(
         .operator
         .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
-    if let Err(error) = require_permissions(&operator, &[MANAGEMENT_PERMISSION]) {
+    if !has_any_permissions(&operator, MANAGEMENT_PERMISSIONS) {
+        let error = WebError::Forbidden(json!("forbidden"));
         warn!(
             user_id = operator.id,
             username = %operator.username,
@@ -202,26 +187,25 @@ mod tests {
     }
 
     #[test]
-    fn management_wildcard_matches_any_management_permission() {
+    fn management_permissions_are_checked_exactly() {
         let user = user_with_permissions(vec![Permission::ManagementChallenge]);
 
-        assert!(has_permissions(&user, &[Permission::ManagementAny]));
+        assert!(has_permissions(&user, &[Permission::ManagementChallenge]));
         assert!(!has_permissions(&user, &[Permission::ManagementConfig]));
     }
 
     #[test]
-    fn granted_management_wildcard_matches_concrete_management_permission() {
-        let user = user_with_permissions(vec![Permission::ManagementAny]);
+    fn any_management_permission_grants_management_access() {
+        let user = user_with_permissions(vec![Permission::ManagementChallenge]);
 
-        assert!(has_permissions(&user, &[Permission::ManagementChallenge]));
-        assert!(!has_permissions(&user, &[Permission::Basic]));
+        assert!(has_any_permissions(&user, MANAGEMENT_PERMISSIONS));
     }
 
     #[test]
     fn basic_permission_does_not_grant_management_access() {
         let user = user_with_permissions(vec![Permission::Basic]);
 
-        assert!(!has_permissions(&user, &[Permission::ManagementAny]));
+        assert!(!has_any_permissions(&user, MANAGEMENT_PERMISSIONS));
     }
 
     #[test]
@@ -231,13 +215,5 @@ mod tests {
         assert!(has_permissions(&user, &[Permission::ManagementUser]));
         assert!(!has_permissions(&user, &[Permission::ManagementChallenge]));
         assert!(!has_permissions(&user, &[Permission::ManagementGame]));
-    }
-
-    #[test]
-    fn global_wildcard_matches_every_permission() {
-        let user = user_with_permissions(vec![Permission::Any]);
-
-        assert!(has_permissions(&user, &[Permission::Basic]));
-        assert!(has_permissions(&user, &[Permission::ManagementChallenge]));
     }
 }

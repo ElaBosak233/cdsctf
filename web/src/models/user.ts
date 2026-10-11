@@ -14,8 +14,6 @@ export type UserAccountView = {
 };
 
 export const BASIC_PERMISSION = "basic" as const;
-export const ANY_PERMISSION = "*" as const;
-export const MANAGEMENT_PERMISSION = "management:*" as const;
 export const MANAGEMENT_CONFIG_PERMISSION = "management:config" as const;
 export const MANAGEMENT_CHALLENGE_PERMISSION = "management:challenge" as const;
 export const MANAGEMENT_GAME_PERMISSION = "management:game" as const;
@@ -31,9 +29,7 @@ export const MANAGEMENT_PERMISSIONS = [
 ] as const;
 
 export const PERMISSIONS = [
-  ANY_PERMISSION,
   BASIC_PERMISSION,
-  MANAGEMENT_PERMISSION,
   ...MANAGEMENT_PERMISSIONS,
 ] as const;
 
@@ -52,23 +48,14 @@ export function hasPermission(
   permissions: readonly Permission[] | undefined,
   required: Permission
 ) {
-  return (permissions ?? []).some((granted) => {
-    if (granted === ANY_PERMISSION || required === ANY_PERMISSION) return true;
-    if (granted === MANAGEMENT_PERMISSION) {
-      return (
-        required === MANAGEMENT_PERMISSION ||
-        MANAGEMENT_PERMISSIONS.includes(
-          required as (typeof MANAGEMENT_PERMISSIONS)[number]
-        )
-      );
-    }
-    if (required === MANAGEMENT_PERMISSION) {
-      return MANAGEMENT_PERMISSIONS.includes(
-        granted as (typeof MANAGEMENT_PERMISSIONS)[number]
-      );
-    }
-    return granted === required;
-  });
+  return (permissions ?? []).some((granted) => granted === required);
+}
+
+export function hasAnyPermission(
+  permissions: readonly Permission[] | undefined,
+  required: readonly Permission[]
+) {
+  return (permissions ?? []).some((granted) => required.includes(granted));
 }
 
 export function hasPermissions(
