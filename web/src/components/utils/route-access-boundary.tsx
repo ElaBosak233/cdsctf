@@ -7,14 +7,14 @@ import type { PropsWithChildren } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useLocation, useMatches } from "react-router";
 import { useSession } from "@/hooks/use-session";
-import { Group } from "@/models/user";
+import { hasPermission } from "@/models/user";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { getLocationTarget, getLoginUrl } from "@/utils/redirect";
 
 export type AccessPolicy = {
   authenticated?: boolean;
-  minGroup?: Group;
+  permissions?: string[];
 };
 
 type RouteHandle = {
@@ -30,20 +30,17 @@ function RouteAccessBoundary({ children }: PropsWithChildren) {
 
   const policy = matches.reduce<AccessPolicy>((result, match) => {
     const access = (match.handle as RouteHandle | undefined)?.access;
-    const minGroup = access?.minGroup;
+    const permissions = access?.permissions ?? [];
 
     return {
       authenticated: result.authenticated || access?.authenticated,
-      minGroup:
-        minGroup == null
-          ? result.minGroup
-          : result.minGroup == null
-            ? minGroup
-            : Math.max(result.minGroup, minGroup),
+      permissions: [...new Set([...(result.permissions ?? []), ...permissions])],
     };
   }, {});
 
-  const protectedRoute = policy.authenticated || policy.minGroup != null;
+  const protectedRoute =
+    policy.authenticated ||
+    (policy.permissions?.length ?? 0) > 0;
 
   if (protectedRoute && status === "checking") {
     return (
@@ -80,10 +77,11 @@ function RouteAccessBoundary({ children }: PropsWithChildren) {
     return <Navigate replace to={getLoginUrl(getLocationTarget(location))} />;
   }
 
-  if (
-    policy.minGroup != null &&
-    (user?.group ?? Group.Guest) < policy.minGroup
-  ) {
+  const permissionForbidden = (policy.permissions ?? []).some(
+    (permission) => !hasPermission(user?.permissions, permission),
+  );
+
+  if (permissionForbidden) {
     return (
       <div
         className={cn([

@@ -14,8 +14,8 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-import { getConfigs, updateConfig } from "@/api/admin/configs";
-import { deleteLogo } from "@/api/admin/configs/logo";
+import { getConfigs, updateConfig } from "@/api/management/configs";
+import { deleteLogo } from "@/api/management/configs/logo";
 import { Button } from "@/components/ui/button";
 import {
   DropZoneArea,
@@ -97,7 +97,7 @@ export default function Index() {
         }
       );
       try {
-        await uploadFile("/api/admin/configs/logo", [file], ({ percent }) => {
+        await uploadFile("/api/management/configs/logo", [file], ({ percent }) => {
           toast.loading(
             t("admin:platform.logo_upload.progress", {
               percent: percent.toFixed(0),

@@ -34,18 +34,19 @@ username: 用户名
 name: 昵称
 password: 密码
 email: 邮箱
-group:
-  _: 用户组
-  guest: 访客
-  banned: 封禁
-  user: 用户
-  admin: 管理员
+banned:
+  _: 封禁
+  true: 已封禁
+  false: 正常
+permissions:
+  _: 权限
+  management: 管理权限
 avatar: 头像
 description: 个人简介
 created_at: 注册于
 search:
   username: 用户名
-  group: 用户组
+  banned: 账号状态
 form:
   username:
     _: 用户名
@@ -69,9 +70,12 @@ form:
       _: 请输入密码
       min: 密码至少6个字符
     placeholder: P4ssw0rd!
-  group:
-    _: 用户组
-    message: 请选择用户组
+  banned:
+    _: 封禁账号
+    message: 禁止该账号登录
+  permissions:
+    _: 权限
+    placeholder: management:access, management:games
   description:
     _: 描述
     message: 请输入描述

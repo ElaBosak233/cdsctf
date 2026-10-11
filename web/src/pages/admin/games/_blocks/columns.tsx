@@ -29,7 +29,7 @@ import {
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
-import { deleteGame, updateGame } from "@/api/admin/games/game_id";
+import { deleteGame, updateGame } from "@/api/management/games/game_id";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";

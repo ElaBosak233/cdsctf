@@ -10,10 +10,10 @@ import {
 import React, { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
-import { getGameChallenges } from "@/api/admin/games/game_id/challenges";
-import { getSubmissions } from "@/api/admin/games/game_id/submissions";
-import { getTeams } from "@/api/admin/games/game_id/teams";
-import { getGameUsers } from "@/api/admin/games/game_id/users";
+import { getGameChallenges } from "@/api/management/games/game_id/challenges";
+import { getSubmissions } from "@/api/management/games/game_id/submissions";
+import { getTeams } from "@/api/management/games/game_id/teams";
+import { getGameUsers } from "@/api/management/games/game_id/users";
 import { Avatar } from "@/components/ui/avatar";
 import {
   Combobox,

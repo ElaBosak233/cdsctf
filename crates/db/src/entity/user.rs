@@ -3,7 +3,6 @@
 use async_trait::async_trait;
 use sea_orm::{Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[sea_orm::model]
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
@@ -16,7 +15,12 @@ pub struct Model {
     pub username: String,
     #[sea_orm(column_type = "Text")]
     pub description: Option<String>,
-    pub group: Group,
+    /// Whether the account is prohibited from authenticating.
+    #[sea_orm(default_value = false)]
+    pub banned: bool,
+    /// Coarse-grained capabilities assigned to the account.
+    #[sea_orm(column_type = "JsonBinary")]
+    pub permissions: Vec<String>,
     pub hashed_password: String,
     pub avatar_hash: Option<String>,
     #[serde(with = "crate::time_format::option")]
@@ -33,30 +37,6 @@ pub struct Model {
     pub notes: HasMany<super::note::Entity>,
     #[sea_orm(has_many, via = "team_user")]
     pub teams: HasMany<super::team::Entity>,
-}
-
-#[derive(
-    Clone,
-    Debug,
-    Default,
-    Eq,
-    PartialEq,
-    Ord,
-    PartialOrd,
-    Serialize_repr,
-    Deserialize_repr,
-    EnumIter,
-    DeriveActiveEnum,
-    utoipa::ToSchema,
-)]
-#[sea_orm(rs_type = "i32", db_type = "Integer")]
-#[repr(i32)]
-pub enum Group {
-    #[default]
-    Guest  = 0,
-    Banned = 1,
-    User   = 2,
-    Admin  = 3,
 }
 
 #[async_trait]

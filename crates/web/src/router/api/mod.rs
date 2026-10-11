@@ -1,11 +1,11 @@
-//! Public HTTP API under `/api`: nests feature routers and attaches admin auth
-//! middleware.
+//! Public HTTP API under `/api`: nests feature routers and attaches management
+//! auth middleware.
 //!
 //! [`openapi_documented_under_api`] is the **single** OpenAPI-aware tree merged
 //! into the top-level [`crate::docs::ApiDoc`] in [`crate::router::router`].
 
-/// Defines the `admin` submodule (see sibling `*.rs` files).
-pub mod admin;
+/// Defines the management submodule (see sibling `*.rs` files).
+pub mod management;
 
 /// Defines the `challenge` submodule (see sibling `*.rs` files).
 pub mod challenge;
@@ -60,9 +60,9 @@ pub fn openapi_documented_under_api(state: Arc<AppState>) -> OpenApiRouter<Arc<A
         .nest("/media", media::router(state.clone()))
         .nest("/submissions", submission::router(state.clone()))
         .nest(
-            "/admin",
-            admin::router(state.clone()).route_layer(axum::middleware::from_fn(
-                crate::middleware::auth::admin_only,
+            "/management",
+            management::router(state.clone()).route_layer(axum::middleware::from_fn(
+                crate::middleware::auth::require_management,
             )),
         )
 }

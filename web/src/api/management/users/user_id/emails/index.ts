@@ -1,0 +1,56 @@
+import type { EmailView } from "@/models/email";
+import { api } from "@/utils/query";
+
+export type GetEmailsRequest = {
+  user_id: number;
+};
+
+export async function getEmails(request: GetEmailsRequest) {
+  return api
+    .get(`management/users/${request.user_id}/emails`)
+    .json<{ emails: EmailView[]; total: number }>();
+}
+
+export type AddEmailRequest = {
+  user_id: number;
+  email: string;
+  verified?: boolean;
+};
+
+export async function addEmail(request: AddEmailRequest) {
+  return api
+    .post(`management/users/${request.user_id}/emails`, {
+      json: { email: request.email, verified: request.verified },
+    })
+    .json<{ email: EmailView }>();
+}
+
+export type UpdateEmailRequest = {
+  user_id: number;
+  email: string;
+  verified: boolean;
+};
+
+export async function updateEmail(request: UpdateEmailRequest) {
+  return api
+    .patch(
+      `management/users/${request.user_id}/emails/${encodeURIComponent(request.email)}`,
+      {
+        json: { verified: request.verified },
+      }
+    )
+    .json<{ email: EmailView }>();
+}
+
+export type DeleteEmailRequest = {
+  user_id: number;
+  email: string;
+};
+
+export async function deleteEmail(request: DeleteEmailRequest) {
+  return api
+    .delete(
+      `management/users/${request.user_id}/emails/${encodeURIComponent(request.email)}`
+    )
+    .json<Record<string, never>>();
+}

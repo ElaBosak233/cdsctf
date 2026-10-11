@@ -3,7 +3,7 @@ import { useContext, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { toast } from "sonner";
-import { deleteGameNotice } from "@/api/admin/games/game_id/notices";
+import { deleteGameNotice } from "@/api/management/games/game_id/notices";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {

@@ -5,18 +5,24 @@ export type UserAccountView = {
   name: string;
   username: string;
   verified: boolean | null;
-  group: Group;
+  banned: boolean;
+  permissions: string[];
   description: string | null;
   avatar_hash: string | null;
   created_at: Timestamp;
   updated_at: Timestamp;
 };
 
-export enum Group {
-  Guest = 0,
-  Banned = 1,
-  User = 2,
-  Admin = 3,
+export function hasPermission(
+  permissions: readonly string[] | undefined,
+  required: string,
+) {
+  return (permissions ?? []).some(
+    (granted) =>
+      granted === "*" ||
+      granted === required ||
+      (granted.endsWith("*") && required.startsWith(granted.slice(0, -1))),
+  );
 }
 
 export type UserSummary = {

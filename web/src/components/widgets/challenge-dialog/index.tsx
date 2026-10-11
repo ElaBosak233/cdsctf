@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type React from "react";
 import { useMemo } from "react";
-import { getChallenge as getChallengeDebug } from "@/api/admin/challenges/challenge_id";
+import { getChallenge as getChallengeDebug } from "@/api/management/challenges/challenge_id";
 import { getChallenge } from "@/api/challenges/challenge_id";
 import { Card } from "@/components/ui/card";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";

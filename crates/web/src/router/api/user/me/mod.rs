@@ -80,7 +80,7 @@ pub struct UpdateUserProfileRequest {
 
 /// Updates user profile.
 #[utoipa::path(
-    put,
+    patch,
     path = "/",
     tag = "user",
     request_body = UpdateUserProfileRequest,
@@ -172,7 +172,7 @@ pub struct UpdateUserProfilePasswordRequest {
 
 /// Updates user profile password.
 #[utoipa::path(
-    put,
+    patch,
     path = "/password",
     tag = "user",
     request_body = UpdateUserProfilePasswordRequest,

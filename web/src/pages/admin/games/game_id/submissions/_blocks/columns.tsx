@@ -1,7 +1,7 @@
 import { BanIcon, XIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { updateSubmissionStatus } from "@/api/admin/submissions";
+import { updateSubmissionStatus } from "@/api/management/submissions";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

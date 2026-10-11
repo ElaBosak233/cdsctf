@@ -4,8 +4,8 @@ import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { toast } from "sonner";
-import { getChallenges } from "@/api/admin/challenges";
-import { createGameChallenge } from "@/api/admin/games/game_id/challenges";
+import { getChallenges } from "@/api/management/challenges";
+import { createGameChallenge } from "@/api/management/games/game_id/challenges";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {

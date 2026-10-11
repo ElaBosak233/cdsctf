@@ -34,18 +34,19 @@ username: Username
 name: Name
 password: Password
 email: Email
-group:
-  _: Group
-  guest: Guest
-  banned: Banned
-  user: User
-  admin: Admin
+banned:
+  _: Banned
+  true: Banned
+  false: Active
+permissions:
+  _: Permissions
+  management: Management access
 avatar: Avatar
 description: Description
 created_at: Registered At
 search:
   username: Username
-  group: Group
+  banned: Account status
 form:
   username:
     _: Username
@@ -69,9 +70,12 @@ form:
       _: Please enter a password
       min: Password must be at least 6 characters
     placeholder: P4ssw0rd!
-  group:
-    _: Group
-    message: Please select a user group
+  banned:
+    _: Banned
+    message: Prevent this account from signing in
+  permissions:
+    _: Permissions
+    placeholder: management:access, management:games
   description:
     _: Description
     message: Please enter a description

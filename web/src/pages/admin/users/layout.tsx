@@ -23,7 +23,6 @@ import {
 import { Sidebar } from "@/components/ui/sidebar";
 import { TextField } from "@/components/ui/text-field";
 import type { ColumnFiltersState } from "@/hooks/use-data-table";
-import { Group } from "@/models/user";
 import { cn } from "@/utils";
 import { UserListContext } from "./context";
 
@@ -57,14 +56,13 @@ function FilterFields({
   const usernameValue =
     (columnFilters.find((filter) => filter.id === "username")
       ?.value as string) ?? "";
-  const groupValue =
-    (columnFilters.find((filter) => filter.id === "group")?.value as string) ??
+  const bannedValue =
+    (columnFilters.find((filter) => filter.id === "banned")?.value as string) ??
     "all";
-  const groupSelectOptions = [
+  const bannedSelectOptions = [
     { value: "all", content: t("common:all") },
-    { value: Group.Banned.toString(), content: t("user:group.banned") },
-    { value: Group.User.toString(), content: t("user:group.user") },
-    { value: Group.Admin.toString(), content: t("user:group.admin") },
+    { value: "true", content: t("user:banned.true") },
+    { value: "false", content: t("user:banned.false") },
   ];
 
   return (
@@ -102,16 +100,16 @@ function FilterFields({
           <UserRoundIcon className="size-4" />
         </FieldIcon>
         <Select
-          value={groupValue}
+          value={bannedValue}
           onValueChange={(value) =>
-            setColumnFilters((current) => setFilter(current, "group", value))
+            setColumnFilters((current) => setFilter(current, "banned", value))
           }
         >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {groupSelectOptions.map((option) => (
+            {bannedSelectOptions.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.content}
               </SelectItem>
@@ -131,7 +129,7 @@ export default function Layout() {
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [columnFilters, setColumnFiltersState] = useState<ColumnFiltersState>([
-    { id: "group", value: "all" },
+    { id: "banned", value: "all" },
   ]);
   const [, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
 

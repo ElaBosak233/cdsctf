@@ -1,0 +1,11 @@
+import { api } from "@/utils/query";
+
+type DeleteGameIconRequest = {
+  game_id: number;
+};
+
+export async function deleteGameIcon(request: DeleteGameIconRequest) {
+  return api
+    .delete(`management/games/${request.game_id}/icon`)
+    .json<Record<string, never>>();
+}

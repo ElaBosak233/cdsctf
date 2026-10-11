@@ -20,7 +20,7 @@ import {
   getAdminIdp,
   lintIdpScript,
   updateAdminIdp,
-} from "@/api/admin/idps";
+} from "@/api/management/idps";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -160,7 +160,7 @@ export default function Index() {
 
     try {
       await uploadFile(
-        `/api/admin/idps/${idpId}/avatar`,
+        `/api/management/idps/${idpId}/avatar`,
         [file],
         ({ percent }) => {
           toast.loading(

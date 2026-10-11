@@ -2,7 +2,7 @@ import { BugIcon, FlagIcon, LockIcon, SendIcon } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { debugCreateSubmission } from "@/api/admin/submissions";
+import { debugCreateSubmission } from "@/api/management/submissions";
 import { createSubmission } from "@/api/submissions";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";

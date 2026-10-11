@@ -9,7 +9,7 @@ import {
 import React, { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
-import { getTeams } from "@/api/admin/games/game_id/teams";
+import { getTeams } from "@/api/management/games/game_id/teams";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";

@@ -21,7 +21,7 @@ import {
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
-import { deleteAdminIdp, updateAdminIdp } from "@/api/admin/idps";
+import { deleteAdminIdp, updateAdminIdp } from "@/api/management/idps";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

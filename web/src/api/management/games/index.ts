@@ -1,0 +1,42 @@
+import type { GameDetail } from "@/models/game";
+import { api, toSearchParams } from "@/utils/query";
+
+export type GetGamesRequest = {
+  id?: number;
+  title?: string;
+  enabled?: boolean;
+  sorts?: string;
+  page?: number;
+  size?: number;
+};
+
+export async function getGames(request: GetGamesRequest) {
+  return api
+    .get("management/games", {
+      searchParams: toSearchParams(request),
+    })
+    .json<{ games: GameDetail[]; total: number }>();
+}
+
+export type CreateGameRequest = {
+  title?: string;
+  sketch?: string;
+  description?: string;
+  enabled?: boolean;
+  public?: boolean;
+  paused?: boolean;
+  blacked_out?: boolean;
+  writeup_required?: boolean;
+  member_limit_min?: number;
+  member_limit_max?: number;
+  started_at?: string;
+  ended_at?: string;
+};
+
+export async function createGame(request: CreateGameRequest) {
+  return api
+    .post("management/games", {
+      json: request,
+    })
+    .json<{ game: GameDetail }>();
+}

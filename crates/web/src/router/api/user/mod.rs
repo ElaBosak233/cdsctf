@@ -15,8 +15,9 @@ use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
     EmailView, UserAccountView, UserProfile,
     sea_orm::ActiveValue::Set,
-    user::{FindUserOptions, Group},
+    user::FindUserOptions,
 };
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_sessions::Session;
@@ -25,10 +26,10 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use crate::{
     extract::{Extension, Json as ReqJson},
+    middleware::auth::MANAGEMENT_ACCESS,
     traits::{AppState, AuthPrincipal, EmptyJson, WebError},
     util,
 };
@@ -104,6 +105,10 @@ pub async fn user_login(
         return Err(WebError::BadRequest(json!("invalid")));
     }
 
+    if user.banned {
+        return Err(WebError::Forbidden(json!("forbidden")));
+    }
+
     session.insert("user_id", user.id).await?;
     Span::current().record("username", user.username.as_str());
 
@@ -177,6 +182,11 @@ pub async fn user_register(
     }
 
     let hashed_password = util::crypto::hash_password(body.password);
+    let is_first_user =
+        cds_db::user::find::<UserAccountView>(&s.db.conn, FindUserOptions::default())
+            .await?
+            .1
+            == 0;
 
     let user = cds_db::user::create::<UserAccountView>(
         &s.db.conn,
@@ -184,17 +194,11 @@ pub async fn user_register(
             username: Set(body.username),
             name: Set(body.name),
             hashed_password: Set(hashed_password),
-            group: Set(
-                if cds_db::user::find::<UserAccountView>(&s.db.conn, FindUserOptions::default())
-                    .await?
-                    .1
-                    == 0
-                {
-                    Group::Admin
-                } else {
-                    Group::User
-                },
-            ),
+            permissions: Set(if is_first_user {
+                vec![MANAGEMENT_ACCESS.to_owned()]
+            } else {
+                Vec::new()
+            }),
             ..Default::default()
         },
     )

@@ -19,7 +19,7 @@ export type UpdateUserProfileRequest = {
 
 export async function updateUserProfile(request: UpdateUserProfileRequest) {
   return api
-    .put("users/me", { json: request })
+    .patch("users/me", { json: request })
     .json<{ user: UserAccountView }>();
 }
 
@@ -32,7 +32,7 @@ export async function updateUserProfilePassword(
   request: UpdateUserProfilePasswordRequest
 ) {
   return api
-    .put("users/me/password", { json: request })
+    .patch("users/me/password", { json: request })
     .json<Record<string, never>>();
 }
 

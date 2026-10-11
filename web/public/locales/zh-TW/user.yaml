@@ -32,18 +32,19 @@ username: 使用者名稱
 name: 暱稱
 password: 密碼
 email: 電子郵件
-group:
-  _: 使用者群組
-  guest: 訪客
-  banned: 已停權
-  user: 使用者
-  admin: 管理員
+banned:
+  _: 封禁
+  true: 已封禁
+  false: 正常
+permissions:
+  _: 權限
+  management: 管理權限
 avatar: 頭像
 description: 個人簡介
 created_at: 註冊於
 search:
   username: 使用者名稱
-  group: 使用者群組
+  banned: 帳號狀態
 form:
   username:
     _: 使用者名稱
@@ -67,9 +68,12 @@ form:
       _: 請輸入密碼
       min: 密碼至少 6 個字元
     placeholder: P4ssw0rd!
-  group:
-    _: 使用者群組
-    message: 請選擇使用者群組
+  banned:
+    _: 封禁帳號
+    message: 禁止此帳號登入
+  permissions:
+    _: 權限
+    placeholder: management:access, management:games
   description:
     _: 描述
     message: 請輸入描述

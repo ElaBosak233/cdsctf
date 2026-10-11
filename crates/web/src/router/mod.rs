@@ -59,7 +59,7 @@ pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
 
     let docs = crate::docs::scalar_router(openapi);
 
-    // All `/api/*` routes (including `/configs`, `/admin`, etc.) come from
+    // All `/api/*` routes (including `/configs`, `/management`, etc.) come from
     // `openapi_documented_under_api` — do not merge a second copy.
     let mut protected = documented_axum;
 

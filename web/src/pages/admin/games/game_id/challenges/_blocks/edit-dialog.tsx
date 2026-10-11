@@ -15,7 +15,7 @@ import { useParams } from "react-router";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
 import { z } from "zod";
-import { updateGameChallenge } from "@/api/admin/games/game_id/challenges/challenge_id";
+import { updateGameChallenge } from "@/api/management/games/game_id/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {

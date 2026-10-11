@@ -3,9 +3,7 @@ import {
   InfoIcon,
   SaveIcon,
   ShieldIcon,
-  UserRoundCheckIcon,
   UserRoundIcon,
-  UserRoundXIcon,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -13,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-import { updateUser } from "@/api/admin/users/user_id";
+import { updateUser } from "@/api/management/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -26,16 +24,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { TextField } from "@/components/ui/text-field";
-import { Group } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { notifyApiError } from "@/utils/query";
@@ -50,39 +41,14 @@ export default function Index() {
   const sharedStore = useSharedStore();
   const [loading, setLoading] = useState<boolean>(false);
 
-  const groupOptions = [
-    {
-      id: Group.Guest.toString(),
-      name: t("user:group.guest"),
-      icon: UserRoundIcon,
-    },
-    {
-      id: Group.Banned.toString(),
-      name: t("user:group.banned"),
-      icon: UserRoundXIcon,
-    },
-    {
-      id: Group.User.toString(),
-      name: t("user:group.user"),
-      icon: UserRoundCheckIcon,
-    },
-    {
-      id: Group.Admin.toString(),
-      name: t("user:group.admin"),
-      icon: ShieldIcon,
-    },
-  ];
-
   const formSchema = z.object({
     username: z.string({}),
     name: z.string({
       message: t("user:form.name.messages._"),
     }),
-    group: z.number({
-      message: t("user:form.group.message"),
-    }),
+    banned: z.boolean(),
+    permissions: z.string(),
     description: z.string().nullish(),
-    verified: z.boolean(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -90,9 +56,9 @@ export default function Index() {
     defaultValues: {
       username: user?.username ?? "",
       name: user?.name ?? "",
-      group: user?.group ?? Group.Guest,
+      banned: user?.banned ?? false,
+      permissions: user?.permissions.join(", ") ?? "",
       description: user?.description ?? null,
-      verified: user?.verified ?? false,
     },
   });
 
@@ -102,9 +68,9 @@ export default function Index() {
       {
         username: user.username,
         name: user.name,
-        group: user.group,
+        banned: user.banned,
+        permissions: user.permissions.join(", "),
         description: user.description,
-        verified: user.verified ?? false,
       },
       {
         keepDefaultValues: false,
@@ -117,7 +83,14 @@ export default function Index() {
 
     setLoading(true);
     try {
-      const res = await updateUser({ id: user.id!, ...values });
+      const res = await updateUser({
+        id: user.id!,
+        ...values,
+        permissions: values.permissions
+          .split(",")
+          .map((permission) => permission.trim())
+          .filter(Boolean),
+      });
       toast.success(
         t("user:actions.update.success", { username: res.user?.username })
       );
@@ -213,52 +186,53 @@ export default function Index() {
 
             <FormField
               control={form.control}
-              name={"group"}
+              name="banned"
               render={({ field }) => (
-                <FormItem className={cn(["w-full"])}>
-                  <FormLabel>{t("user:form.group._")}</FormLabel>
+                <FormItem
+                  className={cn([
+                    "flex",
+                    "flex-row",
+                    "items-center",
+                    "justify-between",
+                    "rounded-lg",
+                    "border",
+                    "p-3",
+                  ])}
+                >
+                  <FormLabel>{t("user:form.banned._")}</FormLabel>
                   <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <ShieldIcon />
-                      </FieldIcon>
-                      <Select
-                        {...field}
-                        onValueChange={(value) => {
-                          field.onChange(Number(value));
-                        }}
-                        value={String(field.value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {groupOptions.map((group) => {
-                            const Icon = group.icon;
-                            return (
-                              <SelectItem key={group.id} value={group.id}>
-                                <span
-                                  className={cn([
-                                    "flex",
-                                    "gap-2",
-                                    "items-center",
-                                  ])}
-                                >
-                                  <Icon className="size-4" />
-                                  {group.name}
-                                </span>
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                    </Field>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(!!checked)}
+                    />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+
+          <FormField
+            control={form.control}
+            name="permissions"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("user:form.permissions._")}</FormLabel>
+                <FormControl>
+                  <Field>
+                    <FieldIcon>
+                      <ShieldIcon />
+                    </FieldIcon>
+                    <TextField
+                      {...field}
+                      placeholder={t("user:form.permissions.placeholder")}
+                      value={field.value || ""}
+                    />
+                  </Field>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}

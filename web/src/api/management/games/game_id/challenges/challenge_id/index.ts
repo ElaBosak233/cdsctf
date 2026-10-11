@@ -1,0 +1,35 @@
+import type { GameChallengeView } from "@/models/game_challenge";
+import { api } from "@/utils/query";
+
+export type UpdateGameChallengeRequest = {
+  game_id?: number;
+  challenge_id?: number;
+  enabled?: boolean;
+  max_pts?: number;
+  min_pts?: number;
+  difficulty?: number;
+  bonus_ratios?: Array<number>;
+  frozen_at?: string | null;
+};
+
+export async function updateGameChallenge(request: UpdateGameChallengeRequest) {
+  return api
+    .patch(`management/games/${request.game_id}/challenges/${request.challenge_id}`, {
+      json: request,
+    })
+    .json<{ game_challenge: GameChallengeView }>();
+}
+
+export type DeleteGameChallengeRequest = {
+  challenge_id?: number;
+  game_id?: number;
+};
+
+export async function deleteGameChallenge(request: DeleteGameChallengeRequest) {
+  return api
+    .delete(
+      `management/games/${request.game_id}/challenges/${request.challenge_id}`,
+      { json: request }
+    )
+    .json<Record<string, never>>();
+}

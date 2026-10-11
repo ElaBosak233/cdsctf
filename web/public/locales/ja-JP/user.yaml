@@ -32,18 +32,19 @@ username: ユーザー名
 name: ニックネーム
 password: パスワード
 email: メールアドレス
-group:
-  _: グループ
-  guest: ゲスト
-  banned: 利用停止
-  user: ユーザー
-  admin: 管理者
+banned:
+  _: 利用停止
+  true: 利用停止中
+  false: 有効
+permissions:
+  _: 権限
+  management: 管理権限
 avatar: アバター
 description: 自己紹介
 created_at: 登録日時
 search:
   username: ユーザー名
-  group: グループ
+  banned: アカウント状態
 form:
   username:
     _: ユーザー名
@@ -67,9 +68,12 @@ form:
       _: パスワードを入力してください
       min: パスワードは6文字以上でなければなりません
     placeholder: P4ssw0rd!
-  group:
-    _: グループ
-    message: グループを選択してください。
+  banned:
+    _: アカウントを利用停止
+    message: このアカウントのログインを禁止します
+  permissions:
+    _: 権限
+    placeholder: management:access, management:games
   description:
     _: 自己紹介
     message: 自己紹介を入力してください

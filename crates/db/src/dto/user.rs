@@ -1,8 +1,6 @@
 use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 
-use crate::entity::user::Group;
-
 #[derive(
     Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
 )]
@@ -11,7 +9,8 @@ pub struct UserAccountView {
     pub name: String,
     pub username: String,
     pub verified: Option<bool>,
-    pub group: Group,
+    pub banned: bool,
+    pub permissions: Vec<String>,
     pub description: Option<String>,
     #[serde(skip_serializing)]
     #[schema(ignore)]

@@ -2,7 +2,7 @@ import { SettingsIcon } from "lucide-react";
 import { useMemo } from "react";
 import { Link, useLocation, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
-import { Group } from "@/models/user";
+import { hasPermission } from "@/models/user";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { Appearance } from "./apperance";
@@ -72,7 +72,8 @@ function Navbar() {
           </div>
           <div className={cn(["flex", "gap-1", "sm:gap-3", "items-center"])}>
             <Appearance />
-            {status === "authenticated" && user?.group === Group.Admin && (
+            {status === "authenticated" &&
+              hasPermission(user?.permissions, "management:access") && (
               <Button
                 render={<Link to="/admin" />}
                 icon={<SettingsIcon />}

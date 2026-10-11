@@ -11,7 +11,7 @@ import {
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useParams } from "react-router";
-import { getChallenge } from "@/api/admin/challenges/challenge_id";
+import { getChallenge } from "@/api/management/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";

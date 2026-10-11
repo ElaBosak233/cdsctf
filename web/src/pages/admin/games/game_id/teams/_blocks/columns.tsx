@@ -10,7 +10,7 @@ import { useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
-import { updateTeam } from "@/api/admin/games/game_id/teams/team_id";
+import { updateTeam } from "@/api/management/games/game_id/teams/team_id";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -166,7 +166,7 @@ function useColumns(): Array<ColumnDef<TeamView>> {
                         <Link
                           to={
                             resolvedGameId != null
-                              ? `/api/admin/games/${resolvedGameId}/teams/${row.original.id}/writeup`
+                              ? `/api/management/games/${resolvedGameId}/teams/${row.original.id}/writeup`
                               : "#"
                           }
                           target={"_blank"}

@@ -1,0 +1,142 @@
+//! HTTP routing for `user_id` — Axum router wiring and OpenAPI route
+//! registration.
+
+/// Defines the `email` submodule (see sibling `*.rs` files).
+mod email;
+
+use std::sync::Arc;
+
+use argon2::{Argon2, PasswordHasher};
+use axum::{Json, Router, extract::State};
+use cds_db::{
+    sea_orm::{
+        ActiveValue::{Set, Unchanged},
+        NotSet, TransactionTrait,
+    },
+};
+use garde::Validate;
+use serde::{Deserialize, Serialize};
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
+
+use crate::{
+    extract::{Path, VJson},
+    router::api::user::UserResponse,
+    traits::{AppState, EmptyJson, WebError},
+};
+
+/// Builds the Axum router fragment for this module.
+
+pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::from(Router::new().with_state(state.clone()))
+        .routes(routes!(get_user).with_state(state.clone()))
+        .routes(routes!(update_user).with_state(state.clone()))
+        .routes(routes!(delete_user).with_state(state.clone()))
+        .nest("/emails", email::router(state.clone()))
+}
+
+/// Returns user.
+#[utoipa::path(
+    get,
+    path = "/",
+    tag = "management-user",
+    params(
+        ("user_id" = i64, Path, description = "User id"),
+    ),
+    responses(
+        (status = 200, description = "User", body = UserResponse),
+        (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
+        (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
+    )
+)]
+#[tracing::instrument(skip_all, fields(handler = "get_user"))]
+pub async fn get_user(
+    State(s): State<Arc<AppState>>,
+    Path(user_id): Path<i64>,
+) -> Result<Json<UserResponse>, WebError> {
+    let user = crate::util::loader::prepare_user(&s.db.conn, user_id).await?;
+    Ok(Json(UserResponse { user }))
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
+#[garde(allow_unvalidated)]
+pub struct UpdateUserRequest {
+    pub name: Option<String>,
+    pub password: Option<String>,
+    pub banned: Option<bool>,
+    pub permissions: Option<Vec<String>>,
+    pub description: Option<String>,
+}
+
+/// Updates user.
+#[utoipa::path(
+    patch,
+    path = "/",
+    tag = "management-user",
+    params(
+        ("user_id" = i64, Path, description = "User id"),
+    ),
+    request_body = UpdateUserRequest,
+    responses(
+        (status = 200, description = "Updated user", body = UserResponse),
+        (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
+    )
+)]
+#[tracing::instrument(skip_all, fields(handler = "update_user"))]
+pub async fn update_user(
+    State(s): State<Arc<AppState>>,
+    Path(user_id): Path<i64>,
+    VJson(mut body): VJson<UpdateUserRequest>,
+) -> Result<Json<UserResponse>, WebError> {
+    let user = crate::util::loader::prepare_user(&s.db.conn, user_id).await?;
+
+    if let Some(password) = body.password {
+        let hashed_password = Argon2::default()
+            .hash_password(password.as_bytes())
+            .unwrap()
+            .to_string();
+        body.password = Some(hashed_password);
+    }
+
+    let user = cds_db::user::update(
+        &s.db.conn,
+        cds_db::user::ActiveModel {
+            id: Unchanged(user.id),
+            name: body.name.map_or(NotSet, Set),
+            hashed_password: body.password.map_or(NotSet, Set),
+            banned: body.banned.map_or(NotSet, Set),
+            permissions: body.permissions.map_or(NotSet, Set),
+            description: body.description.map_or(NotSet, |v| Set(Some(v))),
+            ..Default::default()
+        },
+    )
+    .await?;
+
+    Ok(Json(UserResponse { user }))
+}
+
+/// Deletes user.
+#[utoipa::path(
+    delete,
+    path = "/",
+    tag = "management-user",
+    params(
+        ("user_id" = i64, Path, description = "User id"),
+    ),
+    responses(
+        (status = 200, description = "Deleted", body = EmptyJson),
+        (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
+    )
+)]
+#[tracing::instrument(skip_all, fields(handler = "delete_user"))]
+pub async fn delete_user(
+    State(s): State<Arc<AppState>>,
+    Path(user_id): Path<i64>,
+) -> Result<Json<EmptyJson>, WebError> {
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
+    cds_db::user::delete(&transaction, user_id).await?;
+    transaction.commit().await.map_err(cds_db::DbError::from)?;
+    Ok(Json(EmptyJson::default()))
+}

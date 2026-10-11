@@ -15,14 +15,14 @@ pub(crate) use crate::entity::user::{Column, Entity};
 use crate::{EmailView, traits::DbError};
 pub use crate::{
     dto::user::{UserAccountView, UserProfile, UserSummary},
-    entity::user::{ActiveModel, Group, Model},
+    entity::user::{ActiveModel, Model},
 };
 
 #[derive(Clone, Debug, Default)]
 pub struct FindUserOptions {
     pub id: Option<i64>,
     pub name: Option<String>,
-    pub group: Option<Group>,
+    pub banned: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -81,7 +81,7 @@ async fn find_scoped<T>(
     FindUserOptions {
         id,
         name,
-        group,
+        banned,
         page,
         size,
         sorts,
@@ -104,8 +104,8 @@ where
         sql = sql.filter(condition);
     }
 
-    if let Some(group) = group {
-        sql = sql.filter(Column::Group.eq(group));
+    if let Some(banned) = banned {
+        sql = sql.filter(Column::Banned.eq(banned));
     }
 
     if let Some(game_id) = game_id {
@@ -284,7 +284,7 @@ where
     info!(
         user_id = user.id,
         username = %user.username,
-        group = ?user.group,
+        banned = user.banned,
         "user created"
     );
 
@@ -301,7 +301,7 @@ where
     info!(
         user_id = user.id,
         username = %user.username,
-        group = ?user.group,
+        banned = user.banned,
         "user updated"
     );
 

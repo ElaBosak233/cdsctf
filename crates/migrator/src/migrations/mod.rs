@@ -51,3 +51,6 @@ pub mod m20260915_000012_create_idp;
 /// Defines the `m20260915_000013_create_user_idp` submodule (see sibling `*.rs`
 /// files).
 pub mod m20260915_000013_create_user_idp;
+
+/// Defines the account permissions migration.
+pub mod m20261011_000014_add_user_permissions;
