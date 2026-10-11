@@ -62,6 +62,7 @@ permissions:
       description: 管理用户账号和权限。
 avatar: 头像
 description: 个人简介
+description_empty: 这个人很懒，什么都没留下。
 created_at: 注册于
 search:
   username: 用户名

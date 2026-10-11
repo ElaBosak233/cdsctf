@@ -1,4 +1,4 @@
-import { UserRoundPenIcon } from "lucide-react";
+import { ThumbsDownIcon, UserRoundPenIcon } from "lucide-react";
 import { useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
@@ -14,6 +14,7 @@ export default function Index() {
 
   const configStore = useConfigStore();
   const { user } = useContext(Context);
+  const description = user?.description?.trim();
 
   return (
     <>
@@ -36,10 +37,32 @@ export default function Index() {
           </div>
           <Separator />
         </div>
-        <Typography>
+        <div className={cn(["relative", "min-h-48", "flex-1"])}>
           <LoadingOverlay loading={!user} />
-          <MarkdownRender src={user?.description} />
-        </Typography>
+          {user && description ? (
+            <Typography>
+              <MarkdownRender src={user.description} />
+            </Typography>
+          ) : user ? (
+            <div
+              className={cn([
+                "absolute",
+                "inset-0",
+                "flex",
+                "flex-col",
+                "items-center",
+                "justify-center",
+                "gap-5",
+                "select-none",
+                "text-center",
+                "text-muted-foreground",
+              ])}
+            >
+              <ThumbsDownIcon className={cn(["size-12"])} />
+              <span>{t("user:description_empty")}</span>
+            </div>
+          ) : null}
+        </div>
       </div>
     </>
   );

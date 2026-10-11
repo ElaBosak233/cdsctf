@@ -60,6 +60,7 @@ permissions:
       description: 管理使用者帳號與權限。
 avatar: 頭像
 description: 個人簡介
+description_empty: 這個人很懶，什麼都沒留下。
 created_at: 註冊於
 search:
   username: 使用者名稱

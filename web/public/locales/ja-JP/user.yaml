@@ -60,6 +60,7 @@ permissions:
       description: ユーザーアカウントと権限を管理します。
 avatar: アバター
 description: 自己紹介
+description_empty: この人はとても怠け者で、何も残していません。
 created_at: 登録日時
 search:
   username: ユーザー名

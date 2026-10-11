@@ -62,6 +62,7 @@ permissions:
       description: Manage user accounts and permissions.
 avatar: Avatar
 description: Description
+description_empty: This person is very lazy and left nothing behind.
 created_at: Registered At
 search:
   username: Username
