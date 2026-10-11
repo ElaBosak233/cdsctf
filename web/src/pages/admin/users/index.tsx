@@ -83,9 +83,7 @@ export default function Index() {
     (filter) => filter.id === "banned"
   )?.value as string | undefined;
   const bannedFilter =
-    bannedValue && bannedValue !== "all"
-      ? bannedValue === "true"
-      : undefined;
+    bannedValue && bannedValue !== "all" ? bannedValue === "true" : undefined;
 
   const { data: usersData, isLoading: loading } = useUserQuery({
     id:

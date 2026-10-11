@@ -41,5 +41,7 @@ export type DeleteGameRequest = {
 };
 
 export async function deleteGame(request: DeleteGameRequest) {
-  return api.delete(`management/games/${request.id}`).json<Record<string, never>>();
+  return api
+    .delete(`management/games/${request.id}`)
+    .json<Record<string, never>>();
 }

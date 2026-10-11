@@ -7,9 +7,12 @@ export type CreateTokenRequest = {
 
 export async function createToken(request: CreateTokenRequest) {
   return api
-    .post(`management/games/${request.game_id}/teams/${request.team_id}/token`, {
-      json: request,
-    })
+    .post(
+      `management/games/${request.game_id}/teams/${request.team_id}/token`,
+      {
+        json: request,
+      }
+    )
     .json<{ token: string | null }>();
 }
 
@@ -33,6 +36,8 @@ export type DeleteTokenRequest = {
 
 export async function deleteToken(request: DeleteTokenRequest) {
   return api
-    .delete(`management/games/${request.game_id}/teams/${request.team_id}/token`)
+    .delete(
+      `management/games/${request.game_id}/teams/${request.team_id}/token`
+    )
     .json<{ token: string | null }>();
 }

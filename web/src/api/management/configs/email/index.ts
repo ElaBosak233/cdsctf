@@ -2,7 +2,9 @@ import { api, toSearchParams } from "@/utils/query";
 
 export function getEmail(type: "verify" | "forget") {
   return api
-    .get("management/configs/mailbox", { searchParams: toSearchParams({ type }) })
+    .get("management/configs/mailbox", {
+      searchParams: toSearchParams({ type }),
+    })
     .json<{ content: string }>();
 }
 

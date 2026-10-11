@@ -3,7 +3,7 @@ minimumReleaseAgeExclude:
   - "@tanstack/table-core@9.1.0"
   - "@types/node@26.2.0"
   - lucide-react@1.45.0
-  - react-hook-form@7.88.0
+  - react-hook-form@7.88.0||7.90.0
   - cn@0.3.0
   - js-yaml@5.4.2
   - zod@4.6.4

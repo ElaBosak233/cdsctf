@@ -23,7 +23,9 @@ export async function getAdminIdps() {
 }
 
 export async function createAdminIdp(request: IdpRequest) {
-  return api.post("management/idps", { json: request }).json<{ idp: IdpView }>();
+  return api
+    .post("management/idps", { json: request })
+    .json<{ idp: IdpView }>();
 }
 
 export async function getAdminIdp(idpId: number) {
@@ -41,7 +43,9 @@ export async function deleteAdminIdp(idpId: number) {
 }
 
 export async function deleteAdminIdpAvatar(idpId: number) {
-  return api.delete(`management/idps/${idpId}/avatar`).json<Record<string, never>>();
+  return api
+    .delete(`management/idps/${idpId}/avatar`)
+    .json<Record<string, never>>();
 }
 
 export async function lintIdpScript(script: string) {

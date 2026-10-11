@@ -27,6 +27,8 @@ export type DiagnosticMarker = {
 
 export async function lintChallengeChecker(request: LintCheckerRequest) {
   return api
-    .post(`management/challenges/${request?.id}/checker/lint`, { json: request })
+    .post(`management/challenges/${request?.id}/checker/lint`, {
+      json: request,
+    })
     .json<{ markers: DiagnosticMarker[] }>();
 }

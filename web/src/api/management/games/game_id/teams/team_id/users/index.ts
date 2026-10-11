@@ -20,9 +20,12 @@ export type CreateTeamUserRequest = {
 
 export async function createTeamUser(request: CreateTeamUserRequest) {
   return api
-    .post(`management/games/${request.game_id}/teams/${request.team_id}/users`, {
-      json: request,
-    })
+    .post(
+      `management/games/${request.game_id}/teams/${request.team_id}/users`,
+      {
+        json: request,
+      }
+    )
     .json<Record<string, never>>();
 }
 

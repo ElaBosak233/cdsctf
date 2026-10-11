@@ -12,5 +12,7 @@ export async function updateConfig(request: AdminConfig) {
 }
 
 export async function getStatistics() {
-  return api.get("management/configs/statistics").json<{ statistics: Statistics }>();
+  return api
+    .get("management/configs/statistics")
+    .json<{ statistics: Statistics }>();
 }

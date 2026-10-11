@@ -97,16 +97,20 @@ export default function Index() {
         }
       );
       try {
-        await uploadFile("/api/management/configs/logo", [file], ({ percent }) => {
-          toast.loading(
-            t("admin:platform.logo_upload.progress", {
-              percent: percent.toFixed(0),
-            }),
-            {
-              id: "logo-upload",
-            }
-          );
-        });
+        await uploadFile(
+          "/api/management/configs/logo",
+          [file],
+          ({ percent }) => {
+            toast.loading(
+              t("admin:platform.logo_upload.progress", {
+                percent: percent.toFixed(0),
+              }),
+              {
+                id: "logo-upload",
+              }
+            );
+          }
+        );
         toast.success(t("admin:platform.logo_upload.success"), {
           id: "logo-upload",
         });

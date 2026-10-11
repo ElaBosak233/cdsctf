@@ -14,9 +14,12 @@ export type UpdateGameChallengeRequest = {
 
 export async function updateGameChallenge(request: UpdateGameChallengeRequest) {
   return api
-    .patch(`management/games/${request.game_id}/challenges/${request.challenge_id}`, {
-      json: request,
-    })
+    .patch(
+      `management/games/${request.game_id}/challenges/${request.challenge_id}`,
+      {
+        json: request,
+      }
+    )
     .json<{ game_challenge: GameChallengeView }>();
 }
 
