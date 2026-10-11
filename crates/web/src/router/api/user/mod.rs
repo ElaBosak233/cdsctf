@@ -13,9 +13,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    EmailView, UserAccountView, UserProfile,
-    sea_orm::ActiveValue::Set,
-    user::FindUserOptions,
+    EmailView, UserAccountView, UserProfile, sea_orm::ActiveValue::Set, user::FindUserOptions,
 };
 use garde::Validate;
 use serde::{Deserialize, Serialize};
@@ -29,7 +27,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Json as ReqJson},
-    middleware::auth::MANAGEMENT_ACCESS,
+    middleware::auth::MANAGEMENT_PERMISSIONS,
     traits::{AppState, AuthPrincipal, EmptyJson, WebError},
     util,
 };
@@ -195,7 +193,7 @@ pub async fn user_register(
             name: Set(body.name),
             hashed_password: Set(hashed_password),
             permissions: Set(if is_first_user {
-                vec![MANAGEMENT_ACCESS.to_owned()]
+                MANAGEMENT_PERMISSIONS.to_vec()
             } else {
                 Vec::new()
             }),

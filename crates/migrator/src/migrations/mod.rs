@@ -54,3 +54,6 @@ pub mod m20260915_000013_create_user_idp;
 
 /// Defines the account permissions migration.
 pub mod m20261011_000014_add_user_permissions;
+
+/// Defines the management permission expansion migration.
+pub mod m20261011_000015_expand_management_permissions;

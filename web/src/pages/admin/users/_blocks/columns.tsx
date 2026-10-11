@@ -42,7 +42,11 @@ import {
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
 import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
-import { hasPermission, type UserAccountView } from "@/models/user";
+import {
+  hasPermissions,
+  MANAGEMENT_PERMISSIONS,
+  type UserAccountView,
+} from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { parseTimestamp } from "@/utils/time";
@@ -122,7 +126,7 @@ function AccountStatusCell({ row }: { row: Row<UserAccountView> }) {
         {row.original.banned ? <UserRoundXIcon /> : <UserRoundIcon />}
         {t(row.original.banned ? "user:banned.true" : "user:banned.false")}
       </Badge>
-      {hasPermission(row.original.permissions, "management:access") && (
+      {hasPermissions(row.original.permissions, MANAGEMENT_PERMISSIONS) && (
         <Badge variant="outline" className="border-info/20 bg-info/10 text-info">
           <ShieldIcon />
           {t("user:permissions.management")}
@@ -245,7 +249,10 @@ function ActionsCell({ row }: { row: Row<UserAccountView> }) {
           <DropdownMenuItem
             onClick={() => setDeleteDialogOpen(true)}
             className="text-error"
-            disabled={hasPermission(row.original.permissions, "management:access")}
+            disabled={hasPermissions(
+              row.original.permissions,
+              MANAGEMENT_PERMISSIONS,
+            )}
           >
             <TrashIcon />
             {t("user:actions.delete._")}

@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { ErrorBoundary } from "@/components/utils/error-boundary";
 import { HydrateFallback } from "@/components/utils/hydrate-fallback";
 import type { AccessPolicy } from "@/components/utils/route-access-boundary";
+import { MANAGEMENT_PERMISSIONS } from "@/models/user";
 
 const router = createBrowserRouter([
   {
@@ -230,7 +231,7 @@ const router = createBrowserRouter([
         handle: {
           access: {
             authenticated: true,
-            permissions: ["management:access"],
+            permissions: [...MANAGEMENT_PERMISSIONS],
           } satisfies AccessPolicy,
         },
         lazy: async () => ({

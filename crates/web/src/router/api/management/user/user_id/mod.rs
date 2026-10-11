@@ -9,6 +9,7 @@ use std::sync::Arc;
 use argon2::{Argon2, PasswordHasher};
 use axum::{Json, Router, extract::State};
 use cds_db::{
+    Permission,
     sea_orm::{
         ActiveValue::{Set, Unchanged},
         NotSet, TransactionTrait,
@@ -66,7 +67,7 @@ pub struct UpdateUserRequest {
     pub name: Option<String>,
     pub password: Option<String>,
     pub banned: Option<bool>,
-    pub permissions: Option<Vec<String>>,
+    pub permissions: Option<Vec<Permission>>,
     pub description: Option<String>,
 }
 

@@ -26,10 +26,10 @@ pub use config::Config;
 pub use dto::{
     ChallengeDetail, ChallengeSummary, ChallengeView, EmailView, GameChallengeSummary,
     GameChallengeView, GameDetail, GameNoticeView, GameSummary, GameView, IdpSummary, IdpView,
-    NoteView, PlayerTeamView, PublicCaptchaConfig, PublicCaptchaSiteConfig, PublicConfig,
-    PublicEmailConfig, ScoreboardEntry, ScoreboardSubmission, ScoreboardTeam, SubmissionSummary,
-    SubmissionView, TeamUserView, TeamView, UserAccountView, UserIdpSummary, UserIdpView,
-    UserProfile, UserSummary,
+    NoteView, Permission, PlayerTeamView, PublicCaptchaConfig, PublicCaptchaSiteConfig,
+    PublicConfig, PublicEmailConfig, ScoreboardEntry, ScoreboardSubmission, ScoreboardTeam,
+    SubmissionSummary, SubmissionView, TeamUserView, TeamView, UserAccountView, UserIdpSummary,
+    UserIdpView, UserProfile, UserSummary,
 };
 pub use entity::user_idp::Source as UserIdpSource;
 pub use repository::{

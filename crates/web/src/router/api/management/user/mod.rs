@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    EmailView, UserAccountView,
+    EmailView, Permission, UserAccountView,
     sea_orm::ActiveValue::{NotSet, Set},
     user::FindUserOptions,
 };
@@ -97,7 +97,7 @@ pub struct CreateUserRequest {
     pub email: String,
     pub password: String,
     pub banned: Option<bool>,
-    pub permissions: Option<Vec<String>>,
+    pub permissions: Option<Vec<Permission>>,
 }
 
 /// Creates user.

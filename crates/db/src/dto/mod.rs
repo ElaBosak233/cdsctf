@@ -31,5 +31,5 @@ pub use scoreboard::{ScoreboardEntry, ScoreboardSubmission, ScoreboardTeam};
 pub use submission::{SubmissionSummary, SubmissionView};
 pub use team::{PlayerTeamView, TeamView};
 pub use team_user::TeamUserView;
-pub use user::{UserAccountView, UserProfile, UserSummary};
+pub use user::{Permission, UserAccountView, UserProfile, UserSummary};
 pub use user_idp::{UserIdpSummary, UserIdpView};

@@ -12,7 +12,7 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use cds_db::UserAccountView;
+use cds_db::{Permission, UserAccountView};
 use serde_json::json;
 use tower_sessions::Session;
 use tracing::{Span, debug, warn};
@@ -22,27 +22,29 @@ use crate::{
     traits::{AppState, AuthPrincipal, WebError},
 };
 
-/// Permission required to access the management API.
-pub const MANAGEMENT_ACCESS: &str = "management:access";
+/// Permissions required to access the complete management API.
+pub const MANAGEMENT_PERMISSIONS: &[Permission] = &[
+    Permission::ManagementConfig,
+    Permission::ManagementChallenge,
+    Permission::ManagementGame,
+    Permission::ManagementIdp,
+    Permission::ManagementInstance,
+    Permission::ManagementSubmission,
+    Permission::ManagementUser,
+];
 
 /// Returns whether an account has every requested permission.
-///
-/// A wildcard permission (`*`) grants all capabilities, while a namespace
-/// wildcard such as `management:*` grants permissions in that namespace.
-pub fn has_permissions(user: &UserAccountView, required: &[&str]) -> bool {
-    required.iter().all(|required| {
-        user.permissions.iter().any(|granted| {
-            granted == "*"
-                || granted == *required
-                || granted
-                    .strip_suffix('*')
-                    .is_some_and(|prefix| required.starts_with(prefix))
-        })
-    })
+pub fn has_permissions(user: &UserAccountView, required: &[Permission]) -> bool {
+    required
+        .iter()
+        .all(|required| user.permissions.iter().any(|granted| granted == required))
 }
 
 /// Checks a permission set and returns the standard forbidden response.
-pub fn require_permissions(user: &UserAccountView, required: &[&str]) -> Result<(), WebError> {
+pub fn require_permissions(
+    user: &UserAccountView,
+    required: &[Permission],
+) -> Result<(), WebError> {
     if has_permissions(user, required) {
         Ok(())
     } else {
@@ -113,7 +115,7 @@ pub async fn require_management(
         .operator
         .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
-    if let Err(error) = require_permissions(&operator, &[MANAGEMENT_ACCESS]) {
+    if let Err(error) = require_permissions(&operator, MANAGEMENT_PERMISSIONS) {
         warn!(
             user_id = operator.id,
             username = %operator.username,

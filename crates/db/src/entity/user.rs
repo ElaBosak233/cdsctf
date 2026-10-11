@@ -4,6 +4,8 @@ use async_trait::async_trait;
 use sea_orm::{Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
+use crate::dto::user::Permission;
+
 #[sea_orm::model]
 #[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "users")]
@@ -19,8 +21,7 @@ pub struct Model {
     #[sea_orm(default_value = false)]
     pub banned: bool,
     /// Coarse-grained capabilities assigned to the account.
-    #[sea_orm(column_type = "JsonBinary")]
-    pub permissions: Vec<String>,
+    pub permissions: Vec<Permission>,
     pub hashed_password: String,
     pub avatar_hash: Option<String>,
     #[serde(with = "crate::time_format::option")]

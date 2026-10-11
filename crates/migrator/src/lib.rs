@@ -34,6 +34,7 @@ impl MigratorTrait for Migrator {
             Box::new(migrations::m20260915_000012_create_idp::Migration),
             Box::new(migrations::m20260915_000013_create_user_idp::Migration),
             Box::new(migrations::m20261011_000014_add_user_permissions::Migration),
+            Box::new(migrations::m20261011_000015_expand_management_permissions::Migration),
         ]
     }
 }

@@ -20,15 +20,19 @@ impl MigrationTrait for Migration {
             r#"
                 ALTER TABLE "users"
                     ADD COLUMN IF NOT EXISTS "banned" BOOLEAN NOT NULL DEFAULT FALSE,
-                    ADD COLUMN IF NOT EXISTS "permissions" JSONB NOT NULL DEFAULT '[]'::jsonb;
+                    ADD COLUMN IF NOT EXISTS "permissions" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];
 
                 UPDATE "users"
                 SET "banned" = TRUE
                 WHERE "group" = 1;
 
                 UPDATE "users"
-                SET "permissions" = '["management:access"]'::jsonb
-                WHERE "group" = 3 AND "permissions" = '[]'::jsonb;
+                SET "permissions" = ARRAY[
+                    'management:config', 'management:challenge', 'management:game',
+                    'management:idp', 'management:instance', 'management:submission',
+                    'management:user'
+                ]::TEXT[]
+                WHERE "group" = 3 AND cardinality("permissions") = 0;
 
                 ALTER TABLE "users"
                     DROP COLUMN IF EXISTS "group";
@@ -51,7 +55,11 @@ impl MigrationTrait for Migration {
 
                 UPDATE "users"
                 SET "group" = 3
-                WHERE "permissions" @> '["management:access"]'::jsonb;
+                WHERE "permissions" @> '[
+                    "management:config", "management:challenge", "management:game",
+                    "management:idp", "management:instance", "management:submission",
+                    "management:user"
+                ]'::JSONB;
 
                 ALTER TABLE "users"
                     DROP COLUMN IF EXISTS "permissions",
