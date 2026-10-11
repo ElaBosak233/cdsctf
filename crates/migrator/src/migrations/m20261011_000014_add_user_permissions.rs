@@ -1,7 +1,7 @@
 //! Adds explicit account ban state and coarse-grained permissions.
 
 use async_trait::async_trait;
-use sea_orm::Statement;
+use sea_orm::ConnectionTrait;
 use sea_orm_migration::prelude::*;
 
 pub struct Migration;
@@ -16,8 +16,7 @@ impl MigrationName for Migration {
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
-        db.execute_raw(Statement::from_string(
-            manager.get_database_backend(),
+        db.execute_unprepared(
             r#"
                 ALTER TABLE "users"
                     ADD COLUMN IF NOT EXISTS "banned" BOOLEAN NOT NULL DEFAULT FALSE,
@@ -33,17 +32,15 @@ impl MigrationTrait for Migration {
 
                 ALTER TABLE "users"
                     DROP COLUMN IF EXISTS "group";
-            "#
-            .to_owned(),
-        ))
+            "#,
+        )
         .await?;
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
-        db.execute_raw(Statement::from_string(
-            manager.get_database_backend(),
+        db.execute_unprepared(
             r#"
                 ALTER TABLE "users"
                     ADD COLUMN IF NOT EXISTS "group" INTEGER NOT NULL DEFAULT 2;
@@ -59,9 +56,8 @@ impl MigrationTrait for Migration {
                 ALTER TABLE "users"
                     DROP COLUMN IF EXISTS "permissions",
                     DROP COLUMN IF EXISTS "banned";
-            "#
-            .to_owned(),
-        ))
+            "#,
+        )
         .await?;
         Ok(())
     }
