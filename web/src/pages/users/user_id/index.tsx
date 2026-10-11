@@ -26,8 +26,10 @@ export default function Index() {
           "lg:p-12",
           "flex",
           "flex-col",
+          "flex-1",
           "gap-5",
           "min-w-0",
+          "min-h-0",
         ])}
       >
         <div className={cn(["flex", "flex-col", "gap-3"])}>
