@@ -226,6 +226,7 @@ notice:
 errors:
   blacked_out: 当前比赛暂时不可见。
   not_ongoing: 比赛当前不在进行中。
+  writeup_not_required: 本场比赛不需要提交题解。
   not_found: 未找到比赛。
   paused: 比赛当前已暂停。
   icon_not_found: 未找到比赛图标。

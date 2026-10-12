@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
+import { isGameActive } from "@/utils/time";
 
 function TeamCard() {
   const { t } = useTranslation();
@@ -93,7 +94,7 @@ function TeamCard() {
             </div>
           </>
         )}
-        {currentGame?.writeup_required && (
+        {currentGame?.writeup_required && isGameActive(currentGame) && (
           <Tooltip>
             <TooltipTrigger
               render={

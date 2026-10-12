@@ -4,7 +4,9 @@ import {
   DownloadIcon,
   FilePenIcon,
 } from "lucide-react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,14 +22,24 @@ import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { uploadFile } from "@/utils/file";
 import { notifyApiError } from "@/utils/query";
+import { isGameActive } from "@/utils/time";
 
 export default function Index() {
   const { t } = useTranslation();
 
   const sharedStore = useSharedStore();
   const { currentGame, selfTeam, setSelfTeam } = useGameStore();
+  const navigate = useNavigate();
+  const writeupAvailable =
+    currentGame?.writeup_required === true && isGameActive(currentGame);
   const hasWriteup = selfTeam?.has_writeup === true;
   const writeupUrl = `/api/games/${currentGame?.id}/teams/us/writeup`;
+
+  useEffect(() => {
+    if (currentGame && !writeupAvailable) {
+      navigate(`/games/${currentGame.id}/team`, { replace: true });
+    }
+  }, [currentGame, navigate, writeupAvailable]);
 
   const dropzone = useDropzone({
     onDropFile: async (file) => {
@@ -82,6 +94,8 @@ export default function Index() {
       },
     },
   });
+
+  if (!currentGame || !writeupAvailable) return null;
 
   return (
     <>

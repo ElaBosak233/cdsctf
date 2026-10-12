@@ -191,6 +191,7 @@ export const API_ERROR_I18N_KEYS: Readonly<Record<string, ApiErrorI18nKeys>> = {
   game_not_found: message("game:errors.not_found"),
   game_not_ongoing: message("game:errors.not_ongoing"),
   game_paused: message("game:errors.paused"),
+  writeup_not_required: message("game:errors.writeup_not_required"),
   icon_not_found: message("game:errors.icon_not_found"),
   poster_not_found: message("game:errors.poster_not_found"),
   challenge_already_in_game: message("challenge:errors.already_in_game"),

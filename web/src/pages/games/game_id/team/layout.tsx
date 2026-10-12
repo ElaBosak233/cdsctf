@@ -64,12 +64,15 @@ export default function Layout() {
       name: t("team:members"),
       icon: <UsersRoundIcon />,
     },
-    {
-      link: `/games/${currentGame?.id}/team/writeup`,
-      name: t("team:write_up._"),
-      icon: <FilePenIcon />,
-      disabled: !currentGame?.writeup_required || !isGameOngoing,
-    },
+    ...(currentGame?.writeup_required && isGameOngoing
+      ? [
+          {
+            link: `/games/${currentGame?.id}/team/writeup`,
+            name: t("team:write_up._"),
+            icon: <FilePenIcon />,
+          },
+        ]
+      : []),
   ];
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
