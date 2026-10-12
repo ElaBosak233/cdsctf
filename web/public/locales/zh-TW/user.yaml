@@ -19,6 +19,7 @@ settings:
   email: 電子郵件
   password: 修改密碼
   idp: 第三方認證服務
+  personal_access_tokens: 個人存取令牌
   delete: 刪除帳號
   profile_update_success: 個人資料更新成功。
   avatar_upload:
@@ -27,23 +28,75 @@ settings:
     error: 頭像上傳失敗。
     size_error: 頭像大小超過 5 MB 限制。
   avatar_delete_success: 頭像刪除成功。
+personal_access_tokens:
+  description: 為腳本與自動化客戶端建立存取憑證。令牌只會在建立成功後顯示一次。
+  _: 個人存取令牌
+  empty: 目前沒有有效的個人存取令牌。
+  created_at: 建立於 {{date}}
+  expires_at: 到期於 {{date}}
+  last_used_at: 最近使用於 {{date}}
+  errors:
+    name_required: 請輸入令牌名稱。
+    invalid_expiration: 請選擇一年內的未來日期。
+    session_required: 此操作必須透過目前登入工作階段完成。
+  create:
+    _: 建立個人存取令牌
+    description: 為腳本或自動化客戶端建立可撤銷的存取憑證。
+    name: 名稱
+    name_placeholder: 例如：部署腳本
+    expires_at: 到期日期
+    submit: 建立令牌
+    success: 個人存取令牌建立成功。
+    error: 建立個人存取令牌失敗
+  created:
+    title: 令牌已建立
+    description: 請立即複製並保存。基於安全原因，之後無法再次查看完整令牌。
+    dismiss: 隱藏令牌
+  copy:
+    _: 複製
+    success: 令牌已複製。
+  revoke:
+    _: 撤銷
+    success: 令牌已撤銷。
+    error: 撤銷令牌失敗
 id: ID
 username: 使用者名稱
 name: 暱稱
 password: 密碼
 email: 電子郵件
-group:
-  _: 使用者群組
-  guest: 訪客
-  banned: 已停權
-  user: 使用者
-  admin: 管理員
+banned:
+  _: 封禁
+  true: 已封禁
+  false: 正常
+permissions:
+  _: 權限
+  management: 管理權限
+  options:
+    basic:
+      _: 基礎權限
+      description: 使用練習場、參加比賽等平台功能。
+    config:
+      _: 設定管理
+      description: 管理平台設定。
+    challenge:
+      _: 題目管理
+      description: 管理題目與附件。
+    game:
+      _: 比賽管理
+      description: 管理比賽、隊伍與比賽內容。
+    idp:
+      _: 身份驗證管理
+      description: 管理第三方身份驗證服務。
+    user:
+      _: 使用者管理
+      description: 管理使用者帳號與權限。
 avatar: 頭像
 description: 個人簡介
+description_empty: 這個人很懶，什麼都沒留下。
 created_at: 註冊於
 search:
   username: 使用者名稱
-  group: 使用者群組
+  banned: 帳號狀態
 form:
   username:
     _: 使用者名稱
@@ -67,9 +120,9 @@ form:
       _: 請輸入密碼
       min: 密碼至少 6 個字元
     placeholder: P4ssw0rd!
-  group:
-    _: 使用者群組
-    message: 請選擇使用者群組
+  permissions:
+    _: 權限
+    placeholder: 選擇要授予的權限
   description:
     _: 描述
     message: 請輸入描述
@@ -89,6 +142,12 @@ actions:
     _: 刪除使用者
     message: "您確定要刪除使用者 <muted>{{username}}</muted> 嗎？"
     success: "使用者 {{username}} 刪除成功。"
+  ban:
+    _: 封禁帳號
+    success: "使用者 {{username}} 已封禁。"
+  unban:
+    _: 解除封禁
+    success: "使用者 {{username}} 已解除封禁。"
 emails:
   _: 電子郵件
   brief: 新增或編輯此使用者綁定的電子郵件地址

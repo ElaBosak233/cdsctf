@@ -91,10 +91,18 @@ export default function Index() {
           </Button>
         </div>
         <Separator />
-        <ItemGroup className={cn(["rounded-xl", "border"])}>
+        <ItemGroup
+          className={cn([
+            "overflow-hidden",
+            "rounded-xl",
+            "border",
+            "bg-card",
+            "text-card-foreground",
+          ])}
+        >
           {emails?.map((email, index) => (
             <React.Fragment key={email.email}>
-              <Item>
+              <Item className={cn(["bg-card", "text-card-foreground"])}>
                 <ItemContent className="gap-1">
                   <ItemTitle>{email.email}</ItemTitle>
                   <ItemDescription>
@@ -122,16 +130,16 @@ export default function Index() {
                     <MailCheckIcon />
                   </Button>
                   <Button
+                    level={"error"}
                     variant="ghost"
                     size={"sm"}
                     square
+                    icon={<TrashIcon />}
                     onClick={() => {
                       setDeleteEmail(email.email);
                       setDeleteDialogOpen(true);
                     }}
-                  >
-                    <TrashIcon className={cn(["text-error"])} />
-                  </Button>
+                  />
                 </ItemActions>
               </Item>
               {index !== emails.length - 1 && <ItemSeparator />}

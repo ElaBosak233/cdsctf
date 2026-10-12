@@ -13,8 +13,8 @@ use axum::{
 use cds_db::{
     EmailView, IdpSummary, IdpView, UserAccountView, UserIdpSource, UserIdpSummary, UserIdpView,
     sea_orm::{ActiveValue::Set, ConnectionTrait, NotSet, SqlErr, TransactionTrait},
-    user::Group,
 };
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_sessions::Session;
@@ -23,7 +23,6 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use crate::{
     extract::{Extension, Json as ReqJson},
@@ -94,7 +93,9 @@ pub async fn bind(
     Path(idp_id): Path<i64>,
     ReqJson(body): ReqJson<IdpAuthRequest>,
 ) -> Result<(StatusCode, Json<IdpBindResponse>), WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let idp = enabled_idp(&s, idp_id).await?;
     cds_idp::Idp::preload(idp.id, &idp.script)
         .await
@@ -322,7 +323,7 @@ pub async fn register(
             username: Set(body.username),
             name: Set(body.name),
             hashed_password: Set(hashed_password),
-            group: Set(Group::User),
+            permissions: Set(vec![cds_db::Permission::Basic]),
             ..Default::default()
         },
     )
@@ -420,9 +421,11 @@ async fn user_map(
         ("id".to_string(), user.id.to_string()),
         ("username".to_string(), user.username.clone()),
         ("name".to_string(), user.name.clone()),
+        ("banned".to_string(), user.banned.to_string()),
         (
-            "group".to_string(),
-            format!("{:?}", user.group).to_lowercase(),
+            "permissions".to_string(),
+            serde_json::to_string(&user.permissions)
+                .map_err(|error| WebError::InternalServerError(json!(error.to_string())))?,
         ),
     ]);
     if let Some(email) = cds_db::email::find_by_user_id::<EmailView>(&s.db.conn, user.id)

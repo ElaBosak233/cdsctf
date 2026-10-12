@@ -1,0 +1,37 @@
+import type { ChallengeDetail } from "@/models/challenge";
+import { api, toSearchParams } from "@/utils/query";
+
+export type GetChallengesRequest = {
+  id?: number;
+  title?: string;
+  description?: string;
+  category?: number;
+  public?: boolean;
+  has_instance?: boolean;
+  page?: number;
+  size?: number;
+  sorts?: string;
+};
+
+export async function getChallenges(request: GetChallengesRequest) {
+  return api
+    .get("management/challenges", {
+      searchParams: toSearchParams(request),
+    })
+    .json<{ challenges: ChallengeDetail[]; total: number }>();
+}
+
+export type CreateChallengeRequest = {
+  title?: string;
+  description?: string;
+  category?: number;
+  public?: boolean;
+  has_instance?: boolean;
+  has_attachment?: boolean;
+};
+
+export async function createChallenge(request: CreateChallengeRequest) {
+  return api
+    .post("management/challenges", { json: request })
+    .json<{ challenge: ChallengeDetail }>();
+}

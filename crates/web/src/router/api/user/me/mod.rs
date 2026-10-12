@@ -12,6 +12,9 @@ mod idp;
 /// Defines the `note` submodule (see sibling `*.rs` files).
 mod note;
 
+/// Defines the `personal_access_token` submodule.
+mod personal_access_token;
+
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
@@ -19,13 +22,13 @@ use cds_db::sea_orm::{
     ActiveValue::{Set, Unchanged},
     NotSet, TransactionTrait,
 };
+use garde::Validate;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use super::UserResponse;
 use crate::{
@@ -46,6 +49,10 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .nest("/idps", idp::router(state.clone()))
         .nest("/avatar", avatar::router(state.clone()))
         .nest("/notes", note::router(state.clone()))
+        .nest(
+            "/personal-access-tokens",
+            personal_access_token::router(state.clone()),
+        )
 }
 
 /// Returns user profile.
@@ -80,7 +87,7 @@ pub struct UpdateUserProfileRequest {
 
 /// Updates user profile.
 #[utoipa::path(
-    put,
+    patch,
     path = "/",
     tag = "user",
     request_body = UpdateUserProfileRequest,
@@ -172,7 +179,7 @@ pub struct UpdateUserProfilePasswordRequest {
 
 /// Updates user profile password.
 #[utoipa::path(
-    put,
+    patch,
     path = "/password",
     tag = "user",
     request_body = UpdateUserProfilePasswordRequest,

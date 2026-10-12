@@ -19,6 +19,7 @@ settings:
   email: Emails
   password: Change Password
   idp: Identity Provider
+  personal_access_tokens: Personal Access Tokens
   delete: Delete Account
   profile_update_success: Profile updated successfully.
   avatar_upload:
@@ -29,23 +30,75 @@ settings:
       title: Avatar is too large
       description: Choose an avatar no larger than 5 MB.
   avatar_delete_success: Avatar deleted successfully.
+personal_access_tokens:
+  description: Create credentials for scripts and automation. A token is shown only once after creation.
+  _: Personal Access Tokens
+  empty: No active personal access tokens.
+  created_at: Created {{date}}
+  expires_at: Expires {{date}}
+  last_used_at: Last used {{date}}
+  errors:
+    name_required: Enter a name for the token.
+    invalid_expiration: Choose a future date within one year.
+    session_required: This action requires the current signed-in session.
+  create:
+    _: Create Personal Access Token
+    description: Create a revocable credential for scripts and automation clients.
+    name: Name
+    name_placeholder: For example, deployment script
+    expires_at: Expiration date
+    submit: Create token
+    success: Personal Access Token created successfully.
+    error: Could not create Personal Access Token
+  created:
+    title: Token created
+    description: Copy and save it now. For security, the complete token cannot be viewed again.
+    dismiss: Hide token
+  copy:
+    _: Copy
+    success: Token copied.
+  revoke:
+    _: Revoke
+    success: Token revoked.
+    error: Could not revoke token
 id: ID
 username: Username
 name: Name
 password: Password
 email: Email
-group:
-  _: Group
-  guest: Guest
-  banned: Banned
-  user: User
-  admin: Admin
+banned:
+  _: Banned
+  true: Banned
+  false: Active
+permissions:
+  _: Permissions
+  management: Management access
+  options:
+    basic:
+      _: Basic
+      description: Use platform features such as practice and contests.
+    config:
+      _: Configuration
+      description: Manage platform configuration.
+    challenge:
+      _: Challenges
+      description: Manage challenges and attachments.
+    game:
+      _: Games
+      description: Manage games, teams, and game content.
+    idp:
+      _: Identity providers
+      description: Manage third-party identity providers.
+    user:
+      _: Users
+      description: Manage user accounts and permissions.
 avatar: Avatar
 description: Description
+description_empty: This person is very lazy and left nothing behind.
 created_at: Registered At
 search:
   username: Username
-  group: Group
+  banned: Account status
 form:
   username:
     _: Username
@@ -69,9 +122,9 @@ form:
       _: Please enter a password
       min: Password must be at least 6 characters
     placeholder: P4ssw0rd!
-  group:
-    _: Group
-    message: Please select a user group
+  permissions:
+    _: Permissions
+    placeholder: Select permissions to grant
   description:
     _: Description
     message: Please enter a description
@@ -91,6 +144,12 @@ actions:
     _: Delete User
     message: "Are you sure you want to delete the user <muted>{{username}}</muted>?"
     success: "User {{username}} deleted successfully."
+  ban:
+    _: Ban account
+    success: "User {{username}} was banned."
+  unban:
+    _: Unban account
+    success: "User {{username}} was unbanned."
 emails:
   _: Emails
   brief: Add or edit this user's email addresses

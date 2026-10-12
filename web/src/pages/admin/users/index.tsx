@@ -3,7 +3,7 @@ import { ListOrderedIcon } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { type GetUsersRequest, getUsers } from "@/api/admin/users";
+import { type GetUsersRequest, getUsers } from "@/api/management/users";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
@@ -30,7 +30,7 @@ import {
   useDataTable,
 } from "@/hooks/use-data-table";
 import { useDebounce } from "@/hooks/use-debounce";
-import type { Group, UserAccountView } from "@/models/user";
+import type { UserAccountView } from "@/models/user";
 import { useConfigStore } from "@/storages/config";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -48,7 +48,7 @@ function useUserQuery(params: GetUsersRequest) {
       params.name,
       params.size,
       params.page,
-      params.group,
+      params.banned,
       params.sorts,
       refresh,
     ],
@@ -79,13 +79,11 @@ export default function Index() {
   ]);
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
-  const groupValue = debouncedColumnFilters.find(
-    (filter) => filter.id === "group"
+  const bannedValue = debouncedColumnFilters.find(
+    (filter) => filter.id === "banned"
   )?.value as string | undefined;
-  const groupFilter =
-    groupValue && groupValue !== "all"
-      ? (Number(groupValue) as Group)
-      : undefined;
+  const bannedFilter =
+    bannedValue && bannedValue !== "all" ? bannedValue === "true" : undefined;
 
   const { data: usersData, isLoading: loading } = useUserQuery({
     id:
@@ -93,7 +91,7 @@ export default function Index() {
       undefined,
     name: debouncedColumnFilters.find((c) => c.id === "username")
       ?.value as string,
-    group: groupFilter,
+    banned: bannedFilter,
     sorts: sorting.map((s) => (s.desc ? `-${s.id}` : s.id)).join(","),
     page,
     size,

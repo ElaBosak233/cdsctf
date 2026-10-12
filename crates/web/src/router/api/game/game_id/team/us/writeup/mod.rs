@@ -59,7 +59,11 @@ pub async fn get_team_write_up(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let game = util::loader::prepare_game(&s.db.conn, game_id).await?;
+    util::loader::ensure_writeup_required(&game)?;
     let team = util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
     util::media::get_write_up(s.media.clone(), game_id, team.id).await
@@ -87,15 +91,13 @@ pub async fn save_team_write_up(
     Path(game_id): Path<i64>,
     multipart: Multipart,
 ) -> Result<Json<TeamResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let game = util::loader::prepare_game(&s.db.conn, game_id).await?;
+    util::loader::ensure_writeup_available(&game, time::OffsetDateTime::now_utc())?;
     let team = util::loader::prepare_self_team(&s.db.conn, game.id, operator.id).await?;
     let path = format!("games/{}/teams/{}/writeup", game.id, team.id);
-
-    let now = time::OffsetDateTime::now_utc();
-    if now > game.ended_at || now < game.started_at {
-        return Err(WebError::BadRequest(json!("game_is_not_ongoing")));
-    }
 
     let data = handle_multipart(multipart, mime::PDF).await?;
 

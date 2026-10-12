@@ -1,0 +1,36 @@
+import type { GameChallengeView } from "@/models/game_challenge";
+import { api, toSearchParams } from "@/utils/query";
+
+export type GetGameChallengeRequest = {
+  game_id?: number;
+  challenge_id?: number;
+  category?: number;
+  enabled?: boolean;
+};
+
+export async function getGameChallenges(request: GetGameChallengeRequest) {
+  return api
+    .get(`management/games/${request.game_id}/challenges`, {
+      searchParams: toSearchParams(request),
+    })
+    .json<{ challenges: GameChallengeView[]; total: number }>();
+}
+
+export type CreateGameChallengeRequest = {
+  game_id?: number;
+  challenge_id?: number;
+  enabled?: boolean;
+  max_pts?: number;
+  min_pts?: number;
+  difficulty?: number;
+  bonus_ratios?: Array<number>;
+  frozen_at?: string | null;
+};
+
+export async function createGameChallenge(request: CreateGameChallengeRequest) {
+  return api
+    .post(`management/games/${request.game_id}/challenges`, {
+      json: request,
+    })
+    .json<{ game_challenge: GameChallengeView }>();
+}

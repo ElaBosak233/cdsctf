@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-import { createGameNotice } from "@/api/admin/games/game_id/notices";
+import { createGameNotice } from "@/api/management/games/game_id/notices";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";

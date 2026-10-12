@@ -241,10 +241,10 @@ mod tests {
                     CHECK (id <> 105 OR state <> 0);
 
                 INSERT INTO users (
-                    id, name, username, description, "group", hashed_password,
-                    avatar_hash, deleted_at, created_at, updated_at
+                    id, name, username, description, banned, permissions,
+                    hashed_password, avatar_hash, deleted_at, created_at, updated_at
                 ) VALUES (
-                    1, 'User', 'user', NULL, 2, '', NULL, NULL,
+                    1, 'User', 'user', NULL, FALSE, '[]'::JSONB, '', NULL, NULL,
                     to_timestamp(0), to_timestamp(0)
                 );
                 INSERT INTO challenges (
@@ -340,12 +340,12 @@ mod tests {
                         (LIKE public.submissions INCLUDING ALL);
 
                     INSERT INTO {schema}.users (
-                        id, name, username, description, "group", hashed_password,
-                        avatar_hash, deleted_at, created_at, updated_at
+                        id, name, username, description, banned, permissions,
+                        hashed_password, avatar_hash, deleted_at, created_at, updated_at
                     ) VALUES
-                        (1, 'Team user', 'team-user', NULL, 2, '', NULL, NULL,
+                        (1, 'Team user', 'team-user', NULL, FALSE, '[]'::JSONB, '', NULL, NULL,
                          to_timestamp(0), to_timestamp(0)),
-                        (2, 'Standalone user', 'standalone-user', NULL, 2, '', NULL, NULL,
+                        (2, 'Standalone user', 'standalone-user', NULL, FALSE, '[]'::JSONB, '', NULL, NULL,
                          to_timestamp(0), to_timestamp(0));
                     INSERT INTO {schema}.challenges (
                         id, title, description, category, tags, has_instance,

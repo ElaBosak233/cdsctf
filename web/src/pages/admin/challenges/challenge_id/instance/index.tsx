@@ -19,7 +19,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-import { updateChallengeInstance } from "@/api/admin/challenges/challenge_id/instance";
+import { updateChallengeInstance } from "@/api/management/challenges/challenge_id/instance";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {

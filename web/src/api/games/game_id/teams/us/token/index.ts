@@ -33,6 +33,6 @@ export type DeleteTokenRequest = {
 
 export async function deleteToken(request: DeleteTokenRequest) {
   return api
-    .post(`games/${request.game_id}/teams/us/token`, { json: request })
+    .delete(`games/${request.game_id}/teams/us/token`)
     .json<{ token: string | null }>();
 }

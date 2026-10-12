@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import {
   type GetChallengesRequest,
   getChallenges,
-} from "@/api/admin/challenges";
+} from "@/api/management/challenges";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";

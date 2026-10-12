@@ -164,6 +164,13 @@ export const API_ERROR_I18N_KEYS: Readonly<Record<string, ApiErrorI18nKeys>> = {
   ),
   invalid_or_expired_token: message("account:errors.invalid_or_expired_token"),
   password_invalid: message("account:errors.password_invalid"),
+  name_required: message("user:personal_access_tokens.errors.name_required"),
+  invalid_expiration: message(
+    "user:personal_access_tokens.errors.invalid_expiration"
+  ),
+  session_required: message(
+    "user:personal_access_tokens.errors.session_required"
+  ),
   registration_conflict: message(
     "account:errors.registration_conflict.title",
     "account:errors.registration_conflict.description"
@@ -184,6 +191,7 @@ export const API_ERROR_I18N_KEYS: Readonly<Record<string, ApiErrorI18nKeys>> = {
   game_not_found: message("game:errors.not_found"),
   game_not_ongoing: message("game:errors.not_ongoing"),
   game_paused: message("game:errors.paused"),
+  writeup_not_required: message("game:errors.writeup_not_required"),
   icon_not_found: message("game:errors.icon_not_found"),
   poster_not_found: message("game:errors.poster_not_found"),
   challenge_already_in_game: message("challenge:errors.already_in_game"),

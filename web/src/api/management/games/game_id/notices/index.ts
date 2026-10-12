@@ -1,0 +1,30 @@
+import type { GameNoticeView } from "@/models/game_notice";
+import { api } from "@/utils/query";
+
+export type CreateGameNoticeRequest = {
+  game_id?: number;
+  title?: string;
+  content?: string;
+};
+
+export async function createGameNotice(request: CreateGameNoticeRequest) {
+  const { game_id, title, content } = request;
+  return api
+    .post(`management/games/${game_id}/notices`, {
+      json: { title, content },
+    })
+    .json<{ notice: GameNoticeView }>();
+}
+
+export type DeleteGameNoticeRequest = {
+  id?: number;
+  game_id?: number;
+};
+
+export async function deleteGameNotice(request: DeleteGameNoticeRequest) {
+  return api
+    .delete(`management/games/${request.game_id}/notices/${request.id}`, {
+      json: request,
+    })
+    .json<Record<string, never>>();
+}

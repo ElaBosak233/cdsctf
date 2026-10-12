@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { LoaderCircleIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { getTeamUser } from "@/api/admin/games/game_id/teams/team_id/users";
+import { getTeamUser } from "@/api/management/games/game_id/teams/team_id/users";
 import { Avatar } from "@/components/ui/avatar";
 import {
   Tooltip,

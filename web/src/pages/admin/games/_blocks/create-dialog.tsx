@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-import { createGame } from "@/api/admin/games";
+import { createGame } from "@/api/management/games";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DateTimePicker } from "@/components/ui/datetime-picker";

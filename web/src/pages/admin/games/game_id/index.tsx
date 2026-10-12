@@ -17,9 +17,9 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-import { updateGame } from "@/api/admin/games/game_id";
-import { deleteGameIcon } from "@/api/admin/games/game_id/icon";
-import { deleteGamePoster } from "@/api/admin/games/game_id/poster";
+import { updateGame } from "@/api/management/games/game_id";
+import { deleteGameIcon } from "@/api/management/games/game_id/icon";
+import { deleteGamePoster } from "@/api/management/games/game_id/poster";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
@@ -170,7 +170,7 @@ export default function Index() {
 
     try {
       await uploadFile(
-        `/api/admin/games/${resolvedGameId}/poster`,
+        `/api/management/games/${resolvedGameId}/poster`,
         [file],
         ({ percent }) => {
           toast.loading(
@@ -228,7 +228,7 @@ export default function Index() {
 
     try {
       await uploadFile(
-        `/api/admin/games/${resolvedGameId}/icon`,
+        `/api/management/games/${resolvedGameId}/icon`,
         [file],
         ({ percent }) => {
           toast.loading(

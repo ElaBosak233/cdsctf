@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-import { updateWriteup } from "@/api/admin/challenges/challenge_id/writeup";
+import { updateWriteup } from "@/api/management/challenges/challenge_id/writeup";
 import { Button } from "@/components/ui/button";
 import {
   Form,

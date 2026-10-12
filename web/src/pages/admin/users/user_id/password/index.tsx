@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-import { updateUser } from "@/api/admin/users/user_id";
+import { updateUser } from "@/api/management/users/user_id";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {

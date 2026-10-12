@@ -3,7 +3,7 @@ import { ListOrderedIcon } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { type GetGamesRequest, getGames } from "@/api/admin/games";
+import { type GetGamesRequest, getGames } from "@/api/management/games";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";

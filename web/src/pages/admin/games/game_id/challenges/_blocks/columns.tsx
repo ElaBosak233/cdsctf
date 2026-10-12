@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import {
   deleteGameChallenge,
   updateGameChallenge,
-} from "@/api/admin/games/game_id/challenges/challenge_id";
+} from "@/api/management/games/game_id/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {

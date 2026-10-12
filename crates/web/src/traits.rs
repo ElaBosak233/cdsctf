@@ -40,10 +40,19 @@ pub struct AppState {
 
 /// Authenticated (or anonymous) subject extracted by auth middleware before
 /// handlers run.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum AuthMethod {
+    #[default]
+    Anonymous,
+    Session,
+    PersonalAccessToken,
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct AuthPrincipal {
     pub operator: Option<UserAccountView>,
     pub client_ip: String,
+    pub auth_method: AuthMethod,
 }
 
 /// JSON body for failed API responses. `code` is the stable, translatable

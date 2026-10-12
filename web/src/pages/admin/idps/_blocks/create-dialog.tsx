@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-import { createAdminIdp } from "@/api/admin/idps";
+import { createAdminIdp } from "@/api/management/idps";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";

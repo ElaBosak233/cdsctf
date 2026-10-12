@@ -1,0 +1,35 @@
+import type { State, TeamView } from "@/models/team";
+import { api, toSearchParams } from "@/utils/query";
+
+export type GetTeamRequest = {
+  id?: number;
+  game_id?: number;
+  user_id?: number;
+  name?: string;
+  state?: State;
+  page?: number;
+  size?: number;
+  sorts?: string;
+};
+
+export async function getTeams(request: GetTeamRequest) {
+  return api
+    .get(`management/games/${request.game_id}/teams`, {
+      searchParams: toSearchParams(request),
+    })
+    .json<{ teams: TeamView[]; total: number }>();
+}
+
+export type CreateTeamRequest = {
+  game_id?: number;
+  name?: string;
+  email?: string;
+  slogan?: string;
+  description?: string;
+};
+
+export async function createTeam(request: CreateTeamRequest) {
+  return api
+    .post(`management/games/${request.game_id}/teams`, { json: request })
+    .json<{ team: TeamView }>();
+}

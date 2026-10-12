@@ -3,6 +3,7 @@ import {
   ArrowDownIcon,
   ArrowUpDownIcon,
   ArrowUpIcon,
+  BanIcon,
   CircleCheckIcon,
   ClipboardCheckIcon,
   ClipboardCopyIcon,
@@ -18,7 +19,7 @@ import { useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
-import { deleteUser } from "@/api/admin/users/user_id";
+import { deleteUser, updateUser } from "@/api/management/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,9 +44,14 @@ import {
 } from "@/components/ui/tooltip";
 import { useClipboard } from "@/hooks/use-clipboard";
 import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
-import { Group, type UserAccountView } from "@/models/user";
+import {
+  hasAnyPermission,
+  MANAGEMENT_PERMISSIONS,
+  type UserAccountView,
+} from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 import { parseTimestamp } from "@/utils/time";
 
 function UserCell({ row }: { row: Row<UserAccountView> }) {
@@ -110,38 +116,28 @@ function UserCell({ row }: { row: Row<UserAccountView> }) {
 
 function AccountStatusCell({ row }: { row: Row<UserAccountView> }) {
   const { t } = useTranslation();
-  const groupConfig = {
-    [Group.Guest]: {
-      name: t("user:group.guest"),
-      icon: UserRoundIcon,
-      className: "text-muted-foreground",
-    },
-    [Group.Banned]: {
-      name: t("user:group.banned"),
-      icon: UserRoundXIcon,
-      className: "border-error/20 bg-error/10 text-error",
-    },
-    [Group.User]: {
-      name: t("user:group.user"),
-      icon: UserRoundCheckIcon,
-      className: "border-success/20 bg-success/10 text-success",
-    },
-    [Group.Admin]: {
-      name: t("user:group.admin"),
-      icon: ShieldIcon,
-      className: "border-info/20 bg-info/10 text-info",
-    },
-  };
-  const config =
-    groupConfig[row.original.group as Group] ?? groupConfig[Group.Guest];
-  const Icon = config.icon;
-
   return (
     <div className={cn(["flex", "flex-wrap", "items-center", "gap-1.5"])}>
-      <Badge variant="outline" className={config.className}>
-        <Icon />
-        {config.name}
+      <Badge
+        variant="outline"
+        className={cn(
+          row.original.banned
+            ? ["border-error/20", "bg-error/10", "text-error"]
+            : ["border-success/20", "bg-success/10", "text-success"]
+        )}
+      >
+        {row.original.banned ? <UserRoundXIcon /> : <UserRoundIcon />}
+        {t(row.original.banned ? "user:banned.true" : "user:banned.false")}
       </Badge>
+      {hasAnyPermission(row.original.permissions, MANAGEMENT_PERMISSIONS) && (
+        <Badge
+          variant="outline"
+          className="border-info/20 bg-info/10 text-info"
+        >
+          <ShieldIcon />
+          {t("user:permissions.management")}
+        </Badge>
+      )}
       <Badge
         variant="outline"
         className={cn(
@@ -210,6 +206,31 @@ function ActionsCell({ row }: { row: Row<UserAccountView> }) {
   const username = row.original.username;
   const sharedStore = useSharedStore();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const isManagementUser = hasAnyPermission(
+    row.original.permissions,
+    MANAGEMENT_PERMISSIONS
+  );
+
+  async function handleBanToggle() {
+    setStatusLoading(true);
+    try {
+      await updateUser({ id, banned: !row.original.banned });
+      toast.success(
+        t(
+          row.original.banned
+            ? "user:actions.unban.success"
+            : "user:actions.ban.success",
+          { username }
+        )
+      );
+      sharedStore.setRefresh();
+    } catch (error) {
+      await notifyApiError(error);
+    } finally {
+      setStatusLoading(false);
+    }
+  }
 
   async function handleDelete() {
     await deleteUser({ id: id! });
@@ -257,9 +278,20 @@ function ActionsCell({ row }: { row: Row<UserAccountView> }) {
         ></DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem
+            onClick={handleBanToggle}
+            disabled={statusLoading || isManagementUser}
+          >
+            {row.original.banned ? <UserRoundCheckIcon /> : <BanIcon />}
+            {t(
+              row.original.banned
+                ? "user:actions.unban._"
+                : "user:actions.ban._"
+            )}
+          </DropdownMenuItem>
+          <DropdownMenuItem
             onClick={() => setDeleteDialogOpen(true)}
             className="text-error"
-            disabled={row.original.group === Group.Admin}
+            disabled={isManagementUser}
           >
             <TrashIcon />
             {t("user:actions.delete._")}

@@ -231,6 +231,7 @@ notice:
 errors:
   blacked_out: This game is temporarily unavailable.
   not_ongoing: The game is not currently ongoing.
+  writeup_not_required: This game does not require a write-up.
   not_found: The game could not be found.
   paused: The game is currently paused.
   icon_not_found: The game icon could not be found.

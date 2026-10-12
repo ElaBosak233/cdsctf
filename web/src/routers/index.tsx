@@ -2,7 +2,14 @@ import { createBrowserRouter } from "react-router";
 import { ErrorBoundary } from "@/components/utils/error-boundary";
 import { HydrateFallback } from "@/components/utils/hydrate-fallback";
 import type { AccessPolicy } from "@/components/utils/route-access-boundary";
-import { Group } from "@/models/user";
+import {
+  MANAGEMENT_CHALLENGE_PERMISSION,
+  MANAGEMENT_CONFIG_PERMISSION,
+  MANAGEMENT_GAME_PERMISSION,
+  MANAGEMENT_IDP_PERMISSION,
+  MANAGEMENT_PERMISSIONS,
+  MANAGEMENT_USER_PERMISSION,
+} from "@/models/user";
 
 const router = createBrowserRouter([
   {
@@ -216,6 +223,16 @@ const router = createBrowserRouter([
                 }),
               },
               {
+                path: "personal-access-tokens",
+                lazy: async () => ({
+                  Component: (
+                    await import(
+                      "@/pages/account/settings/personal-access-tokens"
+                    )
+                  ).default,
+                }),
+              },
+              {
                 path: "delete",
                 lazy: async () => ({
                   Component: (await import("@/pages/account/settings/delete"))
@@ -231,7 +248,7 @@ const router = createBrowserRouter([
         handle: {
           access: {
             authenticated: true,
-            minGroup: Group.Admin,
+            anyPermissions: [...MANAGEMENT_PERMISSIONS],
           } satisfies AccessPolicy,
         },
         lazy: async () => ({
@@ -246,24 +263,44 @@ const router = createBrowserRouter([
           },
           {
             path: "platform",
+            handle: {
+              access: {
+                permissions: [MANAGEMENT_CONFIG_PERMISSION],
+              } satisfies AccessPolicy,
+            },
             lazy: async () => ({
               Component: (await import("@/pages/admin/platform")).default,
             }),
           },
           {
             path: "mailbox",
+            handle: {
+              access: {
+                permissions: [MANAGEMENT_CONFIG_PERMISSION],
+              } satisfies AccessPolicy,
+            },
             lazy: async () => ({
               Component: (await import("@/pages/admin/mailbox")).default,
             }),
           },
           {
             path: "captcha",
+            handle: {
+              access: {
+                permissions: [MANAGEMENT_CONFIG_PERMISSION],
+              } satisfies AccessPolicy,
+            },
             lazy: async () => ({
               Component: (await import("@/pages/admin/captcha")).default,
             }),
           },
           {
             path: "idps",
+            handle: {
+              access: {
+                permissions: [MANAGEMENT_IDP_PERMISSION],
+              } satisfies AccessPolicy,
+            },
             children: [
               {
                 index: true,
@@ -282,6 +319,11 @@ const router = createBrowserRouter([
           },
           {
             path: "challenges",
+            handle: {
+              access: {
+                permissions: [MANAGEMENT_CHALLENGE_PERMISSION],
+              } satisfies AccessPolicy,
+            },
             lazy: async () => ({
               Component: (await import("@/pages/admin/challenges/layout"))
                 .default,
@@ -355,6 +397,11 @@ const router = createBrowserRouter([
           },
           {
             path: "instances",
+            handle: {
+              access: {
+                permissions: [MANAGEMENT_CHALLENGE_PERMISSION],
+              } satisfies AccessPolicy,
+            },
             children: [
               {
                 index: true,
@@ -366,6 +413,11 @@ const router = createBrowserRouter([
           },
           {
             path: "games",
+            handle: {
+              access: {
+                permissions: [MANAGEMENT_GAME_PERMISSION],
+              } satisfies AccessPolicy,
+            },
             lazy: async () => ({
               Component: (await import("@/pages/admin/games/layout")).default,
             }),
@@ -429,6 +481,11 @@ const router = createBrowserRouter([
           },
           {
             path: "users",
+            handle: {
+              access: {
+                permissions: [MANAGEMENT_USER_PERMISSION],
+              } satisfies AccessPolicy,
+            },
             lazy: async () => ({
               Component: (await import("@/pages/admin/users/layout")).default,
             }),

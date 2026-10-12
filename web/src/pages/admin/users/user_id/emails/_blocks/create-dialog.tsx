@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-import { addEmail } from "@/api/admin/users/user_id/emails";
+import { addEmail } from "@/api/management/users/user_id/emails";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";

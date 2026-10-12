@@ -9,9 +9,9 @@ import {
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { createDebugInstance } from "@/api/admin/instances";
 import { createInstance, getInstances } from "@/api/instances";
 import { renewInstance, stopInstance } from "@/api/instances/instance_id";
+import { createDebugInstance } from "@/api/management/instances";
 import { Button } from "@/components/ui/button";
 import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";

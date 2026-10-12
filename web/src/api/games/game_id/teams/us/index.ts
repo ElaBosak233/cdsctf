@@ -22,7 +22,7 @@ export type UpdateTeamRequest = {
 
 export async function updateTeam(request: UpdateTeamRequest) {
   return api
-    .put(`games/${request.game_id}/teams/us`, { json: request })
+    .patch(`games/${request.game_id}/teams/us`, { json: request })
     .json<{ team: PlayerTeamView }>();
 }
 

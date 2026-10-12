@@ -24,6 +24,9 @@ pub mod idp;
 /// Defines the `note` submodule (see sibling `*.rs` files).
 pub mod note;
 
+/// Defines the `personal_access_token` submodule (see sibling `*.rs` files).
+pub mod personal_access_token;
+
 /// Defines the `submission` submodule (see sibling `*.rs` files).
 pub mod submission;
 

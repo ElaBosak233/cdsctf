@@ -27,6 +27,25 @@ pub fn ensure_game_ongoing(game: &GameDetail, now: time::OffsetDateTime) -> Resu
     Ok(())
 }
 
+/// Rejects write-up access when the game does not require write-ups.
+pub fn ensure_writeup_required(game: &GameDetail) -> Result<(), WebError> {
+    if !game.writeup_required {
+        return Err(WebError::BadRequest(json!("writeup_not_required")));
+    }
+
+    Ok(())
+}
+
+/// Rejects write-up submission unless the game requires write-ups and is
+/// ongoing.
+pub fn ensure_writeup_available(
+    game: &GameDetail,
+    now: time::OffsetDateTime,
+) -> Result<(), WebError> {
+    ensure_writeup_required(game)?;
+    ensure_game_ongoing(game, now)
+}
+
 /// Loads a challenge model for downstream handlers.
 pub async fn prepare_challenge(
     db: &DatabaseConnection,
@@ -110,7 +129,10 @@ pub async fn prepare_user(
 mod tests {
     use cds_db::GameDetail;
 
-    use super::{ensure_game_not_paused, ensure_game_ongoing};
+    use super::{
+        ensure_game_not_paused, ensure_game_ongoing, ensure_writeup_available,
+        ensure_writeup_required,
+    };
     use crate::traits::WebError;
 
     fn game() -> GameDetail {
@@ -166,6 +188,32 @@ mod tests {
             ensure_game_ongoing(
                 &game,
                 time::OffsetDateTime::from_unix_timestamp(201).unwrap()
+            ),
+            Err(WebError::Forbidden(_))
+        ));
+    }
+
+    #[test]
+    fn writeup_requires_an_enabled_ongoing_game() {
+        let game = game();
+        let now = time::OffsetDateTime::from_unix_timestamp(150).unwrap();
+
+        assert!(matches!(
+            ensure_writeup_required(&game),
+            Err(WebError::BadRequest(_))
+        ));
+        assert!(matches!(
+            ensure_writeup_available(&game, now),
+            Err(WebError::BadRequest(_))
+        ));
+
+        let mut game = game;
+        game.writeup_required = true;
+        assert!(ensure_writeup_available(&game, now).is_ok());
+        assert!(matches!(
+            ensure_writeup_available(
+                &game,
+                time::OffsetDateTime::from_unix_timestamp(99).unwrap()
             ),
             Err(WebError::Forbidden(_))
         ));

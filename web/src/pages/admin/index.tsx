@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { FlagIcon, LibraryIcon, SendIcon, UserRoundIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { getStatistics } from "@/api/admin/configs";
+import { getStatistics } from "@/api/management/configs";
 import { Card } from "@/components/ui/card";
 import { Image } from "@/components/ui/image";
 import { Separator } from "@/components/ui/separator";

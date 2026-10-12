@@ -34,7 +34,7 @@ import { toast } from "sonner";
 import {
   deleteChallenge,
   updateChallenge,
-} from "@/api/admin/challenges/challenge_id";
+} from "@/api/management/challenges/challenge_id";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";

@@ -89,7 +89,7 @@ pub struct UpdateTeamRequest {
 
 /// Updates team.
 #[utoipa::path(
-    put,
+    patch,
     path = "/",
     tag = "game",
     params(

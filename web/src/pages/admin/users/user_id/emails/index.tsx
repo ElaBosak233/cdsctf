@@ -4,7 +4,7 @@ import { Fragment, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { toast } from "sonner";
-import { getEmails, updateEmail } from "@/api/admin/users/user_id/emails";
+import { getEmails, updateEmail } from "@/api/management/users/user_id/emails";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";

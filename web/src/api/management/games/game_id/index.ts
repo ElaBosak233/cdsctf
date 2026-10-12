@@ -1,0 +1,47 @@
+import type { GameDetail } from "@/models/game";
+import { api } from "@/utils/query";
+
+export type GetGameRequest = {
+  id: number;
+};
+
+export async function getGame(request: GetGameRequest) {
+  return api.get(`management/games/${request.id}`).json<{ game: GameDetail }>();
+}
+
+export type UpdateGameBody = {
+  title?: string;
+  sketch?: string | null;
+  description?: string | null;
+  enabled?: boolean;
+  public?: boolean;
+  paused?: boolean;
+  blacked_out?: boolean;
+  writeup_required?: boolean;
+  member_limit_min?: number;
+  member_limit_max?: number;
+  started_at?: string;
+  frozen_at?: string;
+  ended_at?: string;
+};
+
+export type UpdateGameRequest = UpdateGameBody & {
+  id: number;
+};
+
+export async function updateGame(request: UpdateGameRequest) {
+  const { id, ...body } = request;
+  return api
+    .patch(`management/games/${id}`, { json: body })
+    .json<{ game: GameDetail }>();
+}
+
+export type DeleteGameRequest = {
+  id?: number;
+};
+
+export async function deleteGame(request: DeleteGameRequest) {
+  return api
+    .delete(`management/games/${request.id}`)
+    .json<Record<string, never>>();
+}

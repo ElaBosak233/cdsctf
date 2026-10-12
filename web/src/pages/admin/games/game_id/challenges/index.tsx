@@ -3,7 +3,7 @@ import { HashIcon, LibraryIcon, PlusCircleIcon } from "lucide-react";
 import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
-import { getGameChallenges } from "@/api/admin/games/game_id/challenges";
+import { getGameChallenges } from "@/api/management/games/game_id/challenges";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Field, FieldIcon } from "@/components/ui/field";

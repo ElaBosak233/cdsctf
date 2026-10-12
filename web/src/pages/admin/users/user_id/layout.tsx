@@ -3,7 +3,7 @@ import { LockIcon, MailIcon, UserRoundIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation, useParams } from "react-router";
-import { getUser } from "@/api/admin/users/user_id";
+import { getUser } from "@/api/management/users/user_id";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";

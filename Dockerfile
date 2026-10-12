@@ -1,4 +1,4 @@
-FROM rust:1.95 AS backend
+FROM rust:1.99 AS backend
 
 ARG TARGETARCH
 

@@ -3,7 +3,6 @@ import {
   CheckIcon,
   KeyIcon,
   MailIcon,
-  ShieldIcon,
   UserRoundCheckIcon,
   UserRoundIcon,
   UserRoundPlusIcon,
@@ -13,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
-import { createUser } from "@/api/admin/users";
+import { createUser } from "@/api/management/users";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
@@ -26,18 +25,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
-import { Group } from "@/models/user";
+import { BASIC_PERMISSION, PERMISSIONS } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { notifyApiError } from "@/utils/query";
+import { PermissionChecklist } from "./permission-checklist";
 
 interface CreateUserDialogProps {
   onClose: () => void;
@@ -60,15 +53,13 @@ function CreateUserDialog(props: CreateUserDialogProps) {
     password: z
       .string()
       .min(6, { message: t("user:form.password.messages.min") }),
-    group: z.number({
-      message: t("user:form.group.message"),
-    }),
+    permissions: z.array(z.enum(PERMISSIONS)),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      group: Group.User,
+      permissions: [BASIC_PERMISSION],
       username: "",
       name: "",
       email: "",
@@ -79,7 +70,9 @@ function CreateUserDialog(props: CreateUserDialogProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     try {
-      await createUser({ ...values });
+      await createUser({
+        ...values,
+      });
       toast.success(
         t("user:actions.create.success", { username: values.username })
       );
@@ -91,11 +84,6 @@ function CreateUserDialog(props: CreateUserDialogProps) {
       setLoading(false);
     }
   }
-
-  const groupOptions = [
-    { id: Group.User, name: t("user:group.user"), icon: UserRoundCheckIcon },
-    { id: Group.Admin, name: t("user:group.admin"), icon: ShieldIcon },
-  ];
 
   return (
     <Card
@@ -222,49 +210,15 @@ function CreateUserDialog(props: CreateUserDialogProps) {
 
             <FormField
               control={form.control}
-              name={"group"}
+              name="permissions"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("user:form.group._")}</FormLabel>
+                  <FormLabel>{t("user:form.permissions._")}</FormLabel>
                   <FormControl>
-                    <Field size={"sm"}>
-                      <FieldIcon>
-                        <UserRoundCheckIcon />
-                      </FieldIcon>
-                      <Select
-                        {...field}
-                        onValueChange={(value) => {
-                          field.onChange(Number(value));
-                        }}
-                        value={String(field.value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {groupOptions.map((group) => {
-                            const Icon = group.icon;
-                            return (
-                              <SelectItem
-                                key={group.id}
-                                value={String(group.id)}
-                              >
-                                <span
-                                  className={cn([
-                                    "flex",
-                                    "gap-2",
-                                    "items-center",
-                                  ])}
-                                >
-                                  <Icon className="size-4" />
-                                  {group.name}
-                                </span>
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                    </Field>
+                    <PermissionChecklist
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

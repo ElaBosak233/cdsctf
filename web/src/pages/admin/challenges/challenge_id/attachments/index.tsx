@@ -3,7 +3,7 @@ import { CloudUploadIcon } from "lucide-react";
 import { useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { getChallengeAttachments } from "@/api/admin/challenges/challenge_id/attachments";
+import { getChallengeAttachments } from "@/api/management/challenges/challenge_id/attachments";
 import {
   DropZoneArea,
   Dropzone,
@@ -58,7 +58,7 @@ export default function Index() {
 
       try {
         await uploadFile(
-          `/api/admin/challenges/${challenge?.id}/attachments`,
+          `/api/management/challenges/${challenge?.id}/attachments`,
           [file],
           ({ percent }) => {
             toast.loading(

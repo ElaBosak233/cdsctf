@@ -1,19 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  InfoIcon,
-  SaveIcon,
-  ShieldIcon,
-  UserRoundCheckIcon,
-  UserRoundIcon,
-  UserRoundXIcon,
-} from "lucide-react";
+import { InfoIcon, SaveIcon, UserRoundIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-import { updateUser } from "@/api/admin/users/user_id";
+import { updateUser } from "@/api/management/users/user_id";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
@@ -26,19 +19,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { TextField } from "@/components/ui/text-field";
-import { Group } from "@/models/user";
+import { PERMISSIONS } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { notifyApiError } from "@/utils/query";
+import { PermissionChecklist } from "../_blocks/permission-checklist";
 import { Context } from "./context";
 
 export default function Index() {
@@ -50,39 +37,13 @@ export default function Index() {
   const sharedStore = useSharedStore();
   const [loading, setLoading] = useState<boolean>(false);
 
-  const groupOptions = [
-    {
-      id: Group.Guest.toString(),
-      name: t("user:group.guest"),
-      icon: UserRoundIcon,
-    },
-    {
-      id: Group.Banned.toString(),
-      name: t("user:group.banned"),
-      icon: UserRoundXIcon,
-    },
-    {
-      id: Group.User.toString(),
-      name: t("user:group.user"),
-      icon: UserRoundCheckIcon,
-    },
-    {
-      id: Group.Admin.toString(),
-      name: t("user:group.admin"),
-      icon: ShieldIcon,
-    },
-  ];
-
   const formSchema = z.object({
     username: z.string({}),
     name: z.string({
       message: t("user:form.name.messages._"),
     }),
-    group: z.number({
-      message: t("user:form.group.message"),
-    }),
+    permissions: z.array(z.enum(PERMISSIONS)),
     description: z.string().nullish(),
-    verified: z.boolean(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -90,9 +51,8 @@ export default function Index() {
     defaultValues: {
       username: user?.username ?? "",
       name: user?.name ?? "",
-      group: user?.group ?? Group.Guest,
+      permissions: user?.permissions ?? [],
       description: user?.description ?? null,
-      verified: user?.verified ?? false,
     },
   });
 
@@ -102,9 +62,8 @@ export default function Index() {
       {
         username: user.username,
         name: user.name,
-        group: user.group,
+        permissions: user.permissions,
         description: user.description,
-        verified: user.verified ?? false,
       },
       {
         keepDefaultValues: false,
@@ -117,7 +76,10 @@ export default function Index() {
 
     setLoading(true);
     try {
-      const res = await updateUser({ id: user.id!, ...values });
+      const res = await updateUser({
+        id: user.id!,
+        ...values,
+      });
       toast.success(
         t("user:actions.update.success", { username: res.user?.username })
       );
@@ -161,7 +123,7 @@ export default function Index() {
           className={cn(["flex", "flex-col", "flex-1", "gap-8"])}
         >
           <div
-            className={cn(["grid", "grid-cols-1", "md:grid-cols-3", "gap-4"])}
+            className={cn(["grid", "grid-cols-1", "md:grid-cols-2", "gap-4"])}
           >
             <FormField
               control={form.control}
@@ -210,55 +172,24 @@ export default function Index() {
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name={"group"}
-              render={({ field }) => (
-                <FormItem className={cn(["w-full"])}>
-                  <FormLabel>{t("user:form.group._")}</FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <ShieldIcon />
-                      </FieldIcon>
-                      <Select
-                        {...field}
-                        onValueChange={(value) => {
-                          field.onChange(Number(value));
-                        }}
-                        value={String(field.value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {groupOptions.map((group) => {
-                            const Icon = group.icon;
-                            return (
-                              <SelectItem key={group.id} value={group.id}>
-                                <span
-                                  className={cn([
-                                    "flex",
-                                    "gap-2",
-                                    "items-center",
-                                  ])}
-                                >
-                                  <Icon className="size-4" />
-                                  {group.name}
-                                </span>
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
+
+          <FormField
+            control={form.control}
+            name="permissions"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("user:form.permissions._")}</FormLabel>
+                <FormControl>
+                  <PermissionChecklist
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}

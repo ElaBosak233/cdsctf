@@ -1,7 +1,43 @@
-use sea_orm::FromQueryResult;
+use sea_orm::{DeriveActiveEnum, EnumIter, FromQueryResult, prelude::StringLen};
 use serde::{Deserialize, Serialize};
 
-use crate::entity::user::Group;
+/// Coarse-grained capabilities understood by the API.
+///
+/// The Rust enum keeps permission checks type-safe while its stable string
+/// values remain the wire and PostgreSQL representation.
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    EnumIter,
+    DeriveActiveEnum,
+    Serialize,
+    Deserialize,
+    utoipa::ToSchema,
+)]
+#[sea_orm(rs_type = "String", db_type = "String(StringLen::None)")]
+pub enum Permission {
+    #[sea_orm(string_value = "basic")]
+    #[serde(rename = "basic")]
+    Basic,
+    #[sea_orm(string_value = "management:config")]
+    #[serde(rename = "management:config")]
+    ManagementConfig,
+    #[sea_orm(string_value = "management:challenge")]
+    #[serde(rename = "management:challenge")]
+    ManagementChallenge,
+    #[sea_orm(string_value = "management:game")]
+    #[serde(rename = "management:game")]
+    ManagementGame,
+    #[sea_orm(string_value = "management:idp")]
+    #[serde(rename = "management:idp")]
+    ManagementIdp,
+    #[sea_orm(string_value = "management:user")]
+    #[serde(rename = "management:user")]
+    ManagementUser,
+}
 
 #[derive(
     Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
@@ -11,7 +47,8 @@ pub struct UserAccountView {
     pub name: String,
     pub username: String,
     pub verified: Option<bool>,
-    pub group: Group,
+    pub banned: bool,
+    pub permissions: Vec<Permission>,
     pub description: Option<String>,
     #[serde(skip_serializing)]
     #[schema(ignore)]

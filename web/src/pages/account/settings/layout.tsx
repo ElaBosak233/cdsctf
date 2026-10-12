@@ -1,6 +1,7 @@
 import {
   IdCardIcon,
   InfoIcon,
+  KeyRoundIcon,
   LockIcon,
   MailsIcon,
   UserRoundXIcon,
@@ -38,6 +39,11 @@ export default function Layout() {
       link: `/account/settings/idps`,
       name: t("user:settings.idp"),
       icon: <IdCardIcon />,
+    },
+    {
+      link: `/account/settings/personal-access-tokens`,
+      name: t("user:settings.personal_access_tokens"),
+      icon: <KeyRoundIcon />,
     },
   ];
 

@@ -3,7 +3,7 @@ import prettyBytes from "pretty-bytes";
 import { useContext, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { deleteChallengeAttachment } from "@/api/admin/challenges/challenge_id/attachments/filename";
+import { deleteChallengeAttachment } from "@/api/management/challenges/challenge_id/attachments/filename";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {

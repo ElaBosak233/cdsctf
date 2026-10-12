@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { DownloadIcon } from "lucide-react";
 import { useContext } from "react";
-import { getChallengeAttachments as getChallengeAttachmentsDebug } from "@/api/admin/challenges/challenge_id/attachments";
 import { getChallengeAttachments } from "@/api/challenges/challenge_id/attachments";
+import { getChallengeAttachments as getChallengeAttachmentsDebug } from "@/api/management/challenges/challenge_id/attachments";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils";
 import { Context } from "./context";
@@ -44,7 +44,7 @@ export function AttachmentSection() {
               target={"_blank"}
               href={
                 debug
-                  ? `/api/admin/challenges/${challenge?.id}/attachments/${m.filename}`
+                  ? `/api/management/challenges/${challenge?.id}/attachments/${m.filename}`
                   : `/api/challenges/${challenge?.id}/attachments/${m.filename}`
               }
               rel="noopener"
