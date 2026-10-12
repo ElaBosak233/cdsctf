@@ -194,7 +194,7 @@ export default function Index() {
                         key={header.id}
                         className={cn([
                           "bg-muted/95",
-                          header.column.id === "title" && "min-w-64",
+                          header.column.id === "title" && "w-72",
                           header.column.id === "content" && "min-w-80",
                           header.column.id === "created_at" && "w-48 min-w-48",
                           header.column.id === "actions" && "w-24 min-w-24",

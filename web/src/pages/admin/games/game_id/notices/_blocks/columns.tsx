@@ -1,4 +1,4 @@
-import { TrashIcon } from "lucide-react";
+import { MessageCircleIcon, TrashIcon } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useParams } from "react-router";
@@ -132,15 +132,35 @@ function useColumns() {
         id: "title",
         header: t("game:notice.title"),
         cell: ({ row }) => (
-          <div className={cn(["min-w-0", "flex", "flex-col", "gap-0.5"])}>
-            <span className={cn(["truncate", "text-sm", "font-semibold"])}>
-              {row.original.title || "-"}
-            </span>
-            <span
-              className={cn(["font-mono", "text-xs", "text-muted-foreground"])}
+          <div className="flex items-center gap-2">
+            <div
+              className={cn([
+                "flex",
+                "size-9",
+                "shrink-0",
+                "items-center",
+                "justify-center",
+                "rounded-md",
+                "bg-muted",
+                "text-muted-foreground",
+              ])}
             >
-              #{row.original.id}
-            </span>
+              <MessageCircleIcon className="size-4" />
+            </div>
+            <div className={cn(["min-w-0", "flex", "flex-col", "gap-0.5"])}>
+              <span className={cn(["truncate", "text-sm", "font-semibold"])}>
+                {row.original.title || "-"}
+              </span>
+              <span
+                className={cn([
+                  "font-mono",
+                  "text-xs",
+                  "text-muted-foreground",
+                ])}
+              >
+                #{row.original.id}
+              </span>
+            </div>
           </div>
         ),
       },
@@ -165,9 +185,11 @@ function useColumns() {
         header: t("game:notice.created_at"),
         cell: ({ row }) => {
           return (
-            parseTimestamp(
-              row.getValue<string>("created_at")
-            )?.toLocaleString() ?? "-"
+            <span className="text-xs text-muted-foreground">
+              {parseTimestamp(
+                row.getValue<string>("created_at")
+              )?.toLocaleString() ?? "-"}
+            </span>
           );
         },
       },
