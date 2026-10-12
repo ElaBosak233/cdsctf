@@ -1,4 +1,9 @@
-import { BanIcon, XIcon } from "lucide-react";
+import {
+  BanIcon,
+  ClipboardCheckIcon,
+  ClipboardCopyIcon,
+  XIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { updateSubmissionStatus } from "@/api/management/submissions";
@@ -10,12 +15,84 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { ColumnDef } from "@/hooks/use-data-table";
+import { useClipboard } from "@/hooks/use-clipboard";
+import type { ColumnDef, Row } from "@/hooks/use-data-table";
 import { Status, type SubmissionView } from "@/models/submission";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { getCategory } from "@/utils/category";
 import { notifyApiError } from "@/utils/query";
 import { formatDuration, millisecondsBetween } from "@/utils/time";
+
+function ChallengeCell({ row }: { row: Row<SubmissionView> }) {
+  const challenge = row.original;
+  const id = challenge.challenge_id;
+  const category = getCategory(challenge.challenge_category);
+  const CategoryIcon = category.icon!;
+  const { t } = useTranslation();
+  const { isCopied, copyToClipboard } = useClipboard();
+
+  return (
+    <div className={cn(["flex", "min-w-0", "items-center", "gap-3"])}>
+      <div
+        className={cn([
+          "flex",
+          "size-9",
+          "shrink-0",
+          "items-center",
+          "justify-center",
+          "rounded-md",
+        ])}
+        style={{
+          backgroundColor: `${category.color}1a`,
+          color: category.color,
+        }}
+      >
+        <CategoryIcon className="size-4" />
+      </div>
+      <div className={cn(["min-w-0", "flex-1"])}>
+        <div className={cn(["truncate", "text-sm", "font-semibold"])}>
+          {challenge.challenge_title || "-"}
+        </div>
+        <div
+          className={cn([
+            "mt-0.5",
+            "flex",
+            "min-w-0",
+            "items-center",
+            "gap-1.5",
+            "text-xs",
+            "text-muted-foreground",
+          ])}
+        >
+          <span className={cn(["shrink-0", "font-mono"])}>#{id}</span>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  icon={
+                    isCopied ? <ClipboardCheckIcon /> : <ClipboardCopyIcon />
+                  }
+                  square
+                  size="sm"
+                  variant="ghost"
+                  className={cn([
+                    "size-6",
+                    "shrink-0",
+                    "text-muted-foreground",
+                  ])}
+                  aria-label={t("common:tooltip.copy")}
+                  onClick={() => copyToClipboard(String(id))}
+                />
+              }
+            />
+            <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
+          </Tooltip>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function useColumns(): Array<ColumnDef<SubmissionView>> {
   const { t } = useTranslation();
@@ -48,7 +125,7 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
               fallback={name.charAt(0)}
             />
             <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="truncate text-sm font-medium">{name}</span>
+              <span className="truncate text-sm font-medium w-36">{name}</span>
               <span className="font-mono text-xs text-muted-foreground">
                 #{row.original.team_id}
               </span>
@@ -61,16 +138,7 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
       accessorKey: "challenge_title",
       id: "challenge_title",
       header: t("submission:challenge_title"),
-      cell: ({ row }) => (
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="truncate text-sm font-medium">
-            {row.original.challenge_title ?? "-"}
-          </span>
-          <span className="font-mono text-xs text-muted-foreground">
-            #{row.original.challenge_id}
-          </span>
-        </div>
-      ),
+      cell: ChallengeCell,
     },
     {
       accessorKey: "team_id",
@@ -177,7 +245,7 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
               fallback={name.charAt(0)}
             />
             <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="truncate text-sm font-medium">{name}</span>
+              <span className="truncate text-sm font-medium w-36">{name}</span>
               <span className="font-mono text-xs text-muted-foreground">
                 #{row.original.user_id}
               </span>

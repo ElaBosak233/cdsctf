@@ -579,14 +579,13 @@ export default function Index() {
                         key={header.id}
                         className={cn([
                           "bg-muted/95",
-                          header.column.id === "id" && "w-16 min-w-16",
-                          header.column.id === "team_name" && "min-w-56",
-                          header.column.id === "challenge_title" && "min-w-56",
-                          header.column.id === "content" && "w-56 min-w-56",
+                          header.column.id === "id" && "w-16",
+                          header.column.id === "team_name" && "w-56",
+                          header.column.id === "challenge_title" && "w-56",
+                          header.column.id === "content" && "min-w-56",
                           header.column.id === "status" && "w-32 min-w-32",
-                          header.column.id === "user_name" && "min-w-56",
-                          header.column.id === "processing_duration" &&
-                            "w-32 min-w-32",
+                          header.column.id === "user_name" && "w-56",
+                          header.column.id === "processing_duration" && "w-32",
                           header.column.id === "created_at" && "w-48 min-w-48",
                           header.column.id === "actions" && "w-24 min-w-24",
                         ])}
