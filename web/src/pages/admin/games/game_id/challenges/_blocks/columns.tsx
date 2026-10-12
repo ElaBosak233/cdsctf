@@ -2,6 +2,7 @@ import {
   ClipboardCheckIcon,
   ClipboardCopyIcon,
   EditIcon,
+  GaugeIcon,
   SettingsIcon,
   TrashIcon,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import {
   deleteGameChallenge,
   updateGameChallenge,
 } from "@/api/management/games/game_id/challenges/challenge_id";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -28,6 +30,11 @@ import {
   DialogFooter,
   DialogHeader,
 } from "@/components/ui/dialog";
+import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
@@ -105,9 +112,11 @@ function ChallengeCell({ row }: { row: Row<GameChallengeView> }) {
           "items-center",
           "justify-center",
           "rounded-md",
-          "bg-muted",
-          "text-muted-foreground",
         ])}
+        style={{
+          backgroundColor: `${category.color}1a`,
+          color: category.color,
+        }}
       >
         <CategoryIcon className="size-4" />
       </div>
@@ -151,6 +160,27 @@ function ChallengeCell({ row }: { row: Row<GameChallengeView> }) {
           </Tooltip>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ConfigurationCell({ row }: { row: Row<GameChallengeView> }) {
+  const { t } = useTranslation();
+  const { difficulty, bonus_ratios: bonusRatios } = row.original;
+
+  return (
+    <div className={cn(["flex", "min-w-32", "flex-col", "gap-1"])}>
+      <Badge variant="outline" className="w-fit font-mono">
+        <GaugeIcon />
+        {t("game:challenge.form.difficulty._")} {difficulty}
+      </Badge>
+      <span className="truncate text-xs text-muted-foreground">
+        {bonusRatios.length > 0
+          ? `${t("game:challenge.form.bonus_ratio")}: ${bonusRatios
+              .map((ratio) => `${ratio}%`)
+              .join(", ")}`
+          : t("game:challenge.form.bonus_ratio")}
+      </span>
     </div>
   );
 }
@@ -289,38 +319,53 @@ function useColumns() {
         cell: IsEnabledCell,
       },
       {
+        accessorKey: "challenge_category",
+      },
+      {
         id: "challenge_id",
         header: t("challenge:title"),
         cell: ChallengeCell,
       },
       {
-        id: "challenge_category",
-        header: t("challenge:category"),
-        cell: ({ row }) => {
-          const categoryId = row.original.challenge_category;
-          const category = getCategory(categoryId!);
-
-          const Icon = category.icon!;
-          return (
-            <div className={cn(["flex", "gap-2", "items-center"])}>
-              <Icon className={cn(["size-4"])} />
-              {category.name?.toUpperCase()}
-            </div>
-          );
-        },
+        id: "configuration",
+        header: t("game:challenge.configuration"),
+        cell: ConfigurationCell,
       },
       {
         accessorKey: "pts",
         id: "pts",
         header: t("game:challenge.pts"),
-        cell: ({ row }) => (
-          <span>
-            {row.original.pts}{" "}
-            <span className={cn(["text-muted-foreground"])}>
-              {t("game:filter.pts")}
-            </span>
-          </span>
-        ),
+        cell: ({ row }) => {
+          const currentPoints = Math.max(0, row.original.pts);
+          const maxPoints = Math.max(0, row.original.max_pts);
+          const minPoints = Math.max(0, row.original.min_pts);
+          const pointRange = maxPoints - minPoints;
+          const progressValue =
+            pointRange > 0
+              ? Math.min(
+                  100,
+                  Math.max(0, ((currentPoints - minPoints) / pointRange) * 100)
+                )
+              : currentPoints >= maxPoints
+                ? 100
+                : 0;
+
+          return (
+            <Progress
+              value={progressValue}
+              aria-label={t("game:challenge.pts")}
+              className="min-w-32 gap-1.5"
+            >
+              <ProgressLabel className="font-mono text-xs">
+                {currentPoints} / {maxPoints} {t("game:filter.pts")}
+              </ProgressLabel>
+              <ProgressValue className="text-xs" />
+              <span className="basis-full text-xs text-muted-foreground">
+                {t("game:challenge.form.min_pts._")}: {minPoints}
+              </span>
+            </Progress>
+          );
+        },
       },
       {
         id: "actions",

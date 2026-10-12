@@ -57,6 +57,7 @@ export default function Index() {
   const [columnVisibility, setColumnVisibility] =
     useState<ColumnVisibilityState>({
       game_id: false,
+      challenge_category: false,
     });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     {
@@ -240,7 +241,7 @@ export default function Index() {
           <Table
             className={cn([
               "w-full",
-              "min-w-4xl",
+              "min-w-[960px]",
               "table-fixed",
               "text-foreground",
             ])}
@@ -269,12 +270,11 @@ export default function Index() {
                             "z-3",
                             "bg-muted/95",
                           ],
-                          header.column.id === "enabled" && "w-1 px-2",
-                          header.column.id === "challenge_id" && "w-24",
-                          header.column.id === "challenge_title" && "min-w-64",
-                          header.column.id === "challenge_category" && "w-44",
-                          header.column.id === "pts" && "w-24",
-                          header.column.id === "actions" && "w-12",
+                          header.column.id === "enabled" && "w-24 text-center",
+                          header.column.id === "challenge_id" && "min-w-72",
+                          header.column.id === "configuration" && "w-64",
+                          header.column.id === "pts" && "w-72",
+                          header.column.id === "actions" && "w-36",
                         ])}
                       >
                         {!header.isPlaceholder &&
@@ -307,7 +307,7 @@ export default function Index() {
                             "py-3",
                             "transition-colors",
                             "group-hover:bg-muted/50",
-                            cell.column.id === "enabled" && "px-2",
+                            cell.column.id === "enabled" && "text-center",
                             cell.column.id === "actions" && [
                               "sticky",
                               "right-0",
