@@ -113,12 +113,15 @@ form:
   started_at:
     _: 開始時間
     message: 請選擇開始時間
+    placeholder: 選擇開始時間
   frozen_at:
     _: 凍結時間
     message: 請選擇凍結時間
+    placeholder: 選擇凍結時間
   ended_at:
     _: 結束時間
     message: 請選擇結束時間
+    placeholder: 選擇結束時間
   description:
     _: 描述
     placeholder: 很久很久以前…
@@ -145,6 +148,7 @@ challenge:
   pts: 目前分數
   title: 標題
   category: 分類
+  configuration: 設定
   enabled:
     _: 啟用
     toast: "題目 {{title}} 已{{enabled}}"
@@ -165,6 +169,7 @@ challenge:
       message: 請輸入難度係數
       placeholder: "5"
     frozen_at: 凍結時間
+    frozen_at_placeholder: 選擇凍結時間
     bonus_ratio: 獎勵分數（%）
     bonus_ratio_item: "第 {{index}} 項"
   actions:

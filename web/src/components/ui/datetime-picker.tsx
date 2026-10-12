@@ -605,7 +605,7 @@ function DateTimePicker({
   hourCycle = 24,
   displayFormat,
   granularity = "second",
-  placeholder = "Pick a date",
+  placeholder = "",
   clearable = false,
   clearLabel = "Clear date and time",
   className,
@@ -788,9 +788,9 @@ function DateTimePicker({
               hourCycle === 24 ? initHourFormat.hour24 : initHourFormat.hour12,
               { locale: loc as Locale }
             )
-          ) : (
-            <span>{placeholder}</span>
-          )}
+          ) : placeholder ? (
+            <span className="text-secondary-foreground/80">{placeholder}</span>
+          ) : null}
         </PopoverTrigger>
 
         {showClear && (

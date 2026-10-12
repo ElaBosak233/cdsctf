@@ -113,12 +113,15 @@ form:
   started_at:
     _: 開始日時
     message: 開始日時を選択してください。
+    placeholder: 開始日時を選択
   frozen_at:
     _: 凍結日時
     message: 凍結日時を選択してください
+    placeholder: 凍結日時を選択
   ended_at:
     _: 終了日時
     message: 終了日時を選択してください
+    placeholder: 終了日時を選択
   description:
     _: 説明
     placeholder: 昔々…
@@ -145,6 +148,7 @@ challenge:
   pts: 現在のポイント
   title: タイトル
   category: カテゴリ
+  configuration: 設定
   enabled:
     _: 有効
     toast: '課題 {{title}} を{{enabled}}にしました'
@@ -165,6 +169,7 @@ challenge:
       message: 難易度を入力してください
       placeholder: '5'
     frozen_at: 凍結日時
+    frozen_at_placeholder: 凍結日時を選択
     bonus_ratio: ボーナス比率（%）
     bonus_ratio_item: 第{{index}}項
   actions:

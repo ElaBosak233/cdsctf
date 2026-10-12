@@ -132,7 +132,11 @@ function CreateDialog(props: CreateDialogProps) {
                       <FieldIcon>
                         <CalendarIcon />
                       </FieldIcon>
-                      <DateTimePicker {...field} clearable />
+                      <DateTimePicker
+                        {...field}
+                        clearable
+                        placeholder={t("game:form.started_at.placeholder")}
+                      />
                     </Field>
                   </FormControl>
                   <FormMessage />
@@ -150,7 +154,11 @@ function CreateDialog(props: CreateDialogProps) {
                       <FieldIcon>
                         <CalendarIcon />
                       </FieldIcon>
-                      <DateTimePicker {...field} clearable />
+                      <DateTimePicker
+                        {...field}
+                        clearable
+                        placeholder={t("game:form.ended_at.placeholder")}
+                      />
                     </Field>
                   </FormControl>
                   <FormMessage />

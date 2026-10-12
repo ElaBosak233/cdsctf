@@ -407,7 +407,7 @@ export default function Index() {
                               {...field}
                               granularity="minute"
                               placeholder={t(
-                                "user:personal_access_tokens.create.expires_at"
+                                "user:personal_access_tokens.create.expires_at_placeholder"
                               )}
                             />
                           </Field>

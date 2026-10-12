@@ -51,6 +51,23 @@ interface EditDialogProps {
   gameChallenge: GameChallengeView;
 }
 
+let nextFieldId = 0;
+
+function createFieldKey() {
+  return `field-${nextFieldId++}`;
+}
+
+function toFormValues(gameChallenge: GameChallengeView) {
+  return {
+    ...gameChallenge,
+    bonus_ratios: (gameChallenge.bonus_ratios ?? []).map((value) => ({
+      _key: createFieldKey(),
+      value,
+    })),
+    frozen_at: undefined,
+  };
+}
+
 function EditDialog(props: EditDialogProps) {
   const { onClose, gameChallenge } = props;
   const { t } = useTranslation();
@@ -70,22 +87,24 @@ function EditDialog(props: EditDialogProps) {
     min_pts: z.number({
       message: t("game:challenge.form.min_pts.message"),
     }),
-    bonus_ratios: z.array(z.number()),
+    bonus_ratios: z.array(
+      z.object({
+        _key: z.string(),
+        value: z.number(),
+      })
+    ),
     frozen_at: z.date().optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      ...gameChallenge,
-      frozen_at: undefined,
-    },
+    defaultValues: toFormValues(gameChallenge),
   });
 
   useEffect(() => {
     form.reset(
       {
-        ...gameChallenge,
+        ...toFormValues(gameChallenge),
         frozen_at: gameChallenge.frozen_at
           ? parseTimestamp(gameChallenge.frozen_at)
           : undefined,
@@ -118,7 +137,10 @@ function EditDialog(props: EditDialogProps) {
 
   function handleAddBonusRatio() {
     const bonus_ratios = form.getValues("bonus_ratios") || [];
-    form.setValue("bonus_ratios", [...bonus_ratios, 0]);
+    form.setValue("bonus_ratios", [
+      ...bonus_ratios,
+      { _key: createFieldKey(), value: 0 },
+    ]);
   }
 
   function handleRemoveBonusRatio(index: number) {
@@ -139,6 +161,7 @@ function EditDialog(props: EditDialogProps) {
         game_id: gid,
         challenge_id: cid,
         ...values,
+        bonus_ratios: values.bonus_ratios.map(({ value }) => value),
         frozen_at: values.frozen_at ? values.frozen_at.toISOString() : null,
       });
       toast.success(
@@ -277,7 +300,13 @@ function EditDialog(props: EditDialogProps) {
                         <FieldIcon>
                           <ClockFadingIcon />
                         </FieldIcon>
-                        <DateTimePicker {...field} clearable />
+                        <DateTimePicker
+                          {...field}
+                          clearable
+                          placeholder={t(
+                            "game:challenge.form.frozen_at_placeholder"
+                          )}
+                        />
                       </Field>
                     </FormControl>
                     <FormMessage />
@@ -295,11 +324,11 @@ function EditDialog(props: EditDialogProps) {
                     "gap-3",
                   ])}
                 >
-                  {form.watch("bonus_ratios").map((_ratio, ratioIndex) => (
+                  {form.watch("bonus_ratios").map((ratio, ratioIndex) => (
                     <FormField
-                      key={ratioIndex}
+                      key={ratio._key}
                       control={form.control}
-                      name={`bonus_ratios.${ratioIndex}`}
+                      name={`bonus_ratios.${ratioIndex}.value`}
                       render={({ field }) => (
                         <FormItem
                           className={cn(["flex-1", "flex", "flex-col"])}

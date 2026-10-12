@@ -45,6 +45,7 @@ personal_access_tokens:
     name: 名前
     name_placeholder: 例：デプロイスクリプト
     expires_at: 有効期限
+    expires_at_placeholder: 有効期限を選択
     submit: トークンを作成
     success: パーソナルアクセストークンを作成しました。
     error: パーソナルアクセストークンを作成できませんでした

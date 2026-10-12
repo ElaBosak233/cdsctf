@@ -117,12 +117,15 @@ form:
   started_at:
     _: Started At
     message: Please select start time
+    placeholder: Select start time
   frozen_at:
     _: Frozen At
     message: Please select freeze time
+    placeholder: Select freeze time
   ended_at:
     _: Ended At
     message: Please select end time
+    placeholder: Select end time
   description:
     _: Description
     placeholder: Once upon a time...
@@ -151,6 +154,7 @@ challenge:
   pts: Current Points
   title: Title
   category: Category
+  configuration: Configuration
   enabled:
     _: Enabled
     toast: "{{enabled}} challenge {{title}}"
@@ -171,6 +175,7 @@ challenge:
       message: Please enter the difficulty
       placeholder: "5"
     frozen_at: Frozen At
+    frozen_at_placeholder: Select freeze time
     bonus_ratio: Bonus Ratio (%)
     bonus_ratio_item: "No. {{index}}"
   actions:

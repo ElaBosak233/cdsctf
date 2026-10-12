@@ -650,7 +650,10 @@ export default function Index() {
                     <FieldIcon>
                       <ClockIcon />
                     </FieldIcon>
-                    <DateTimePicker {...field} />
+                    <DateTimePicker
+                      {...field}
+                      placeholder={t("game:form.started_at.placeholder")}
+                    />
                   </Field>
                 </FormControl>
                 <FormMessage />
@@ -668,7 +671,10 @@ export default function Index() {
                     <FieldIcon>
                       <ClockFadingIcon />
                     </FieldIcon>
-                    <DateTimePicker {...field} />
+                    <DateTimePicker
+                      {...field}
+                      placeholder={t("game:form.frozen_at.placeholder")}
+                    />
                   </Field>
                 </FormControl>
                 <FormMessage />
@@ -686,7 +692,10 @@ export default function Index() {
                     <FieldIcon>
                       <ClockAlertIcon />
                     </FieldIcon>
-                    <DateTimePicker {...field} />
+                    <DateTimePicker
+                      {...field}
+                      placeholder={t("game:form.ended_at.placeholder")}
+                    />
                   </Field>
                 </FormControl>
                 <FormMessage />

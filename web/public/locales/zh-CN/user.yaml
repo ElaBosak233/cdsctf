@@ -47,6 +47,7 @@ personal_access_tokens:
     name: 名称
     name_placeholder: 例如：部署脚本
     expires_at: 过期日期
+    expires_at_placeholder: 选择过期日期
     submit: 创建令牌
     success: 个人访问令牌创建成功。
     error: 创建个人访问令牌失败
