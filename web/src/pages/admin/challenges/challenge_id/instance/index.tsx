@@ -40,10 +40,37 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TextField } from "@/components/ui/text-field";
+import type { Instance as ChallengeInstance } from "@/models/challenge";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { notifyApiError } from "@/utils/query";
 import { Context } from "../context";
+
+let nextFieldId = 0;
+
+function createFieldKey() {
+  return `field-${nextFieldId++}`;
+}
+
+function toFormValues(instance: ChallengeInstance | null | undefined) {
+  return {
+    duration: instance?.duration ?? 1800,
+    internet: instance?.internet ?? false,
+    containers:
+      instance?.containers?.map((container) => ({
+        ...container,
+        _key: createFieldKey(),
+        envs: (container.envs ?? []).map((env) => ({
+          ...env,
+          _key: createFieldKey(),
+        })),
+        ports: (container.ports ?? []).map((port) => ({
+          ...port,
+          _key: createFieldKey(),
+        })),
+      })) ?? [],
+  };
+}
 
 export default function Index() {
   const { t } = useTranslation();
@@ -62,6 +89,7 @@ export default function Index() {
     }),
     containers: z.array(
       z.object({
+        _key: z.string(),
         image: z.string({
           message: t("challenge:form.instance.containers.image.message"),
         }),
@@ -78,6 +106,7 @@ export default function Index() {
         }),
         envs: z.array(
           z.object({
+            _key: z.string(),
             key: z.string().min(1, {
               message: t("challenge:form.instance.containers.envs.key.message"),
             }),
@@ -90,6 +119,7 @@ export default function Index() {
         ),
         ports: z.array(
           z.object({
+            _key: z.string(),
             port: z
               .number({
                 message: t(
@@ -107,15 +137,11 @@ export default function Index() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      duration: challenge?.instance?.duration || 1800,
-      internet: challenge?.instance?.internet || false,
-      containers: challenge?.instance?.containers || [],
-    },
+    defaultValues: toFormValues(challenge?.instance),
   });
 
   useEffect(() => {
-    form.reset(challenge?.instance ?? undefined);
+    form.reset(toFormValues(challenge?.instance));
   }, [challenge?.instance, form]);
 
   const handleAddContainer = () => {
@@ -123,6 +149,7 @@ export default function Index() {
     form.setValue("containers", [
       ...containers,
       {
+        _key: createFieldKey(),
         image: "",
         cpu_limit: 1,
         memory_limit: 1024,
@@ -147,7 +174,7 @@ export default function Index() {
     const newContainers = [...containers];
     newContainers[containerIndex] = {
       ...newContainers[containerIndex],
-      ports: [...ports, { port: NaN, protocol: "TCP" }],
+      ports: [...ports, { _key: createFieldKey(), port: NaN, protocol: "TCP" }],
     };
     form.setValue("containers", newContainers);
   };
@@ -169,7 +196,7 @@ export default function Index() {
     const newContainers = [...containers];
     newContainers[containerIndex] = {
       ...newContainers[containerIndex],
-      envs: [...envs, { key: "", value: "" }],
+      envs: [...envs, { _key: createFieldKey(), key: "", value: "" }],
     };
     form.setValue("containers", newContainers);
   };
@@ -188,7 +215,18 @@ export default function Index() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     try {
-      await updateChallengeInstance({ id: challenge?.id, instance: values });
+      const { containers, ...instance } = values;
+      await updateChallengeInstance({
+        id: challenge?.id,
+        instance: {
+          ...instance,
+          containers: containers.map(({ _key, envs, ports, ...container }) => ({
+            ...container,
+            envs: envs.map(({ _key: _, ...env }) => env),
+            ports: ports.map(({ _key: _, ...port }) => port),
+          })),
+        },
+      });
       toast.success(
         t("challenge:actions.instance_update.success", {
           title: challenge?.title,
@@ -273,7 +311,7 @@ export default function Index() {
         </div>
         {form.watch("containers")?.map((container, containerIndex) => (
           <div
-            key={containerIndex}
+            key={container._key}
             className={cn([
               "flex",
               "flex-col",
@@ -415,9 +453,9 @@ export default function Index() {
                 "gap-7",
               ])}
             >
-              {container.ports?.map((_port, portIndex) => (
+              {container.ports?.map((port, portIndex) => (
                 <div
-                  key={portIndex}
+                  key={port._key}
                   className={cn(["flex", "items-center", "gap-3"])}
                 >
                   <FormField
@@ -499,9 +537,9 @@ export default function Index() {
             <div
               className={cn(["grid", "grid-cols-1", "sm:grid-cols-2", "gap-7"])}
             >
-              {container.envs?.map((_env, envIndex) => (
+              {container.envs?.map((env, envIndex) => (
                 <div
-                  key={envIndex}
+                  key={env._key}
                   className={cn(["flex", "items-center", "gap-3"])}
                 >
                   <FormField

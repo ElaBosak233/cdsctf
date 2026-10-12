@@ -66,11 +66,8 @@ function Combobox<
           <ComboboxContent>
             <ComboboxEmpty>{emptyText}</ComboboxEmpty>
             <ComboboxList>
-              {options?.map((option, index) => (
-                <ComboboxItem
-                  key={`${String(option.value)}-${index}`}
-                  value={option.value}
-                >
+              {options?.map((option) => (
+                <ComboboxItem key={String(option.value)} value={option.value}>
                   {option.content ?? String(option.value)}
                 </ComboboxItem>
               ))}

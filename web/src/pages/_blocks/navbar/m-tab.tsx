@@ -27,12 +27,12 @@ function MobileTab() {
         }
       />
       <DropdownMenuContent sideOffset={20} className={cn(["space-y-1"])}>
-        {options?.map((option, index) => {
+        {options?.map((option) => {
           const Comp = option?.disabled ? DropdownMenuItem : Link;
 
           return (
             <DropdownMenuItem
-              key={index}
+              key={option.link}
               disabled={option?.disabled}
               render={<Comp to={option.link} />}
             >

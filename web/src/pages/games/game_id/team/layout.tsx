@@ -165,11 +165,10 @@ export default function Layout() {
         <SidebarContent className="overflow-visible">
           <div className={cn(["flex", "flex-1", "flex-col", "gap-3"])}>
             <SidebarMenu>
-              {options?.map((option, index) => (
-                <SidebarMenuItem key={index}>
+              {options?.map((option) => (
+                <SidebarMenuItem key={option.link}>
                   <SidebarMenuButton
                     isActive={pathname === option.link}
-                    disabled={option.disabled}
                     className="h-11 justify-start px-8 text-sm"
                     render={<Link to={option.link} />}
                   >

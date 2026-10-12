@@ -95,11 +95,11 @@ export default function Layout() {
           ])}
         >
           <ScrollableNav className={cn(["xl:hidden"])}>
-            {options?.map((option, index) => {
+            {options?.map((option) => {
               const Comp = option?.disabled ? Button : Link;
               return (
                 <Button
-                  key={index}
+                  key={option.link}
                   icon={option?.icon}
                   variant={pathname === option?.link ? "tonal" : "ghost"}
                   size="sm"
@@ -165,11 +165,11 @@ export default function Layout() {
               {t("challenge:edit._")}
             </div>
             <nav className={cn(["flex", "flex-col", "gap-1", "flex-1"])}>
-              {options?.map((option, index) => {
+              {options?.map((option) => {
                 const Comp = option?.disabled ? Button : Link;
                 return (
                   <Button
-                    key={index}
+                    key={option.link}
                     icon={option?.icon}
                     variant={pathname === option?.link ? "tonal" : "ghost"}
                     className={cn(["justify-start"])}

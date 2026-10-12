@@ -4,10 +4,12 @@ import "./styles.css";
 
 const ANIMATIONS = ["bg-float-1", "bg-float-2", "bg-float-3"] as const;
 const CIRCLE_COUNT = 10;
+let nextCircleId = 0;
 
 function generateCircles(w: number, h: number) {
   const pad = Math.max(w, h) * 0.2;
   return Array.from({ length: CIRCLE_COUNT }, () => ({
+    id: `circle-${nextCircleId++}`,
     cx: Math.random() * (w + pad * 2) - pad,
     cy: Math.random() * (h + pad * 2) - pad,
     r: Math.min(w, h) * (0.08 + Math.random() * 0.15),
@@ -64,9 +66,9 @@ function Background() {
             "dark:[&_circle]:fill-primary/1",
           ])}
         >
-          {circles.map((circle, i) => (
+          {circles.map((circle) => (
             <circle
-              key={i}
+              key={circle.id}
               cx={circle.cx}
               cy={circle.cy}
               r={circle.r}

@@ -15,10 +15,10 @@ function TabSection() {
 
   return (
     <>
-      {options?.map((option, index) => {
+      {options?.map((option) => {
         return (
           <Button
-            key={index}
+            key={option.link}
             render={option?.disabled ? undefined : <Link to={option.link} />}
             variant={
               isSubRoute(

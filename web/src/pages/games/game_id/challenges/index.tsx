@@ -327,13 +327,15 @@ export default function Index() {
                 "relative",
               ])}
             >
-              {gameChallenges?.map((gameChallenge, index) => {
+              {gameChallenges?.map((gameChallenge) => {
                 const status = challengeStatus?.[gameChallenge.challenge_id!];
                 const isCheated = status?.cheated ?? false;
+                const challengeKey =
+                  gameChallenge.challenge_id ?? gameChallenge.challenge_title;
 
                 return isCheated ? (
                   <ChallengeCard
-                    key={index}
+                    key={challengeKey}
                     digest={{
                       id: gameChallenge.challenge_id,
                       title: gameChallenge.challenge_title,
@@ -342,7 +344,7 @@ export default function Index() {
                     status={status}
                   />
                 ) : (
-                  <Dialog key={index}>
+                  <Dialog key={challengeKey}>
                     <DialogTrigger
                       render={
                         <ChallengeCard

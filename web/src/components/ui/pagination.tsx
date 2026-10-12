@@ -36,16 +36,22 @@ function Pagination(props: PaginationProps) {
             onClick={() => onChange(value - 1)}
           />
         </PaginationItem>
-        {paginationNodes?.map((node, index) => (
-          <React.Fragment key={index}>
-            {typeof node === "number" ? (
+        {paginationNodes.map((node) => (
+          <React.Fragment
+            key={
+              node.type === "page"
+                ? `page-${node.value}`
+                : `ellipsis-${node.position}`
+            }
+          >
+            {node.type === "page" ? (
               <PaginationItem>
                 <PaginationLink
                   size={size}
-                  isActive={node === value}
-                  onClick={() => onChange(node)}
+                  isActive={node.value === value}
+                  onClick={() => onChange(node.value)}
                 >
-                  {node}
+                  {node.value}
                 </PaginationLink>
               </PaginationItem>
             ) : (
@@ -65,15 +71,21 @@ function Pagination(props: PaginationProps) {
   );
 }
 
-type PaginationNode = number | "...";
+type PaginationNode =
+  | { type: "page"; value: number }
+  | { type: "ellipsis"; position: "start" | "end" };
 
-function generatePaginationNodes(total: number, value: number, max?: number) {
+function generatePaginationNodes(
+  total: number,
+  value: number,
+  max?: number
+): PaginationNode[] {
   const items: Array<PaginationNode> = [];
   const maxPages = max || 5;
   const halfMaxPages = Math.floor(maxPages / 2);
 
   if (total <= 1) {
-    return [1];
+    return [{ type: "page", value: 1 }];
   }
 
   const startPage = Math.max(1, value - halfMaxPages);
@@ -81,25 +93,25 @@ function generatePaginationNodes(total: number, value: number, max?: number) {
 
   if (total > maxPages) {
     if (startPage > 1) {
-      items.push(1);
+      items.push({ type: "page", value: 1 });
       if (startPage > 2) {
-        items.push("...");
+        items.push({ type: "ellipsis", position: "start" });
       }
     }
 
     for (let i = startPage; i <= endPage; i++) {
-      items.push(i);
+      items.push({ type: "page", value: i });
     }
 
     if (endPage < total) {
       if (endPage < total - 1) {
-        items.push("...");
+        items.push({ type: "ellipsis", position: "end" });
       }
-      items.push(total);
+      items.push({ type: "page", value: total });
     }
   } else {
     for (let i = 1; i <= total; i++) {
-      items.push(i);
+      items.push({ type: "page", value: i });
     }
   }
 

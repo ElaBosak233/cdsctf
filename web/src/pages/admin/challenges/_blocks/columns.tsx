@@ -207,9 +207,9 @@ function ClassificationCell({ row }: { row: Row<ChallengeDetail> }) {
       </div>
       {row.original.tags.length > 0 && (
         <div className={cn(["flex", "min-w-0", "gap-1", "overflow-hidden"])}>
-          {row.original.tags.map((tag, index) => (
+          {row.original.tags.map((tag) => (
             <Badge
-              key={`${tag}-${index}`}
+              key={tag}
               variant="outline"
               className={cn(["max-w-24", "truncate", "text-muted-foreground"])}
             >

@@ -89,9 +89,9 @@ export default function Layout() {
           "h-(--app-content-height)",
         ])}
       >
-        {options?.map((option, index) => (
+        {options?.map((option) => (
           <Button
-            key={index}
+            key={option.link}
             size={"lg"}
             className={cn(["justify-start"])}
             icon={option.icon}
