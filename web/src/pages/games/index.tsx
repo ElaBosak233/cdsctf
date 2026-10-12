@@ -161,7 +161,7 @@ export default function Index() {
           "mx-auto",
           "grid",
           "w-full",
-          "max-w-[1180px]",
+          "max-w-[1920px]",
           "min-h-0",
           "flex-1",
           "grid-cols-1",
@@ -170,13 +170,12 @@ export default function Index() {
           "py-6",
           "sm:px-6",
           "lg:h-(--app-content-height)",
-          "lg:grid-cols-[minmax(17rem,21rem)_minmax(0,1fr)]",
+          "lg:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]",
           "lg:grid-rows-[auto_minmax(0,1fr)]",
-          "lg:gap-x-16",
+          "lg:gap-x-12",
           "lg:gap-y-4",
           "lg:px-8",
           "lg:py-12",
-          "xl:px-0",
         ])}
       >
         <div
@@ -251,7 +250,7 @@ export default function Index() {
                 "flex",
                 "mx-auto",
                 "w-full",
-                "max-w-2xl",
+                "max-w-6xl",
                 "min-w-0",
                 "flex-col",
                 "items-center",
