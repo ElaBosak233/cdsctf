@@ -37,6 +37,9 @@ await i18n
     backend: {
       loadPath: "/locales/{{lng}}/{{ns}}.yaml",
       parse: (data: string) => loadYaml(data),
+      requestOptions: {
+        cache: "no-store",
+      },
     },
     interpolation: {
       escapeValue: false,
