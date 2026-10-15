@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import { updateTeam } from "@/api/management/games/game_id/teams/team_id";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarGroup, AvatarGroupCount } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -100,40 +100,30 @@ function useColumns(): Array<ColumnDef<TeamView>> {
 
         return (
           <div className="flex min-w-36 items-center pl-1">
-            {members.slice(0, 10).map((member, index) => (
-              <Tooltip key={member.id}>
-                <TooltipTrigger
-                  className={cn([
-                    "rounded-full",
-                    "ring-2",
-                    "ring-background",
-                    index > 0 && "-ml-2",
-                  ])}
-                >
-                  <Avatar
-                    className="size-7"
-                    src={
-                      member.avatar_hash &&
-                      `/api/media?hash=${member.avatar_hash}`
-                    }
-                    fallback={member.name.charAt(0)}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  {member.name || member.username}
-                </TooltipContent>
-              </Tooltip>
-            ))}
-            {members.length > 10 && (
-              <Tooltip>
-                <TooltipTrigger className="-ml-2 inline-flex size-7 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-2 ring-background">
-                  +{members.length - 10}
-                </TooltipTrigger>
-                <TooltipContent>
-                  {members.length} {t("team:members").toLowerCase()}
-                </TooltipContent>
-              </Tooltip>
-            )}
+            <AvatarGroup>
+              {members.slice(0, 10).map((member, index) => (
+                <Tooltip key={member.id}>
+                  <TooltipTrigger
+                    className={cn(["rounded-full", index > 0 && "-ml-2"])}
+                  >
+                    <Avatar
+                      className="size-9"
+                      src={
+                        member.avatar_hash &&
+                        `/api/media?hash=${member.avatar_hash}`
+                      }
+                      fallback={member.name.charAt(0)}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {member.name || member.username}
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+              {members.length > 10 && (
+                <AvatarGroupCount>+{members.length - 10}</AvatarGroupCount>
+              )}
+            </AvatarGroup>
           </div>
         );
       },
