@@ -170,10 +170,14 @@ function useColumns() {
         cell: ({ row }) => {
           const content = row.original.content;
 
-          if (!content) return "-";
+          if (!content) return "/";
 
-          return content.length > 10 ? (
-            <ContentDialog title={t("game:notice.content")} content={content} />
+          return content.length > 50 ? (
+            <ContentDialog
+              title={t("game:notice.content")}
+              content={content}
+              maxPreviewLength={50}
+            />
           ) : (
             content
           );

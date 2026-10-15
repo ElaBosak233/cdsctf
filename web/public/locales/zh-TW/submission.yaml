@@ -16,6 +16,7 @@ empty: 尚無送出紀錄
 cheated: 此題目已有作弊紀錄，無法再送出答案。
 submitted: "#{{id}} 已送出 {{title}} 的答案"
 actions:
+  _: 操作
   submit: 送出
   mark_cheat: 標記為作弊
   mark_incorrect: 標記為不正確
@@ -35,3 +36,4 @@ status:
   cheat: 作弊
   expired: 已過期
   duplicate: 重複
+score_rank: 分數 / 排名

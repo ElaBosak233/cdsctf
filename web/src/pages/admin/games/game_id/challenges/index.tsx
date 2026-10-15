@@ -238,10 +238,12 @@ export default function Index() {
           ])}
         >
           <LoadingOverlay loading={loading} />
+          {/* 72rem = the fixed column widths below plus an 18rem Title
+					    column; with table-fixed the Title column takes the rest. */}
           <Table
             className={cn([
               "w-full",
-              "min-w-[960px]",
+              "min-w-6xl",
               "table-fixed",
               "text-foreground",
             ])}
@@ -252,7 +254,7 @@ export default function Index() {
                 "top-0",
                 "z-2",
                 "bg-muted/80",
-                "backdrop-blur-sm",
+                "backdrop-blur-xs",
                 "border-b",
               ])}
             >
@@ -264,17 +266,17 @@ export default function Index() {
                         key={header.id}
                         className={cn([
                           "bg-muted/95",
+                          header.column.id === "enabled" && "w-24 text-center",
+                          header.column.id === "classification" && "w-40",
+                          header.column.id === "configuration" && "w-52",
+                          header.column.id === "pts" && "w-72",
                           header.column.id === "actions" && [
                             "sticky",
                             "right-0",
                             "z-3",
-                            "bg-muted/95",
+                            "w-52",
+                            "backdrop-blur-xs",
                           ],
-                          header.column.id === "enabled" && "w-24 text-center",
-                          header.column.id === "challenge_id" && "min-w-72",
-                          header.column.id === "configuration" && "w-64",
-                          header.column.id === "pts" && "w-72",
-                          header.column.id === "actions" && "w-36",
                         ])}
                       >
                         {!header.isPlaceholder &&
@@ -312,8 +314,9 @@ export default function Index() {
                               "sticky",
                               "right-0",
                               "z-1",
-                              "w-28",
+                              "w-52",
                               "bg-card",
+                              "backdrop-blur-xs",
                             ],
                           ])}
                         >

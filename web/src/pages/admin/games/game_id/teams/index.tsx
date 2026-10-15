@@ -6,7 +6,7 @@ import {
   TypeIcon,
   UsersRoundIcon,
 } from "lucide-react";
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 import { getTeams } from "@/api/management/games/game_id/teams";
@@ -33,7 +33,6 @@ import { TextField } from "@/components/ui/text-field";
 import {
   type ColumnFiltersState,
   type ColumnVisibilityState,
-  type ExpandedState,
   flexRender,
   type SortingState,
   useDataTable,
@@ -45,7 +44,6 @@ import { cn } from "@/utils";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./_blocks/columns";
-import { ExpandedCard } from "./_blocks/expanded-card";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -60,7 +58,6 @@ export default function Index() {
   const [size, setSize] = useState<number>(10);
 
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [expanded, setExpanded] = useState<ExpandedState>({});
   const [columnVisibility, setColumnVisibility] =
     useState<ColumnVisibilityState>({
       id: false,
@@ -75,6 +72,7 @@ export default function Index() {
   const debouncedColumnFilters = useDebounce(columnFilters, 100);
 
   const gameId = routeGameId ?? game?.id;
+
   const teamQuery = useQuery({
     queryKey: [
       "admin",
@@ -121,13 +119,10 @@ export default function Index() {
     onColumnVisibilityChange: setColumnVisibility,
     manualSorting: true,
     onSortingChange: setSorting,
-    getRowCanExpand: () => true,
-    onExpandedChange: setExpanded,
     state: {
       sorting,
       columnVisibility,
       columnFilters,
-      expanded,
     },
   });
 
@@ -283,13 +278,14 @@ export default function Index() {
                         key={header.id}
                         className={cn([
                           "bg-muted/95",
-                          header.column.id === "name" && "min-w-64",
-                          header.column.id === "rank" && "w-16 min-w-16",
-                          header.column.id === "pts" && "w-20 min-w-20",
+                          header.column.id === "name" && "min-w-96",
+                          header.column.id === "members" && "min-w-52",
+                          header.column.id === "rank" && "w-24 min-w-24",
+                          header.column.id === "pts" && "w-28 min-w-28",
                           header.column.id === "state" && "w-32 min-w-32",
                           header.column.id === "has_writeup" && "w-32 min-w-32",
-                          header.column.id === "actions" && "w-28 min-w-28",
-                          header.column.id === "expand" && "w-12 min-w-12",
+                          header.column.id === "actions" &&
+                            "w-36 min-w-36 sticky right-0 z-3 backdrop-blur-xs",
                         ])}
                       >
                         {!header.isPlaceholder &&
@@ -306,58 +302,36 @@ export default function Index() {
             <TableBody className={cn(["flex-1"])}>
               {table.getRowModel().rows?.length
                 ? table.getRowModel().rows.map((row) => (
-                    <React.Fragment key={row.id}>
-                      <TableRow
-                        key={row.getValue("id")}
-                        data-state={row.getIsSelected() && "selected"}
-                        className={cn([
-                          "group",
-                          "transition-colors",
-                          "hover:bg-transparent",
-                        ])}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell
-                            key={cell.id}
-                            className={cn([
-                              "py-3",
-                              "transition-colors",
-                              "group-hover:bg-muted/50",
-                              cell.column.id === "actions" && ["w-28"],
-                              cell.column.id === "expand" && "w-12",
-                            ])}
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-
-                      <TableRow
-                        data-state={row.getIsExpanded() ? "open" : "closed"}
-                        className={cn([
-                          "overflow-hidden",
-                          "bg-muted/30",
-                          "transition-all",
-                          "data-[state=open]:animate-accordion-down",
-                          "data-[state=closed]:animate-accordion-up",
-                        ])}
-                        style={{
-                          display: row.getIsExpanded() ? "table-row" : "none",
-                        }}
-                      >
-                        {row.getIsExpanded() && (
-                          <TableCell
-                            colSpan={row.getVisibleCells().length}
-                            className="p-0"
-                          >
-                            <ExpandedCard team={row.original} />
-                          </TableCell>
-                        )}
-                      </TableRow>
-                    </React.Fragment>
+                    <TableRow
+                      key={row.getValue("id")}
+                      className={cn([
+                        "group",
+                        "transition-colors",
+                        "hover:bg-transparent",
+                        row.original.state === State.Banned && "select-none",
+                      ])}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          className={cn([
+                            "py-3",
+                            "transition-colors",
+                            "group-hover:bg-muted/50",
+                            cell.column.id === "actions" && [
+                              "w-36 sticky right-0 z-3",
+                              "bg-card/90",
+                              "backdrop-blur-xs",
+                            ],
+                          ])}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
                   ))
                 : !loading && (
                     <TableRow>

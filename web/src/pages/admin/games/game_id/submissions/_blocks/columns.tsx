@@ -169,7 +169,7 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
             className={cn([
               "font-mono",
               "truncate",
-              "max-w-64",
+              "max-w-lg",
               "text-muted-foreground",
               "text-xs",
             ])}
@@ -229,6 +229,31 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
       },
     },
     {
+      id: "score_rank",
+      header: t("submission:score_rank"),
+      cell: ({ row }) => {
+        if (row.original.status !== Status.Correct) {
+          return (
+            <span
+              aria-hidden="true"
+              className="inline-flex h-6 w-10 select-none items-center justify-center rounded-sm border border-border/40 bg-muted/30 font-mono text-xs text-muted-foreground shadow-inner backdrop-blur-sm"
+            >
+              /
+            </span>
+          );
+        }
+
+        return (
+          <div className="flex items-center gap-2 whitespace-nowrap font-mono text-xs tabular-nums">
+            <span className="font-semibold text-success">
+              +{row.original.pts}
+            </span>
+            <span className="text-muted-foreground">#{row.original.rank}</span>
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "user_name",
       id: "user_name",
       header: t("submission:user_name"),
@@ -261,7 +286,7 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
       cell: ({ row }) => {
         const processingAt = row.original.processing_at;
         const checkedAt = row.original.checked_at;
-        if (processingAt == null || checkedAt == null) return "-";
+        if (processingAt == null || checkedAt == null) return "/";
 
         const duration = millisecondsBetween(processingAt, checkedAt);
         return (
@@ -294,6 +319,7 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
     },
     {
       id: "actions",
+      header: t("submission:actions:_"),
       cell: function ActionsCell({ row }) {
         const id = row.original.id;
 
@@ -317,7 +343,7 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
               "items-center",
               "justify-center",
               "gap-2",
-              "[&>*]:shrink-0",
+              "*:shrink-0",
             ])}
           >
             <Tooltip>

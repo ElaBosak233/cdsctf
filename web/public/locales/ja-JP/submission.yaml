@@ -16,6 +16,7 @@ empty: 提出はまだありません。
 cheated: この課題には不正行為の記録があるため、提出できません。
 submitted: "#{{id}} {{title}} の解答を提出しました"
 actions:
+  _: 操作
   submit: 提出
   mark_cheat: チートとしてマーク
   mark_incorrect: 不正解としてマーク
@@ -35,3 +36,4 @@ status:
   cheat: 不正行為
   expired: 期限切れ
   duplicate: 重複
+score_rank: スコア / 順位

@@ -2,6 +2,7 @@ import {
   ClipboardCheckIcon,
   ClipboardCopyIcon,
   EditIcon,
+  FlagIcon,
   GaugeIcon,
   SettingsIcon,
   TrashIcon,
@@ -35,6 +36,7 @@ import {
   ProgressLabel,
   ProgressValue,
 } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
@@ -164,6 +166,18 @@ function ChallengeCell({ row }: { row: Row<GameChallengeView> }) {
   );
 }
 
+function CategoryCell({ row }: { row: Row<GameChallengeView> }) {
+  const category = getCategory(row.original.challenge_category);
+  const CategoryIcon = category.icon!;
+
+  return (
+    <div className={cn(["flex", "items-center", "gap-1.5", "text-sm"])}>
+      <CategoryIcon className="size-3.5" style={{ color: category.color }} />
+      <span className="font-medium">{category.name?.toUpperCase()}</span>
+    </div>
+  );
+}
+
 function ConfigurationCell({ row }: { row: Row<GameChallengeView> }) {
   const { t } = useTranslation();
   const { difficulty, bonus_ratios: bonusRatios } = row.original;
@@ -193,7 +207,6 @@ function ActionsCell({ row }: { row: Row<GameChallengeView> }) {
   const { game } = useContext(Context);
   const challenge_id = row.original.challenge_id;
   const title = row.original.challenge_title;
-
   const sharedStore = useSharedStore();
 
   const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
@@ -223,11 +236,35 @@ function ActionsCell({ row }: { row: Row<GameChallengeView> }) {
       className={cn([
         "flex",
         "items-center",
-        "justify-center",
-        "gap-2",
+        "justify-end",
+        "gap-1.5",
         "*:shrink-0",
       ])}
     >
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              disabled={game_id == null}
+              variant={"ghost"}
+              size={"sm"}
+              square
+              className="text-muted-foreground hover:text-foreground"
+              icon={<FlagIcon />}
+              aria-label={t("submission:_")}
+              render={
+                game_id != null ? (
+                  <Link
+                    to={`/admin/games/${game_id}/submissions?challenge_id=${challenge_id}`}
+                  />
+                ) : undefined
+              }
+            />
+          }
+        />
+        <TooltipContent>{t("submission:_")}</TooltipContent>
+      </Tooltip>
+      <Separator orientation={"vertical"} className={"h-6"} />
       <Button
         variant={"ghost"}
         size={"sm"}
@@ -327,6 +364,11 @@ function useColumns() {
         cell: ChallengeCell,
       },
       {
+        id: "classification",
+        header: t("challenge:category"),
+        cell: CategoryCell,
+      },
+      {
         id: "configuration",
         header: t("game:challenge.configuration"),
         cell: ConfigurationCell,
@@ -354,12 +396,12 @@ function useColumns() {
             <Progress
               value={progressValue}
               aria-label={t("game:challenge.pts")}
-              className="min-w-32 gap-1.5"
+              className="min-w-32 justify-between gap-1.5"
             >
               <ProgressLabel className="font-mono text-xs">
                 {currentPoints} / {maxPoints} {t("game:filter.pts")}
               </ProgressLabel>
-              <ProgressValue className="text-xs" />
+              <ProgressValue className="ml-0 text-xs" />
               <span className="basis-full text-xs text-muted-foreground">
                 {t("game:challenge.form.min_pts._")}: {minPoints}
               </span>

@@ -7,6 +7,12 @@ import {
   UserRoundIcon,
   UsersRoundIcon,
 } from "lucide-react";
+import {
+  createParser,
+  parseAsNumberLiteral,
+  parseAsStringEnum,
+  useQueryStates,
+} from "nuqs";
 import React, { useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
@@ -44,10 +50,8 @@ import {
 } from "@/components/ui/table";
 import { TextField } from "@/components/ui/text-field";
 import {
-  type ColumnFiltersState,
   type ColumnVisibilityState,
   flexRender,
-  type SortingState,
   useDataTable,
 } from "@/hooks/use-data-table";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -61,6 +65,35 @@ import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./_blocks/columns";
 
+const positiveInteger = createParser({
+  parse: (value) => {
+    if (!/^\d+$/.test(value)) return null;
+    const number = Number(value);
+    return Number.isSafeInteger(number) && number > 0 ? number : null;
+  },
+  serialize: String,
+});
+const pageSizes = [10, 20, 40, 60] as const;
+const submissionSearchParams = {
+  page: positiveInteger.withDefault(1),
+  size: parseAsNumberLiteral(pageSizes).withDefault(10),
+  id: positiveInteger,
+  team_id: positiveInteger,
+  challenge_id: positiveInteger,
+  user_id: positiveInteger,
+  status: parseAsStringEnum<Status>(Object.values(Status)),
+};
+
+type TeamOption = Pick<TeamView, "id" | "name" | "avatar_hash">;
+type ChallengeOption = Pick<
+  GameChallengeView,
+  "challenge_id" | "challenge_title"
+>;
+type UserOption = Pick<
+  UserAccountView,
+  "id" | "name" | "username" | "avatar_hash"
+>;
+
 export default function Index() {
   const { t } = useTranslation();
 
@@ -70,36 +103,39 @@ export default function Index() {
   const routeGameId = parseRouteNumericId(game_id);
   const { game } = useContext(Context);
 
-  const [page, setPage] = useState<number>(1);
-  const [size, setSize] = useState<number>(10);
+  const [search, setSearch] = useQueryStates(submissionSearchParams, {
+    history: "push",
+  });
+  const { page, size, id, team_id, challenge_id, user_id, status } = search;
+  const debouncedId = useDebounce(id, 100);
 
-  const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] =
     useState<ColumnVisibilityState>({
       team_id: false,
       challenge_id: false,
       user_id: false,
     });
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
-    {
-      id: "status",
-      value: "all",
-    },
-  ]);
-  const debouncedColumnFilters = useDebounce(columnFilters, 100);
   const [teamQuery, setTeamQuery] = useState("");
   const [challengeQuery, setChallengeQuery] = useState("");
   const [userQuery, setUserQuery] = useState("");
   const debouncedTeamQuery = useDebounce(teamQuery.trim(), 150);
   const debouncedUserQuery = useDebounce(userQuery.trim(), 150);
-  const [selectedTeam, setSelectedTeam] = useState<TeamView | null>(null);
-  const [selectedChallenge, setSelectedChallenge] =
-    useState<GameChallengeView | null>(null);
-  const [selectedUser, setSelectedUser] = useState<UserAccountView | null>(
-    null
-  );
 
   const gameId = routeGameId ?? game?.id;
+  const selectedTeamQuery = useQuery({
+    queryKey: ["admin", "game-team-option", gameId, team_id],
+    queryFn: () =>
+      getTeams({ game_id: gameId!, id: team_id!, size: 1, page: 1 }),
+    enabled: gameId != null && team_id != null,
+  });
+  const selectedTeam: TeamOption | null =
+    team_id == null
+      ? null
+      : (selectedTeamQuery.data?.teams.find((team) => team.id === team_id) ?? {
+          id: team_id,
+          name: "",
+          avatar_hash: null,
+        });
   const teamOptionsQuery = useQuery({
     queryKey: ["admin", "game-team-options", gameId, debouncedTeamQuery],
     queryFn: async () => {
@@ -129,7 +165,12 @@ export default function Index() {
     enabled: gameId != null,
     placeholderData: keepPreviousData,
   });
-  const teamOptions = teamOptionsQuery.data ?? [];
+  const fetchedTeamOptions = teamOptionsQuery.data ?? [];
+  const teamOptions =
+    selectedTeam &&
+    !fetchedTeamOptions.some((team) => team.id === selectedTeam.id)
+      ? [selectedTeam, ...fetchedTeamOptions]
+      : fetchedTeamOptions;
 
   const challengesQuery = useQuery({
     queryKey: ["admin", "game-challenge-options", gameId],
@@ -137,6 +178,12 @@ export default function Index() {
     enabled: gameId != null,
   });
   const gameChallenges = challengesQuery.data?.challenges ?? [];
+  const selectedChallenge: ChallengeOption | null =
+    challenge_id == null
+      ? null
+      : (gameChallenges.find(
+          (challenge) => challenge.challenge_id === challenge_id
+        ) ?? { challenge_id, challenge_title: "" });
 
   const challengeOptions = useMemo(() => {
     const query = challengeQuery.trim();
@@ -155,8 +202,17 @@ export default function Index() {
         challenge.challenge_title.toLocaleLowerCase().includes(normalizedQuery)
     );
 
-    return [...exact, ...titleMatches].slice(0, 10);
-  }, [challengeQuery, gameChallenges]);
+    const options = [...exact, ...titleMatches].slice(0, 10);
+    const selected = gameChallenges.find(
+      (challenge) => challenge.challenge_id === challenge_id
+    );
+    return selected &&
+      !options.some(
+        (challenge) => challenge.challenge_id === selected.challenge_id
+      )
+      ? [selected, ...options]
+      : options;
+  }, [challengeQuery, gameChallenges, challenge_id]);
 
   const userOptionsQuery = useQuery({
     queryKey: ["admin", "game-user-options", gameId, debouncedUserQuery],
@@ -187,7 +243,27 @@ export default function Index() {
     enabled: gameId != null,
     placeholderData: keepPreviousData,
   });
-  const userOptions = userOptionsQuery.data ?? [];
+  const selectedUserQuery = useQuery({
+    queryKey: ["admin", "game-user-option", gameId, user_id],
+    queryFn: () =>
+      getGameUsers({ game_id: gameId!, id: user_id!, size: 1, page: 1 }),
+    enabled: gameId != null && user_id != null,
+  });
+  const selectedUser: UserOption | null =
+    user_id == null
+      ? null
+      : (selectedUserQuery.data?.users.find((user) => user.id === user_id) ?? {
+          id: user_id,
+          name: "",
+          username: "",
+          avatar_hash: null,
+        });
+  const fetchedUserOptions = userOptionsQuery.data ?? [];
+  const userOptions =
+    selectedUser &&
+    !fetchedUserOptions.some((user) => user.id === selectedUser.id)
+      ? [selectedUser, ...fetchedUserOptions]
+      : fetchedUserOptions;
 
   const submissionsQuery = useQuery({
     queryKey: [
@@ -196,34 +272,25 @@ export default function Index() {
       gameId,
       page,
       size,
-      sorting,
-      debouncedColumnFilters,
+      debouncedId,
+      team_id,
+      challenge_id,
+      user_id,
+      status,
       sharedStore.refresh,
     ],
-    queryFn: () => {
-      const rawStatus = debouncedColumnFilters.find(
-        (c) => c.id === "status"
-      )?.value;
-      const status = Object.values(Status).includes(rawStatus as Status)
-        ? (rawStatus as Status)
-        : undefined;
-
-      return getSubmissions({
+    queryFn: () =>
+      getSubmissions({
         game_id: gameId!,
-        id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
-        user_id: debouncedColumnFilters.find((c) => c.id === "user_id")
-          ?.value as number,
-        team_id: debouncedColumnFilters.find((c) => c.id === "team_id")
-          ?.value as number,
-        challenge_id: debouncedColumnFilters.find(
-          (c) => c.id === "challenge_id"
-        )?.value as number,
-        status,
+        id: debouncedId ?? undefined,
+        user_id: user_id ?? undefined,
+        team_id: team_id ?? undefined,
+        challenge_id: challenge_id ?? undefined,
+        status: status ?? undefined,
         sorts: "-created_at",
         page,
         size,
-      });
-    },
+      }),
     enabled: gameId != null,
     placeholderData: keepPreviousData,
   });
@@ -239,14 +306,10 @@ export default function Index() {
     manualPagination: true,
     rowCount: total,
     manualFiltering: true,
-    onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     manualSorting: true,
-    onSortingChange: setSorting,
     state: {
-      sorting,
       columnVisibility,
-      columnFilters,
     },
   });
 
@@ -314,17 +377,21 @@ export default function Index() {
             </FieldIcon>
             <TextField
               placeholder={t("game:id")}
-              value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
-              onChange={(e) =>
-                table.getColumn("id")?.setFilterValue(e.target.value)
-              }
+              inputMode="numeric"
+              value={id == null ? "" : String(id)}
+              onChange={(event) => {
+                const value = event.target.value;
+                const nextId = positiveInteger.parse(value);
+                if (value !== "" && nextId == null) return;
+                void setSearch({ id: nextId, page: 1 });
+              }}
             />
           </Field>
           <Field size={"sm"} className={cn(["min-w-48", "flex-1"])}>
             <FieldIcon>
               <UsersRoundIcon />
             </FieldIcon>
-            <Combobox<TeamView>
+            <Combobox<TeamOption>
               value={selectedTeam}
               options={teamOptions.map((team) => ({
                 value: team,
@@ -339,10 +406,7 @@ export default function Index() {
                 }
               }}
               onValueChange={(team) => {
-                setSelectedTeam(team);
-                table
-                  .getColumn("team_id")
-                  ?.setFilterValue(team ? String(team.id) : undefined);
+                void setSearch({ team_id: team?.id ?? null, page: 1 });
               }}
               placeholder={t("submission:team_id")}
             >
@@ -389,7 +453,7 @@ export default function Index() {
             <FieldIcon>
               <LibraryIcon />
             </FieldIcon>
-            <Combobox<GameChallengeView>
+            <Combobox<ChallengeOption>
               value={selectedChallenge}
               options={challengeOptions.map((challenge) => ({
                 value: challenge,
@@ -409,12 +473,10 @@ export default function Index() {
                 }
               }}
               onValueChange={(challenge) => {
-                setSelectedChallenge(challenge);
-                table
-                  .getColumn("challenge_id")
-                  ?.setFilterValue(
-                    challenge ? String(challenge.challenge_id) : undefined
-                  );
+                void setSearch({
+                  challenge_id: challenge?.challenge_id ?? null,
+                  page: 1,
+                });
               }}
             >
               <ComboboxInput
@@ -445,7 +507,7 @@ export default function Index() {
             <FieldIcon>
               <UserRoundIcon />
             </FieldIcon>
-            <Combobox<UserAccountView>
+            <Combobox<UserOption>
               value={selectedUser}
               options={userOptions.map((user) => ({
                 value: user,
@@ -460,10 +522,7 @@ export default function Index() {
                 }
               }}
               onValueChange={(user) => {
-                setSelectedUser(user);
-                table
-                  .getColumn("user_id")
-                  ?.setFilterValue(user ? String(user.id) : undefined);
+                void setSearch({ user_id: user?.id ?? null, page: 1 });
               }}
               placeholder={t("submission:user_id")}
             >
@@ -513,11 +572,12 @@ export default function Index() {
               <ListOrderedIcon />
             </FieldIcon>
             <Select
-              value={
-                (table.getColumn("status")?.getFilterValue() as string) ?? "all"
-              }
+              value={status ?? "all"}
               onValueChange={(value) =>
-                table.getColumn("status")?.setFilterValue(value)
+                void setSearch({
+                  status: value === "all" ? null : (value as Status),
+                  page: 1,
+                })
               }
             >
               <SelectTrigger>
@@ -584,10 +644,17 @@ export default function Index() {
                           header.column.id === "challenge_title" && "w-56",
                           header.column.id === "content" && "min-w-56",
                           header.column.id === "status" && "w-32 min-w-32",
+                          header.column.id === "score_rank" && "w-28 min-w-28",
                           header.column.id === "user_name" && "w-56",
                           header.column.id === "processing_duration" && "w-32",
                           header.column.id === "created_at" && "w-48 min-w-48",
-                          header.column.id === "actions" && "w-24 min-w-24",
+                          header.column.id === "actions" && [
+                            "w-24 min-w-24 text-center",
+                            "sticky",
+                            "right-0",
+                            "z-3",
+                            "backdrop-blur-xs",
+                          ],
                         ])}
                       >
                         {!header.isPlaceholder &&
@@ -621,7 +688,13 @@ export default function Index() {
                               "py-3",
                               "transition-colors",
                               "group-hover:bg-muted/50",
-                              cell.column.id === "actions" && "w-24",
+                              cell.column.id === "actions" && [
+                                "w-24",
+                                "sticky",
+                                "right-0",
+                                "z-3",
+                                "backdrop-blur-xs",
+                              ],
                             ])}
                           >
                             {flexRender(
@@ -664,7 +737,7 @@ export default function Index() {
             size={"sm"}
             value={page}
             total={Math.ceil(total / size)}
-            onChange={setPage}
+            onChange={(value) => void setSearch({ page: value })}
           />
           <Field size={"sm"} className={cn(["w-32", "sm:w-36"])}>
             <FieldIcon>
@@ -673,15 +746,17 @@ export default function Index() {
             <Select
               value={String(size)}
               onValueChange={(value) => {
-                setPage(1);
-                setSize(Number(value));
+                void setSearch({
+                  size: Number(value) as (typeof pageSizes)[number],
+                  page: 1,
+                });
               }}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {[10, 20, 40, 60].map((value) => (
+                {pageSizes.map((value) => (
                   <SelectItem key={value} value={String(value)}>
                     {value}
                   </SelectItem>

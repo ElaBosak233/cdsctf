@@ -14,6 +14,7 @@ solves: "{{count}} Solves"
 empty: No submissions yet.
 cheated: This challenge has cheating records, cannot submit.
 actions:
+  _: Actions
   submit: Submit
   mark_cheat: Mark as Cheat
   mark_incorrect: Mark as Incorrect
@@ -51,6 +52,7 @@ status:
   cheat: Cheat
   expired: Expired
   duplicate: Duplicate
+score_rank: Score / Rank
 errors:
   cheated:
     title: Suspicious activity detected

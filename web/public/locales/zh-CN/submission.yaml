@@ -14,6 +14,7 @@ solves: "{{count}} 次解出"
 empty: 暂无提交记录
 cheated: 该题目存在作弊记录，无法继续提交
 actions:
+  _: 操作
   submit: 提交
   mark_cheat: 标记作弊
   mark_incorrect: 标记错误
@@ -51,6 +52,7 @@ status:
   cheat: 作弊
   expired: 过期
   duplicate: 重复
+score_rank: 分数 / 排名
 errors:
   cheated:
     title: 检测到异常提交

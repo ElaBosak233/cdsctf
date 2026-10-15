@@ -1,9 +1,8 @@
 import {
   BanIcon,
   CheckCheckIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
   FileCheck2Icon,
+  FlagIcon,
   Undo2Icon,
 } from "lucide-react";
 import { useContext } from "react";
@@ -14,6 +13,7 @@ import { updateTeam } from "@/api/management/games/game_id/teams/team_id";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
@@ -89,16 +89,122 @@ function useColumns(): Array<ColumnDef<TeamView>> {
       },
     },
     {
+      id: "members",
+      header: t("team:members"),
+      cell: ({ row }) => {
+        const members = row.original.members ?? [];
+
+        if (members.length === 0) {
+          return <span className="text-muted-foreground">/</span>;
+        }
+
+        return (
+          <div className="flex min-w-36 items-center pl-1">
+            {members.slice(0, 10).map((member, index) => (
+              <Tooltip key={member.id}>
+                <TooltipTrigger
+                  className={cn([
+                    "rounded-full",
+                    "ring-2",
+                    "ring-background",
+                    index > 0 && "-ml-2",
+                  ])}
+                >
+                  <Avatar
+                    className="size-7"
+                    src={
+                      member.avatar_hash &&
+                      `/api/media?hash=${member.avatar_hash}`
+                    }
+                    fallback={member.name.charAt(0)}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  {member.name || member.username}
+                </TooltipContent>
+              </Tooltip>
+            ))}
+            {members.length > 10 && (
+              <Tooltip>
+                <TooltipTrigger className="-ml-2 inline-flex size-7 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-2 ring-background">
+                  +{members.length - 10}
+                </TooltipTrigger>
+                <TooltipContent>
+                  {members.length} {t("team:members").toLowerCase()}
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "rank",
       id: "rank",
-      header: t("team:rank"),
-      cell: ({ row }) => row.original.rank,
+      header: () => <div className="text-right">{t("team:rank")}</div>,
+      cell: ({ row }) => {
+        const value = row.original.rank;
+        const banned = row.original.state === State.Banned;
+
+        return (
+          <div className="flex justify-end">
+            {value === 0 ? (
+              <span
+                aria-hidden="true"
+                className="inline-flex h-6 w-10 select-none items-center justify-center rounded-sm border border-border/40 bg-muted/30 font-mono text-xs text-muted-foreground shadow-inner backdrop-blur-sm"
+              >
+                /
+              </span>
+            ) : (
+              <span
+                className={cn([
+                  "font-mono",
+                  "text-xs",
+                  "tabular-nums",
+                  banned &&
+                    "select-none text-muted-foreground line-through decoration-error/70",
+                ])}
+              >
+                {value}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "pts",
       id: "pts",
-      header: t("team:pts"),
-      cell: ({ row }) => row.original.pts,
+      header: () => <div className="text-right">{t("team:pts")}</div>,
+      cell: ({ row }) => {
+        const value = row.original.pts;
+        const banned = row.original.state === State.Banned;
+
+        return (
+          <div className="flex justify-end">
+            {value === 0 ? (
+              <span
+                aria-hidden="true"
+                className="inline-flex h-6 w-10 select-none items-center justify-center rounded-sm border border-border/40 bg-muted/30 font-mono text-xs text-muted-foreground shadow-inner backdrop-blur-sm"
+              >
+                /
+              </span>
+            ) : (
+              <span
+                className={cn([
+                  "font-mono",
+                  "text-xs",
+                  "tabular-nums",
+                  banned &&
+                    "select-none text-muted-foreground line-through decoration-error/70",
+                ])}
+              >
+                {value}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "state",
@@ -192,6 +298,7 @@ function useColumns(): Array<ColumnDef<TeamView>> {
       cell: function ActionsCell({ row }) {
         const id = row.original.id;
         const game_id = row.original.game_id;
+        const resolvedTeamGameId = game_id ?? resolvedGameId;
         const state = row.original.state;
 
         async function handleStateChange(state: State) {
@@ -211,25 +318,42 @@ function useColumns(): Array<ColumnDef<TeamView>> {
         }
 
         return (
-          <div
-            className={cn([
-              "flex",
-              "items-center",
-              "justify-center",
-              "gap-2",
-              "*:shrink-0",
-            ])}
-          >
+          <div className="flex items-center justify-end gap-1.5">
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    disabled={resolvedTeamGameId == null}
+                    variant={"ghost"}
+                    size={"sm"}
+                    square
+                    className="text-muted-foreground hover:text-foreground"
+                    icon={<FlagIcon />}
+                    aria-label={t("submission:_")}
+                    render={
+                      resolvedTeamGameId != null ? (
+                        <Link
+                          to={`/admin/games/${resolvedTeamGameId}/submissions?team_id=${id}`}
+                        />
+                      ) : undefined
+                    }
+                  />
+                }
+              />
+              <TooltipContent>{t("submission:_")}</TooltipContent>
+            </Tooltip>
+            <Separator orientation={"vertical"} className={"h-6"} />
             <Tooltip>
               <TooltipTrigger
                 render={
                   <Button
                     disabled={state === State.Preparing}
-                    variant={"ghost"}
-                    size={"sm"}
-                    level={"info"}
+                    variant="ghost"
+                    size="sm"
+                    level="warning"
                     square
                     icon={<Undo2Icon />}
+                    aria-label={t("game:team.actions.refuse")}
                     onClick={() => handleStateChange(State.Preparing)}
                   />
                 }
@@ -241,11 +365,12 @@ function useColumns(): Array<ColumnDef<TeamView>> {
                 render={
                   <Button
                     disabled={state === State.Banned}
-                    variant={"ghost"}
-                    size={"sm"}
-                    level={"error"}
+                    variant="ghost"
+                    size="sm"
+                    level="error"
                     square
                     icon={<BanIcon />}
+                    aria-label={t("game:team.actions.ban")}
                     onClick={() => handleStateChange(State.Banned)}
                   />
                 }
@@ -257,11 +382,12 @@ function useColumns(): Array<ColumnDef<TeamView>> {
                 render={
                   <Button
                     disabled={state === State.Passed}
-                    variant={"ghost"}
-                    size={"sm"}
-                    level={"success"}
+                    variant="ghost"
+                    size="sm"
+                    level="success"
                     square
                     icon={<CheckCheckIcon />}
+                    aria-label={t("game:team.actions.pass")}
                     onClick={() => handleStateChange(State.Passed)}
                   />
                 }
@@ -271,19 +397,6 @@ function useColumns(): Array<ColumnDef<TeamView>> {
           </div>
         );
       },
-    },
-    {
-      id: "expand",
-      cell: ({ row }) => (
-        <div className="flex justify-end">
-          <Button
-            onClick={() => row.toggleExpanded()}
-            icon={row.getIsExpanded() ? <ChevronUpIcon /> : <ChevronDownIcon />}
-            square
-            size={"sm"}
-          />
-        </div>
-      ),
     },
   ];
 }
