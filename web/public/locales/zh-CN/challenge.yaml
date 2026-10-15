@@ -58,7 +58,8 @@ checker:
     idle: 等待代码输入
     checking: 正在检查代码…
     valid: 未发现问题
-    invalid: "发现 {{count}} 处问题"
+    invalid_one: "发现 {{count}} 处问题"
+    invalid_other: "发现 {{count}} 处问题"
     error: 检查服务暂时不可用
   templates:
     _: 使用预设模板
