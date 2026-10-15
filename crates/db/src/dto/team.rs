@@ -1,7 +1,7 @@
 use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 
-use crate::entity::team::State;
+use crate::{dto::user::UserSummary, entity::team::State};
 
 #[derive(
     Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
@@ -17,6 +17,13 @@ pub struct TeamView {
     pub state: State,
     pub pts: i64,
     pub rank: i64,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct AdminTeamView {
+    #[serde(flatten)]
+    pub team: TeamView,
+    pub members: Vec<UserSummary>,
 }
 
 /// Player-facing team projection. Score fields are omitted while the game is

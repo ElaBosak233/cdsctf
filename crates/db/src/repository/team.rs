@@ -18,7 +18,8 @@ use crate::traits::DbError;
 pub use crate::{
     dto::{
         scoreboard::{ScoreboardEntry, ScoreboardTeam},
-        team::TeamView,
+        team::{AdminTeamView, TeamView},
+        user::UserSummary,
     },
     entity::team::{ActiveModel, Model, State},
 };
@@ -419,7 +420,8 @@ where
 
     if let Some(user_id) = user_id {
         // If you are a little confused about the following statement,
-        // you can refer to the comments on the field `user_id` in `GetTeamRequest`
+        // you can refer to the comments on the field `user_id` in
+        // `GetTeamRequest`
         sql = sql
             .join(
                 JoinType::InnerJoin,
@@ -451,6 +453,47 @@ where
     }
 
     let teams = sql.into_model::<T>().all(conn).await?;
+
+    Ok((teams, total))
+}
+
+/// Queries paginated admin teams and batch-loads their members.
+pub async fn find_with_users(
+    conn: &impl ConnectionTrait,
+    options: FindTeamOptions,
+) -> Result<(Vec<AdminTeamView>, u64), DbError> {
+    use crate::entity::user;
+
+    let (teams, total) = find::<Model>(conn, options).await?;
+    let members = teams.as_slice().load_many_ex(user::Entity, conn).await?;
+
+    let teams = teams
+        .into_iter()
+        .zip(members)
+        .map(|(team, members)| AdminTeamView {
+            team: TeamView {
+                id: team.id,
+                game_id: team.game_id,
+                name: team.name,
+                email: team.email,
+                slogan: team.slogan,
+                avatar_hash: team.avatar_hash,
+                has_writeup: team.has_writeup,
+                state: team.state,
+                pts: team.pts,
+                rank: team.rank,
+            },
+            members: members
+                .into_iter()
+                .map(|member| UserSummary {
+                    id: member.id,
+                    name: member.name,
+                    username: member.username,
+                    avatar_hash: member.avatar_hash,
+                })
+                .collect(),
+        })
+        .collect();
 
     Ok((teams, total))
 }

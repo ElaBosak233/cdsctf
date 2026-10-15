@@ -1,3 +1,5 @@
+import type { UserSummary } from "@/models/user";
+
 export type TeamView = {
   id: number;
   game_id: number;
@@ -9,6 +11,7 @@ export type TeamView = {
   state: State;
   pts: number;
   rank: number;
+  members?: UserSummary[];
 };
 
 export type PlayerTeamView = Omit<TeamView, "pts" | "rank"> & {

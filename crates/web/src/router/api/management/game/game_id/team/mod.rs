@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
+    AdminTeamView,
     sea_orm::ActiveValue::Set,
     team::{FindTeamOptions, State as TState, TeamView},
 };
@@ -46,7 +47,7 @@ pub struct GetTeamRequest {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminTeamsListResponse {
-    pub teams: Vec<TeamView>,
+    pub teams: Vec<AdminTeamView>,
     pub total: u64,
 }
 
@@ -81,7 +82,7 @@ pub async fn get_team(
         .operator
         .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
-    let (teams, total) = cds_db::team::find(
+    let (teams, total) = cds_db::team::find_with_users(
         &s.db.conn,
         FindTeamOptions {
             id: params.id,
