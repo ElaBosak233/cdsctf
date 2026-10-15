@@ -1,7 +1,7 @@
 _: 提出
 id: ID
 team_name: チーム
-team_id: チームID
+team_id: チーム ID
 challenge_title: 課題
 challenge_id: 課題 ID
 flag: フラグ
@@ -11,22 +11,38 @@ created_at: 提出日時
 processing_duration: 処理時間
 solved: 解決済み
 solves: "{{count}} 件の正解"
-queued_review: チェッカーのキューに入りました...
 empty: 提出はまだありません。
 cheated: この課題には不正行為の記録があるため、提出できません。
-submitted: "#{{id}} {{title}} の解答を提出しました"
 actions:
   _: 操作
   submit: 提出
   mark_cheat: チートとしてマーク
   mark_incorrect: 不正解としてマーク
   status_updated: ステータスを更新しました
-result:
-  correct: おめでとうございます。正解です！
-  incorrect: 不正解です。もう一度確認してください。
-  cheat: 不正行為の可能性が検出され、記録されました。
-  timeout: 送信がタイムアウトしました。
-  duplicate: この課題はすでに解決済みです。
+notifications:
+  status_check_failed: 提出状況を確認できませんでした
+  submitted:
+    title: 解答を提出しました
+    description: "{{title}} への提出 #{{id}} は判定待ちです。"
+  result:
+    correct:
+      title: 正解です
+      description: 解答は正解です。
+      description_with_id: "提出 #{{id}} は正解として受理されました。"
+    incorrect:
+      title: 不正解です
+      description: 解答を確認してもう一度お試しください。
+      description_with_id: "提出 #{{id}} は不正解でした。解答を確認してもう一度お試しください。"
+    cheat:
+      title: 提出が報告されました
+      description: 不正行為の可能性が検出され、記録されました。
+      description_with_id: "提出 #{{id}} は不正行為として記録されました。"
+    expired:
+      title: 判定がタイムアウトしました
+      description_with_id: "提出 #{{id}} は判定待ちのままタイムアウトしました。"
+    duplicate:
+      title: 課題はすでに解決済みです
+      description_with_id: "提出 #{{id}} は重複しているため、結果は変わりません。"
 status:
   _: ステータス
   queued: キュー待ち
@@ -37,3 +53,13 @@ status:
   expired: 期限切れ
   duplicate: 重複
 score_rank: スコア / 順位
+errors:
+  cheated:
+    title: 不審な活動を検出しました
+    description: この提出は拒否されました。
+  too_frequent:
+    title: 提出が多すぎます
+    description: しばらくしてからもう一度お試しください。
+  correct_submission_already_exists:
+    title: 正解済みの提出がすでにあります
+    description: この範囲で正解にできる提出は 1 件だけです。

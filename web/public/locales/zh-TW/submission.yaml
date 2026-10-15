@@ -11,22 +11,38 @@ created_at: 送出時間
 processing_duration: 處理時長
 solved: 已解題
 solves: "已解出 {{count}} 題"
-queued_review: 已進入檢查佇列...
 empty: 尚無送出紀錄。
 cheated: 此題目已有作弊紀錄，無法再送出答案。
-submitted: "#{{id}} 已送出 {{title}} 的答案"
 actions:
   _: 操作
   submit: 送出
   mark_cheat: 標記為作弊
   mark_incorrect: 標記為不正確
   status_updated: 狀態已更新
-result:
-  correct: 恭喜，答案正確！
-  incorrect: 答案不正確，請再試一次。
-  cheat: 偵測到可能的作弊行為，已記錄。
-  timeout: 送出逾時。
-  duplicate: 你已解出此題目。
+notifications:
+  status_check_failed: 無法檢查送出狀態
+  submitted:
+    title: 答案已送出
+    description: "題目 {{title}} 的送出紀錄 #{{id}} 正在等待檢查。"
+  result:
+    correct:
+      title: 答案正確
+      description: 答案正確。
+      description_with_id: "送出紀錄 #{{id}} 已判定正確。"
+    incorrect:
+      title: 答案不正確
+      description: 請檢查答案後再試一次。
+      description_with_id: "送出紀錄 #{{id}} 的答案不正確，請檢查後再試一次。"
+    cheat:
+      title: 送出紀錄已被標記
+      description: 偵測到可能的作弊行為，已記錄。
+      description_with_id: "送出紀錄 #{{id}} 已被標記並記錄。"
+    expired:
+      title: 判題逾時
+      description_with_id: "送出紀錄 #{{id}} 等待檢查器時逾時。"
+    duplicate:
+      title: 題目已解出
+      description_with_id: "送出紀錄 #{{id}} 為重複送出，不會改變解題結果。"
 status:
   _: 狀態
   queued: 排隊中
@@ -37,3 +53,13 @@ status:
   expired: 已過期
   duplicate: 重複
 score_rank: 分數 / 排名
+errors:
+  cheated:
+    title: 偵測到可疑活動
+    description: 此送出紀錄已被拒絕。
+  too_frequent:
+    title: 送出過於頻繁
+    description: 請稍後再試。
+  correct_submission_already_exists:
+    title: 已存在正確的送出紀錄
+    description: 此範圍只能有一筆送出紀錄被標記為正確。
