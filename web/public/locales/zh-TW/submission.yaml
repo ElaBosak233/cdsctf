@@ -12,7 +12,7 @@ processing_duration: 處理時長
 solved: 已解題
 solves: "已解出 {{count}} 題"
 queued_review: 已進入檢查佇列...
-empty: 尚無送出紀錄
+empty: 尚無送出紀錄。
 cheated: 此題目已有作弊紀錄，無法再送出答案。
 submitted: "#{{id}} 已送出 {{title}} 的答案"
 actions:
