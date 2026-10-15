@@ -16,6 +16,7 @@ actions:
   edit: 編輯
   refresh: 重新整理
   clear_cache: 清除快取
+  close: 關閉
 tooltip:
   copy: 複製到剪貼簿
 errors:

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   InfoIcon,
   ListEndIcon,
+  MegaphoneIcon,
   SaveIcon,
   TagsIcon,
   TextIcon,
@@ -61,6 +62,7 @@ export default function Index() {
         title: z.string().optional(),
         description: z.string().optional(),
         keywords: z.array(z.string()).optional(),
+        highlight_banner: z.string().optional(),
         footer: z.string().optional(),
       })
       .optional(),
@@ -79,7 +81,8 @@ export default function Index() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await updateConfig({ ...config, ...values });
+      const response = await updateConfig({ ...config, ...values });
+      configStore.setConfig(response.config);
       toast.success(t("admin:platform.actions.update.success"));
     } catch (error) {
       await notifyApiError(error);
@@ -307,6 +310,30 @@ export default function Index() {
                       placeholder={t(
                         "admin:platform.form.meta.description.placeholder"
                       )}
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                    />
+                  </Field>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name={"meta.highlight_banner"}
+            render={({ field }) => (
+              <FormItem className={cn(["w-full"])}>
+                <FormLabel>
+                  {t("admin:platform.form.meta.highlight_banner._")}
+                </FormLabel>
+                <FormControl>
+                  <Field>
+                    <FieldIcon>
+                      <MegaphoneIcon />
+                    </FieldIcon>
+                    <TextField
+                      {...field}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />

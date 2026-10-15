@@ -16,6 +16,7 @@ actions:
   edit: 编辑
   refresh: 刷新
   clear_cache: 清除缓存
+  close: 关闭
 tooltip:
   copy: 复制到剪贴板
 editor:

@@ -1,4 +1,5 @@
 _: 管理者
+open: 管理画面を開く
 home:
   _: ホーム
   statistics:
@@ -26,6 +27,8 @@ platform:
       description:
         _: 説明
         placeholder: あなたを攻撃したくありません！
+      highlight_banner:
+        _: ハイライトバナー
       footer:
         _: フッター
   actions:
@@ -36,8 +39,8 @@ mailbox:
   _: メールサービス
   enabled:
     _: メールサービスを有効にする
-    'true': はい
-    'false': いいえ
+    "true": はい
+    "false": いいえ
   tls:
     _: TLS
     none: なし
@@ -98,7 +101,7 @@ captcha:
 idp:
   _: ID プロバイダー
   empty: ID プロバイダーが設定されていません。
-  result_count: '{{count}} 件の ID プロバイダー'
+  result_count: "{{count}} 件の ID プロバイダー"
   local_registration:
     _: ローカルアカウント登録
     updated: ローカルアカウント登録設定を更新しました。
@@ -111,8 +114,8 @@ idp:
       status: 状態
       updated_at: 更新日時
   enabled:
-    'true': 有効
-    'false': 無効
+    "true": 有効
+    "false": 無効
   avatar_upload:
     progress: "アップロードの進行状況: {{percent}}%"
     success: アバターをアップロードしました。
@@ -142,19 +145,19 @@ idp:
     _: 操作
     create:
       _: ID プロバイダーを作成
-      success: '{{name}} を作成しました。'
+      success: "{{name}} を作成しました。"
     update:
       _: ID プロバイダーを編集
-      success: '{{name}} を更新しました。'
+      success: "{{name}} を更新しました。"
     enable:
-      success: '{{name}} を有効にしました。'
+      success: "{{name}} を有効にしました。"
     disable:
-      success: '{{name}} を無効にしました。'
+      success: "{{name}} を無効にしました。"
     registration_enable:
-      success: '{{name}} からの新規登録を許可しました。'
+      success: "{{name}} からの新規登録を許可しました。"
     registration_disable:
-      success: '{{name}} からの新規登録を停止しました。'
+      success: "{{name}} からの新規登録を停止しました。"
     delete:
       _: ID プロバイダーを削除
       message: 本当に <muted>{{name}}</muted> を削除しますか？
-      success: '{{name}} を削除しました。'
+      success: "{{name}} を削除しました。"

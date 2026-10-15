@@ -1,4 +1,5 @@
 _: 管理員
+open: 開啟管理後台
 home:
   _: 首頁
   statistics:
@@ -26,6 +27,8 @@ platform:
       description:
         _: 描述
         placeholder: 我才不想攻擊你呢！
+      highlight_banner:
+        _: 醒目橫幅
       footer:
         _: 頁尾
   actions:

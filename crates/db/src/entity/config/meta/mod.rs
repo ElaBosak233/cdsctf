@@ -14,6 +14,8 @@ pub struct Config {
     #[serde(default)]
     pub keywords: Vec<String>,
     #[serde(default)]
+    pub highlight_banner: String,
+    #[serde(default)]
     pub footer: String,
 }
 
@@ -24,6 +26,7 @@ impl Default for Config {
             title: "CdsCTF".to_string(),
             description: "I don't like hacking you at all!".to_string(),
             keywords: vec!["CTF"].into_iter().map(|s| s.to_string()).collect(),
+            highlight_banner: String::new(),
             footer: "(c) Copyleft CdsCTF Organization".to_string(),
         }
     }

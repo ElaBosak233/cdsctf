@@ -1,4 +1,5 @@
 _: 管理员
+open: 打开管理后台
 home:
   _: 主页
   statistics:
@@ -26,6 +27,8 @@ platform:
       description:
         _: 描述
         placeholder: 我才不想攻击你呢！
+      highlight_banner:
+        _: 高亮横幅
       footer:
         _: 页脚
   actions:

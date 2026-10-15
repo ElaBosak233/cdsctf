@@ -1,4 +1,5 @@
 _: Admin
+open: Open administration
 home:
   _: Home
   statistics:
@@ -26,6 +27,8 @@ platform:
       description:
         _: Description
         placeholder: I don't like hacking you at all!
+      highlight_banner:
+        _: Highlight banner
       footer:
         _: Footer
   actions:

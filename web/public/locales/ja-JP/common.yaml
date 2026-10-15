@@ -16,6 +16,7 @@ actions:
   edit: 編集
   refresh: 更新
   clear_cache: キャッシュをクリア
+  close: 閉じる
 tooltip:
   copy: クリップボードにコピー
 errors:

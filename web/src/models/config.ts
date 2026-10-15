@@ -3,6 +3,7 @@ export type PublicConfig = {
     title?: string;
     description?: string;
     keywords?: Array<string>;
+    highlight_banner?: string;
     footer?: string;
   };
   auth?: {

@@ -16,6 +16,7 @@ actions:
   edit: Edit
   refresh: Refresh
   clear_cache: Clear Cache
+  close: Close
 tooltip:
   copy: Copy to clipboard
 editor:

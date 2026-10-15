@@ -1,5 +1,6 @@
-import { SettingsIcon } from "lucide-react";
+import { WrenchIcon } from "lucide-react";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
 import { hasAnyPermission, MANAGEMENT_PERMISSIONS } from "@/models/user";
@@ -8,11 +9,13 @@ import { cn } from "@/utils";
 import { Appearance } from "./apperance";
 import { AuthSection } from "./auth-section";
 import { Context } from "./context";
+import { HighlightBanner } from "./highlight-banner";
 import { MobileTab } from "./m-tab";
 import { TabSection } from "./tab-section";
 import { Title } from "./title";
 
 function Navbar() {
+  const { t } = useTranslation();
   const { status, user } = useAuthStore();
   const location = useLocation();
   const pathname = location.pathname;
@@ -76,16 +79,19 @@ function Navbar() {
               hasAnyPermission(user?.permissions, MANAGEMENT_PERMISSIONS) && (
                 <Button
                   render={<Link to="/admin" />}
-                  icon={<SettingsIcon />}
+                  icon={<WrenchIcon />}
                   size={"sm"}
-                  square
-                  aria-label="Open administration"
-                />
+                  variant={"tonal"}
+                  aria-label={t("admin:open")}
+                >
+                  {t("admin:_")}
+                </Button>
               )}
             <AuthSection />
           </div>
         </div>
       </header>
+      {!pathname.startsWith("/admin") && <HighlightBanner />}
     </Context.Provider>
   );
 }
