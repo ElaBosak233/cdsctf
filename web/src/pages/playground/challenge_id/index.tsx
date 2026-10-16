@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronLeftIcon, LightbulbIcon, LightbulbOffIcon } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { getChallenge } from "@/api/challenges/challenge_id";
 import { Button } from "@/components/ui/button";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
@@ -40,8 +40,11 @@ function useChallengeQuery(challengeId: number | undefined) {
 export default function Index() {
   const { config } = useConfigStore();
   const { challenge_id } = useParams<{ challenge_id: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
   const [isExiting, setIsExiting] = useState(false);
+
+  const from = (location.state as { from?: string } | null)?.from;
 
   const { data: challenge, isLoading } = useChallengeQuery(
     parseRouteNumericId(challenge_id)
@@ -69,7 +72,7 @@ export default function Index() {
           onClick={() => {
             setIsExiting(true);
             setTimeout(() => {
-              navigate("/playground", { replace: true });
+              navigate(from || "/playground", { replace: true });
             }, 220);
           }}
         >

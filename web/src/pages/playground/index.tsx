@@ -349,7 +349,13 @@ export default function Index() {
                 key={challenge.id}
                 digest={challenge}
                 status={challengeStatus?.[challenge.id!]}
-                onClick={() => navigate(`/playground/${challenge.id}`)}
+                onClick={() =>
+                  navigate(`/playground/${challenge.id}`, {
+                    state: {
+                      from: `${window.location.pathname}${window.location.search}${window.location.hash}`,
+                    },
+                  })
+                }
               />
             ))}
           </div>
