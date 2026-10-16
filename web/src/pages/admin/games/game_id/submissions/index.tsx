@@ -326,6 +326,7 @@ export default function Index() {
   return (
     <div
       className={cn([
+        "overflow-hidden",
         "h-full",
         "w-full",
         "min-w-0",
@@ -339,6 +340,7 @@ export default function Index() {
         "sm:py-6",
         "lg:px-8",
         "lg:py-8",
+        "xl:h-(--app-content-height)",
       ])}
     >
       <div
@@ -596,130 +598,129 @@ export default function Index() {
         </div>
       </div>
 
-      <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
-        <ScrollArea
+      <ScrollArea
+        className={cn([
+          "flex-1",
+          "min-h-0",
+          "min-w-0",
+          "w-full",
+          "max-w-full",
+          "overflow-hidden",
+          "rounded-lg",
+          "border",
+          "ring-1",
+          "ring-border/50",
+          "shadow-sm",
+        ])}
+      >
+        <LoadingOverlay loading={loading} />
+        <Table
           className={cn([
-            "flex-1",
-            "min-h-0",
-            "min-w-0",
             "w-full",
-            "overflow-hidden",
-            "rounded-lg",
-            "border",
-            "ring-1",
-            "ring-border/50",
-            "shadow-sm",
+            "min-w-full",
+            "table-auto",
+            "max-w-none",
+            "text-foreground",
           ])}
         >
-          <LoadingOverlay loading={loading} />
-          <Table
+          <TableHeader
             className={cn([
-              "w-full",
-              "min-w-full",
-              "table-auto",
-              "max-w-none",
-              "text-foreground",
+              "sticky",
+              "top-0",
+              "z-2",
+              "bg-muted/80",
+              "backdrop-blur-sm",
+              "border-b",
             ])}
           >
-            <TableHeader
-              className={cn([
-                "sticky",
-                "top-0",
-                "z-2",
-                "bg-muted/80",
-                "backdrop-blur-sm",
-                "border-b",
-              ])}
-            >
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead
-                        key={header.id}
-                        className={cn([
-                          "bg-muted/95",
-                          header.column.id === "id" && "w-16",
-                          header.column.id === "team_name" && "w-56",
-                          header.column.id === "challenge_title" && "w-56",
-                          header.column.id === "content" && "min-w-56",
-                          header.column.id === "status" && "w-32 min-w-32",
-                          header.column.id === "score_rank" && "w-28 min-w-28",
-                          header.column.id === "user_name" && "w-56",
-                          header.column.id === "processing_duration" && "w-32",
-                          header.column.id === "created_at" && "w-48 min-w-48",
-                          header.column.id === "actions" && [
-                            "w-24 min-w-24 text-center",
-                            "sticky",
-                            "right-0",
-                            "z-3",
-                            "backdrop-blur-xs",
-                          ],
-                        ])}
-                      >
-                        {!header.isPlaceholder &&
-                          flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={cn([
+                        "bg-muted/95",
+                        header.column.id === "id" && "w-16",
+                        header.column.id === "team_name" && "w-56",
+                        header.column.id === "challenge_title" && "w-56",
+                        header.column.id === "content" && "min-w-56",
+                        header.column.id === "status" && "w-32 min-w-32",
+                        header.column.id === "score_rank" && "w-28 min-w-28",
+                        header.column.id === "user_name" && "w-56",
+                        header.column.id === "processing_duration" && "w-32",
+                        header.column.id === "created_at" && "w-48 min-w-48",
+                        header.column.id === "actions" && [
+                          "w-24 min-w-24 text-center",
+                          "sticky",
+                          "right-0",
+                          "z-3",
+                          "backdrop-blur-xs",
+                        ],
+                      ])}
+                    >
+                      {!header.isPlaceholder &&
+                        flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody className={cn(["flex-1"])}>
+            {table.getRowModel().rows?.length
+              ? table.getRowModel().rows.map((row) => (
+                  <React.Fragment key={row.id}>
+                    <TableRow
+                      key={row.getValue("id")}
+                      data-state={row.getIsSelected() && "selected"}
+                      className={cn([
+                        "group",
+                        "transition-colors",
+                        "hover:bg-transparent",
+                      ])}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          className={cn([
+                            "py-3",
+                            "transition-colors",
+                            "group-hover:bg-muted/50",
+                            cell.column.id === "actions" && [
+                              "w-24",
+                              "sticky",
+                              "right-0",
+                              "z-1",
+                              "backdrop-blur-xs",
+                            ],
+                          ])}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
                           )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody className={cn(["flex-1"])}>
-              {table.getRowModel().rows?.length
-                ? table.getRowModel().rows.map((row) => (
-                    <React.Fragment key={row.id}>
-                      <TableRow
-                        key={row.getValue("id")}
-                        data-state={row.getIsSelected() && "selected"}
-                        className={cn([
-                          "group",
-                          "transition-colors",
-                          "hover:bg-transparent",
-                        ])}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell
-                            key={cell.id}
-                            className={cn([
-                              "py-3",
-                              "transition-colors",
-                              "group-hover:bg-muted/50",
-                              cell.column.id === "actions" && [
-                                "w-24",
-                                "sticky",
-                                "right-0",
-                                "z-3",
-                                "backdrop-blur-xs",
-                              ],
-                            ])}
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    </React.Fragment>
-                  ))
-                : !loading && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className={cn(["h-24", "text-center"])}
-                      >
-                        {t("submission:empty")}
-                      </TableCell>
+                        </TableCell>
+                      ))}
                     </TableRow>
-                  )}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-      </div>
+                  </React.Fragment>
+                ))
+              : !loading && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className={cn(["h-24", "text-center"])}
+                    >
+                      {t("submission:empty")}
+                    </TableCell>
+                  </TableRow>
+                )}
+          </TableBody>
+        </Table>
+      </ScrollArea>
       <footer className="flex shrink-0 flex-col gap-3 py-1 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
           {table.getFilteredRowModel().rows.length} / {total}

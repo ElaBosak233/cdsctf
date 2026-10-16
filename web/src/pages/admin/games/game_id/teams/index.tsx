@@ -136,6 +136,7 @@ export default function Index() {
   return (
     <div
       className={cn([
+        "overflow-hidden",
         "h-full",
         "w-full",
         "min-w-0",
@@ -149,6 +150,7 @@ export default function Index() {
         "sm:py-6",
         "lg:px-8",
         "lg:py-8",
+        "xl:h-(--app-content-height)",
       ])}
     >
       <div
@@ -235,118 +237,117 @@ export default function Index() {
         </div>
       </div>
 
-      <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
-        <ScrollArea
+      <ScrollArea
+        className={cn([
+          "flex-1",
+          "min-h-0",
+          "min-w-0",
+          "w-full",
+          "max-w-full",
+          "overflow-hidden",
+          "rounded-lg",
+          "border",
+          "ring-1",
+          "ring-border/50",
+          "shadow-sm",
+        ])}
+      >
+        <LoadingOverlay loading={loading} />
+        <Table
           className={cn([
-            "flex-1",
-            "min-h-0",
-            "min-w-0",
             "w-full",
-            "overflow-hidden",
-            "rounded-lg",
-            "border",
-            "ring-1",
-            "ring-border/50",
-            "shadow-sm",
+            "min-w-full",
+            "table-auto",
+            "max-w-none",
+            "text-foreground",
           ])}
         >
-          <LoadingOverlay loading={loading} />
-          <Table
+          <TableHeader
             className={cn([
-              "w-full",
-              "min-w-full",
-              "table-auto",
-              "max-w-none",
-              "text-foreground",
+              "sticky",
+              "top-0",
+              "z-2",
+              "bg-muted/80",
+              "backdrop-blur-sm",
+              "border-b",
             ])}
           >
-            <TableHeader
-              className={cn([
-                "sticky",
-                "top-0",
-                "z-2",
-                "bg-muted/80",
-                "backdrop-blur-sm",
-                "border-b",
-              ])}
-            >
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead
-                        key={header.id}
-                        className={cn([
-                          "bg-muted/95",
-                          header.column.id === "name" && "min-w-96",
-                          header.column.id === "members" && "min-w-52",
-                          header.column.id === "rank" && "w-24 min-w-24",
-                          header.column.id === "pts" && "w-28 min-w-28",
-                          header.column.id === "state" && "w-32 min-w-32",
-                          header.column.id === "has_writeup" && "w-32 min-w-32",
-                          header.column.id === "actions" &&
-                            "w-36 min-w-36 sticky right-0 z-3 backdrop-blur-xs",
-                        ])}
-                      >
-                        {!header.isPlaceholder &&
-                          flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody className={cn(["flex-1"])}>
-              {table.getRowModel().rows?.length
-                ? table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.getValue("id")}
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      key={header.id}
                       className={cn([
-                        "group",
-                        "transition-colors",
-                        "hover:bg-transparent",
-                        row.original.state === State.Banned && "select-none",
+                        "bg-muted/95",
+                        header.column.id === "name" && "min-w-96",
+                        header.column.id === "members" && "min-w-52",
+                        header.column.id === "rank" && "w-24 min-w-24",
+                        header.column.id === "pts" && "w-28 min-w-28",
+                        header.column.id === "state" && "w-32 min-w-32",
+                        header.column.id === "has_writeup" && "w-32 min-w-32",
+                        header.column.id === "actions" &&
+                          "w-36 min-w-36 sticky right-0 z-3 backdrop-blur-xs",
                       ])}
                     >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          className={cn([
-                            "py-3",
-                            "transition-colors",
-                            "group-hover:bg-muted/50",
-                            cell.column.id === "actions" && [
-                              "w-36 sticky right-0 z-3",
-                              "bg-card/90",
-                              "backdrop-blur-xs",
-                            ],
-                          ])}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                : !loading && (
-                    <TableRow>
+                      {!header.isPlaceholder &&
+                        flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody className={cn(["flex-1"])}>
+            {table.getRowModel().rows?.length
+              ? table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.getValue("id")}
+                    className={cn([
+                      "group",
+                      "transition-colors",
+                      "hover:bg-transparent",
+                      row.original.state === State.Banned && "select-none",
+                    ])}
+                  >
+                    {row.getVisibleCells().map((cell) => (
                       <TableCell
-                        colSpan={columns.length}
-                        className={cn(["h-24", "text-center"])}
+                        key={cell.id}
+                        className={cn([
+                          "py-3",
+                          "transition-colors",
+                          "group-hover:bg-muted/50",
+                          cell.column.id === "actions" && [
+                            "w-36 sticky right-0 z-1",
+                            "bg-card/90",
+                            "backdrop-blur-xs",
+                          ],
+                        ])}
                       >
-                        {t("game:team.empty")}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </TableCell>
-                    </TableRow>
-                  )}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-      </div>
+                    ))}
+                  </TableRow>
+                ))
+              : !loading && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className={cn(["h-24", "text-center"])}
+                    >
+                      {t("game:team.empty")}
+                    </TableCell>
+                  </TableRow>
+                )}
+          </TableBody>
+        </Table>
+      </ScrollArea>
       <div className="flex items-center justify-between space-x-2 py-4 px-4">
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredRowModel().rows.length} / {total}

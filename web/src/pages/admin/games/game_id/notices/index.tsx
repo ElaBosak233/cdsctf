@@ -90,6 +90,7 @@ export default function Index() {
   return (
     <div
       className={cn([
+        "overflow-hidden",
         "h-full",
         "w-full",
         "min-w-0",
@@ -103,6 +104,7 @@ export default function Index() {
         "sm:py-6",
         "lg:px-8",
         "lg:py-8",
+        "xl:h-(--app-content-height)",
       ])}
     >
       <div
@@ -112,7 +114,6 @@ export default function Index() {
           "items-center",
           "shrink-0",
           "gap-6",
-          "shrink-0",
         ])}
       >
         <h1
@@ -151,110 +152,109 @@ export default function Index() {
         </div>
       </div>
 
-      <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
-        <ScrollArea
+      <ScrollArea
+        className={cn([
+          "flex-1",
+          "min-h-0",
+          "min-w-0",
+          "w-full",
+          "max-w-full",
+          "overflow-hidden",
+          "rounded-lg",
+          "border",
+          "ring-1",
+          "ring-border/50",
+          "shadow-sm",
+        ])}
+      >
+        <LoadingOverlay loading={loading} />
+        <Table
           className={cn([
-            "flex-1",
-            "min-h-0",
-            "min-w-0",
             "w-full",
-            "overflow-hidden",
-            "rounded-lg",
-            "border",
-            "ring-1",
-            "ring-border/50",
-            "shadow-sm",
+            "min-w-full",
+            "table-auto",
+            "max-w-none",
+            "text-foreground",
           ])}
         >
-          <LoadingOverlay loading={loading} />
-          <Table
+          <TableHeader
             className={cn([
-              "w-full",
-              "min-w-full",
-              "table-auto",
-              "max-w-none",
-              "text-foreground",
+              "sticky",
+              "top-0",
+              "z-2",
+              "bg-muted/80",
+              "backdrop-blur-sm",
+              "border-b",
             ])}
           >
-            <TableHeader
-              className={cn([
-                "sticky",
-                "top-0",
-                "z-2",
-                "bg-muted/80",
-                "backdrop-blur-sm",
-                "border-b",
-              ])}
-            >
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead
-                        key={header.id}
-                        className={cn([
-                          "bg-muted/95",
-                          header.column.id === "title" && "w-72",
-                          header.column.id === "content" && "min-w-80",
-                          header.column.id === "created_at" && "w-48 min-w-48",
-                          header.column.id === "actions" && "w-24 min-w-24",
-                        ])}
-                      >
-                        {!header.isPlaceholder &&
-                          flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length
-                ? table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.getValue("id")}
-                      data-state={row.getIsSelected() && "selected"}
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      key={header.id}
                       className={cn([
-                        "group",
-                        "transition-colors",
-                        "hover:bg-transparent",
+                        "bg-muted/95",
+                        header.column.id === "title" && "w-72",
+                        header.column.id === "content" && "min-w-80",
+                        header.column.id === "created_at" && "w-48 min-w-48",
+                        header.column.id === "actions" && "w-24 min-w-24",
                       ])}
                     >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          className={cn([
-                            "py-3",
-                            "transition-colors",
-                            "group-hover:bg-muted/50",
-                            cell.column.id === "actions" && "w-24",
-                          ])}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                : !loading && (
-                    <TableRow>
+                      {!header.isPlaceholder &&
+                        flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length
+              ? table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.getValue("id")}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={cn([
+                      "group",
+                      "transition-colors",
+                      "hover:bg-transparent",
+                    ])}
+                  >
+                    {row.getVisibleCells().map((cell) => (
                       <TableCell
-                        colSpan={columns.length}
-                        className={cn(["h-24", "text-center"])}
+                        key={cell.id}
+                        className={cn([
+                          "py-3",
+                          "transition-colors",
+                          "group-hover:bg-muted/50",
+                          cell.column.id === "actions" && "w-24",
+                        ])}
                       >
-                        {t("game:notice.empty")}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </TableCell>
-                    </TableRow>
-                  )}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-      </div>
+                    ))}
+                  </TableRow>
+                ))
+              : !loading && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className={cn(["h-24", "text-center"])}
+                    >
+                      {t("game:notice.empty")}
+                    </TableCell>
+                  </TableRow>
+                )}
+          </TableBody>
+        </Table>
+      </ScrollArea>
     </div>
   );
 }

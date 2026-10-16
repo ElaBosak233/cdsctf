@@ -115,6 +115,7 @@ export default function Index() {
   return (
     <div
       className={cn([
+        "overflow-hidden",
         "h-full",
         "w-full",
         "min-w-0",
@@ -128,6 +129,7 @@ export default function Index() {
         "sm:py-6",
         "lg:px-8",
         "lg:py-8",
+        "xl:h-(--app-content-height)",
       ])}
     >
       <div
@@ -222,126 +224,125 @@ export default function Index() {
         </div>
       </div>
 
-      <div className={cn(["flex-1", "min-h-0", "flex", "flex-col"])}>
-        <ScrollArea
+      <ScrollArea
+        className={cn([
+          "flex-1",
+          "min-h-0",
+          "min-w-0",
+          "w-full",
+          "max-w-full",
+          "overflow-hidden",
+          "rounded-lg",
+          "border",
+          "ring-1",
+          "ring-border/50",
+          "shadow-sm",
+        ])}
+      >
+        <LoadingOverlay loading={loading} />
+        {/* 72rem = the fixed column widths below plus an 18rem Title
+					    column; with table-fixed the Title column takes the rest. */}
+        <Table
           className={cn([
-            "flex-1",
-            "min-h-0",
-            "min-w-0",
             "w-full",
-            "overflow-hidden",
-            "rounded-lg",
-            "border",
-            "ring-1",
-            "ring-border/50",
-            "shadow-sm",
+            "min-w-6xl",
+            "table-fixed",
+            "text-foreground",
           ])}
         >
-          <LoadingOverlay loading={loading} />
-          {/* 72rem = the fixed column widths below plus an 18rem Title
-					    column; with table-fixed the Title column takes the rest. */}
-          <Table
+          <TableHeader
             className={cn([
-              "w-full",
-              "min-w-6xl",
-              "table-fixed",
-              "text-foreground",
+              "sticky",
+              "top-0",
+              "z-2",
+              "bg-muted/80",
+              "backdrop-blur-xs",
+              "border-b",
             ])}
           >
-            <TableHeader
-              className={cn([
-                "sticky",
-                "top-0",
-                "z-2",
-                "bg-muted/80",
-                "backdrop-blur-xs",
-                "border-b",
-              ])}
-            >
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead
-                        key={header.id}
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={cn([
+                        "bg-muted/95",
+                        header.column.id === "enabled" && "w-24 text-center",
+                        header.column.id === "classification" && "w-40",
+                        header.column.id === "configuration" && "w-52",
+                        header.column.id === "pts" && "w-72",
+                        header.column.id === "actions" && [
+                          "sticky",
+                          "right-0",
+                          "z-3",
+                          "w-52",
+                          "backdrop-blur-xs",
+                        ],
+                      ])}
+                    >
+                      {!header.isPlaceholder &&
+                        flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length
+              ? table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.original.challenge_id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={cn([
+                      "group",
+                      "transition-colors",
+                      "hover:bg-transparent",
+                    ])}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
                         className={cn([
-                          "bg-muted/95",
-                          header.column.id === "enabled" && "w-24 text-center",
-                          header.column.id === "classification" && "w-40",
-                          header.column.id === "configuration" && "w-52",
-                          header.column.id === "pts" && "w-72",
-                          header.column.id === "actions" && [
+                          "py-3",
+                          "transition-colors",
+                          "group-hover:bg-muted/50",
+                          cell.column.id === "enabled" && "text-center",
+                          cell.column.id === "actions" && [
                             "sticky",
                             "right-0",
-                            "z-3",
+                            "z-1",
                             "w-52",
+                            "bg-card",
                             "backdrop-blur-xs",
                           ],
                         ])}
                       >
-                        {!header.isPlaceholder &&
-                          flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length
-                ? table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.original.challenge_id}
-                      data-state={row.getIsSelected() && "selected"}
-                      className={cn([
-                        "group",
-                        "transition-colors",
-                        "hover:bg-transparent",
-                      ])}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          className={cn([
-                            "py-3",
-                            "transition-colors",
-                            "group-hover:bg-muted/50",
-                            cell.column.id === "enabled" && "text-center",
-                            cell.column.id === "actions" && [
-                              "sticky",
-                              "right-0",
-                              "z-1",
-                              "w-52",
-                              "bg-card",
-                              "backdrop-blur-xs",
-                            ],
-                          ])}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                : !loading && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={table.getVisibleLeafColumns().length}
-                        className={cn(["h-24", "text-center"])}
-                      >
-                        {t("game:challenge.empty")}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </TableCell>
-                    </TableRow>
-                  )}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-      </div>
+                    ))}
+                  </TableRow>
+                ))
+              : !loading && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={table.getVisibleLeafColumns().length}
+                      className={cn(["h-24", "text-center"])}
+                    >
+                      {t("game:challenge.empty")}
+                    </TableCell>
+                  </TableRow>
+                )}
+          </TableBody>
+        </Table>
+      </ScrollArea>
     </div>
   );
 }
