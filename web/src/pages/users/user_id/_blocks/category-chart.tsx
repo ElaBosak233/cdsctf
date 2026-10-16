@@ -6,11 +6,12 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { getCategory } from "@/utils/category";
 
 interface CategoryChartProps {
-  solved: number;
-  solvedByCategory: Array<{
+  solved?: number;
+  solvedByCategory?: Array<{
     category: number;
     solved: number;
   }>;
@@ -18,15 +19,19 @@ interface CategoryChartProps {
   description: string;
   emptyLabel: string;
   totalLabel: string;
+  loading?: boolean;
+  errorLabel?: string;
 }
 
 export function CategoryChart({
-  solved,
-  solvedByCategory,
+  solved = 0,
+  solvedByCategory = [],
   title,
   description,
   emptyLabel,
   totalLabel,
+  loading = false,
+  errorLabel,
 }: CategoryChartProps) {
   const data = solvedByCategory.map((item) => {
     const category = getCategory(item.category);
@@ -48,7 +53,15 @@ export function CategoryChart({
         <h2 className="font-medium">{title}</h2>
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
-      {data.length ? (
+      {loading || errorLabel ? (
+        <div
+          className="relative flex min-h-56 items-center justify-center text-sm text-muted-foreground"
+          aria-busy={loading}
+        >
+          <LoadingOverlay loading={loading} />
+          {errorLabel ? <p role="alert">{errorLabel}</p> : null}
+        </div>
+      ) : data.length ? (
         <div className="grid items-center gap-5 sm:grid-cols-[minmax(0,1fr)_9rem]">
           <div className="relative min-w-0">
             <ChartContainer
@@ -68,6 +81,7 @@ export function CategoryChart({
                   outerRadius={88}
                   strokeWidth={2}
                   stroke="var(--color-card)"
+                  isAnimationActive={false}
                 />
               </PieChart>
             </ChartContainer>

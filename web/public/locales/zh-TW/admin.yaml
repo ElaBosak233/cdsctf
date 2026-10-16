@@ -8,6 +8,8 @@ home:
     challenges: 已收集題目
     submissions: 已處理送出紀錄
   charts:
+    total: 總計
+    error: 統計資料載入失敗，請稍後重試。
     submissions: 送出結果分布
     submissions_description: 已解決送出與其他檢查結果的比較。
     solved: 已解決

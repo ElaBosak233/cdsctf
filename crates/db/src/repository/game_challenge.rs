@@ -2,7 +2,7 @@
 
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
-    QueryFilter, QueryOrder, QuerySelect,
+    QueryFilter, QueryOrder, QuerySelect, QueryTrait,
     sea_query::{Alias, Expr, ExprTrait, IntoIden, Query, TableRef, UpdateStatement, ValueTuple},
 };
 use tracing::info;
@@ -234,12 +234,16 @@ pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     Ok(Entity::find().count(conn).await?)
 }
 
-/// Counts distinct challenges that are assigned to at least one game.
+/// Counts non-deleted challenges that are assigned to at least one game.
 pub async fn count_distinct_challenges(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
-    Ok(Entity::find()
+    let assigned_challenges = Entity::find()
         .select_only()
         .column(Column::ChallengeId)
-        .distinct()
+        .into_query();
+
+    Ok(crate::entity::challenge::Entity::find()
+        .filter(crate::entity::challenge::Column::DeletedAt.is_null())
+        .filter(crate::entity::challenge::Column::Id.in_subquery(assigned_challenges))
         .count(conn)
         .await?)
 }

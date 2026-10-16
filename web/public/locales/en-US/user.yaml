@@ -102,8 +102,8 @@ statistics:
   description: Distribution of successful solves across challenge categories.
   empty: No successful solves yet.
   total: Solved
-  categories: Categories
-  top_categories: Strongest categories
+  top_categories: Most solved categories
+  error: Unable to load statistics. Please try again later.
 search:
   username: Username
   banned: Account status

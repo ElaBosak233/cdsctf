@@ -55,7 +55,7 @@ export default function AdminDashboard() {
 
   const { config } = useConfigStore();
 
-  const { data: statistics } = useStatisticsQuery();
+  const { data: statistics, isPending, isError } = useStatisticsQuery();
 
   return (
     <>
@@ -144,6 +144,8 @@ export default function AdminDashboard() {
         </div>
 
         <OverviewCharts
+          loading={isPending}
+          errorLabel={isError ? t("admin:home.charts.error") : undefined}
           submissionsTotal={statistics?.submissions?.total}
           submissionsSolved={statistics?.submissions?.solved}
           challengesTotal={statistics?.challenges?.total}

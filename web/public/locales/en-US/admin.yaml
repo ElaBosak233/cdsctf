@@ -8,6 +8,8 @@ home:
     challenges: Collected Challenges
     submissions: Processed Submissions
   charts:
+    total: Total
+    error: Unable to load statistics. Please try again later.
     submissions: Submission outcomes
     submissions_description: Solved submissions compared with the remaining checks.
     solved: Solved

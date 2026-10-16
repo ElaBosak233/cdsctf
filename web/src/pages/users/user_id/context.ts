@@ -4,4 +4,6 @@ import type { UserProfile, UserStatistics } from "@/models/user";
 export const Context = createContext<{
   user?: UserProfile;
   statistics?: UserStatistics;
+  statisticsPending?: boolean;
+  statisticsError?: boolean;
 }>({});

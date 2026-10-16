@@ -100,8 +100,8 @@ statistics:
   description: チャレンジカテゴリごとの正解数の分布です。
   empty: 正解したチャレンジはまだありません。
   total: 正解数
-  categories: カテゴリ数
-  top_categories: 得意なカテゴリ
+  top_categories: 正解数の多いカテゴリ
+  error: 統計データを読み込めませんでした。しばらくしてから再度お試しください。
 search:
   username: ユーザー名
   banned: アカウント状態

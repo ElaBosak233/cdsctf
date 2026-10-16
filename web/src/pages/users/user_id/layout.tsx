@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { AwardIcon, Layers3Icon } from "lucide-react";
+import { AwardIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useParams } from "react-router";
 import { getUser } from "@/api/users/user_id";
@@ -40,14 +40,20 @@ export default function Layout() {
   const { user_id } = useParams<{ user_id: string }>();
   const parsedUserId = parseRouteNumericId(user_id);
   const { data: user } = useUserQuery(parsedUserId);
-  const { data: statistics } = useUserStatisticsQuery(parsedUserId);
+  const {
+    data: statistics,
+    isPending: statisticsPending,
+    isError: statisticsError,
+  } = useUserStatisticsQuery(parsedUserId);
   const rankedCategories = [...(statistics?.solved_by_category ?? [])]
     .sort((a, b) => b.solved - a.solved)
     .slice(0, 5);
   const maxSolved = rankedCategories[0]?.solved ?? 1;
 
   return (
-    <Context.Provider value={{ user, statistics }}>
+    <Context.Provider
+      value={{ user, statistics, statisticsPending, statisticsError }}
+    >
       <div className={cn(["flex", "flex-1", "min-h-0"])}>
         <div
           className={cn([
@@ -101,7 +107,7 @@ export default function Layout() {
           <Separator />
           {statistics ? (
             <div className="grid gap-5">
-              <div className="grid grid-cols-2 gap-3">
+              <div>
                 <div className="min-w-0">
                   <div className="mb-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                     <AwardIcon className="size-3.5" />
@@ -109,15 +115,6 @@ export default function Layout() {
                   </div>
                   <p className="font-mono text-xl font-semibold tabular-nums">
                     {statistics.solved.toLocaleString()}
-                  </p>
-                </div>
-                <div className="min-w-0">
-                  <div className="mb-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Layers3Icon className="size-3.5" />
-                    <span>{t("user:statistics.categories")}</span>
-                  </div>
-                  <p className="font-mono text-xl font-semibold tabular-nums">
-                    {statistics.solved_by_category.length.toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -138,6 +135,8 @@ export default function Layout() {
                         </div>
                         <Progress
                           value={(item.solved / maxSolved) * 100}
+                          aria-label={category.name}
+                          aria-valuetext={String(item.solved)}
                           className="gap-0"
                         />
                       </div>

@@ -102,8 +102,8 @@ statistics:
   description: 各题目分类中的成功解题分布。
   empty: 暂无成功解题记录。
   total: 已解决
-  categories: 分类数
-  top_categories: 擅长分类
+  top_categories: 解题最多的分类
+  error: 统计数据加载失败，请稍后重试。
 search:
   username: 用户名
   banned: 账号状态

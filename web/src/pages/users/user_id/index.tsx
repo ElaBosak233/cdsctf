@@ -21,7 +21,8 @@ export default function Index() {
   const { t } = useTranslation();
 
   const configStore = useConfigStore();
-  const { user, statistics } = useContext(Context);
+  const { user, statistics, statisticsPending, statisticsError } =
+    useContext(Context);
   const description = user?.description?.trim();
 
   return (
@@ -72,16 +73,16 @@ export default function Index() {
             </div>
           </div>
         </div>
-        {statistics ? (
-          <CategoryChart
-            solved={statistics.solved}
-            solvedByCategory={statistics.solved_by_category}
-            title={t("user:statistics.title")}
-            description={t("user:statistics.description")}
-            emptyLabel={t("user:statistics.empty")}
-            totalLabel={t("user:statistics.total")}
-          />
-        ) : null}
+        <CategoryChart
+          solved={statistics?.solved}
+          solvedByCategory={statistics?.solved_by_category}
+          loading={statisticsPending}
+          errorLabel={statisticsError ? t("user:statistics.error") : undefined}
+          title={t("user:statistics.title")}
+          description={t("user:statistics.description")}
+          emptyLabel={t("user:statistics.empty")}
+          totalLabel={t("user:statistics.total")}
+        />
         <div className={cn(["flex", "flex-col", "gap-3"])}>
           <div className={cn(["flex", "gap-2", "items-center"])}>
             <UserRoundPenIcon />

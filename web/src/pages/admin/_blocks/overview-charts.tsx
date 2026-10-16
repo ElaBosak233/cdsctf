@@ -6,6 +6,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { cn } from "@/utils";
 
 type PieDatum = {
@@ -21,6 +22,8 @@ interface OverviewPieChartProps {
   totalLabel: string;
   data: Array<PieDatum>;
   colors: Array<string>;
+  loading: boolean;
+  errorLabel?: string;
 }
 
 function OverviewPieChart({
@@ -30,6 +33,8 @@ function OverviewPieChart({
   totalLabel,
   data,
   colors,
+  loading,
+  errorLabel,
 }: OverviewPieChartProps) {
   const chartData = data.map((item, index) => ({
     ...item,
@@ -52,54 +57,70 @@ function OverviewPieChart({
         <h3 className="font-medium">{title}</h3>
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
-      <div className="grid items-center gap-5 sm:grid-cols-[minmax(0,1fr)_9rem]">
-        <div className="relative min-w-0">
-          <ChartContainer config={chartConfig} className="mx-auto h-52 w-full">
-            <PieChart accessibilityLayer>
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel />}
-              />
-              <Pie
-                data={chartData}
-                dataKey="value"
-                nameKey="key"
-                innerRadius={58}
-                outerRadius={82}
-                strokeWidth={2}
-                stroke="var(--color-card)"
-              />
-            </PieChart>
-          </ChartContainer>
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            <span className="font-mono text-2xl font-semibold tabular-nums">
-              {total.toLocaleString()}
-            </span>
-            <span className="text-xs text-muted-foreground">{totalLabel}</span>
-          </div>
+      {loading || errorLabel ? (
+        <div
+          className="relative flex min-h-52 items-center justify-center text-sm text-muted-foreground"
+          aria-busy={loading}
+        >
+          <LoadingOverlay loading={loading} />
+          {errorLabel ? <p role="alert">{errorLabel}</p> : null}
         </div>
-        <div className="grid gap-3">
-          {chartData.map((item) => (
-            <div
-              key={item.key}
-              className="flex items-center justify-between gap-3 text-sm"
+      ) : (
+        <div className="grid items-center gap-5 sm:grid-cols-[minmax(0,1fr)_9rem]">
+          <div className="relative min-w-0">
+            <ChartContainer
+              config={chartConfig}
+              className="mx-auto h-52 w-full"
             >
-              <div className="flex min-w-0 items-center gap-2">
-                <span
-                  className="size-2.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: item.fill }}
+              <PieChart accessibilityLayer>
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel />}
                 />
-                <span className="truncate text-muted-foreground">
-                  {item.label}
-                </span>
-              </div>
-              <span className="font-mono font-medium tabular-nums">
-                {item.value.toLocaleString()}
+                <Pie
+                  data={chartData}
+                  dataKey="value"
+                  nameKey="key"
+                  innerRadius={58}
+                  outerRadius={82}
+                  strokeWidth={2}
+                  stroke="var(--color-card)"
+                  isAnimationActive={false}
+                />
+              </PieChart>
+            </ChartContainer>
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+              <span className="font-mono text-2xl font-semibold tabular-nums">
+                {total.toLocaleString()}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {totalLabel}
               </span>
             </div>
-          ))}
+          </div>
+          <div className="grid gap-3">
+            {chartData.map((item) => (
+              <div
+                key={item.key}
+                className="flex items-center justify-between gap-3 text-sm"
+              >
+                <div className="flex min-w-0 items-center gap-2">
+                  <span
+                    className="size-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: item.fill }}
+                  />
+                  <span className="truncate text-muted-foreground">
+                    {item.label}
+                  </span>
+                </div>
+                <span className="font-mono font-medium tabular-nums">
+                  {item.value.toLocaleString()}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </Card>
   );
 }
@@ -110,6 +131,8 @@ interface OverviewChartsProps {
   challengesTotal?: number;
   challengesInGame?: number;
   challengesStandalone?: number;
+  loading?: boolean;
+  errorLabel?: string;
   labels: {
     submissions: string;
     submissionsDescription: string;
@@ -130,6 +153,8 @@ export function OverviewCharts({
   challengesInGame = 0,
   challengesStandalone,
   labels,
+  loading = false,
+  errorLabel,
 }: OverviewChartsProps) {
   const solved = Math.min(Math.max(submissionsSolved, 0), submissionsTotal);
   const inGame = Math.min(Math.max(challengesInGame, 0), challengesTotal);
@@ -141,6 +166,8 @@ export function OverviewCharts({
   return (
     <div className={cn("grid", "gap-5", "lg:grid-cols-2")}>
       <OverviewPieChart
+        loading={loading}
+        errorLabel={errorLabel}
         title={labels.submissions}
         description={labels.submissionsDescription}
         total={submissionsTotal}
@@ -156,6 +183,8 @@ export function OverviewCharts({
         colors={["var(--color-chart-2)", "var(--color-chart-1)"]}
       />
       <OverviewPieChart
+        loading={loading}
+        errorLabel={errorLabel}
         title={labels.challenges}
         description={labels.challengesDescription}
         total={challengesTotal}

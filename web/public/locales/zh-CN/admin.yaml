@@ -8,6 +8,8 @@ home:
     challenges: 已收集题目
     submissions: 已处理提交
   charts:
+    total: 总计
+    error: 统计数据加载失败，请稍后重试。
     submissions: 提交结果分布
     submissions_description: 已解决提交与其他检查结果的对比。
     solved: 已解决

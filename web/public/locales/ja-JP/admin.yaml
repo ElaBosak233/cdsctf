@@ -8,6 +8,8 @@ home:
     challenges: 登録済みの課題
     submissions: 処理済みの提出
   charts:
+    total: 合計
+    error: 統計データを読み込めませんでした。しばらくしてから再度お試しください。
     submissions: 提出結果の分布
     submissions_description: 正解した提出とその他のチェック結果を比較します。
     solved: 正解

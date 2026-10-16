@@ -669,7 +669,7 @@ pub async fn count_correct_by_user_and_category(
     conn: &impl ConnectionTrait,
     user_id: i64,
 ) -> Result<Vec<(i32, u64)>, DbError> {
-    Ok(Entity::find()
+    let counts = Entity::find()
         .select_only()
         .column(crate::entity::challenge::Column::Category)
         .column_as(Expr::col(Column::ChallengeId).count_distinct(), "solved")
@@ -681,9 +681,16 @@ pub async fn count_correct_by_user_and_category(
         .filter(Column::Status.eq(Status::Correct))
         .group_by(crate::entity::challenge::Column::Category)
         .order_by_asc(crate::entity::challenge::Column::Category)
-        .into_tuple::<(i32, u64)>()
+        // PostgreSQL COUNT returns BIGINT; sqlx cannot decode it as u64.
+        .into_tuple::<(i32, i64)>()
         .all(conn)
-        .await?)
+        .await?;
+
+    // COUNT is nonnegative, so conversion preserves the public count type.
+    Ok(counts
+        .into_iter()
+        .map(|(category, solved)| (category, solved as u64))
+        .collect())
 }
 
 /// Checks if the given team+game scope has a `Cheat` submission for the

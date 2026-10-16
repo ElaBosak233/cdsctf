@@ -100,8 +100,8 @@ statistics:
   description: 各題目分類中的成功解題分布。
   empty: 暫無成功解題紀錄。
   total: 已解決
-  categories: 分類數
-  top_categories: 擅長分類
+  top_categories: 解題最多的分類
+  error: 統計資料載入失敗，請稍後重試。
 search:
   username: 使用者名稱
   banned: 帳號狀態
