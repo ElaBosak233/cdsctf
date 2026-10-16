@@ -7,6 +7,15 @@ home:
     games: 開催済みの大会
     challenges: 登録済みの課題
     submissions: 処理済みの提出
+  charts:
+    submissions: 提出結果の分布
+    submissions_description: 正解した提出とその他のチェック結果を比較します。
+    solved: 正解
+    other_submissions: その他の結果
+    challenges: 課題の配置
+    challenges_description: 大会内の課題と単独の課題を比較します。
+    in_game: 大会内
+    standalone: 単独
 platform:
   _: プラットフォーム
   logo: ロゴ

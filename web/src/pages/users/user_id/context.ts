@@ -1,6 +1,7 @@
 import { createContext } from "react";
-import type { UserProfile } from "@/models/user";
+import type { UserProfile, UserStatistics } from "@/models/user";
 
 export const Context = createContext<{
   user?: UserProfile;
+  statistics?: UserStatistics;
 }>({});

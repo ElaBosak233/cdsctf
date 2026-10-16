@@ -80,3 +80,11 @@ export type UserProfile = {
   avatar_hash: string | null;
   created_at: Timestamp;
 };
+
+export type UserStatistics = {
+  solved: number;
+  solved_by_category: Array<{
+    category: number;
+    solved: number;
+  }>;
+};

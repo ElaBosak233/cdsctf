@@ -95,6 +95,13 @@ avatar: アバター
 description: 自己紹介
 description_empty: この人はとても怠け者で、何も残していません。
 created_at: 登録日時
+statistics:
+  title: カテゴリ別の正解数
+  description: チャレンジカテゴリごとの正解数の分布です。
+  empty: 正解したチャレンジはまだありません。
+  total: 正解数
+  categories: カテゴリ数
+  top_categories: 得意なカテゴリ
 search:
   username: ユーザー名
   banned: アカウント状態

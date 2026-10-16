@@ -7,6 +7,15 @@ home:
     games: 已举办比赛
     challenges: 已收集题目
     submissions: 已处理提交
+  charts:
+    submissions: 提交结果分布
+    submissions_description: 已解决提交与其他检查结果的对比。
+    solved: 已解决
+    other_submissions: 其他结果
+    challenges: 题目归属分布
+    challenges_description: 比赛中的题目与游离题目的对比。
+    in_game: 比赛中
+    standalone: 游离题目
 platform:
   _: 平台
   logo: 标志

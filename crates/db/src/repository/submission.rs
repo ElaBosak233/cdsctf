@@ -4,7 +4,8 @@ use std::str::FromStr;
 
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityLoaderTrait, EntityTrait,
-    FromQueryResult, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
+    FromQueryResult, JoinType, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
+    RelationTrait, Set,
     sea_query::{
         Alias, Condition, Expr, ExprTrait, Func, IntoIden, Query, TableRef, UpdateStatement,
         ValueTuple,
@@ -661,6 +662,28 @@ pub async fn find_correct_by_challenge_ids_and_game_id(
         .collect::<Result<Vec<_>, _>>()?;
 
     Ok(submissions)
+}
+
+/// Counts distinct challenges solved by a user, grouped by challenge category.
+pub async fn count_correct_by_user_and_category(
+    conn: &impl ConnectionTrait,
+    user_id: i64,
+) -> Result<Vec<(i32, u64)>, DbError> {
+    Ok(Entity::find()
+        .select_only()
+        .column(crate::entity::challenge::Column::Category)
+        .column_as(Expr::col(Column::ChallengeId).count_distinct(), "solved")
+        .join(
+            JoinType::InnerJoin,
+            crate::entity::submission::Relation::Challenge.def(),
+        )
+        .filter(Column::UserId.eq(user_id))
+        .filter(Column::Status.eq(Status::Correct))
+        .group_by(crate::entity::challenge::Column::Category)
+        .order_by_asc(crate::entity::challenge::Column::Category)
+        .into_tuple::<(i32, u64)>()
+        .all(conn)
+        .await?)
 }
 
 /// Checks if the given team+game scope has a `Cheat` submission for the

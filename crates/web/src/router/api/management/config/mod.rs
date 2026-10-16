@@ -94,6 +94,7 @@ pub struct Statistics {
 pub struct ChallengeStatistics {
     pub total: u64,
     pub in_game: u64,
+    pub standalone: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
@@ -121,13 +122,18 @@ pub struct StatisticsResponse {
 pub async fn get_statistics(
     State(s): State<Arc<AppState>>,
 ) -> Result<Json<StatisticsResponse>, WebError> {
+    let challenges_total = cds_db::challenge::count(&s.db.conn).await?;
+    let challenges_in_game =
+        cds_db::game_challenge::count_distinct_challenges(&s.db.conn).await?;
+
     Ok(Json(StatisticsResponse {
         statistics: Statistics {
             users: cds_db::user::count(&s.db.conn).await?,
             games: cds_db::game::count(&s.db.conn).await?,
             challenges: ChallengeStatistics {
-                total: cds_db::challenge::count(&s.db.conn).await?,
-                in_game: cds_db::game_challenge::count(&s.db.conn).await?,
+                total: challenges_total,
+                in_game: challenges_in_game,
+                standalone: challenges_total.saturating_sub(challenges_in_game),
             },
             submissions: SubmissionStatistics {
                 total: cds_db::submission::count(&s.db.conn).await?,

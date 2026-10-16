@@ -7,6 +7,15 @@ home:
     games: Hosted Games
     challenges: Collected Challenges
     submissions: Processed Submissions
+  charts:
+    submissions: Submission outcomes
+    submissions_description: Solved submissions compared with the remaining checks.
+    solved: Solved
+    other_submissions: Other outcomes
+    challenges: Challenge placement
+    challenges_description: Challenges assigned to games compared with standalone challenges.
+    in_game: In games
+    standalone: Standalone
 platform:
   _: Platform
   logo: Logo

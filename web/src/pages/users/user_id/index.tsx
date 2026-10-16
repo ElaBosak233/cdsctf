@@ -1,19 +1,27 @@
-import { ThumbsDownIcon, UserRoundPenIcon } from "lucide-react";
+import {
+  CalendarDaysIcon,
+  HashIcon,
+  ThumbsDownIcon,
+  UserRoundPenIcon,
+} from "lucide-react";
 import { useContext } from "react";
 import { useTranslation } from "react-i18next";
+import { Avatar } from "@/components/ui/avatar";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { MarkdownRender } from "@/components/ui/markdown-render";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
+import { parseTimestamp } from "@/utils/time";
+import { CategoryChart } from "./_blocks/category-chart";
 import { Context } from "./context";
 
 export default function Index() {
   const { t } = useTranslation();
 
   const configStore = useConfigStore();
-  const { user } = useContext(Context);
+  const { user, statistics } = useContext(Context);
   const description = user?.description?.trim();
 
   return (
@@ -32,6 +40,48 @@ export default function Index() {
           "min-h-0",
         ])}
       >
+        <div
+          className={cn([
+            "lg:hidden",
+            "flex",
+            "flex-col",
+            "gap-4",
+            "sm:flex-row",
+            "sm:items-center",
+          ])}
+        >
+          <Avatar
+            className="size-16 shrink-0 sm:size-20"
+            src={user?.avatar_hash && `/api/media?hash=${user.avatar_hash}`}
+            fallback={user?.name?.charAt(0)}
+          />
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-2xl font-semibold sm:text-3xl">
+              {user?.name ?? "-"}
+            </h1>
+            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5 font-mono">
+                <HashIcon className="size-3.5" />
+                {user?.username ?? "-"}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarDaysIcon className="size-3.5" />
+                {t("user:created_at")}{" "}
+                {parseTimestamp(user?.created_at)?.toLocaleDateString() ?? "-"}
+              </span>
+            </div>
+          </div>
+        </div>
+        {statistics ? (
+          <CategoryChart
+            solved={statistics.solved}
+            solvedByCategory={statistics.solved_by_category}
+            title={t("user:statistics.title")}
+            description={t("user:statistics.description")}
+            emptyLabel={t("user:statistics.empty")}
+            totalLabel={t("user:statistics.total")}
+          />
+        ) : null}
         <div className={cn(["flex", "flex-col", "gap-3"])}>
           <div className={cn(["flex", "gap-2", "items-center"])}>
             <UserRoundPenIcon />

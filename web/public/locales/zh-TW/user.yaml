@@ -95,6 +95,13 @@ avatar: 頭像
 description: 個人簡介
 description_empty: 這個人很懶，什麼都沒留下。
 created_at: 註冊於
+statistics:
+  title: 按分類統計的已解題目
+  description: 各題目分類中的成功解題分布。
+  empty: 暫無成功解題紀錄。
+  total: 已解決
+  categories: 分類數
+  top_categories: 擅長分類
 search:
   username: 使用者名稱
   banned: 帳號狀態

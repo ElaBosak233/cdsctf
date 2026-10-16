@@ -19,6 +19,7 @@ use crate::{
 
 /// Defines the `avatar` submodule (see sibling `*.rs` files).
 mod avatar;
+mod statistics;
 
 /// Builds the Axum router fragment for this module.
 
@@ -29,6 +30,10 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
             "/avatar",
             OpenApiRouter::from(Router::new().with_state(state.clone()))
                 .routes(routes!(avatar::get_user_avatar).with_state(state.clone())),
+        )
+        .nest(
+            "/statistics",
+            statistics::router(state.clone()),
         )
 }
 

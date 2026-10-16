@@ -234,6 +234,16 @@ pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     Ok(Entity::find().count(conn).await?)
 }
 
+/// Counts distinct challenges that are assigned to at least one game.
+pub async fn count_distinct_challenges(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
+    Ok(Entity::find()
+        .select_only()
+        .column(Column::ChallengeId)
+        .distinct()
+        .count(conn)
+        .await?)
+}
+
 /// Inserts a new row and returns the persisted model.
 pub async fn create(
     conn: &impl ConnectionTrait,

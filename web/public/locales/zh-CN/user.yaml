@@ -97,6 +97,13 @@ avatar: 头像
 description: 个人简介
 description_empty: 这个人很懒，什么都没留下。
 created_at: 注册于
+statistics:
+  title: 按分类统计的已解题目
+  description: 各题目分类中的成功解题分布。
+  empty: 暂无成功解题记录。
+  total: 已解决
+  categories: 分类数
+  top_categories: 擅长分类
 search:
   username: 用户名
   banned: 账号状态

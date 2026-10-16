@@ -54,6 +54,7 @@ export type Statistics = {
   challenges?: {
     total?: number;
     in_game?: number;
+    standalone?: number;
   };
   submissions?: {
     total?: number;

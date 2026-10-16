@@ -97,6 +97,13 @@ avatar: Avatar
 description: Description
 description_empty: This person is very lazy and left nothing behind.
 created_at: Registered At
+statistics:
+  title: Solved challenges by category
+  description: Distribution of successful solves across challenge categories.
+  empty: No successful solves yet.
+  total: Solved
+  categories: Categories
+  top_categories: Strongest categories
 search:
   username: Username
   banned: Account status

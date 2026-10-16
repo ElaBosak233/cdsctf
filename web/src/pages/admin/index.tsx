@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { DefaultLogo } from "@/components/widgets/default-logo";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
+import { OverviewCharts } from "./_blocks/overview-charts";
 
 function useStatisticsQuery() {
   return useQuery({
@@ -141,6 +142,29 @@ export default function AdminDashboard() {
             value={statistics?.submissions?.total}
           />
         </div>
+
+        <OverviewCharts
+          submissionsTotal={statistics?.submissions?.total}
+          submissionsSolved={statistics?.submissions?.solved}
+          challengesTotal={statistics?.challenges?.total}
+          challengesInGame={statistics?.challenges?.in_game}
+          challengesStandalone={statistics?.challenges?.standalone}
+          labels={{
+            submissions: t("admin:home.charts.submissions"),
+            submissionsDescription: t(
+              "admin:home.charts.submissions_description"
+            ),
+            total: t("admin:home.charts.total"),
+            solved: t("admin:home.charts.solved"),
+            otherSubmissions: t("admin:home.charts.other_submissions"),
+            challenges: t("admin:home.charts.challenges"),
+            challengesDescription: t(
+              "admin:home.charts.challenges_description"
+            ),
+            inGame: t("admin:home.charts.in_game"),
+            standalone: t("admin:home.charts.standalone"),
+          }}
+        />
       </div>
     </>
   );
