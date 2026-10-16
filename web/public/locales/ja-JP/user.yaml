@@ -96,6 +96,12 @@ description: 自己紹介
 description_empty: この人はとても怠け者で、何も残していません。
 created_at: 登録日時
 statistics:
+  overview: キャリア概要
+  recent_games: 最近参加した大会
+  recent_games_empty: 参加した大会はまだありません。
+  solved: 正解数
+  remaining: 未正解
+  total_challenges: 課題総数
   title: カテゴリ別の正解数
   description: チャレンジカテゴリごとの正解数の分布です。
   empty: 正解したチャレンジはまだありません。

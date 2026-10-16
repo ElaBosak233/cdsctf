@@ -96,6 +96,12 @@ description: 個人簡介
 description_empty: 這個人很懶，什麼都沒留下。
 created_at: 註冊於
 statistics:
+  overview: 生涯概況
+  recent_games: 最近參與的比賽
+  recent_games_empty: 尚未參與任何比賽。
+  solved: 已解題
+  remaining: 未解題
+  total_challenges: 題目總數
   title: 按分類統計的已解題目
   description: 各題目分類中的成功解題分布。
   empty: 暫無成功解題紀錄。

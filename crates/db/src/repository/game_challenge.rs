@@ -234,6 +234,14 @@ pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     Ok(Entity::find().count(conn).await?)
 }
 
+/// Counts challenges assigned to one game.
+pub async fn count_by_game_id(conn: &impl ConnectionTrait, game_id: i64) -> Result<u64, DbError> {
+    Ok(Entity::find()
+        .filter(Column::GameId.eq(game_id))
+        .count(conn)
+        .await?)
+}
+
 /// Counts non-deleted challenges that are assigned to at least one game.
 pub async fn count_distinct_challenges(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     let assigned_challenges = Entity::find()

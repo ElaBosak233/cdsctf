@@ -3,8 +3,8 @@
 use std::str::FromStr;
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, Order,
-    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, JoinType, Order,
+    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
     sea_query::{Alias, Expr, ExprTrait, Func, Query},
 };
 use tracing::info;
@@ -28,6 +28,41 @@ pub struct FindGameOptions {
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, FromQueryResult)]
+pub struct UserGameSummary {
+    pub id: i64,
+    pub title: String,
+    pub created_at: time::OffsetDateTime,
+}
+
+/// Returns the most recently created games in which a user participated.
+pub async fn find_recent_by_user_id(
+    conn: &impl ConnectionTrait,
+    user_id: i64,
+    limit: u64,
+) -> Result<Vec<UserGameSummary>, DbError> {
+    Ok(Entity::find()
+        .select_only()
+        .column(Column::Id)
+        .column(Column::Title)
+        .column(Column::CreatedAt)
+        .join(
+            JoinType::InnerJoin,
+            crate::entity::team::Relation::Game.def().rev(),
+        )
+        .join(
+            JoinType::InnerJoin,
+            crate::entity::team_user::Relation::Team.def().rev(),
+        )
+        .filter(crate::entity::team_user::Column::UserId.eq(user_id))
+        .distinct()
+        .order_by_desc(Column::CreatedAt)
+        .limit(limit)
+        .into_model::<UserGameSummary>()
+        .all(conn)
+        .await?)
 }
 
 /// Returns all game identifiers in deterministic order for a full rebuild.

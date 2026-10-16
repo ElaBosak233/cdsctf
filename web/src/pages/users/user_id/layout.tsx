@@ -125,17 +125,26 @@ export default function Layout() {
                   </p>
                   {rankedCategories.map((item) => {
                     const category = getCategory(item.category);
+                    const CategoryIcon = category.icon!;
                     return (
                       <div key={item.category} className="grid gap-1.5">
-                        <div className="flex items-center justify-between gap-2 text-xs">
-                          <span className="truncate">{category.name}</span>
+                        <div className="flex min-w-0 items-center justify-between gap-2 text-xs">
+                          <div className="flex min-w-0 items-center gap-1.5">
+                            <CategoryIcon
+                              className="size-3.5 shrink-0"
+                              style={{ color: category.color }}
+                            />
+                            <span className="truncate font-medium">
+                              {category.name?.toUpperCase()}
+                            </span>
+                          </div>
                           <span className="font-mono tabular-nums text-muted-foreground">
                             {item.solved}
                           </span>
                         </div>
                         <Progress
                           value={(item.solved / maxSolved) * 100}
-                          aria-label={category.name}
+                          aria-label={category.name?.toUpperCase()}
                           aria-valuetext={String(item.solved)}
                           className="gap-0"
                         />

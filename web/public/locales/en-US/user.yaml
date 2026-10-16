@@ -98,6 +98,12 @@ description: Description
 description_empty: This person is very lazy and left nothing behind.
 created_at: Registered At
 statistics:
+  overview: Career overview
+  recent_games: Recent competitions
+  recent_games_empty: No competitions joined yet.
+  solved: Solved
+  remaining: Unsolved
+  total_challenges: Total challenges
   title: Solved challenges by category
   description: Distribution of successful solves across challenge categories.
   empty: No successful solves yet.

@@ -66,11 +66,11 @@ function OverviewPieChart({
           {errorLabel ? <p role="alert">{errorLabel}</p> : null}
         </div>
       ) : (
-        <div className="grid items-center gap-5 sm:grid-cols-[minmax(0,1fr)_9rem]">
+        <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(10rem,12rem)] xl:items-center">
           <div className="relative min-w-0">
             <ChartContainer
               config={chartConfig}
-              className="mx-auto h-52 w-full"
+              className="mx-auto h-44 w-full"
             >
               <PieChart accessibilityLayer>
                 <ChartTooltip
@@ -81,8 +81,8 @@ function OverviewPieChart({
                   data={chartData}
                   dataKey="value"
                   nameKey="key"
-                  innerRadius={58}
-                  outerRadius={82}
+                  innerRadius={50}
+                  outerRadius={70}
                   strokeWidth={2}
                   stroke="var(--color-card)"
                   isAnimationActive={false}
@@ -98,18 +98,21 @@ function OverviewPieChart({
               </span>
             </div>
           </div>
-          <div className="grid gap-3">
+          <div className="grid min-w-0 gap-2">
             {chartData.map((item) => (
               <div
                 key={item.key}
-                className="flex items-center justify-between gap-3 text-sm"
+                className="flex min-w-0 items-center justify-between gap-3 text-sm"
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <span
                     className="size-2.5 shrink-0 rounded-full"
                     style={{ backgroundColor: item.fill }}
                   />
-                  <span className="truncate text-muted-foreground">
+                  <span
+                    className="truncate text-muted-foreground"
+                    title={item.label}
+                  >
                     {item.label}
                   </span>
                 </div>

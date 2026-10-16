@@ -6,7 +6,10 @@ use axum::{Json, Router, extract::State};
 use cds_db::UserAccountView;
 use serde::Serialize;
 use serde_json::json;
-use utoipa_axum::{router::{OpenApiRouter, UtoipaMethodRouterExt}, routes};
+use utoipa_axum::{
+    router::{OpenApiRouter, UtoipaMethodRouterExt},
+    routes,
+};
 
 use crate::{
     extract::Path,
@@ -23,6 +26,15 @@ pub struct UserCategoryStatistics {
 pub struct UserStatistics {
     pub solved: u64,
     pub solved_by_category: Vec<UserCategoryStatistics>,
+    pub games: Vec<UserGameStatistics>,
+}
+
+#[derive(Debug, Serialize, utoipa::ToSchema)]
+pub struct UserGameStatistics {
+    pub game_id: i64,
+    pub title: String,
+    pub solved: u64,
+    pub total: u64,
 }
 
 #[derive(Debug, Serialize, utoipa::ToSchema)]
@@ -35,7 +47,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(get_user_statistics).with_state(state))
 }
 
-/// Returns the number of distinct successful solves grouped by category.
+/// Returns a user's solve distribution and recent competition statistics.
 #[utoipa::path(
     get,
     path = "/",
@@ -58,21 +70,34 @@ pub async fn get_user_statistics(
         .await?
         .ok_or(WebError::NotFound(json!("not_found")))?;
 
-    let solved_by_category = cds_db::submission::count_correct_by_user_and_category(
-        &s.db.conn,
-        user_id,
-    )
-    .await?
-    .into_iter()
-    .map(|(category, solved)| UserCategoryStatistics { category, solved })
-    .collect::<Vec<_>>();
+    let solved_by_category =
+        cds_db::submission::count_correct_by_user_and_category(&s.db.conn, user_id)
+            .await?
+            .into_iter()
+            .map(|(category, solved)| UserCategoryStatistics { category, solved })
+            .collect::<Vec<_>>();
 
     let solved = solved_by_category.iter().map(|item| item.solved).sum();
+    let recent_games = cds_db::game::find_recent_by_user_id(&s.db.conn, user_id, 5).await?;
+    let mut games = Vec::with_capacity(recent_games.len());
+    for game in recent_games {
+        let solved =
+            cds_db::submission::count_correct_by_user_and_game(&s.db.conn, user_id, game.id)
+                .await?;
+        let total = cds_db::game_challenge::count_by_game_id(&s.db.conn, game.id).await?;
+        games.push(UserGameStatistics {
+            game_id: game.id,
+            title: game.title,
+            solved,
+            total,
+        });
+    }
 
     Ok(Json(UserStatisticsResponse {
         statistics: UserStatistics {
             solved,
             solved_by_category,
+            games,
         },
     }))
 }

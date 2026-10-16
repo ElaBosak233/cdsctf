@@ -98,6 +98,12 @@ description: 个人简介
 description_empty: 这个人很懒，什么都没留下。
 created_at: 注册于
 statistics:
+  overview: 生涯概况
+  recent_games: 最近参与的比赛
+  recent_games_empty: 暂无参与过的比赛。
+  solved: 已解题
+  remaining: 未解题
+  total_challenges: 总题数
   title: 按分类统计的已解题目
   description: 各题目分类中的成功解题分布。
   empty: 暂无成功解题记录。

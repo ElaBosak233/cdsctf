@@ -11,10 +11,7 @@ import { getCategory } from "@/utils/category";
 
 interface CategoryChartProps {
   solved?: number;
-  solvedByCategory?: Array<{
-    category: number;
-    solved: number;
-  }>;
+  solvedByCategory?: Array<{ category: number; solved: number }>;
   title: string;
   description: string;
   emptyLabel: string;
@@ -37,7 +34,7 @@ export function CategoryChart({
     const category = getCategory(item.category);
     return {
       key: String(item.category),
-      label: category.name ?? String(item.category),
+      label: category.name?.toUpperCase() ?? String(item.category),
       value: item.solved,
       fill: category.color,
     };
@@ -62,11 +59,11 @@ export function CategoryChart({
           {errorLabel ? <p role="alert">{errorLabel}</p> : null}
         </div>
       ) : data.length ? (
-        <div className="grid items-center gap-5 sm:grid-cols-[minmax(0,1fr)_9rem]">
+        <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(10rem,12rem)] xl:items-center">
           <div className="relative min-w-0">
             <ChartContainer
               config={chartConfig}
-              className="mx-auto h-56 w-full"
+              className="mx-auto h-48 w-full"
             >
               <PieChart accessibilityLayer>
                 <ChartTooltip
@@ -77,8 +74,8 @@ export function CategoryChart({
                   data={data}
                   dataKey="value"
                   nameKey="key"
-                  innerRadius={62}
-                  outerRadius={88}
+                  innerRadius={54}
+                  outerRadius={76}
                   strokeWidth={2}
                   stroke="var(--color-card)"
                   isAnimationActive={false}
@@ -94,18 +91,21 @@ export function CategoryChart({
               </span>
             </div>
           </div>
-          <div className="grid gap-3">
+          <div className="grid min-w-0 gap-2">
             {data.map((item) => (
               <div
                 key={item.key}
-                className="flex items-center justify-between gap-3 text-sm"
+                className="flex min-w-0 items-center justify-between gap-3 text-sm"
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <span
                     className="size-2.5 shrink-0 rounded-full"
                     style={{ backgroundColor: item.fill }}
                   />
-                  <span className="truncate text-muted-foreground">
+                  <span
+                    className="truncate text-muted-foreground"
+                    title={item.label}
+                  >
                     {item.label}
                   </span>
                 </div>

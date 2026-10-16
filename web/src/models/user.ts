@@ -87,4 +87,10 @@ export type UserStatistics = {
     category: number;
     solved: number;
   }>;
+  games: Array<{
+    game_id: number;
+    title: string;
+    solved: number;
+    total: number;
+  }>;
 };

@@ -1,5 +1,6 @@
 import {
   CalendarDaysIcon,
+  ChartNoAxesCombinedIcon,
   HashIcon,
   ThumbsDownIcon,
   UserRoundPenIcon,
@@ -15,6 +16,7 @@ import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { parseTimestamp } from "@/utils/time";
 import { CategoryChart } from "./_blocks/category-chart";
+import { RecentGamesChart } from "./_blocks/recent-games-chart";
 import { Context } from "./context";
 
 export default function Index() {
@@ -73,16 +75,39 @@ export default function Index() {
             </div>
           </div>
         </div>
-        <CategoryChart
-          solved={statistics?.solved}
-          solvedByCategory={statistics?.solved_by_category}
-          loading={statisticsPending}
-          errorLabel={statisticsError ? t("user:statistics.error") : undefined}
-          title={t("user:statistics.title")}
-          description={t("user:statistics.description")}
-          emptyLabel={t("user:statistics.empty")}
-          totalLabel={t("user:statistics.total")}
-        />
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <ChartNoAxesCombinedIcon />
+            <span>{t("user:statistics.overview")}</span>
+          </div>
+          <Separator />
+        </div>
+        <div className="grid min-w-0 gap-5 xl:grid-cols-2">
+          <CategoryChart
+            solved={statistics?.solved}
+            solvedByCategory={statistics?.solved_by_category}
+            loading={statisticsPending}
+            errorLabel={
+              statisticsError ? t("user:statistics.error") : undefined
+            }
+            title={t("user:statistics.title")}
+            description={t("user:statistics.description")}
+            emptyLabel={t("user:statistics.empty")}
+            totalLabel={t("user:statistics.total")}
+          />
+          <RecentGamesChart
+            games={statistics?.games}
+            loading={statisticsPending}
+            errorLabel={
+              statisticsError ? t("user:statistics.error") : undefined
+            }
+            title={t("user:statistics.recent_games")}
+            description={`${t("user:statistics.solved")} / ${t("user:statistics.total_challenges")}`}
+            emptyLabel={t("user:statistics.recent_games_empty")}
+            solvedLabel={t("user:statistics.solved")}
+            remainingLabel={t("user:statistics.remaining")}
+          />
+        </div>
         <div className={cn(["flex", "flex-col", "gap-3"])}>
           <div className={cn(["flex", "gap-2", "items-center"])}>
             <UserRoundPenIcon />

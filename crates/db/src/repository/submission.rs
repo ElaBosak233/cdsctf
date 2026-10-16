@@ -693,6 +693,23 @@ pub async fn count_correct_by_user_and_category(
         .collect())
 }
 
+/// Counts distinct challenges a user solved in one game.
+pub async fn count_correct_by_user_and_game(
+    conn: &impl ConnectionTrait,
+    user_id: i64,
+    game_id: i64,
+) -> Result<u64, DbError> {
+    Ok(Entity::find()
+        .select_only()
+        .column(Column::ChallengeId)
+        .filter(Column::UserId.eq(user_id))
+        .filter(Column::GameId.eq(game_id))
+        .filter(Column::Status.eq(Status::Correct))
+        .distinct()
+        .count(conn)
+        .await?)
+}
+
 /// Checks if the given team+game scope has a `Cheat` submission for the
 /// specified challenge.
 pub async fn has_cheat(
