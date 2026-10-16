@@ -21,10 +21,11 @@ type PaginationProps = Omit<
 
 function Pagination(props: PaginationProps) {
   const { size = "md", total, value, max, onChange, ...rest } = props;
+  const currentPage = Math.min(Math.max(value, 1), Math.max(total, 1));
 
   const paginationNodes = React.useMemo(() => {
-    return generatePaginationNodes(total, value, max);
-  }, [total, value, max]);
+    return generatePaginationNodes(total, currentPage, max);
+  }, [total, currentPage, max]);
 
   return (
     <PaginationPrimitive {...rest}>
@@ -32,8 +33,8 @@ function Pagination(props: PaginationProps) {
         <PaginationItem>
           <PaginationPrevious
             size={size}
-            disabled={value - 1 === 0}
-            onClick={() => onChange(value - 1)}
+            disabled={currentPage <= 1}
+            onClick={() => onChange(currentPage - 1)}
           />
         </PaginationItem>
         {paginationNodes.map((node) => (
@@ -48,7 +49,7 @@ function Pagination(props: PaginationProps) {
               <PaginationItem>
                 <PaginationLink
                   size={size}
-                  isActive={node.value === value}
+                  isActive={node.value === currentPage}
                   onClick={() => onChange(node.value)}
                 >
                   {node.value}
@@ -62,8 +63,8 @@ function Pagination(props: PaginationProps) {
         <PaginationItem>
           <PaginationNext
             size={size}
-            disabled={value === total || total === 0}
-            onClick={() => onChange(value + 1)}
+            disabled={currentPage >= total || total === 0}
+            onClick={() => onChange(currentPage + 1)}
           />
         </PaginationItem>
       </PaginationContent>
@@ -81,39 +82,55 @@ function generatePaginationNodes(
   max?: number
 ): PaginationNode[] {
   const items: Array<PaginationNode> = [];
-  const maxPages = max || 5;
-  const halfMaxPages = Math.floor(maxPages / 2);
+  const requestedMaxPages = Math.max(max || 5, 5);
+  const maxPages =
+    requestedMaxPages % 2 === 0 ? requestedMaxPages + 1 : requestedMaxPages;
+  const currentPage = Math.min(Math.max(value, 1), total);
 
   if (total <= 1) {
     return [{ type: "page", value: 1 }];
   }
 
-  const startPage = Math.max(1, value - halfMaxPages);
-  const endPage = Math.min(total, value + halfMaxPages);
-
-  if (total > maxPages) {
-    if (startPage > 1) {
-      items.push({ type: "page", value: 1 });
-      if (startPage > 2) {
-        items.push({ type: "ellipsis", position: "start" });
-      }
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      items.push({ type: "page", value: i });
-    }
-
-    if (endPage < total) {
-      if (endPage < total - 1) {
-        items.push({ type: "ellipsis", position: "end" });
-      }
-      items.push({ type: "page", value: total });
-    }
-  } else {
+  if (total <= maxPages + 2) {
     for (let i = 1; i <= total; i++) {
       items.push({ type: "page", value: i });
     }
+    return items;
   }
+
+  const siblingCount = Math.floor((maxPages - 3) / 2);
+  const firstPageThreshold = siblingCount + 2;
+  const lastPageThreshold = total - siblingCount - 1;
+
+  if (currentPage <= firstPageThreshold) {
+    for (let i = 1; i <= maxPages; i++) {
+      items.push({ type: "page", value: i });
+    }
+    items.push({ type: "ellipsis", position: "end" });
+    items.push({ type: "page", value: total });
+    return items;
+  }
+
+  if (currentPage >= lastPageThreshold) {
+    items.push({ type: "page", value: 1 });
+    items.push({ type: "ellipsis", position: "start" });
+    for (let i = total - maxPages + 1; i <= total; i++) {
+      items.push({ type: "page", value: i });
+    }
+    return items;
+  }
+
+  items.push({ type: "page", value: 1 });
+  items.push({ type: "ellipsis", position: "start" });
+  for (
+    let i = currentPage - siblingCount;
+    i <= currentPage + siblingCount;
+    i++
+  ) {
+    items.push({ type: "page", value: i });
+  }
+  items.push({ type: "ellipsis", position: "end" });
+  items.push({ type: "page", value: total });
 
   return items;
 }
