@@ -218,7 +218,7 @@ function CodeBlockLine({
       data-slot="code-block-line"
       data-variant="default"
       className={cn(
-        "relative -mx-3 block min-h-lh px-3 before:min-w-10 before:text-end before:text-muted-foreground after:absolute after:start-1 after:top-0 after:text-muted-foreground after:select-none",
+        "relative -mx-3 block min-h-lh px-3 before:min-w-0 before:text-end before:text-muted-foreground after:absolute after:start-1 after:top-0 after:text-muted-foreground after:select-none",
         "sm:-mx-4 sm:px-4",
         "in-data-numbered:col-span-2 in-data-numbered:grid in-data-numbered:grid-cols-subgrid in-data-numbered:gap-x-3 in-data-numbered:[counter-increment:line] in-data-numbered:before:content-[counter(line)] in-data-numbered:before:select-none",
         className
