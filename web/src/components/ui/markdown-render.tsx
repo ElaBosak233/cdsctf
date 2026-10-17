@@ -22,6 +22,14 @@ import {
   type HighlighterGeneric,
   createHighlighter as shikiCreateHighlighter,
 } from "shiki";
+import {
+  CodeBlock,
+  CodeBlockActions,
+  CodeBlockContent,
+  CodeBlockCopyButton,
+  CodeBlockHeader,
+  CodeBlockTitle,
+} from "@/components/ui/code-block";
 
 interface MarkdownRenderProps
   extends React.ComponentProps<typeof MarkdownHooks> {
@@ -40,6 +48,47 @@ async function createHighlighter(): Promise<
 
 function MarkdownRender(props: MarkdownRenderProps) {
   const { src, ...rest } = props;
+
+  const components: MarkdownRenderProps["components"] = {
+    figure: ({ children, node, ...figureProps }) => {
+      const isCodeFigure = Boolean(
+        node?.properties && "data-rehype-pretty-code-figure" in node.properties
+      );
+      return isCodeFigure ? (
+        children
+      ) : (
+        <figure {...figureProps}>{children}</figure>
+      );
+    },
+    pre: ({ children, node, ...preProps }) => {
+      const value = extractText(node);
+      const { className } = preProps;
+      const codeNode = node?.children?.[0];
+      const codeProperties =
+        codeNode && "properties" in codeNode ? codeNode.properties : undefined;
+      const language =
+        codeProperties &&
+        typeof (
+          codeProperties["data-language"] ?? codeProperties.dataLanguage
+        ) === "string"
+          ? String(
+              codeProperties["data-language"] ?? codeProperties.dataLanguage
+            )
+          : undefined;
+
+      return (
+        <CodeBlock value={value}>
+          <CodeBlockHeader>
+            <CodeBlockTitle>{language || "Code"}</CodeBlockTitle>
+            <CodeBlockActions>
+              <CodeBlockCopyButton />
+            </CodeBlockActions>
+          </CodeBlockHeader>
+          <CodeBlockContent className={className}>{children}</CodeBlockContent>
+        </CodeBlock>
+      );
+    },
+  };
 
   return (
     <MarkdownHooks
@@ -86,10 +135,32 @@ function MarkdownRender(props: MarkdownRenderProps) {
         [rehypeStringify, { allowDangerousHtml: true }],
       ]}
       {...rest}
+      components={{ ...components, ...rest.components }}
     >
       {src}
     </MarkdownHooks>
   );
+}
+
+function extractText(node: { children?: unknown[] } | undefined): string {
+  if (!node?.children) return "";
+  return node.children
+    .map((child) => {
+      if (typeof child === "string") return child;
+      if (
+        child &&
+        typeof child === "object" &&
+        "value" in child &&
+        typeof child.value === "string"
+      ) {
+        return child.value;
+      }
+      if (child && typeof child === "object" && "children" in child) {
+        return extractText(child as { children?: unknown[] });
+      }
+      return "";
+    })
+    .join("");
 }
 
 export { MarkdownRender };
