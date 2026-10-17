@@ -1,12 +1,12 @@
 code[data-theme],
 code[data-theme] span {
-  color: var(--shiki-light);
+  color: var(--shiki-light, var(--color-foreground));
   background-color: transparent !important;
 }
 
 .dark code[data-theme],
 .dark code[data-theme] span {
-  color: var(--shiki-dark);
+  color: var(--shiki-dark, var(--color-foreground));
   background-color: transparent !important;
 }
 

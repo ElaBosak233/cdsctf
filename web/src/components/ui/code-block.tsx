@@ -193,6 +193,7 @@ function CodeBlockContent({
       className={cn(
         "!m-0 !max-w-none min-h-0 max-h-[30rem] min-w-0 overflow-auto !bg-background/65 !px-3 !py-3 text-start font-mono !text-xs !leading-[1.7] outline-none sm:!px-4 sm:!py-4 sm:!text-sm",
         "data-wrap:whitespace-pre-wrap data-wrap:break-words",
+        "rounded-b-xl rounded-t-none",
         "[&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-foreground/15 hover:[&::-webkit-scrollbar-thumb]:bg-foreground/25",
         className
       )}
@@ -218,7 +219,7 @@ function CodeBlockLine({
       data-slot="code-block-line"
       data-variant="default"
       className={cn(
-        "relative -mx-3 block min-h-lh px-3 before:min-w-0 before:text-end before:text-muted-foreground after:absolute after:start-1 after:top-0 after:text-muted-foreground after:select-none",
+        "relative -mx-3 block min-h-lh px-3 before:min-w-1em before:text-end before:text-muted-foreground after:absolute after:start-1 after:top-0 after:text-muted-foreground after:select-none",
         "sm:-mx-4 sm:px-4",
         "in-data-numbered:col-span-2 in-data-numbered:grid in-data-numbered:grid-cols-subgrid in-data-numbered:gap-x-3 in-data-numbered:[counter-increment:line] in-data-numbered:before:content-[counter(line)] in-data-numbered:before:select-none",
         className
@@ -260,7 +261,7 @@ function getCodeContent(children: React.ReactNode, lineNumbers: boolean) {
     return React.cloneElement(child, {
       "data-slot": "code-block-code",
       className: cn(
-        "grid min-h-lh min-w-max content-start",
+        "grid min-h-lh min-w-max content-start text-foreground in-data-numbered:grid-cols-[auto_1fr] in-data-wrap:min-w-0",
         child.props.className
       ),
       children: codeChildren,
@@ -279,7 +280,7 @@ function getCodeContent(children: React.ReactNode, lineNumbers: boolean) {
   return (
     <code
       data-slot="code-block-code"
-      className="grid min-h-lh min-w-max content-start in-data-numbered:grid-cols-[auto_1fr] in-data-wrap:min-w-0"
+      className="grid min-h-lh min-w-max content-start text-foreground in-data-numbered:grid-cols-[auto_1fr] in-data-wrap:min-w-0"
     >
       {content}
     </code>
