@@ -35,7 +35,32 @@ interface MarkdownRenderProps
   extends React.ComponentProps<typeof MarkdownHooks> {
   src?: string | null;
   anchors?: boolean;
+  lineNumbers?: boolean | ((language?: string) => boolean);
 }
+
+const lineNumberLanguages = new Set([
+  "bash",
+  "c",
+  "cpp",
+  "css",
+  "go",
+  "html",
+  "java",
+  "javascript",
+  "jsx",
+  "json",
+  "markdown",
+  "php",
+  "py",
+  "python",
+  "rust",
+  "shell",
+  "sql",
+  "tsx",
+  "typescript",
+  "xml",
+  "yaml",
+]);
 
 async function createHighlighter(): Promise<
   HighlighterGeneric<BundledLanguage, BundledTheme>
@@ -47,7 +72,7 @@ async function createHighlighter(): Promise<
 }
 
 function MarkdownRender(props: MarkdownRenderProps) {
-  const { src, ...rest } = props;
+  const { lineNumbers, src, ...rest } = props;
 
   const components: MarkdownRenderProps["components"] = {
     figure: ({ children, node, ...figureProps }) => {
@@ -67,24 +92,28 @@ function MarkdownRender(props: MarkdownRenderProps) {
       const codeProperties =
         codeNode && "properties" in codeNode ? codeNode.properties : undefined;
       const language =
-        codeProperties &&
-        typeof (
-          codeProperties["data-language"] ?? codeProperties.dataLanguage
-        ) === "string"
-          ? String(
-              codeProperties["data-language"] ?? codeProperties.dataLanguage
-            )
-          : undefined;
+        readLanguage(node?.properties) ??
+        readLanguage(codeProperties) ??
+        readLanguage(preProps);
+      const normalizedLanguage = language?.toLowerCase();
+      const showLineNumbers =
+        typeof lineNumbers === "function"
+          ? lineNumbers(language)
+          : (lineNumbers ??
+            (normalizedLanguage !== undefined &&
+              lineNumberLanguages.has(normalizedLanguage)));
 
       return (
-        <CodeBlock value={value}>
+        <CodeBlock>
           <CodeBlockHeader>
             <CodeBlockTitle>{language || "Code"}</CodeBlockTitle>
             <CodeBlockActions>
-              <CodeBlockCopyButton />
+              <CodeBlockCopyButton value={value} />
             </CodeBlockActions>
           </CodeBlockHeader>
-          <CodeBlockContent className={className}>{children}</CodeBlockContent>
+          <CodeBlockContent className={className} lineNumbers={showLineNumbers}>
+            {children}
+          </CodeBlockContent>
         </CodeBlock>
       );
     },
@@ -140,6 +169,35 @@ function MarkdownRender(props: MarkdownRenderProps) {
       {src}
     </MarkdownHooks>
   );
+}
+
+function readLanguage(properties: Record<string, unknown> | undefined) {
+  if (!properties) return undefined;
+
+  const value =
+    properties["data-language"] ??
+    properties.dataLanguage ??
+    properties.language;
+
+  if (typeof value === "string") return value;
+
+  const className = properties.className;
+  if (Array.isArray(className)) {
+    const languageClass = className.find(
+      (name): name is string =>
+        typeof name === "string" && name.startsWith("language-")
+    );
+    return languageClass?.slice("language-".length);
+  }
+
+  if (typeof className === "string") {
+    const languageClass = className
+      .split(/\s+/)
+      .find((name) => name.startsWith("language-"));
+    return languageClass?.slice("language-".length);
+  }
+
+  return undefined;
 }
 
 function extractText(node: { children?: unknown[] } | undefined): string {
