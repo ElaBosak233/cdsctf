@@ -61,6 +61,7 @@ import type { TeamView } from "@/models/team";
 import type { UserAccountView } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
+import { getCategory } from "@/utils/category";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./_blocks/columns";
@@ -88,11 +89,26 @@ type TeamOption = Pick<TeamView, "id" | "name" | "avatar_hash">;
 type ChallengeOption = Pick<
   GameChallengeView,
   "challenge_id" | "challenge_title"
->;
+> &
+  Partial<Pick<GameChallengeView, "challenge_category">>;
 type UserOption = Pick<
   UserAccountView,
   "id" | "name" | "username" | "avatar_hash"
 >;
+
+function ChallengeCategoryIcon({ categoryId }: { categoryId?: number }) {
+  const category = getCategory(categoryId ?? 1);
+  const CategoryIcon = category.icon!;
+
+  return (
+    <span
+      className="flex size-4 shrink-0 items-center justify-center"
+      style={{ color: category.color }}
+    >
+      <CategoryIcon className="size-4" />
+    </span>
+  );
+}
 
 export default function Index() {
   const { t } = useTranslation();
@@ -484,6 +500,13 @@ export default function Index() {
               <ComboboxInput
                 showClear
                 placeholder={t("submission:challenge_id")}
+                startContent={
+                  selectedChallenge ? (
+                    <ChallengeCategoryIcon
+                      categoryId={selectedChallenge.challenge_category}
+                    />
+                  ) : undefined
+                }
               />
               <ComboboxContent>
                 <ComboboxEmpty>{t("challenge:empty")}</ComboboxEmpty>
@@ -493,6 +516,9 @@ export default function Index() {
                       key={challenge.challenge_id}
                       value={challenge}
                     >
+                      <ChallengeCategoryIcon
+                        categoryId={challenge.challenge_category}
+                      />
                       <span className="shrink-0 font-mono text-xs text-muted-foreground">
                         #{challenge.challenge_id}
                       </span>
