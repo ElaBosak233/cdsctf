@@ -96,11 +96,17 @@ export default function Index() {
         {scoreboardData?.total ? (
           <>
             <ChampionChart scoreboard={scoreboardData?.scoreboard} />
-            <div className={cn(["flex", "items-center", "gap-10", "w-full"])}>
+            <div className={cn(["flex", "items-center", "gap-3", "w-full"])}>
               <div className="flex-1 text-sm text-muted-foreground">
                 {scoreboardData?.scoreboard.length} / {scoreboardData?.total}
               </div>
-              <Field size={"sm"} className={cn(["w-48"])}>
+              <Pagination
+                size="sm"
+                value={page}
+                onChange={setPage}
+                total={Math.ceil((scoreboardData?.total || 0) / size)}
+              />
+              <Field size="sm" className={cn(["w-32", "sm:w-36"])}>
                 <FieldIcon>
                   <ListOrderedIcon />
                 </FieldIcon>
@@ -120,11 +126,6 @@ export default function Index() {
                   </SelectContent>
                 </Select>
               </Field>
-              <Pagination
-                value={page}
-                onChange={(value) => setPage(value)}
-                total={Math.ceil((scoreboardData?.total || 0) / size)}
-              />
             </div>
             <div
               className={cn([

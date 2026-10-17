@@ -352,7 +352,13 @@ export default function Index() {
         <div className="flex-1 text-sm text-muted-foreground">
           {table.getFilteredRowModel().rows.length} / {total}
         </div>
-        <div className={cn(["flex", "items-center", "gap-5"])}>
+        <div className={cn(["flex", "items-center", "gap-3"])}>
+          <Pagination
+            size={"sm"}
+            value={page}
+            total={Math.ceil(total / size)}
+            onChange={setPage}
+          />
           <Field size={"sm"} className={cn(["w-48"])}>
             <FieldIcon>
               <ListOrderedIcon />
@@ -373,13 +379,6 @@ export default function Index() {
               </SelectContent>
             </Select>
           </Field>
-
-          <Pagination
-            size={"sm"}
-            value={page}
-            total={Math.ceil(total / size)}
-            onChange={setPage}
-          />
         </div>
       </div>
     </div>
