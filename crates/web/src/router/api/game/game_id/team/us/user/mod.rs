@@ -54,7 +54,7 @@ pub async fn leave_team(
         &s.db.conn,
         FindTeamUserOptions {
             team_id: Some(team.id),
-            user_id: Some(operator.id),
+            user_id: None,
         },
     )
     .await?;
