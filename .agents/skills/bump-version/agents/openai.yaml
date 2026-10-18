@@ -1,0 +1,3 @@
+interface:
+  display_name: "Bump Version"
+  short_description: "Bump CdsCTF versions and prepare signed releases"
