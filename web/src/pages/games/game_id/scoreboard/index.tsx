@@ -20,8 +20,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useGameStore } from "@/storages/game";
-import { ChampionChart } from "./_blocks/champion-chart";
+import { CHART_TEAM_LIMIT, ChampionChart } from "./_blocks/champion-chart";
 import { ScoreboardTable } from "./_blocks/scoreboard-table";
+
+const SCOREBOARD_REFRESH_INTERVAL = 15_000;
 
 export default function Index() {
   const { t } = useTranslation();
@@ -31,14 +33,21 @@ export default function Index() {
   const enabled = !!currentGame?.id && !currentGame.blacked_out;
   const chartQuery = useQuery({
     queryKey: ["scoreboard", currentGame?.id, "chart"],
-    queryFn: () => getGameScoreboard({ id: currentGame?.id, size: 6, page: 1 }),
+    queryFn: () =>
+      getGameScoreboard({
+        id: currentGame?.id,
+        size: CHART_TEAM_LIMIT,
+        page: 1,
+      }),
     enabled,
+    refetchInterval: SCOREBOARD_REFRESH_INTERVAL,
   });
   const scoreboardQuery = useQuery({
     queryKey: ["scoreboard", currentGame?.id, size, page],
     queryFn: () => getGameScoreboard({ id: currentGame?.id, size, page }),
     placeholderData: keepPreviousData,
     enabled,
+    refetchInterval: SCOREBOARD_REFRESH_INTERVAL,
   });
   const data = scoreboardQuery.data;
   const challenges = data?.challenges ?? [];
@@ -62,43 +71,14 @@ export default function Index() {
   return (
     <>
       <title>{`${t("game:scoreboard._")} - ${currentGame?.title}`}</title>
-      <div className="mx-auto flex w-full max-w-360 min-w-0 flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+      <div className="flex w-full min-w-0 flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
         {data?.total ? (
           <>
             <ChampionChart scoreboard={chartQuery.data?.records} />
             <section
               className="flex min-w-0 flex-col gap-3"
-              aria-labelledby="standings-heading"
+              aria-label={t("game:scoreboard._")}
             >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <h2
-                    id="standings-heading"
-                    className="text-base font-semibold"
-                  >
-                    {t("game:scoreboard._")}
-                  </h2>
-                  <span className="text-xs text-muted-foreground">
-                    {t("game:scoreboard.chart.teams", { count: data.total })}
-                  </span>
-                </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  icon={<RefreshCwIcon />}
-                  aria-label={t("game:scoreboard.refresh")}
-                  title={t("game:scoreboard.refresh")}
-                  disabled={scoreboardQuery.isFetching || chartQuery.isFetching}
-                  onClick={refresh}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {t(
-                  challenges.length
-                    ? "game:scoreboard.matrix_hint"
-                    : "game:scoreboard.no_challenges"
-                )}
-              </p>
               <div
                 className="relative min-w-0"
                 aria-busy={scoreboardQuery.isFetching}
@@ -108,7 +88,12 @@ export default function Index() {
                   challenges={challenges}
                   selfTeamId={selfTeam?.id}
                 />
-                <LoadingOverlay loading={scoreboardQuery.isFetching} />
+                <LoadingOverlay
+                  loading={
+                    scoreboardQuery.isFetching &&
+                    scoreboardQuery.isPlaceholderData
+                  }
+                />
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
                 <span>

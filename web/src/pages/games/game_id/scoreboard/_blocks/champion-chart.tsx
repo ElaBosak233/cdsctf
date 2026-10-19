@@ -24,13 +24,14 @@ import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
 import { toEpochMilliseconds } from "@/utils/time";
 
+export const CHART_TEAM_LIMIT = 10;
+
 const COLORS = [
   "var(--color-info)",
   "var(--color-success)",
   "var(--color-chart-4)",
   "var(--color-error)",
   "var(--color-chart-3)",
-  "var(--color-chart-5)",
 ];
 type ChartPoint = { ts: number; [key: string]: number };
 
@@ -91,7 +92,7 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
   const { lines, data, config } = useMemo(() => {
     const teams = (scoreboard ?? [])
       .filter((record) => record.team)
-      .slice(0, 6);
+      .slice(0, CHART_TEAM_LIMIT);
     const events = teams
       .flatMap((record) =>
         record.submissions.map((submission) => ({
@@ -137,6 +138,7 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
       rank: team.rank,
       pts: team.pts,
       color: COLORS[index % COLORS.length],
+      dash: index >= COLORS.length ? "6 3" : undefined,
     }));
     return {
       lines: chartLines,
@@ -160,15 +162,8 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
       minute: "2-digit",
     });
   const visible = lines.filter((line) => !hidden.has(line.id));
-  const legend = (large: boolean) => (
-    <div
-      className={cn(
-        "grid gap-2",
-        large
-          ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-          : "grid-cols-2 lg:grid-cols-3"
-      )}
-    >
+  const legend = () => (
+    <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-5">
       {lines.map((line) => {
         const isHidden = hidden.has(line.id);
         return (
@@ -197,10 +192,21 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
               isHidden && "opacity-40"
             )}
           >
-            <span
-              className="h-0.5 w-4 shrink-0 rounded-full"
-              style={{ backgroundColor: line.color }}
-            />
+            <svg
+              className="h-2 w-6 shrink-0"
+              viewBox="0 0 24 8"
+              aria-hidden="true"
+            >
+              <line
+                x1="0"
+                y1="4"
+                x2="24"
+                y2="4"
+                stroke={line.color}
+                strokeWidth="2"
+                strokeDasharray={line.dash}
+              />
+            </svg>
             <span className="font-mono text-[11px] text-muted-foreground">
               {line.rank > 0 ? `#${line.rank}` : "—"}
             </span>
@@ -256,7 +262,7 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
           cursor={{ stroke: "var(--border)", strokeDasharray: "4 4" }}
           content={<ScoreTooltip />}
         />
-        {lines.map((line, index) => (
+        {lines.map((line) => (
           <Line
             key={line.id}
             type="stepAfter"
@@ -264,7 +270,7 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
             name={line.name}
             stroke={line.color}
             strokeWidth={2}
-            strokeDasharray={index === 5 ? "6 3" : undefined}
+            strokeDasharray={line.dash}
             strokeOpacity={
               focused &&
               visible.some((item) => item.id === focused) &&
@@ -335,14 +341,14 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
               }
             />
             {expanded && chart(true)}
-            <div className="max-h-40 shrink-0 overflow-y-auto border-t pt-3">
-              {legend(true)}
+            <div className="max-h-[40dvh] shrink-0 overflow-y-auto border-t pt-3">
+              {legend()}
             </div>
           </DialogContent>
         </Dialog>
       </div>
       {chart(false)}
-      <div className="mt-3 border-t pt-2">{legend(false)}</div>
+      <div className="mt-3 border-t pt-2">{legend()}</div>
     </section>
   );
 }

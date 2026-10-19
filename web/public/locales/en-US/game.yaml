@@ -39,12 +39,9 @@ scoreboard:
   blackout: Scoreboard blackout is active
   empty: But nobody came.
   solves: "{{count}} solves"
-  refresh: "Refresh scoreboard"
   retry: "Could not load the scoreboard. Retry"
   showing: "{{from}}–{{to}} of {{total}} teams"
   page_size: "Teams per page"
-  matrix_hint: "Each column is a challenge. Select a score for solve details; scroll horizontally to see more."
-  no_challenges: "No challenges are available to display yet."
   unsolved: "Not solved"
   solve_details: "{{title}}: {{pts}} points. View solve details"
   chart:

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
-  PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,11 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import type {
   ScoreboardChallenge,
   ScoreboardEntry,
@@ -65,22 +59,44 @@ function SolveCell({
       >
         +{pts.toLocaleString()}
       </PopoverTrigger>
-      <PopoverContent className="w-72 gap-3 p-4">
-        <PopoverTitle>{title}</PopoverTitle>
+      <PopoverContent
+        className="w-72 gap-3 p-4"
+        aria-label={t("game:scoreboard.solve_details", { title, pts })}
+      >
         {submissions.map((submission) => (
-          <div key={submission.id} className="grid gap-1 border-t pt-2 text-xs">
-            <div className="flex items-center justify-between gap-3">
-              <span className="truncate">{submission.user_name}</span>
-              <span className="shrink-0 font-mono font-semibold text-success tabular-nums">
-                +{submission.pts.toLocaleString()} {t("game:filter.pts")}
-              </span>
+          <div
+            key={submission.id}
+            className="flex items-center gap-3 text-xs not-first:border-t not-first:pt-3"
+          >
+            <Avatar
+              className="size-8"
+              src={
+                submission.user_avatar_hash
+                  ? `/api/media?hash=${submission.user_avatar_hash}`
+                  : undefined
+              }
+              fallback={submission.user_name.charAt(0)}
+              aria-hidden="true"
+            />
+            <div className="grid min-w-0 flex-1 grid-cols-1 gap-1">
+              <div className="flex items-center justify-between gap-3">
+                <span
+                  className="min-w-0 flex-1 truncate"
+                  title={submission.user_name}
+                >
+                  {submission.user_name}
+                </span>
+                <span className="shrink-0 font-mono font-semibold text-success tabular-nums">
+                  +{submission.pts.toLocaleString()} {t("game:filter.pts")}
+                </span>
+              </div>
+              <time
+                className="font-mono text-[11px] text-muted-foreground"
+                dateTime={submission.created_at}
+              >
+                {parseTimestamp(submission.created_at)?.toLocaleString() ?? "—"}
+              </time>
             </div>
-            <time
-              className="font-mono text-muted-foreground"
-              dateTime={submission.created_at}
-            >
-              {parseTimestamp(submission.created_at)?.toLocaleString() ?? "—"}
-            </time>
           </div>
         ))}
       </PopoverContent>
@@ -114,9 +130,7 @@ export function ScoreboardTable({
   const stickyCell = "sticky z-10 bg-inherit";
   return (
     <ScrollArea
-      style={{
-        height: `min(${Math.min(rows.length * 64 + (challenges.length ? 80 : 48) + 12, 576)}px,70dvh)`,
-      }}
+      vertical={false}
       className="w-full rounded-lg border bg-card [--rank-width:2.5rem] [--team-width:8rem] [--score-width:5rem] [--solves-width:0rem] sm:[--rank-width:3rem] sm:[--team-width:14rem] sm:[--score-width:6rem] sm:[--solves-width:5rem]"
     >
       <Table
@@ -165,38 +179,28 @@ export function ScoreboardTable({
             </TableHead>
             {challenges.map((challenge) => {
               const category = getCategory(challenge.challenge_category);
+              const CategoryIcon = category.icon;
               return (
                 <TableHead
                   scope="col"
                   key={challenge.challenge_id}
                   className="h-20 px-4 text-center whitespace-normal"
                 >
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <button
-                          type="button"
-                          className="w-full rounded-sm text-center focus-visible:outline-2 focus-visible:outline-ring"
-                        />
-                      }
-                    >
-                      <span
-                        className="mb-1 block text-[10px]"
-                        style={{ color: category.color }}
-                      >
-                        {category.name?.toUpperCase()}
-                      </span>
-                      <span className="line-clamp-2 text-xs font-medium leading-4 text-foreground">
-                        {challenge.challenge_title}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent className="flex-col items-start gap-1">
-                      <span>{challenge.challenge_title}</span>
-                      <span className="font-mono">
-                        {challenge.pts.toLocaleString()} {t("game:filter.pts")}
-                      </span>
-                    </TooltipContent>
-                  </Tooltip>
+                  <span
+                    className="mb-1 flex items-center justify-center gap-1.5 text-[10px]"
+                    style={{ color: category.color }}
+                  >
+                    {CategoryIcon && (
+                      <CategoryIcon
+                        className="size-3 shrink-0"
+                        aria-hidden="true"
+                      />
+                    )}
+                    {category.name?.toUpperCase()}
+                  </span>
+                  <span className="line-clamp-2 text-xs font-medium leading-4 text-foreground">
+                    {challenge.challenge_title}
+                  </span>
                 </TableHead>
               );
             })}

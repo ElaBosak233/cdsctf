@@ -39,12 +39,9 @@ scoreboard:
   blackout: 黑夜模式封榜
   empty: 目前尚無團隊。
   solves: "{{count}} 題"
-  refresh: "重新整理排行榜"
   retry: "排行榜載入失敗，點擊重試"
   showing: "第 {{from}}–{{to}} 名，共 {{total}} 支隊伍"
   page_size: "每頁隊伍數"
-  matrix_hint: "每欄對應一道題目。點擊分數查看解題紀錄，橫向捲動查看更多題目。"
-  no_challenges: "暫時沒有可顯示的題目。"
   unsolved: "尚未解出"
   solve_details: "{{title}}：{{pts}} 分，查看解題紀錄"
   chart:
