@@ -10,24 +10,17 @@ mod healthz;
 /// Defines the `proxy` submodule (see sibling `*.rs` files).
 mod proxy;
 
-use std::{
-    net::{IpAddr, Ipv4Addr},
-    sync::Arc,
-};
+use std::sync::Arc;
 
 use axum::{
     Router,
-    body::Body,
-    http::Request,
     middleware::{from_fn, from_fn_with_state},
-    response::Response,
     routing::get,
 };
 use time::Duration;
 use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
-use tower_http::trace::TraceLayer;
 use tower_sessions::{Expiry, SessionManagerLayer, cookie::SameSite};
-use tracing::{Span, debug, debug_span, info};
+use tracing::info;
 use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
 
@@ -98,29 +91,6 @@ pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
         .route("/healthz", get(healthz::healthz))
         .merge(docs)
         .merge(protected)
-        .layer(
-            TraceLayer::new_for_http()
-                .make_span_with(|request: &Request<Body>| {
-                    let ip = crate::util::network::get_client_ip(request)
-                        .unwrap_or(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)));
-                    debug_span!("http",
-                        client_ip = %ip,
-                        method = %request.method(),
-                        path = %request.uri().path(),
-                        username = tracing::field::Empty,
-                    )
-                })
-                .on_request(())
-                .on_response(
-                    |response: &Response, latency: std::time::Duration, _span: &Span| {
-                        debug!(
-                            status = response.status().as_u16(),
-                            latency_ms = latency.as_millis(),
-                            "request completed"
-                        );
-                    },
-                ),
-        )
         .layer(session_layer)
         .layer(from_fn(middleware::network::real_host))
         .layer(from_fn(middleware::network::ip_record));
@@ -130,4 +100,5 @@ pub async fn router(state: Arc<AppState>) -> Router<Arc<AppState>> {
     }
 
     base.merge(proxy::router(state))
+        .layer(from_fn(middleware::trace::request))
 }

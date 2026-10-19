@@ -54,3 +54,7 @@ utoipa-scalar  = { workspace = true }
 
 [lib]
 path = "src/lib.rs"
+
+[dev-dependencies]
+tower = { workspace = true, features = ["util"] }
+tracing-subscriber = { workspace = true }

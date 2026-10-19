@@ -30,9 +30,9 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Json as ReqJson, Path},
+    extract::{Extension, Json as ReqJson, Path},
     router::api::management::game::game_id::team::AdminTeamResponse,
-    traits::{AppState, EmptyJson, WebError},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -72,6 +72,7 @@ pub struct UpdateTeamRequest {
 )]
 #[tracing::instrument(skip_all, fields(handler = "update_team"))]
 pub async fn update_team(
+    Extension(principal): Extension<AuthPrincipal>,
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,
     ReqJson(body): ReqJson<UpdateTeamRequest>,
@@ -100,9 +101,23 @@ pub async fn update_team(
     transaction.commit().await.map_err(cds_db::DbError::from)?;
 
     if score_changed {
-        calculator::notify(&s.queue, game_id).await;
+        calculator::notify(
+            &s.queue,
+            game_id,
+            principal.operator.as_ref().map(|operator| operator.id),
+        )
+        .await;
     }
 
+    tracing::info!(
+        resource = "team",
+        action = "administrative_update",
+        team_id = team.id,
+        game_id,
+        before = ?team.state,
+        after = ?new_team.state,
+        "resource step completed",
+    );
     Ok(Json(AdminTeamResponse { team: new_team }))
 }
 

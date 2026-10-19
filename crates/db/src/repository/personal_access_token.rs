@@ -4,7 +4,6 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, QueryFilter,
     QueryOrder, Set, Unchanged,
 };
-use tracing::info;
 
 pub(crate) use crate::entity::personal_access_token::{Column, Entity};
 use crate::traits::DbError;
@@ -41,7 +40,13 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let token = model.insert(conn).await?;
-    info!(user_id = token.user_id, token_id = %token.token_id, "personal access token created");
+    tracing::info!(
+        resource = "personal_access_token",
+        action = "create",
+        user_id = token.user_id,
+        token_id = token.token_id,
+        "resource step completed"
+    );
     Ok(Entity::find_by_id(token.id)
         .into_model::<T>()
         .one(conn)
@@ -63,7 +68,13 @@ pub async fn revoke(conn: &impl ConnectionTrait, user_id: i64, id: i64) -> Resul
     }
     .update(conn)
     .await?;
-    info!(user_id, token_id = %token.token_id, "personal access token revoked");
+    tracing::info!(
+        resource = "personal_access_token",
+        action = "revoke",
+        user_id = user_id,
+        token_id = token.token_id,
+        "resource step completed"
+    );
     Ok(())
 }
 
@@ -79,9 +90,16 @@ pub async fn touch_last_used(conn: &impl ConnectionTrait, id: i64) -> Result<(),
 }
 
 pub async fn delete_by_user_id(conn: &impl ConnectionTrait, user_id: i64) -> Result<(), DbError> {
-    Entity::delete_many()
+    let deleted = Entity::delete_many()
         .filter(Column::UserId.eq(user_id))
         .exec(conn)
         .await?;
+    tracing::info!(
+        resource = "personal_access_token",
+        action = "delete_by_user",
+        user_id,
+        deleted = ?deleted.rows_affected,
+        "database step completed",
+    );
     Ok(())
 }

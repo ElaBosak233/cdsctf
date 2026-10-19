@@ -10,7 +10,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tracing::debug;
+use tracing::Instrument;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -54,7 +54,9 @@ pub async fn renew_instance(
     Extension(ext): Extension<AuthPrincipal>,
     Path(instance_id): Path<String>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let pod = s.cluster.get_pod(&instance_id).await?;
 
@@ -152,7 +154,9 @@ pub async fn stop_instance(
     Extension(ext): Extension<AuthPrincipal>,
     Path(instance_id): Path<String>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let pod = s.cluster.get_pod(&instance_id).await?;
 
@@ -230,10 +234,16 @@ pub async fn wsrx(
         crate::util::loader::ensure_game_not_paused(&game)?;
     }
 
-    Ok(ws.on_upgrade(move |socket| async move {
-        let result = s.cluster.wsrx(&instance_id, port as u16, socket).await;
-        if let Err(e) = result {
-            debug!("Failed to link pods: {:?}", e);
+    let span = tracing::info_span!("instance.tunnel", instance_id = %instance_id, port);
+    Ok(ws.on_upgrade(move |socket| {
+        async move {
+            match s.cluster.wsrx(&instance_id, port as u16, socket).await {
+                Ok(()) => tracing::info!(outcome = "succeeded", "instance tunnel completed"),
+                Err(err) => {
+                    tracing::warn!(outcome = "failed", error = ?err, "instance tunnel failed")
+                }
+            }
         }
+        .instrument(span)
     }))
 }

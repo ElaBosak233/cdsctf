@@ -10,6 +10,7 @@ use cds_db::{
 };
 use cds_media::config::email::EmailType;
 use cds_worker::mailbox::SUBJECT;
+use garde::Validate;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -17,7 +18,6 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use crate::{
     extract::{Extension, Json as ReqJson, Path},
@@ -281,6 +281,7 @@ pub async fn send_verify_email(
                     .replace("%CODE%", &code)
                     .replace("%USER%", &operator.name),
             },
+            Some(operator.id),
         )
         .await?;
 

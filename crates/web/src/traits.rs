@@ -230,22 +230,6 @@ impl IntoResponse for WebError {
             ),
         };
 
-        if status.is_server_error() {
-            error!(
-                error.kind = error_kind,
-                status = status.as_u16(),
-                error.message = %message,
-                "request failed"
-            );
-        } else {
-            warn!(
-                error.kind = error_kind,
-                status = status.as_u16(),
-                error.message = %message,
-                "request rejected"
-            );
-        }
-
         // Handlers pass stable snake_case codes as strings. Any other string
         // is an implementation/framework diagnostic and must remain details,
         // otherwise it would leak unstable text into the public protocol.
@@ -267,6 +251,11 @@ impl IntoResponse for WebError {
             }
             details => (error_kind.to_owned(), Some(details)),
         };
+        if status.is_server_error() {
+            error!(error_kind, error_code = %code, status = status.as_u16(), "request failed");
+        } else {
+            warn!(error_kind, error_code = %code, status = status.as_u16(), "request rejected");
+        }
         let body = ErrorResponse { code, details };
         (status, Json(body)).into_response()
     }

@@ -18,8 +18,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Json as ReqJson, Path, Query},
-    traits::{AppState, WebError},
+    extract::{Extension, Json as ReqJson, Path, Query},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 /// Defines the `challenge_id` submodule (see sibling `*.rs` files).
@@ -120,6 +120,7 @@ pub struct GameChallengeResponse {
 )]
 #[tracing::instrument(skip_all, fields(handler = "create_game_challenge"))]
 pub async fn create_game_challenge(
+    Extension(principal): Extension<AuthPrincipal>,
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
     ReqJson(body): ReqJson<CreateGameChallengeRequest>,
@@ -150,7 +151,12 @@ pub async fn create_game_challenge(
     .await?;
     cds_db::game::request_score_recalculation(&transaction, game.id).await?;
     transaction.commit().await.map_err(cds_db::DbError::from)?;
-    calculator::notify(&s.queue, game.id).await;
+    calculator::notify(
+        &s.queue,
+        game.id,
+        principal.operator.as_ref().map(|operator| operator.id),
+    )
+    .await;
 
     Ok(Json(GameChallengeResponse { game_challenge }))
 }

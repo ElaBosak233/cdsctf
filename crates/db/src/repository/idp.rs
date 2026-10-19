@@ -3,7 +3,6 @@
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, QueryFilter,
 };
-use tracing::info;
 
 pub(crate) use crate::entity::idp::{Column as IdpColumn, Entity as IdpEntity};
 use crate::traits::DbError;
@@ -44,7 +43,12 @@ pub async fn create_idp<T>(
 where
     T: FromQueryResult, {
     let idp = model.insert(conn).await?;
-    info!(idp_id = idp.id, "idp created");
+    tracing::info!(
+        resource = "idp",
+        action = "create",
+        idp_id = idp.id,
+        "resource step completed"
+    );
     find_idp_by_id(conn, idp.id)
         .await?
         .ok_or_else(|| DbError::NotFound(format!("idp_{}", idp.id)))
@@ -56,8 +60,25 @@ pub async fn update_idp<T>(
 ) -> Result<T, DbError>
 where
     T: FromQueryResult, {
+    let changed_fields = [
+        ("name", model.name.is_set()),
+        ("enabled", model.enabled.is_set()),
+        ("registration_enabled", model.registration_enabled.is_set()),
+        ("avatar_hash", model.avatar_hash.is_set()),
+        ("portal", model.portal.is_set()),
+        ("script", model.script.is_set()),
+    ]
+    .into_iter()
+    .filter_map(|(name, changed)| changed.then_some(name))
+    .collect::<Vec<_>>();
     let idp = model.update(conn).await?;
-    info!(idp_id = idp.id, "idp updated");
+    tracing::info!(
+        resource = "idp",
+        action = "update",
+        changed_fields = ?changed_fields,
+        idp_id = idp.id,
+        "database step completed",
+    );
     find_idp_by_id(conn, idp.id)
         .await?
         .ok_or_else(|| DbError::NotFound(format!("idp_{}", idp.id)))
@@ -65,6 +86,11 @@ where
 
 pub async fn delete_idp(conn: &impl ConnectionTrait, id: i64) -> Result<(), DbError> {
     let _ = IdpEntity::delete_by_id(id).exec(conn).await?;
-    info!(idp_id = id, "idp deleted");
+    tracing::info!(
+        resource = "idp",
+        action = "delete",
+        idp_id = id,
+        "resource step completed"
+    );
     Ok(())
 }

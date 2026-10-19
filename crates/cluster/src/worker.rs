@@ -1,7 +1,7 @@
 //! Kubernetes integration — `worker` (cluster operations and helpers).
 
 use cds_db::sea_orm::sqlx::types::time;
-use tracing::info;
+use tracing::{Instrument, info, warn};
 
 use crate::Cluster;
 
@@ -41,9 +41,14 @@ pub async fn cleaner(cluster: Cluster) {
                 let now = time::OffsetDateTime::now_utc().unix_timestamp();
 
                 if now > started_at + (renew + 1) * duration {
-                    cluster.delete_pod(&id).await.unwrap();
-                    cluster.delete_service(&id).await.unwrap();
-                    info!("Cleaned up invalid cluster {0}", id);
+                    let span = tracing::info_span!(parent: None, "instance.cleanup",
+                        instance_id = %id, operator_kind = "system");
+                    async {
+                        match cluster.delete_challenge_instance(&id).await {
+                            Ok(()) => info!(outcome = "succeeded", "expired instance cleanup completed"),
+                            Err(err) => warn!(outcome = "failed", error = ?err, "expired instance cleanup failed"),
+                        }
+                    }.instrument(span).await;
                 }
             }
             tokio::time::sleep(interval).await;

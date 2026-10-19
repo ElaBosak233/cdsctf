@@ -11,7 +11,6 @@ use sea_orm::{
         ValueTuple,
     },
 };
-use tracing::info;
 
 pub(crate) use crate::entity::submission::{Column, Entity};
 use crate::traits::DbError;
@@ -776,14 +775,16 @@ pub async fn create(
     model: ActiveModel,
 ) -> Result<SubmissionView, DbError> {
     let submission = model.insert(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "submission",
+        action = "create",
         submission_id = submission.id,
         user_id = submission.user_id,
         team_id = submission.team_id,
         game_id = submission.game_id,
         challenge_id = submission.challenge_id,
         status = ?submission.status,
-        "submission created"
+        "database step completed",
     );
 
     Ok(find_by_id(conn, submission.id)
@@ -796,17 +797,36 @@ pub async fn update(
     conn: &impl ConnectionTrait,
     model: ActiveModel,
 ) -> Result<SubmissionView, DbError> {
+    let changed_fields = [
+        ("content", model.content.is_set()),
+        ("status", model.status.is_set()),
+        ("challenge_id", model.challenge_id.is_set()),
+        ("user_id", model.user_id.is_set()),
+        ("team_id", model.team_id.is_set()),
+        ("game_id", model.game_id.is_set()),
+        ("processing_at", model.processing_at.is_set()),
+        ("claims", model.claims.is_set()),
+        ("checked_at", model.checked_at.is_set()),
+        ("pts", model.pts.is_set()),
+        ("rank", model.rank.is_set()),
+    ]
+    .into_iter()
+    .filter_map(|(name, changed)| changed.then_some(name))
+    .collect::<Vec<_>>();
     let submission = model.update(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "submission",
+        action = "update",
+        changed_fields = ?changed_fields,
         submission_id = submission.id,
         user_id = submission.user_id,
         team_id = submission.team_id,
         game_id = submission.game_id,
         challenge_id = submission.challenge_id,
         status = ?submission.status,
-        pts = submission.pts,
-        rank = submission.rank,
-        "submission updated"
+        pts = ?submission.pts,
+        rank = ?submission.rank,
+        "database step completed",
     );
 
     Ok(find_by_id(conn, submission.id)
@@ -817,7 +837,12 @@ pub async fn update(
 /// Deletes rows matching the provided identifier or filter.
 pub async fn delete(conn: &impl ConnectionTrait, submission_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(submission_id).exec(conn).await?;
-    info!(submission_id, "submission deleted");
+    tracing::info!(
+        resource = "submission",
+        action = "delete",
+        submission_id = submission_id,
+        "resource step completed"
+    );
 
     Ok(())
 }

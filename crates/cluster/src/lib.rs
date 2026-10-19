@@ -382,6 +382,10 @@ impl Cluster {
         challenge: cds_db::ChallengeDetail,
     ) -> Result<String, ClusterError> {
         let id = util::gen_safe_nanoid();
+        let user_id = user.id;
+        let challenge_id = challenge.id;
+        let game_id = game.as_ref().map(|game| game.id);
+        let team_id = team.as_ref().map(|team| team.id);
         let name = format!("cds-{}", id);
 
         let instance = challenge
@@ -593,6 +597,16 @@ impl Cluster {
             )
             .await?;
 
+        tracing::info!(
+            resource = "instance",
+            action = "create",
+            instance_id = %id,
+            user_id,
+            challenge_id,
+            game_id,
+            team_id,
+            "resource step completed",
+        );
         Ok(id)
     }
 
@@ -621,6 +635,12 @@ impl Cluster {
             )
             .await?;
 
+        tracing::info!(
+            resource = "instance",
+            action = "renew",
+            instance_id = id,
+            "resource step completed"
+        );
         Ok(())
     }
 
@@ -628,7 +648,19 @@ impl Cluster {
 
     pub async fn delete_challenge_instance(&self, id: &str) -> Result<(), ClusterError> {
         self.delete_pod(id).await?;
+        tracing::info!(
+            resource = "instance",
+            action = "delete_pod",
+            instance_id = id,
+            "resource step completed"
+        );
         self.delete_service(id).await?;
+        tracing::info!(
+            resource = "instance",
+            action = "delete_service",
+            instance_id = id,
+            "resource step completed"
+        );
 
         Ok(())
     }

@@ -55,6 +55,14 @@ pub async fn create_token(
         )
         .await?;
 
+    tracing::info!(
+        resource = "team_invite",
+        action = "create",
+        team_id = team.id,
+        game_id,
+        expires_in_seconds = ?3600,
+        "resource step completed",
+    );
     Ok(Json(InviteTokenResponse { token: Some(token) }))
 }
 
@@ -111,5 +119,13 @@ pub async fn delete_token(
         .take::<String>(format!("team:{}:invite", team.id))
         .await?;
 
+    tracing::info!(
+        resource = "team_invite",
+        action = "revoke",
+        team_id = team.id,
+        game_id = game_id,
+        existed = token.is_some(),
+        "resource step completed"
+    );
     Ok(Json(InviteTokenResponse { token }))
 }

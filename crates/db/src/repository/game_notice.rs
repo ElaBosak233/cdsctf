@@ -3,7 +3,6 @@
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, QueryFilter,
 };
-use tracing::info;
 
 pub(crate) use crate::entity::game_notice::{Column, Entity};
 use crate::traits::DbError;
@@ -48,11 +47,13 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let game_notice = model.insert(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "game_notice",
+        action = "create",
         notice_id = game_notice.id,
         game_id = game_notice.game_id,
-        title = %game_notice.title,
-        "game notice created"
+        title = ?game_notice.title,
+        "database step completed",
     );
 
     Ok(find_by_id::<T>(conn, game_notice.id, game_notice.game_id)
@@ -71,7 +72,13 @@ pub async fn delete(
         .filter(Column::GameId.eq(game_id))
         .exec(conn)
         .await?;
-    info!(notice_id, game_id, "game notice deleted");
+    tracing::info!(
+        resource = "game_notice",
+        action = "delete",
+        notice_id = notice_id,
+        game_id = game_id,
+        "resource step completed"
+    );
 
     Ok(())
 }

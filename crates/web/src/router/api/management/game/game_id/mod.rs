@@ -35,9 +35,9 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Path, VJson},
+    extract::{Extension, Path, VJson},
     router::api::management::game::AdminGameDetailResponse,
-    traits::{AppState, EmptyJson, WebError},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -125,7 +125,8 @@ pub async fn update_game(
 ) -> Result<Json<AdminGameDetailResponse>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    let game = cds_db::game::update(
+    let before = serde_json::json!({"enabled": game.enabled, "public": game.public, "paused": game.paused, "blacked_out": game.blacked_out, "member_limit_min": game.member_limit_min, "member_limit_max": game.member_limit_max, "writeup_required": game.writeup_required, "timeslots": game.timeslots, "started_at": game.started_at, "frozen_at": game.frozen_at, "ended_at": game.ended_at});
+    let game = cds_db::game::update::<cds_db::GameDetail>(
         &s.db.conn,
         cds_db::game::ActiveModel {
             id: Unchanged(game.id),
@@ -150,6 +151,14 @@ pub async fn update_game(
     )
     .await?;
 
+    tracing::info!(
+        resource = "game",
+        action = "settings",
+        game_id = game.id,
+        before = ?before,
+        after = %serde_json::json!({"enabled": game.enabled, "public": game.public, "paused": game.paused, "blacked_out": game.blacked_out, "member_limit_min": game.member_limit_min, "member_limit_max": game.member_limit_max, "writeup_required": game.writeup_required, "timeslots": game.timeslots, "started_at": game.started_at, "frozen_at": game.frozen_at, "ended_at": game.ended_at}),
+        "resource step completed",
+    );
     Ok(Json(AdminGameDetailResponse { game }))
 }
 
@@ -191,12 +200,19 @@ pub async fn delete_game(
 )]
 #[tracing::instrument(skip_all, fields(handler = "calculate_game"))]
 pub async fn calculate_game(
+    Extension(principal): Extension<AuthPrincipal>,
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
-    calculator::request(&s.db.conn, &s.queue, game.id).await?;
+    calculator::request(
+        &s.db.conn,
+        &s.queue,
+        game.id,
+        principal.operator.as_ref().map(|operator| operator.id),
+    )
+    .await?;
 
     Ok(Json(EmptyJson::default()))
 }

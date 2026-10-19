@@ -7,7 +7,6 @@ use sea_orm::{
     FromQueryResult, Iden as _, JoinType, Order, PaginatorTrait, QueryFilter, QueryOrder,
     QuerySelect, QueryTrait, RelationTrait, Set, prelude::Expr,
 };
-use tracing::info;
 
 pub(crate) use crate::entity::challenge::{Column, Entity};
 use crate::traits::DbError;
@@ -195,14 +194,16 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let challenge = model.insert(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "challenge",
+        action = "create",
         challenge_id = challenge.id,
-        title = %challenge.title,
-        category = challenge.category,
-        public = challenge.public,
-        has_instance = challenge.has_instance,
-        has_attachment = challenge.has_attachment,
-        "challenge created"
+        title = ?challenge.title,
+        category = ?challenge.category,
+        public = ?challenge.public,
+        has_instance = ?challenge.has_instance,
+        has_attachment = ?challenge.has_attachment,
+        "database step completed",
     );
 
     Ok(find_by_id::<T>(conn, challenge.id)
@@ -214,15 +215,35 @@ where
 pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
+    let changed_fields = [
+        ("title", model.title.is_set()),
+        ("description", model.description.is_set()),
+        ("category", model.category.is_set()),
+        ("tags", model.tags.is_set()),
+        ("has_instance", model.has_instance.is_set()),
+        ("has_attachment", model.has_attachment.is_set()),
+        ("has_writeup", model.has_writeup.is_set()),
+        ("public", model.public.is_set()),
+        ("instance", model.instance.is_set()),
+        ("checker", model.checker.is_set()),
+        ("writeup", model.writeup.is_set()),
+        ("deleted_at", model.deleted_at.is_set()),
+    ]
+    .into_iter()
+    .filter_map(|(name, changed)| changed.then_some(name))
+    .collect::<Vec<_>>();
     let challenge = model.update(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "challenge",
+        action = "update",
+        changed_fields = ?changed_fields,
         challenge_id = challenge.id,
-        title = %challenge.title,
-        category = challenge.category,
-        public = challenge.public,
-        has_instance = challenge.has_instance,
-        has_attachment = challenge.has_attachment,
-        "challenge updated"
+        title = ?challenge.title,
+        category = ?challenge.category,
+        public = ?challenge.public,
+        has_instance = ?challenge.has_instance,
+        has_attachment = ?challenge.has_attachment,
+        "database step completed",
     );
 
     Ok(find_by_id::<T>(conn, challenge.id)
@@ -243,10 +264,12 @@ pub async fn delete(conn: &impl ConnectionTrait, challenge_id: i64) -> Result<()
     }
     .update(conn)
     .await?;
-    info!(
+    tracing::info!(
+        resource = "challenge",
+        action = "delete",
         challenge_id,
-        title = %challenge.title,
-        "challenge deleted"
+        title = ?challenge.title,
+        "database step completed",
     );
 
     Ok(())

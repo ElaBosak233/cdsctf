@@ -81,7 +81,9 @@ pub async fn list_submissions(
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<ListSubmissionsRequest>,
 ) -> Result<Json<ListSubmissionsResponse>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let _ = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
@@ -149,7 +151,9 @@ pub async fn create_submission(
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateSubmissionRequest>,
 ) -> Result<(StatusCode, Json<SubmissionSummary>), WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
@@ -237,7 +241,9 @@ pub async fn create_submission(
     )
     .await?;
 
-    s.queue.publish(SUBJECT, submission.id).await?;
+    s.queue
+        .publish(SUBJECT, submission.id, Some(operator.id))
+        .await?;
     info!(
         submission_id = submission.id,
         user_id = operator.id,

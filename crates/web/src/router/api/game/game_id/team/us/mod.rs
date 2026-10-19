@@ -72,7 +72,9 @@ pub async fn get_team(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<TeamResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
@@ -109,7 +111,9 @@ pub async fn update_team(
     Path(game_id): Path<i64>,
     ReqJson(body): ReqJson<UpdateTeamRequest>,
 ) -> Result<Json<TeamResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
@@ -151,7 +155,9 @@ pub async fn delete_team(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
     if team.state != TState::Preparing {
@@ -186,7 +192,9 @@ pub async fn set_team_ready(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<TeamResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
@@ -235,7 +243,7 @@ pub async fn set_team_ready(
     transaction.commit().await.map_err(cds_db::DbError::from)?;
 
     if score_changed {
-        calculator::notify(&s.queue, game.id).await;
+        calculator::notify(&s.queue, game.id, Some(operator.id)).await;
     }
 
     Ok(Json(TeamResponse::new(team, game.blacked_out)))

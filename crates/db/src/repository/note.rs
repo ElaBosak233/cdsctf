@@ -6,7 +6,6 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityLoaderTrait, EntityTrait, Order,
     QueryFilter, QueryOrder,
 };
-use tracing::info;
 
 pub(crate) use crate::entity::note::{Column, Entity};
 use crate::traits::DbError;
@@ -167,12 +166,14 @@ pub async fn find_by_user_id_and_challenge_id(
 /// Inserts a new row and returns the persisted model.
 pub async fn create(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<NoteView, DbError> {
     let note = model.insert(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "note",
+        action = "create",
         note_id = note.id,
         user_id = note.user_id,
         challenge_id = note.challenge_id,
-        public = note.public,
-        "note created"
+        public = ?note.public,
+        "database step completed",
     );
 
     Ok(find_by_id(conn, note.id)
@@ -182,13 +183,25 @@ pub async fn create(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<N
 
 /// Applies an active model update to the database.
 pub async fn update(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<NoteView, DbError> {
+    let changed_fields = [
+        ("content", model.content.is_set()),
+        ("public", model.public.is_set()),
+        ("user_id", model.user_id.is_set()),
+        ("challenge_id", model.challenge_id.is_set()),
+    ]
+    .into_iter()
+    .filter_map(|(name, changed)| changed.then_some(name))
+    .collect::<Vec<_>>();
     let note = model.update(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "note",
+        action = "update",
+        changed_fields = ?changed_fields,
         note_id = note.id,
         user_id = note.user_id,
         challenge_id = note.challenge_id,
-        public = note.public,
-        "note updated"
+        public = ?note.public,
+        "database step completed",
     );
 
     Ok(find_by_id(conn, note.id)
@@ -199,7 +212,12 @@ pub async fn update(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<N
 /// Deletes rows matching the provided identifier or filter.
 pub async fn delete(conn: &impl ConnectionTrait, note_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(note_id).exec(conn).await?;
-    info!(note_id, "note deleted");
+    tracing::info!(
+        resource = "note",
+        action = "delete",
+        note_id = note_id,
+        "resource step completed"
+    );
 
     Ok(())
 }

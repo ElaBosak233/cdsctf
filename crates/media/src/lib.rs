@@ -224,6 +224,14 @@ impl Media {
             .put_object(&key, &data)
             .await
             .map_err(|err| map_s3_error(err, false))?;
+        tracing::info!(
+            resource = "media",
+            action = "save",
+            path = ?path,
+            filename = ?filename,
+            bytes = data.len(),
+            "resource step completed",
+        );
         Ok(())
     }
 
@@ -244,7 +252,17 @@ impl Media {
             .await;
 
         match result {
-            Ok(_) => Ok(SaveIfAbsent::Created),
+            Ok(_) => {
+                tracing::info!(
+                    resource = "media",
+                    action = "create",
+                    path = ?path,
+                    filename = ?filename,
+                    bytes = data.len(),
+                    "resource step completed",
+                );
+                Ok(SaveIfAbsent::Created)
+            }
             Err(S3Error::HttpFailWithBody(412, _)) => Ok(SaveIfAbsent::AlreadyExists),
             Err(err) => Err(map_s3_error(err, false)),
         }
@@ -261,6 +279,13 @@ impl Media {
             .delete_object(&key)
             .await
             .map_err(|err| map_s3_error(err, false))?;
+        tracing::info!(
+            resource = "media",
+            action = "delete",
+            path = ?path,
+            filename = ?filename,
+            "resource step completed",
+        );
         Ok(())
     }
 
@@ -289,6 +314,12 @@ impl Media {
                     .delete_object(&object.key)
                     .await
                     .map_err(|err| map_s3_error(err, false))?;
+                tracing::info!(
+                    resource = "media",
+                    action = "delete",
+                    key = ?object.key,
+                    "resource step completed",
+                );
             }
         }
 

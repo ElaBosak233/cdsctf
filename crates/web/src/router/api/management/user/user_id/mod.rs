@@ -101,7 +101,9 @@ pub async fn update_user(
         body.password = Some(hashed_password);
     }
 
-    let user = cds_db::user::update(
+    let before = serde_json::json!({"banned": user.banned, "permissions": user.permissions});
+    let password_changed = body.password.is_some();
+    let user = cds_db::user::update::<cds_db::UserAccountView>(
         &s.db.conn,
         cds_db::user::ActiveModel {
             id: Unchanged(user.id),
@@ -115,6 +117,15 @@ pub async fn update_user(
     )
     .await?;
 
+    tracing::info!(
+        resource = "user",
+        action = "administrative_update",
+        user_id = user.id,
+        before = ?before,
+        after = %serde_json::json!({"banned": user.banned, "permissions": user.permissions}),
+        password_changed,
+        "resource step completed",
+    );
     Ok(Json(UserResponse { user }))
 }
 

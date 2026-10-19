@@ -22,8 +22,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Json as ReqJson, Path},
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Json as ReqJson, Path},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -90,6 +90,7 @@ fn score_recalculation_game_id(
 )]
 #[tracing::instrument(skip_all, fields(handler = "update_submission_status"))]
 pub async fn update_submission_status(
+    Extension(principal): Extension<AuthPrincipal>,
     State(s): State<Arc<AppState>>,
 
     Path(submission_id): Path<i64>,
@@ -160,9 +161,22 @@ pub async fn update_submission_status(
     transaction.commit().await.map_err(cds_db::DbError::from)?;
 
     if let Some(game_id) = score_game_id {
-        calculator::notify(&s.queue, game_id).await;
+        calculator::notify(
+            &s.queue,
+            game_id,
+            principal.operator.as_ref().map(|operator| operator.id),
+        )
+        .await;
     }
 
+    tracing::info!(
+        resource = "submission",
+        action = "override_status",
+        submission_id = submission.id,
+        before = ?previous.status,
+        after = ?submission.status,
+        "resource step completed",
+    );
     info!(
         submission_id = submission.id,
         status = ?submission.status,
@@ -188,6 +202,7 @@ pub async fn update_submission_status(
 )]
 #[tracing::instrument(skip_all, fields(handler = "delete_submission"))]
 pub async fn delete_submission(
+    Extension(principal): Extension<AuthPrincipal>,
     State(s): State<Arc<AppState>>,
 
     Path(submission_id): Path<i64>,
@@ -221,7 +236,12 @@ pub async fn delete_submission(
     transaction.commit().await.map_err(cds_db::DbError::from)?;
 
     if let Some(game_id) = score_game_id {
-        calculator::notify(&s.queue, game_id).await;
+        calculator::notify(
+            &s.queue,
+            game_id,
+            principal.operator.as_ref().map(|operator| operator.id),
+        )
+        .await;
     }
 
     Ok(Json(EmptyJson::default()))

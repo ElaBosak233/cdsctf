@@ -66,9 +66,17 @@ pub async fn extract(
     req: Request,
     next: Next,
 ) -> Result<Response, WebError> {
+    let request_span = req
+        .extensions()
+        .get::<Span>()
+        .cloned()
+        .unwrap_or_else(Span::current);
     let (mut parts, body) = req.into_parts();
 
     let authorization = parts.headers.get(AUTHORIZATION).cloned();
+    if authorization.is_some() {
+        request_span.record("auth_method", "bearer");
+    }
     let bearer = authorization.as_ref().and_then(parse_bearer);
 
     if authorization.is_some() && bearer.is_none() {
@@ -94,6 +102,7 @@ pub async fn extract(
         .to_owned();
 
     if let Some(bearer) = bearer.as_deref() {
+        request_span.record("auth_method", "personal_access_token");
         let token = bearer
             .strip_prefix("cds_pat_")
             .and_then(|value| value.split_once('.'))
@@ -112,6 +121,10 @@ pub async fn extract(
         let user = cds_db::user::find_by_id::<UserAccountView>(&s.db.conn, token_record.user_id)
             .await?
             .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+        request_span.record("operator_kind", "user");
+        request_span.record("operator_id", user.id);
+        request_span.record("operator_username", user.username.as_str());
+        request_span.record("credential_id", token_record.token_id.as_str());
         if user.banned {
             warn!(user_id = user.id, username = %user.username, "banned user rejected");
             return Err(WebError::Forbidden(json!("forbidden")));
@@ -131,6 +144,10 @@ pub async fn extract(
     {
         if let Some(user) = cds_db::user::find_by_id::<UserAccountView>(&s.db.conn, user_id).await?
         {
+            request_span.record("operator_kind", "user");
+            request_span.record("operator_id", user.id);
+            request_span.record("operator_username", user.username.as_str());
+            request_span.record("auth_method", "session");
             if user.banned {
                 warn!(user_id = user.id, username = %user.username, "banned user rejected");
                 return Err(WebError::Forbidden(json!("forbidden")));
@@ -142,7 +159,6 @@ pub async fn extract(
                 permissions = ?user.permissions,
                 "authenticated request principal loaded"
             );
-            Span::current().record("username", user.username.as_str());
             ext.auth_method = AuthMethod::Session;
             ext.operator = Some(user);
 
@@ -196,7 +212,6 @@ pub async fn require_management(
         permissions = ?operator.permissions,
         "management access granted"
     );
-    Span::current().record("username", operator.username.as_str());
     Ok(next.run(req).await)
 }
 

@@ -13,3 +13,6 @@ pub mod network;
 
 /// Defines the `telemetry` submodule (see sibling `*.rs` files).
 pub mod telemetry;
+
+/// Native tracing request spans and response events.
+pub mod trace;

@@ -8,7 +8,6 @@ use sea_orm::{
     prelude::Expr,
     sea_query::{Func, Query},
 };
-use tracing::info;
 
 pub use super::team_user::find_users as find_by_team_id;
 pub(crate) use crate::entity::user::{Column, Entity};
@@ -281,11 +280,14 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let user = model.insert(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "user",
+        action = "create",
         user_id = user.id,
-        username = %user.username,
+        username = ?user.username,
         banned = user.banned,
-        "user created"
+        permissions = ?user.permissions,
+        "database step completed",
     );
 
     Ok(find_by_id::<T>(conn, user.id)
@@ -297,12 +299,29 @@ where
 pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
+    let changed_fields = [
+        ("name", model.name.is_set()),
+        ("username", model.username.is_set()),
+        ("description", model.description.is_set()),
+        ("banned", model.banned.is_set()),
+        ("permissions", model.permissions.is_set()),
+        ("password", model.hashed_password.is_set()),
+        ("avatar_hash", model.avatar_hash.is_set()),
+        ("deleted_at", model.deleted_at.is_set()),
+    ]
+    .into_iter()
+    .filter_map(|(name, changed)| changed.then_some(name))
+    .collect::<Vec<_>>();
     let user = model.update(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "user",
+        action = "update",
+        changed_fields = ?changed_fields,
         user_id = user.id,
-        username = %user.username,
+        username = ?user.username,
         banned = user.banned,
-        "user updated"
+        permissions = ?user.permissions,
+        "database step completed",
     );
 
     Ok(find_by_id::<T>(conn, user.id)
@@ -326,7 +345,12 @@ pub async fn update_password(
         },
     )
     .await?;
-    info!(user_id, "user password updated");
+    tracing::info!(
+        resource = "user",
+        action = "update_password",
+        user_id = user_id,
+        "resource step completed"
+    );
 
     Ok(())
 }
@@ -349,10 +373,12 @@ pub async fn delete(conn: &impl ConnectionTrait, user_id: i64) -> Result<(), DbE
     let _ = super::email::delete_by_user_id(conn, user_id).await?;
     super::user_idp::delete_user_idps_by_user(conn, user_id).await?;
     super::personal_access_token::delete_by_user_id(conn, user_id).await?;
-    info!(
+    tracing::info!(
+        resource = "user",
+        action = "delete",
         user_id,
-        username = %user.username,
-        "user deleted"
+        username = ?user.username,
+        "database step completed",
     );
 
     Ok(())

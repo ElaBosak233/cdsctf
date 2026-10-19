@@ -24,7 +24,7 @@ use cds_db::{
 };
 use cds_queue::{Queue, async_nats::jetstream::AckKind};
 use futures_util::StreamExt as _;
-use tracing::{debug, error, info, warn};
+use tracing::{Instrument, debug, error, info, warn};
 
 use self::finalizer::{FinalizeOutcome, Verdict};
 use crate::calculator;
@@ -95,6 +95,7 @@ async fn check(
     submission: SubmissionView,
     processing_at: time::OffsetDateTime,
     claims: i64,
+    initiator_id: Option<i64>,
 ) -> Result<CheckOutcome, anyhow::Error> {
     let user = if let Some(user) =
         cds_db::user::find_by_id::<UserAccountView>(&ctx.db.conn, submission.user_id).await?
@@ -190,7 +191,7 @@ async fn check(
 
     if let Some(game_id) = score_game_id {
         // Fan-out score recompute for the affected competition only.
-        calculator::notify(&ctx.queue, game_id).await;
+        calculator::notify(&ctx.queue, game_id, initiator_id).await;
         debug!(
             submission_id = submission.id,
             game_id,
@@ -220,7 +221,7 @@ async fn recover_queued(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
     let recovered = unchecked_submissions.len();
     for submission in unchecked_submissions {
         let id = submission.id;
-        ctx.queue.publish(SUBJECT, id).await?;
+        ctx.queue.publish(SUBJECT, id, None).await?;
     }
 
     info!(
@@ -252,122 +253,131 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
                     }
                 };
 
-                let id = match serde_json::from_slice::<i64>(&message.payload) {
-                    Ok(id) => id,
-                    Err(err) => {
-                        warn!(error = ?err, "invalid checker payload skipped");
-                        message.double_ack().await.ok();
-                        return;
-                    }
-                };
-                debug!(submission_id = id, "checker message received");
-
-                let submission =
-                    match cds_db::submission::claim_queued_or_stale_by_id(&ctx.db.conn, id).await {
-                        Ok(Some(submission)) => submission,
-                        Ok(None) => {
-                            match cds_db::submission::find_by_id(&ctx.db.conn, id).await {
-                                Ok(Some(submission))
-                                    if matches!(submission.status, Status::Queued) =>
-                                {
-                                    debug!(submission_id = id, "queued submission claim raced");
-                                    message
-                                        .ack_with(AckKind::Nak(Some(TRANSIENT_RETRY_DELAY)))
-                                        .await
-                                        .ok();
-                                }
-                                Ok(Some(submission))
-                                    if matches!(submission.status, Status::Processing) =>
-                                {
-                                    let retry_after =
-                                        processing_retry_after(submission.processing_at);
-                                    debug!(
-                                        submission_id = id,
-                                        processing_at = ?submission.processing_at,
-                                        retry_after_ms = retry_after.as_millis(),
-                                        "submission lease is active; message delayed"
-                                    );
-                                    message.ack_with(AckKind::Nak(Some(retry_after))).await.ok();
-                                }
-                                Ok(_) => {
-                                    debug!(
-                                        submission_id = id,
-                                        "submission is terminal or missing; message skipped"
-                                    );
-                                    message.double_ack().await.ok();
-                                }
-                                Err(err) => {
-                                    error!(
-                                        submission_id = id,
-                                        error = ?err,
-                                        "submission state lookup failed"
-                                    );
-                                }
-                            }
-                            return;
-                        }
+                let span = Queue::message_span(&message);
+                let process = async {
+                    let id = match serde_json::from_slice::<i64>(&message.payload) {
+                        Ok(id) => id,
                         Err(err) => {
-                            error!(submission_id = id, error = ?err, "submission claim failed");
+                            warn!(outcome = "rejected", error = ?err, "invalid checker payload skipped");
+                            message.double_ack().await.ok();
                             return;
                         }
                     };
-                let Some(processing_at) = submission.processing_at else {
-                    error!(
-                        submission_id = id,
-                        "claimed submission has no processing timestamp"
-                    );
-                    return;
-                };
-                debug!(
-                    submission_id = submission.id,
-                    user_id = submission.user_id,
-                    team_id = submission.team_id,
-                    game_id = submission.game_id,
-                    challenge_id = submission.challenge_id,
-                    processing_at = ?processing_at,
-                    "submission claimed"
-                );
+                    tracing::Span::current().record("submission_id", id);
+                    info!(submission_id = id, "checker message received");
 
-                let claims = submission.claims;
-                match check(&ctx, submission, processing_at, claims).await {
-                    Ok(CheckOutcome::Committed) => {
-                        message.double_ack().await.ok();
-                    }
-                    Ok(CheckOutcome::LeaseLost) => {
-                        debug!(
-                            submission_id = id,
-                            "submission lease lost; message left unacknowledged"
-                        );
-                    }
-                    Err(err) => {
-                        let released = match cds_db::submission::release_processing(
-                            &ctx.db.conn,
-                            id,
-                            processing_at,
-                            claims,
-                        )
-                        .await
-                        {
-                            Ok(released) => released,
-                            Err(release_err) => {
-                                error!(
-                                    submission_id = id,
-                                    error = ?err,
-                                    release_error = ?release_err,
-                                    "submission check and lease release failed; message left unacknowledged"
-                                );
+                    let submission =
+                        match cds_db::submission::claim_queued_or_stale_by_id(&ctx.db.conn, id).await {
+                            Ok(Some(submission)) => submission,
+                            Ok(None) => {
+                                match cds_db::submission::find_by_id(&ctx.db.conn, id).await {
+                                    Ok(Some(submission))
+                                        if matches!(submission.status, Status::Queued) =>
+                                    {
+                                        info!(submission_id = id, outcome = "deferred", "queued submission claim raced");
+                                        message
+                                            .ack_with(AckKind::Nak(Some(TRANSIENT_RETRY_DELAY)))
+                                            .await
+                                            .ok();
+                                    }
+                                    Ok(Some(submission))
+                                        if matches!(submission.status, Status::Processing) =>
+                                    {
+                                        let retry_after =
+                                            processing_retry_after(submission.processing_at);
+                                        info!(
+                                            submission_id = id,
+                                            outcome = "deferred",
+                                            processing_at = ?submission.processing_at,
+                                            retry_after_ms = retry_after.as_millis(),
+                                            "submission lease is active; message delayed"
+                                        );
+                                        message.ack_with(AckKind::Nak(Some(retry_after))).await.ok();
+                                    }
+                                    Ok(_) => {
+                                        info!(
+                                            submission_id = id,
+                                            outcome = "skipped",
+                                            "submission is terminal or missing; message skipped"
+                                        );
+                                        message.double_ack().await.ok();
+                                    }
+                                    Err(err) => {
+                                        error!(
+                                            submission_id = id,
+                                            error = ?err,
+                                            "submission state lookup failed"
+                                        );
+                                    }
+                                }
+                                return;
+                            }
+                            Err(err) => {
+                                error!(submission_id = id, error = ?err, "submission claim failed");
                                 return;
                             }
                         };
-                        error!(submission_id = id, released, error = ?err, "submission check failed");
-                        if released {
-                            message
-                                .ack_with(AckKind::Nak(Some(TRANSIENT_RETRY_DELAY)))
-                                .await
-                                .ok();
+                    let Some(processing_at) = submission.processing_at else {
+                        error!(
+                            submission_id = id,
+                            "claimed submission has no processing timestamp"
+                        );
+                        return;
+                    };
+                    debug!(
+                        submission_id = submission.id,
+                        user_id = submission.user_id,
+                        team_id = submission.team_id,
+                        game_id = submission.game_id,
+                        challenge_id = submission.challenge_id,
+                        processing_at = ?processing_at,
+                        "submission claimed"
+                    );
+
+                    let claims = submission.claims;
+                    match check(&ctx, submission, processing_at, claims, Queue::initiator_id(&message)).await {
+                        Ok(CheckOutcome::Committed) => {
+                            info!(submission_id = id, outcome = "succeeded", "submission check completed");
+                            message.double_ack().await.ok();
+                        }
+                        Ok(CheckOutcome::LeaseLost) => {
+                            info!(
+                                submission_id = id,
+                                outcome = "deferred",
+                                "submission lease lost; message left unacknowledged"
+                            );
+                        }
+                        Err(err) => {
+                            let released = match cds_db::submission::release_processing(
+                                &ctx.db.conn,
+                                id,
+                                processing_at,
+                                claims,
+                            )
+                            .await
+                            {
+                                Ok(released) => released,
+                                Err(release_err) => {
+                                    error!(
+                                        submission_id = id,
+                                        error = ?err,
+                                        release_error = ?release_err,
+                                        "submission check and lease release failed; message left unacknowledged"
+                                    );
+                                    return;
+                                }
+                            };
+                            error!(submission_id = id, released, error = ?err, "submission check failed");
+                            if released {
+                                message
+                                    .ack_with(AckKind::Nak(Some(TRANSIENT_RETRY_DELAY)))
+                                    .await
+                                    .ok();
+                            }
                         }
                     }
-                }
+                };
+                process.instrument(span).await;
             }
         })
         .await;
@@ -379,7 +389,12 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
 #[tracing::instrument(skip_all, fields(handler = "spawn"))]
 pub async fn spawn(db: &DB, queue: &Queue, checker: &Checker) {
     let ctx = Arc::new(Context::new(db, queue, checker));
-    recover_queued(Arc::clone(&ctx)).await.unwrap();
+    recover_queued(Arc::clone(&ctx))
+        .instrument(
+            tracing::info_span!(parent: None, "submission.recover", operator_kind = "system"),
+        )
+        .await
+        .unwrap();
 
     let run_ctx = Arc::clone(&ctx);
     tokio::spawn(async move {

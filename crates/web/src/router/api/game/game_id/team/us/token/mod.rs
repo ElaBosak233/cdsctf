@@ -50,7 +50,9 @@ pub async fn create_token(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<InviteTokenResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
     let token = nanoid!(16);
@@ -62,6 +64,14 @@ pub async fn create_token(
         )
         .await?;
 
+    tracing::info!(
+        resource = "team_invite",
+        action = "create",
+        team_id = team.id,
+        game_id,
+        expires_in_seconds = ?3600,
+        "resource step completed",
+    );
     Ok(Json(InviteTokenResponse { token: Some(token) }))
 }
 
@@ -85,7 +95,9 @@ pub async fn get_token(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<InviteTokenResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
     let token = s
         .cache
@@ -115,12 +127,22 @@ pub async fn delete_token(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<InviteTokenResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = ext
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
     let token = s
         .cache
         .take::<String>(format!("team:{}:invite", team.id))
         .await?;
 
+    tracing::info!(
+        resource = "team_invite",
+        action = "revoke",
+        team_id = team.id,
+        game_id = game_id,
+        existed = token.is_some(),
+        "resource step completed"
+    );
     Ok(Json(InviteTokenResponse { token }))
 }

@@ -7,7 +7,6 @@ use sea_orm::{
     PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
     sea_query::{Alias, Expr, ExprTrait, Func, Query},
 };
-use tracing::info;
 
 pub use crate::{
     dto::game::{GameDetail, GameSummary, GameView},
@@ -97,6 +96,12 @@ pub async fn request_score_recalculation(
     if result.rows_affected == 0 {
         return Err(DbError::NotFound(format!("game_{game_id}")));
     }
+    tracing::info!(
+        resource = "score",
+        action = "request_recalculation",
+        game_id = game_id,
+        "resource step completed"
+    );
     Ok(())
 }
 
@@ -241,14 +246,16 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let game = model.insert(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "game",
+        action = "create",
         game_id = game.id,
-        title = %game.title,
-        enabled = game.enabled,
-        public = game.public,
-        started_at = %game.started_at,
-        ended_at = %game.ended_at,
-        "game created"
+        title = ?game.title,
+        enabled = ?game.enabled,
+        public = ?game.public,
+        started_at = ?game.started_at,
+        ended_at = ?game.ended_at,
+        "database step completed",
     );
 
     Ok(find_by_id::<T>(conn, game.id)
@@ -260,15 +267,40 @@ where
 pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
+    let changed_fields = [
+        ("title", model.title.is_set()),
+        ("sketch", model.sketch.is_set()),
+        ("description", model.description.is_set()),
+        ("enabled", model.enabled.is_set()),
+        ("public", model.public.is_set()),
+        ("paused", model.paused.is_set()),
+        ("blacked_out", model.blacked_out.is_set()),
+        ("member_limit_min", model.member_limit_min.is_set()),
+        ("member_limit_max", model.member_limit_max.is_set()),
+        ("writeup_required", model.writeup_required.is_set()),
+        ("timeslots", model.timeslots.is_set()),
+        ("started_at", model.started_at.is_set()),
+        ("frozen_at", model.frozen_at.is_set()),
+        ("ended_at", model.ended_at.is_set()),
+        ("icon_hash", model.icon_hash.is_set()),
+        ("poster_hash", model.poster_hash.is_set()),
+        ("score_revision", model.score_revision.is_set()),
+    ]
+    .into_iter()
+    .filter_map(|(name, changed)| changed.then_some(name))
+    .collect::<Vec<_>>();
     let game = model.update(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "game",
+        action = "update",
+        changed_fields = ?changed_fields,
         game_id = game.id,
-        title = %game.title,
-        enabled = game.enabled,
-        public = game.public,
-        started_at = %game.started_at,
-        ended_at = %game.ended_at,
-        "game updated"
+        title = ?game.title,
+        enabled = ?game.enabled,
+        public = ?game.public,
+        started_at = ?game.started_at,
+        ended_at = ?game.ended_at,
+        "database step completed",
     );
 
     Ok(find_by_id::<T>(conn, game.id)
@@ -279,7 +311,12 @@ where
 /// Deletes rows matching the provided identifier or filter.
 pub async fn delete(conn: &impl ConnectionTrait, game_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(game_id).exec(conn).await?;
-    info!(game_id, "game deleted");
+    tracing::info!(
+        resource = "game",
+        action = "delete",
+        game_id = game_id,
+        "resource step completed"
+    );
 
     Ok(())
 }

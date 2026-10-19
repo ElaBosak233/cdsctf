@@ -55,6 +55,11 @@ where
         }
     }
 
+    /// Active messages retain their tracing span until the batch completes.
+    pub fn active(&self, key: &K) -> Option<&[M]> {
+        self.jobs.get(key).map(|job| job.active.as_slice())
+    }
+
     /// Finishes one run. Messages received during it become one rerun batch.
     pub fn complete(&mut self, key: &K, succeeded: bool) -> Option<Completion<M>> {
         let mut job = self.jobs.remove(key)?;

@@ -25,7 +25,7 @@ use plan::ScorePlan;
 use scheduler::{ScheduleAction, Scheduler};
 use sea_orm::{ConnectionTrait, TransactionTrait};
 use tokio::sync::{Semaphore, mpsc};
-use tracing::{debug, error, info, warn};
+use tracing::{Instrument, debug, error, info, warn};
 
 /// JetStream subject name for score / rank recomputation jobs.
 pub const SUBJECT: &str = "cds.game.recalc";
@@ -169,21 +169,35 @@ fn spawn_calculation(
     key: JobKey,
     semaphore: Arc<Semaphore>,
     completion_tx: mpsc::UnboundedSender<JobResult>,
+    triggers: &[Option<(Message, tracing::Span)>],
 ) {
-    tokio::spawn(async move {
-        let result = match semaphore.acquire_owned().await {
-            Ok(_permit) => calculate_scope(&db, key).await,
-            Err(err) => Err(anyhow::anyhow!(err)),
-        };
-        completion_tx.send(JobResult { key, result }).ok();
-    });
+    let trigger_count = triggers.iter().flatten().count();
+    let span = tracing::info_span!(parent: None, "score.calculate", game_id = key,
+        operator_kind = "system", trigger_count, omitted_links = trigger_count.saturating_sub(64));
+    for (_, origin) in triggers.iter().flatten().take(64) {
+        span.follows_from(origin);
+    }
+    tokio::spawn(
+        async move {
+            let result = match semaphore.acquire_owned().await {
+                Ok(_permit) => calculate_scope(&db, key).await,
+                Err(err) => Err(anyhow::anyhow!(err)),
+            };
+            match &result {
+                Ok(()) => info!(outcome = "succeeded", "score calculation completed"),
+                Err(err) => error!(outcome = "failed", error = ?err, "score calculation failed"),
+            }
+            completion_tx.send(JobResult { key, result }).ok();
+        }
+        .instrument(span),
+    );
 }
 
 /// Dispatches queue messages without blocking ingestion while scores calculate.
 #[tracing::instrument(skip_all, fields(subject = SUBJECT))]
 async fn run(db: DB, queue: Queue) -> Result<(), anyhow::Error> {
     let mut messages = queue.subscribe(SUBJECT, None).await?;
-    let mut scheduler = Scheduler::<JobKey, Option<Message>>::default();
+    let mut scheduler = Scheduler::<JobKey, Option<(Message, tracing::Span)>>::default();
     let semaphore = Arc::new(Semaphore::new(MAX_PARALLEL_GAMES));
     let (completion_tx, mut completion_rx) = mpsc::unbounded_channel::<JobResult>();
     let mut reconcile = tokio::time::interval(DIRTY_RECONCILE_INTERVAL);
@@ -202,22 +216,24 @@ async fn run(db: DB, queue: Queue) -> Result<(), anyhow::Error> {
                         continue;
                     }
                 };
+                let message_span = Queue::message_span(&message);
                 let payload = match serde_json::from_slice::<Payload>(&message.payload) {
                     Ok(payload) => payload,
                     Err(err) => {
-                        warn!(error = ?err, "invalid calculator payload skipped");
+                        message_span.in_scope(|| warn!(outcome = "rejected", error = ?err, "invalid calculator payload skipped"));
                         message.double_ack().await.ok();
                         continue;
                     }
                 };
                 let key = payload.game_id;
-                debug!(game_id = key, "calculator message received");
-                if scheduler.schedule(key, Some(message)) == ScheduleAction::Start {
+                message_span.in_scope(|| info!(game_id = key, "score request received"));
+                if scheduler.schedule(key, Some((message, message_span))) == ScheduleAction::Start {
                     spawn_calculation(
                         db.clone(),
                         key,
                         Arc::clone(&semaphore),
                         completion_tx.clone(),
+                        scheduler.active(&key).unwrap_or_default(),
                     );
                 }
             }
@@ -232,6 +248,10 @@ async fn run(db: DB, queue: Queue) -> Result<(), anyhow::Error> {
                 };
 
                 if let Err(err) = result {
+                    for (_, span) in completion.discarded.iter().flatten() {
+                        span.in_scope(|| error!(game_id = key,
+                            outcome = "failed", "score request failed; message left unacknowledged"));
+                    }
                     error!(
                         game_id = key,
                         messages = completion.discarded.len(),
@@ -239,9 +259,11 @@ async fn run(db: DB, queue: Queue) -> Result<(), anyhow::Error> {
                         "score calculation failed; messages left unacknowledged"
                     );
                 } else {
-                    for message in completion.acknowledged.into_iter().flatten() {
-                        if let Err(err) = message.double_ack().await {
-                            warn!(game_id = key, error = ?err, "calculator message ack failed");
+                    for (message, span) in completion.acknowledged.into_iter().flatten() {
+                        span.in_scope(|| info!(game_id = key,
+                            outcome = "succeeded", "score request fulfilled"));
+                        if let Err(err) = message.double_ack().instrument(span.clone()).await {
+                            span.in_scope(|| warn!(game_id = key, error = ?err, "calculator message ack failed"));
                         }
                     }
                 }
@@ -252,6 +274,7 @@ async fn run(db: DB, queue: Queue) -> Result<(), anyhow::Error> {
                         key,
                         Arc::clone(&semaphore),
                         completion_tx.clone(),
+                        scheduler.active(&key).unwrap_or_default(),
                     );
                 }
             }
@@ -266,6 +289,7 @@ async fn run(db: DB, queue: Queue) -> Result<(), anyhow::Error> {
                                     key,
                                     Arc::clone(&semaphore),
                                     completion_tx.clone(),
+                                    scheduler.active(&key).unwrap_or_default(),
                                 );
                             }
                         }
@@ -282,20 +306,22 @@ pub async fn request(
     conn: &impl ConnectionTrait,
     queue: &Queue,
     game_id: i64,
+    initiator_id: Option<i64>,
 ) -> Result<(), anyhow::Error> {
     game::request_score_recalculation(conn, game_id).await?;
-    notify(queue, game_id).await;
+    notify(queue, game_id, initiator_id).await;
     Ok(())
 }
 
 /// Publishes a wake-up for a game already marked dirty in the database.
-pub async fn notify(queue: &Queue, game_id: i64) {
+pub async fn notify(queue: &Queue, game_id: i64, initiator_id: Option<i64>) {
     if let Err(err) = queue
         .publish(
             SUBJECT,
             Payload {
                 game_id: Some(game_id),
             },
+            initiator_id,
         )
         .await
     {

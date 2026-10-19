@@ -18,7 +18,7 @@ use garde::Validate;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_sessions::Session;
-use tracing::{Span, info};
+use tracing::info;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -195,6 +195,7 @@ pub struct IdpRegisterRequest {
 )]
 #[tracing::instrument(skip_all, fields(handler = "idp_login"))]
 pub async fn login(
+    Extension(request_span): Extension<tracing::Span>,
     State(s): State<Arc<AppState>>,
     session: Session,
     Path(idp_id): Path<i64>,
@@ -220,7 +221,10 @@ pub async fn login(
             .await?
             .ok_or(WebError::NotFound(json!("user_not_found")))?;
         session.insert("user_id", user.id).await?;
-        Span::current().record("username", user.username.as_str());
+        request_span.record("operator_kind", "user");
+        request_span.record("operator_id", user.id);
+        request_span.record("operator_username", user.username.as_str());
+        request_span.record("auth_method", "session");
         info!(
             user_id = user.id,
             idp_id = idp.id,
@@ -277,6 +281,7 @@ pub async fn login(
 )]
 #[tracing::instrument(skip_all, fields(handler = "idp_register"))]
 pub async fn register(
+    Extension(request_span): Extension<tracing::Span>,
     State(s): State<Arc<AppState>>,
     session: Session,
     Path(idp_id): Path<i64>,
@@ -360,7 +365,10 @@ pub async fn register(
         .map_err(registration_db_error)?;
 
     session.insert("user_id", user.id).await?;
-    Span::current().record("username", user.username.as_str());
+    request_span.record("operator_kind", "user");
+    request_span.record("operator_id", user.id);
+    request_span.record("operator_username", user.username.as_str());
+    request_span.record("auth_method", "session");
 
     info!(
         user_id = user.id,

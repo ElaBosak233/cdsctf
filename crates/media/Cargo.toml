@@ -11,6 +11,7 @@ rust-version = { workspace = true }
 version      = { workspace = true }
 
 [dependencies]
+tracing = { workspace = true }
 cds-env = { workspace = true }
 
 anyhow     = { workspace = true }

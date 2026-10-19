@@ -40,14 +40,57 @@ pub async fn init(env: &Env) -> Result<Queue, QueueError> {
 }
 
 impl Queue {
-    /// Serializes `payload` as JSON and publishes it on the JetStream
-    /// `subject`.
-    pub async fn publish(&self, subject: &str, payload: impl Serialize) -> Result<(), QueueError> {
+    /// Publishes JSON and waits for the broker acknowledgement. The initiator
+    /// is explicit business metadata, never read back from tracing fields.
+    pub async fn publish(
+        &self,
+        subject: &str,
+        payload: impl Serialize,
+        initiator_id: Option<i64>,
+    ) -> Result<(), QueueError> {
+        let message_id = nanoid::nanoid!();
+        let mut headers = async_nats::HeaderMap::new();
+        headers.insert("X-Cds-Message-Id", message_id.as_str());
+        if let Some(id) = initiator_id {
+            headers.insert("X-Cds-Initiator-Id", id.to_string().as_str());
+        }
         self.jet_stream
-            .publish(subject.to_owned(), serde_json::to_string(&payload)?.into())
+            .publish_with_headers(
+                subject.to_owned(),
+                headers,
+                serde_json::to_vec(&payload)?.into(),
+            )
+            .await?
             .await?;
-
+        info!(subject, message_id, initiator_id, "queue message published");
         Ok(())
+    }
+
+    /// Each delivery has its own native span. Message ID joins producer and
+    /// consumer logs even when the OpenTelemetry exporter is disabled. Old
+    /// messages still have their stream sequence, without a fabricated actor.
+    pub fn message_span(message: &async_nats::jetstream::Message) -> tracing::Span {
+        let message_id = message
+            .headers
+            .as_ref()
+            .and_then(|headers| headers.get("X-Cds-Message-Id"))
+            .map(|value| value.as_str());
+        tracing::info_span!(parent: None, "queue.process",
+            subject = %message.subject,
+            message_id,
+            stream_sequence = message.info().ok().map(|info| info.stream_sequence),
+            operator_kind = "system",
+            initiator_id = Self::initiator_id(message),
+            submission_id = tracing::field::Empty,
+        )
+    }
+
+    pub fn initiator_id(message: &async_nats::jetstream::Message) -> Option<i64> {
+        message
+            .headers
+            .as_ref()
+            .and_then(|headers| headers.get("X-Cds-Initiator-Id"))
+            .and_then(|value| value.as_str().parse().ok())
     }
 
     /// Creates (if needed) a stream named `subject`, ensures a durable

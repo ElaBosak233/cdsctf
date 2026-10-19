@@ -10,7 +10,6 @@ use sea_orm::{
         Alias, Condition, Expr, ExprTrait, IntoIden, Query, TableRef, UpdateStatement, ValueTuple,
     },
 };
-use tracing::info;
 
 pub use super::team_user::find_teams as find_by_user_id;
 pub(crate) use crate::entity::team::{Column, Entity};
@@ -519,12 +518,14 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let team = model.insert(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "team",
+        action = "create",
         team_id = team.id,
         game_id = team.game_id,
-        name = %team.name,
+        name = ?team.name,
         state = ?team.state,
-        "team created"
+        "database step completed",
     );
 
     Ok(find_by_id::<T>(conn, team.id, team.game_id)
@@ -536,15 +537,32 @@ where
 pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
+    let changed_fields = [
+        ("game_id", model.game_id.is_set()),
+        ("name", model.name.is_set()),
+        ("email", model.email.is_set()),
+        ("slogan", model.slogan.is_set()),
+        ("avatar_hash", model.avatar_hash.is_set()),
+        ("has_writeup", model.has_writeup.is_set()),
+        ("state", model.state.is_set()),
+        ("pts", model.pts.is_set()),
+        ("rank", model.rank.is_set()),
+    ]
+    .into_iter()
+    .filter_map(|(name, changed)| changed.then_some(name))
+    .collect::<Vec<_>>();
     let team = model.update(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "team",
+        action = "update",
+        changed_fields = ?changed_fields,
         team_id = team.id,
         game_id = team.game_id,
-        name = %team.name,
+        name = ?team.name,
         state = ?team.state,
-        pts = team.pts,
-        rank = team.rank,
-        "team updated"
+        pts = ?team.pts,
+        rank = ?team.rank,
+        "database step completed",
     );
 
     Ok(find_by_id::<T>(conn, team.id, team.game_id)
@@ -555,7 +573,12 @@ where
 /// Deletes rows matching the provided identifier or filter.
 pub async fn delete(conn: &impl ConnectionTrait, team_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(team_id).exec(conn).await?;
-    info!(team_id, "team deleted");
+    tracing::info!(
+        resource = "team",
+        action = "delete",
+        team_id = team_id,
+        "resource step completed"
+    );
 
     Ok(())
 }

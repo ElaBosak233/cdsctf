@@ -19,8 +19,8 @@ use utoipa_axum::{
 
 use super::GameChallengeResponse;
 use crate::{
-    extract::{Json as ReqJson, Path},
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Json as ReqJson, Path},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -62,6 +62,7 @@ pub struct UpdateGameChallengeRequest {
 )]
 #[tracing::instrument(skip_all, fields(handler = "update_game_challenge"))]
 pub async fn update_game_challenge(
+    Extension(principal): Extension<AuthPrincipal>,
     State(s): State<Arc<AppState>>,
     Path((game_id, challenge_id)): Path<(i64, i64)>,
     ReqJson(body): ReqJson<UpdateGameChallengeRequest>,
@@ -96,7 +97,12 @@ pub async fn update_game_challenge(
     transaction.commit().await.map_err(cds_db::DbError::from)?;
 
     if score_changed {
-        calculator::notify(&s.queue, new_game_challenge.game_id).await;
+        calculator::notify(
+            &s.queue,
+            new_game_challenge.game_id,
+            principal.operator.as_ref().map(|operator| operator.id),
+        )
+        .await;
     }
 
     if new_game_challenge.enabled != game_challenge.enabled {
@@ -132,6 +138,7 @@ pub async fn update_game_challenge(
 )]
 #[tracing::instrument(skip_all, fields(handler = "delete_game_challenge"))]
 pub async fn delete_game_challenge(
+    Extension(principal): Extension<AuthPrincipal>,
     State(s): State<Arc<AppState>>,
     Path((game_id, challenge_id)): Path<(i64, i64)>,
 ) -> Result<Json<EmptyJson>, WebError> {
@@ -147,7 +154,12 @@ pub async fn delete_game_challenge(
     .await?;
     cds_db::game::request_score_recalculation(&transaction, game_challenge.game_id).await?;
     transaction.commit().await.map_err(cds_db::DbError::from)?;
-    calculator::notify(&s.queue, game_challenge.game_id).await;
+    calculator::notify(
+        &s.queue,
+        game_challenge.game_id,
+        principal.operator.as_ref().map(|operator| operator.id),
+    )
+    .await;
 
     Ok(Json(EmptyJson::default()))
 }

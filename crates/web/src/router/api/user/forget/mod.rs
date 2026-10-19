@@ -7,6 +7,7 @@ use axum::{Json, Router, extract::State};
 use cds_db::{EmailView, UserAccountView};
 use cds_media::config::email::EmailType;
 use cds_worker::mailbox::SUBJECT;
+use garde::Validate;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -14,7 +15,6 @@ use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
 };
-use garde::Validate;
 
 use crate::{
     extract::Json as ReqJson,
@@ -152,6 +152,7 @@ pub async fn send_forget_email(
                     .unwrap_or("Reset Your Password".to_owned()),
                 body: body.replace("%CODE%", &code).replace("%USER%", &user.name),
             },
+            None,
         )
         .await?;
 

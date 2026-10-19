@@ -3,7 +3,6 @@
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, QueryFilter, Set,
 };
-use tracing::info;
 
 pub(crate) use crate::entity::user_idp::{Column as UserIdpColumn, Entity as UserIdpEntity};
 use crate::traits::DbError;
@@ -77,10 +76,12 @@ pub async fn create_user_idp<T>(
 where
     T: FromQueryResult, {
     let user_idp = model.insert(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "user_idp",
+        action = "bind",
         idp_id = user_idp.idp_id,
         user_id = user_idp.user_id,
-        "user idp bound"
+        "resource step completed"
     );
     find_user_idp_by_auth_key(conn, user_idp.idp_id, &user_idp.auth_key)
         .await?
@@ -99,6 +100,14 @@ pub async fn update_user_idp_data(
     }
     .update(conn)
     .await?;
+    tracing::info!(
+        resource = "user_idp",
+        action = "refresh",
+        user_idp_id = user_idp.id,
+        user_id = user_idp.user_id,
+        idp_id = user_idp.idp_id,
+        "resource step completed"
+    );
     Ok(())
 }
 
@@ -112,7 +121,13 @@ pub async fn delete_user_idp(
         .filter(UserIdpColumn::UserId.eq(user_id))
         .exec(conn)
         .await?;
-    info!(user_idp_id = id, user_id, "user idp unbound");
+    tracing::info!(
+        resource = "user_idp",
+        action = "unbind",
+        user_idp_id = id,
+        user_id = user_id,
+        "resource step completed"
+    );
     Ok(())
 }
 
@@ -124,10 +139,12 @@ pub async fn delete_user_idps_by_user(
         .filter(UserIdpColumn::UserId.eq(user_id))
         .exec(conn)
         .await?;
-    info!(
+    tracing::info!(
+        resource = "user_idp",
+        action = "delete_many",
         user_id,
-        deleted = result.rows_affected,
-        "user idps released"
+        deleted = ?result.rows_affected,
+        "database step completed",
     );
     Ok(())
 }

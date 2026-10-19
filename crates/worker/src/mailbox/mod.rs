@@ -8,7 +8,7 @@
 use cds_mailbox::{Mailbox, Payload};
 use cds_queue::Queue;
 use futures_util::StreamExt as _;
-use tracing::{debug, error, info, warn};
+use tracing::{Instrument, debug, error, info, warn};
 
 /// Stream / subject name for asynchronous outbound email.
 pub const SUBJECT: &str = "cds.mail.send";
@@ -18,23 +18,29 @@ pub const SUBJECT: &str = "cds.mail.send";
 async fn run(queue: Queue, mailbox: Mailbox) -> Result<(), anyhow::Error> {
     let mut messages = queue.subscribe(SUBJECT, None).await?;
     while let Some(Ok(message)) = messages.next().await {
-        if let Ok(payload) = serde_json::from_slice::<Payload>(&message.payload) {
-            debug!(name = %payload.name, email = %payload.email, "mailbox message received");
-            match mailbox.send_payload(&payload).await {
-                Ok(()) => {
-                    info!(
-                        name = payload.name,
-                        email = payload.email,
-                        "An email has been sent",
-                    );
-                }
-                Err(err) => {
-                    error!("Email send failed: {}", err);
-                }
-            };
-        } else {
-            warn!("invalid mailbox payload skipped");
+        let span = Queue::message_span(&message);
+        async {
+            if let Ok(payload) = serde_json::from_slice::<Payload>(&message.payload) {
+                debug!(name = %payload.name, email = %payload.email, "mailbox message received");
+                match mailbox.send_payload(&payload).await {
+                    Ok(()) => {
+                        info!(
+                            name = payload.name,
+                            email = payload.email,
+                            outcome = "succeeded",
+                            "email delivery completed",
+                        );
+                    }
+                    Err(err) => {
+                        error!(outcome = "failed", error = ?err, "email delivery failed");
+                    }
+                };
+            } else {
+                warn!(outcome = "rejected", "invalid mailbox payload skipped");
+            }
         }
+        .instrument(span)
+        .await;
         // `double_ack` matches JetStream semantics used elsewhere in workers
         // (redelivery safety).
         message.double_ack().await.ok();

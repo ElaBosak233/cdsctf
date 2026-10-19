@@ -20,7 +20,7 @@ use garde::Validate;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_sessions::Session;
-use tracing::{Span, info};
+use tracing::info;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -76,6 +76,7 @@ pub struct UserLoginRequest {
 )]
 #[tracing::instrument(skip_all, fields(handler = "user_login"))]
 pub async fn user_login(
+    Extension(request_span): Extension<tracing::Span>,
     State(s): State<Arc<AppState>>,
     session: Session,
     Extension(ext): Extension<AuthPrincipal>,
@@ -93,6 +94,7 @@ pub async fn user_login(
     }
 
     body.account = body.account.to_lowercase();
+    tracing::info!(action = "login", account = %body.account, "login attempted");
 
     let user: UserAccountView = cds_db::user::find_by_account(&s.db.conn, body.account)
         .await?
@@ -109,7 +111,10 @@ pub async fn user_login(
     }
 
     session.insert("user_id", user.id).await?;
-    Span::current().record("username", user.username.as_str());
+    request_span.record("operator_kind", "user");
+    request_span.record("operator_id", user.id);
+    request_span.record("operator_username", user.username.as_str());
+    request_span.record("auth_method", "session");
 
     info!(
         user_id = user.id,
@@ -214,7 +219,6 @@ pub async fn user_register(
         },
     )
     .await?;
-    Span::current().record("username", user.username.as_str());
 
     info!(
         user_id = user.id,

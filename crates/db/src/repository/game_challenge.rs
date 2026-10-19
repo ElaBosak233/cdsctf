@@ -5,7 +5,6 @@ use sea_orm::{
     QueryFilter, QueryOrder, QuerySelect, QueryTrait,
     sea_query::{Alias, Expr, ExprTrait, IntoIden, Query, TableRef, UpdateStatement, ValueTuple},
 };
-use tracing::info;
 
 pub(crate) use crate::entity::game_challenge::Entity;
 use crate::traits::DbError;
@@ -262,12 +261,14 @@ pub async fn create(
     model: ActiveModel,
 ) -> Result<GameChallengeView, DbError> {
     let game_challenge = model.insert(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "game_challenge",
+        action = "create",
         game_id = game_challenge.game_id,
         challenge_id = game_challenge.challenge_id,
-        enabled = game_challenge.enabled,
-        pts = game_challenge.pts,
-        "game challenge created"
+        enabled = ?game_challenge.enabled,
+        pts = ?game_challenge.pts,
+        "database step completed",
     );
 
     Ok(
@@ -287,13 +288,30 @@ pub async fn update(
     conn: &impl ConnectionTrait,
     model: ActiveModel,
 ) -> Result<GameChallengeView, DbError> {
+    let changed_fields = [
+        ("game_id", model.game_id.is_set()),
+        ("challenge_id", model.challenge_id.is_set()),
+        ("difficulty", model.difficulty.is_set()),
+        ("max_pts", model.max_pts.is_set()),
+        ("min_pts", model.min_pts.is_set()),
+        ("bonus_ratios", model.bonus_ratios.is_set()),
+        ("enabled", model.enabled.is_set()),
+        ("frozen_at", model.frozen_at.is_set()),
+        ("pts", model.pts.is_set()),
+    ]
+    .into_iter()
+    .filter_map(|(name, changed)| changed.then_some(name))
+    .collect::<Vec<_>>();
     let game_challenge = model.update(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "game_challenge",
+        action = "update",
+        changed_fields = ?changed_fields,
         game_id = game_challenge.game_id,
         challenge_id = game_challenge.challenge_id,
-        enabled = game_challenge.enabled,
-        pts = game_challenge.pts,
-        "game challenge updated"
+        enabled = ?game_challenge.enabled,
+        pts = ?game_challenge.pts,
+        "database step completed",
     );
 
     Ok(
@@ -319,7 +337,13 @@ pub async fn delete(
         .filter(Column::ChallengeId.eq(challenge_id))
         .exec(conn)
         .await?;
-    info!(game_id, challenge_id, "game challenge deleted");
+    tracing::info!(
+        resource = "game_challenge",
+        action = "delete",
+        game_id = game_id,
+        challenge_id = challenge_id,
+        "resource step completed"
+    );
 
     Ok(())
 }

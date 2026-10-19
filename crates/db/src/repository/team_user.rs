@@ -4,7 +4,6 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
     QueryFilter,
 };
-use tracing::info;
 
 use super::{
     team::{Column as TeamColumn, Entity as TeamEntity},
@@ -106,10 +105,12 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let team_user = model.insert(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "team_user",
+        action = "create",
         team_id = team_user.team_id,
         user_id = team_user.user_id,
-        "team member created"
+        "resource step completed"
     );
 
     Ok(find_by_id::<T>(conn, team_user.team_id, team_user.user_id)
@@ -133,7 +134,13 @@ pub async fn delete(
         .filter(Column::UserId.eq(user_id))
         .exec(conn)
         .await?;
-    info!(team_id, user_id, "team member deleted");
+    tracing::info!(
+        resource = "team_user",
+        action = "delete",
+        team_id = team_id,
+        user_id = user_id,
+        "resource step completed"
+    );
 
     Ok(())
 }
@@ -145,7 +152,12 @@ pub async fn delete_by_team_id(conn: &impl ConnectionTrait, team_id: i64) -> Res
         .filter(Column::TeamId.eq(team_id))
         .exec(conn)
         .await?;
-    info!(team_id, "team members deleted");
+    tracing::info!(
+        resource = "team_user",
+        action = "delete",
+        team_id = team_id,
+        "resource step completed"
+    );
 
     Ok(())
 }

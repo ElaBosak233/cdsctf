@@ -4,7 +4,6 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
     QueryFilter,
 };
-use tracing::info;
 
 pub(crate) use crate::entity::email::{Column, Entity};
 use crate::traits::DbError;
@@ -51,11 +50,13 @@ pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Resul
 where
     T: FromQueryResult, {
     let email = model.insert(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "email",
+        action = "create",
         user_id = email.user_id,
-        email = %email.email,
-        verified = email.verified,
-        "email created"
+        email = ?email.email,
+        verified = ?email.verified,
+        "database step completed",
     );
 
     Ok(find_by_email::<T>(conn, email.email.clone())
@@ -67,12 +68,23 @@ where
 pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
+    let changed_fields = [
+        ("email", model.email.is_set()),
+        ("verified", model.verified.is_set()),
+        ("user_id", model.user_id.is_set()),
+    ]
+    .into_iter()
+    .filter_map(|(name, changed)| changed.then_some(name))
+    .collect::<Vec<_>>();
     let email = model.update(conn).await?;
-    info!(
+    tracing::info!(
+        resource = "email",
+        action = "update",
+        changed_fields = ?changed_fields,
         user_id = email.user_id,
-        email = %email.email,
-        verified = email.verified,
-        "email updated"
+        email = ?email.email,
+        verified = ?email.verified,
+        "database step completed",
     );
 
     Ok(find_by_email::<T>(conn, email.email.clone())
@@ -106,10 +118,12 @@ pub async fn delete(
         .filter(Column::Email.eq(email.email.clone()))
         .exec(conn)
         .await?;
-    info!(
+    tracing::info!(
+        resource = "email",
+        action = "delete",
         user_id,
-        email = %email.email,
-        "email deleted"
+        email = ?email.email,
+        "database step completed",
     );
 
     Ok(())
@@ -122,7 +136,12 @@ pub async fn delete_by_user_id(conn: &impl ConnectionTrait, user_id: i64) -> Res
         .filter(Column::UserId.eq(user_id))
         .exec(conn)
         .await?;
-    info!(user_id, "user emails deleted");
+    tracing::info!(
+        resource = "email",
+        action = "delete",
+        user_id = user_id,
+        "resource step completed"
+    );
 
     Ok(())
 }
