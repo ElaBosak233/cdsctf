@@ -163,7 +163,7 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
     });
   const visible = lines.filter((line) => !hidden.has(line.id));
   const legend = () => (
-    <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-2 @min-[36rem]:grid-cols-3 @min-[64rem]:grid-cols-5">
       {lines.map((line) => {
         const isHidden = hidden.has(line.id);
         return (
@@ -226,7 +226,9 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
       config={config}
       className={cn(
         "aspect-auto w-full",
-        large ? "min-h-0 flex-1" : "h-56 sm:h-64"
+        large
+          ? "min-h-0 flex-1"
+          : "h-56 sm:h-64 2xl:h-auto 2xl:min-h-0 2xl:flex-1"
       )}
     >
       <LineChart
@@ -300,10 +302,10 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
   );
   return (
     <section
-      className="min-w-0 rounded-lg border bg-card p-4 sm:p-5"
+      className="@container min-w-0 rounded-lg border bg-card p-4 sm:p-5 2xl:flex 2xl:min-h-0 2xl:flex-col"
       aria-labelledby="progression-heading"
     >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex items-baseline gap-3">
           <h2 id="progression-heading" className="text-base font-semibold">
             {t("game:scoreboard.chart.progression")}
@@ -321,7 +323,7 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
             {t("game:scoreboard.chart.expand")}
           </DialogTrigger>
           <DialogContent
-            className="flex h-[calc(100dvh-2rem)] max-w-none flex-col gap-4 overflow-hidden rounded-elevated border bg-card p-4 shadow-lg sm:p-6 motion-reduce:animate-none"
+            className="@container flex h-[calc(100dvh-2rem)] max-w-none flex-col gap-4 overflow-hidden rounded-elevated border bg-card p-4 shadow-lg sm:p-6 motion-reduce:animate-none"
             slotProps={{
               title: { children: t("game:scoreboard.chart.progression") },
             }}
@@ -348,7 +350,9 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
         </Dialog>
       </div>
       {chart(false)}
-      <div className="mt-3 border-t pt-2">{legend()}</div>
+      <div className="mt-3 shrink-0 border-t pt-2 2xl:max-h-[40%] 2xl:overflow-y-auto">
+        {legend()}
+      </div>
     </section>
   );
 }

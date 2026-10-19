@@ -71,16 +71,16 @@ export default function Index() {
   return (
     <>
       <title>{`${t("game:scoreboard._")} - ${currentGame?.title}`}</title>
-      <div className="flex w-full min-w-0 flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+      <div className="flex w-full min-w-0 flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10 lg:py-8 2xl:h-(--app-content-height) 2xl:flex-none">
         {data?.total ? (
-          <>
+          <div className="grid min-w-0 items-start gap-6 2xl:min-h-0 2xl:flex-1 2xl:grid-cols-[minmax(0,7fr)_minmax(0,13fr)] 2xl:grid-rows-[minmax(0,1fr)] 2xl:items-stretch">
             <ChampionChart scoreboard={chartQuery.data?.records} />
             <section
-              className="flex min-w-0 flex-col gap-3"
+              className="flex min-w-0 flex-col gap-3 2xl:min-h-0 2xl:only:col-span-2"
               aria-label={t("game:scoreboard._")}
             >
               <div
-                className="relative min-w-0"
+                className="relative min-w-0 2xl:min-h-0 2xl:flex-1"
                 aria-busy={scoreboardQuery.isFetching}
               >
                 <ScoreboardTable
@@ -95,7 +95,7 @@ export default function Index() {
                   }
                 />
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+              <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
                 <span>
                   {t("game:scoreboard.showing", {
                     from: data.records.length ? (page - 1) * size + 1 : 0,
@@ -140,7 +140,7 @@ export default function Index() {
                 </div>
               </div>
             </section>
-          </>
+          </div>
         ) : (
           <div className="relative flex min-h-80 flex-1 flex-col items-center justify-center gap-5">
             {scoreboardQuery.isPending ? (

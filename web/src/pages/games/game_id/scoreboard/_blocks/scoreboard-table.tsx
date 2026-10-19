@@ -131,7 +131,7 @@ export function ScoreboardTable({
   return (
     <ScrollArea
       vertical={false}
-      className="w-full rounded-lg border bg-card [--rank-width:2.5rem] [--team-width:8rem] [--score-width:5rem] [--solves-width:0rem] sm:[--rank-width:3rem] sm:[--team-width:14rem] sm:[--score-width:6rem] sm:[--solves-width:5rem]"
+      className="w-full rounded-lg border bg-card [--rank-width:2.5rem] [--team-width:8rem] [--score-width:5rem] [--solves-width:0rem] sm:[--rank-width:3rem] sm:[--team-width:14rem] sm:[--score-width:6rem] sm:[--solves-width:5rem] 2xl:h-full"
     >
       <Table
         className="w-full table-fixed border-separate border-spacing-0"
