@@ -26,7 +26,7 @@ use axum::{
         sse::{Event as SseEvent, KeepAlive},
     },
 };
-use cds_db::{GameView, ScoreboardEntry};
+use cds_db::{GameView, ScoreboardEntry, game_challenge::FindGameChallengeOptions};
 use cds_event::SubscribeOptions;
 use futures_util::StreamExt as _;
 use serde::{Deserialize, Serialize};
@@ -101,6 +101,27 @@ pub struct GetGameScoreboardRequest {
 pub struct GameScoreboardResponse {
     pub records: Vec<ScoreboardEntry>,
     pub total: u64,
+    /// Complete enabled challenge directory, independent of team pagination.
+    pub challenges: Vec<ScoreboardChallenge>,
+}
+
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct ScoreboardChallenge {
+    pub challenge_id: i64,
+    pub challenge_title: String,
+    pub challenge_category: i32,
+    pub pts: i64,
+}
+
+impl From<cds_db::GameChallengeView> for ScoreboardChallenge {
+    fn from(challenge: cds_db::GameChallengeView) -> Self {
+        Self {
+            challenge_id: challenge.challenge_id,
+            challenge_title: challenge.challenge_title,
+            challenge_category: challenge.challenge_category,
+            pts: challenge.pts,
+        }
+    }
 }
 
 /// Returns game scoreboard.
@@ -137,7 +158,29 @@ pub async fn get_game_scoreboard(
     let (records, total) =
         cds_db::team::find_scoreboard(&s.db.conn, game.id, params.page, params.size).await?;
 
-    Ok(Json(GameScoreboardResponse { records, total }))
+    // Spectators can read the scoreboard without joining the game. Expose only
+    // column metadata, and never reveal the challenge directory before kickoff.
+    let mut challenges = if time::OffsetDateTime::now_utc() >= game.started_at {
+        cds_db::game_challenge::find::<ScoreboardChallenge>(
+            &s.db.conn,
+            FindGameChallengeOptions {
+                game_id: Some(game.id),
+                enabled: Some(true),
+                ..Default::default()
+            },
+        )
+        .await?
+        .0
+    } else {
+        Vec::new()
+    };
+    challenges.sort_by_key(|challenge| (challenge.challenge_category, challenge.challenge_id));
+
+    Ok(Json(GameScoreboardResponse {
+        records,
+        total,
+        challenges,
+    }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
@@ -182,4 +225,42 @@ pub async fn get_events(
     });
 
     Ok(Sse::new(sse_stream).keep_alive(KeepAlive::default()))
+}
+
+#[cfg(test)]
+mod scoreboard_tests {
+    use super::{GameScoreboardResponse, ScoreboardChallenge};
+
+    #[test]
+    fn scoreboard_directory_includes_unsolved_challenges_without_private_configuration() {
+        let challenge = cds_db::GameChallengeView {
+            game_id: 1,
+            challenge_id: 2,
+            challenge_title: "Unsolved challenge".to_owned(),
+            challenge_category: 3,
+            difficulty: 7,
+            bonus_ratios: vec![10, 5],
+            max_pts: 1000,
+            min_pts: 100,
+            pts: 800,
+            enabled: true,
+            frozen_at: None,
+        };
+        let response = GameScoreboardResponse {
+            records: vec![],
+            total: 0,
+            challenges: vec![ScoreboardChallenge::from(challenge)],
+        };
+        let json = serde_json::to_value(response).unwrap();
+        assert_eq!(
+            json["challenges"],
+            serde_json::json!([{
+                "challenge_id": 2,
+                "challenge_title": "Unsolved challenge",
+                "challenge_category": 3,
+                "pts": 800,
+            }])
+        );
+        assert_eq!(json["records"], serde_json::json!([]));
+    }
 }

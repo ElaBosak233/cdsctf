@@ -38,7 +38,27 @@ scoreboard:
   _: スコアボード
   blackout: ブラックアウト中のため順位表は非公開です
   empty: 参加チームはありません。
+  solves: "{{count}} 問解答"
+  refresh: "スコアボードを更新"
+  retry: "読み込みに失敗しました。再試行"
+  showing: "{{total}} チーム中 {{from}}–{{to}} 位"
+  page_size: "1ページのチーム数"
+  matrix_hint: "各列は問題に対応します。得点を選択すると正解の詳細を表示します。横にスクロールして他の問題を確認できます。"
+  no_challenges: "表示できる問題はまだありません。"
+  unsolved: "未解答"
+  solve_details: "{{title}}：{{pts}} 点。正解の詳細を表示"
+  chart:
+    progression: スコア推移
+    title: 上位チームの進行状況
+    teams: "{{count}} チーム"
+    top_teams: "上位 {{count}} チーム"
+    expand: "グラフを拡大"
+    close: "グラフを閉じる"
+    time_range: グラフの時間範囲
+    toggle_team: "{{name}} の表示を切り替え"
   columns:
+    team: "チーム"
+    solves: "正解数"
     user: ユーザー
     challenge: 課題
     score: スコア

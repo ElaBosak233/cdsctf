@@ -38,7 +38,27 @@ scoreboard:
   _: 積分榜
   blackout: 黑夜模式封榜
   empty: 目前尚無團隊。
+  solves: "{{count}} 題"
+  refresh: "重新整理排行榜"
+  retry: "排行榜載入失敗，點擊重試"
+  showing: "第 {{from}}–{{to}} 名，共 {{total}} 支隊伍"
+  page_size: "每頁隊伍數"
+  matrix_hint: "每欄對應一道題目。點擊分數查看解題紀錄，橫向捲動查看更多題目。"
+  no_challenges: "暫時沒有可顯示的題目。"
+  unsolved: "尚未解出"
+  solve_details: "{{title}}：{{pts}} 分，查看解題紀錄"
+  chart:
+    progression: 分數走勢
+    title: 領先隊伍的比賽進程
+    teams: "{{count}} 支隊伍"
+    top_teams: "前 {{count}} 支隊伍"
+    expand: "展開圖表"
+    close: "關閉圖表"
+    time_range: 圖表時間範圍
+    toggle_team: "切換 {{name}} 的曲線"
   columns:
+    team: "隊伍"
+    solves: "解題數"
     user: 使用者
     challenge: 題目
     score: 分數

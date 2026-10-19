@@ -1,21 +1,16 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
-  ChevronRightIcon,
   ListOrderedIcon,
-  MedalIcon,
   MessageCircleDashedIcon,
   MoonIcon,
-  StarIcon,
-  TrophyIcon,
+  RefreshCwIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getGameScoreboard } from "@/api/games/game_id";
-import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Field, FieldIcon } from "@/components/ui/field";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Pagination } from "@/components/ui/pagination";
 import {
   Select,
@@ -25,49 +20,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useGameStore } from "@/storages/game";
-import { cn } from "@/utils";
-
 import { ChampionChart } from "./_blocks/champion-chart";
-import { TeamDetailsDialog } from "./_blocks/team-details-dialog";
+import { ScoreboardTable } from "./_blocks/scoreboard-table";
 
 export default function Index() {
   const { t } = useTranslation();
-
-  const { currentGame } = useGameStore();
-  const [size, setSize] = useState<number>(10);
-  const [page, setPage] = useState<number>(1);
-
-  const { data: scoreboardData } = useQuery({
-    queryKey: ["scoreboard", currentGame?.id, size, page],
-    queryFn: () =>
-      getGameScoreboard({
-        id: currentGame?.id,
-        size,
-        page,
-      }),
-    select: (response) => ({
-      scoreboard: response.records || [],
-      total: response.total || 0,
-    }),
-    placeholderData: keepPreviousData,
-    enabled: !!currentGame?.id && !currentGame.blacked_out,
+  const { currentGame, selfTeam } = useGameStore();
+  const [size, setSize] = useState(10);
+  const [page, setPage] = useState(1);
+  const enabled = !!currentGame?.id && !currentGame.blacked_out;
+  const chartQuery = useQuery({
+    queryKey: ["scoreboard", currentGame?.id, "chart"],
+    queryFn: () => getGameScoreboard({ id: currentGame?.id, size: 6, page: 1 }),
+    enabled,
   });
+  const scoreboardQuery = useQuery({
+    queryKey: ["scoreboard", currentGame?.id, size, page],
+    queryFn: () => getGameScoreboard({ id: currentGame?.id, size, page }),
+    placeholderData: keepPreviousData,
+    enabled,
+  });
+  const data = scoreboardQuery.data;
+  const challenges = data?.challenges ?? [];
+  const refresh = () => {
+    void scoreboardQuery.refetch();
+    void chartQuery.refetch();
+  };
 
-  if (currentGame?.blacked_out) {
+  if (currentGame?.blacked_out)
     return (
       <>
         <title>{`${t("game:scoreboard._")} - ${currentGame.title}`}</title>
-        <div
-          className={cn([
-            "flex",
-            "flex-1",
-            "flex-col",
-            "items-center",
-            "justify-center",
-            "gap-5",
-            "select-none",
-          ])}
-        >
+        <div className="flex flex-1 flex-col items-center justify-center gap-5 select-none">
           <MoonIcon className="size-16 text-muted-foreground" />
           <span className="text-base font-medium">
             {t("game:scoreboard.blackout")}
@@ -75,252 +59,121 @@ export default function Index() {
         </div>
       </>
     );
-  }
-
   return (
     <>
       <title>{`${t("game:scoreboard._")} - ${currentGame?.title}`}</title>
-      <div
-        className={cn([
-          "xl:mx-60",
-          "mx-10",
-          "my-10",
-          "flex",
-          "flex-col",
-          "gap-10",
-          "items-center",
-          "flex-1",
-          "min-h-0",
-        ])}
-      >
-        {scoreboardData?.total ? (
+      <div className="mx-auto flex w-full max-w-360 min-w-0 flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+        {data?.total ? (
           <>
-            <ChampionChart scoreboard={scoreboardData?.scoreboard} />
-            <div className={cn(["flex", "items-center", "gap-3", "w-full"])}>
-              <div className="flex-1 text-sm text-muted-foreground">
-                {scoreboardData?.scoreboard.length} / {scoreboardData?.total}
-              </div>
-              <Pagination
-                size="sm"
-                value={page}
-                onChange={setPage}
-                total={Math.ceil((scoreboardData?.total || 0) / size)}
-              />
-              <Field size="sm" className={cn(["w-32", "sm:w-36"])}>
-                <FieldIcon>
-                  <ListOrderedIcon />
-                </FieldIcon>
-                <Select
-                  value={String(size)}
-                  onValueChange={(value) => setSize(Number(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[10, 20, 40, 60].map((value) => (
-                      <SelectItem key={value} value={String(value)}>
-                        {value}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            </div>
-            <div
-              className={cn([
-                "flex-1",
-                "min-h-0",
-                "flex",
-                "flex-col",
-                "w-full",
-              ])}
+            <ChampionChart scoreboard={chartQuery.data?.records} />
+            <section
+              className="flex min-w-0 flex-col gap-3"
+              aria-labelledby="standings-heading"
             >
-              <div className={cn(["flex", "flex-col", "gap-4", "w-full"])}>
-                {scoreboardData.scoreboard.map((record) => (
-                  <Dialog key={record.team?.id}>
-                    <DialogTrigger
-                      render={
-                        <Card
-                          render={<button type="button" />}
-                          className={cn([
-                            "group",
-                            "flex",
-                            "items-center",
-                            "gap-3",
-                            "p-4",
-                            "sm:gap-4",
-                            "sm:p-5",
-                            "cursor-pointer",
-                            "border-border/70",
-                            "hover:border-primary/30",
-                            "hover:bg-muted/40",
-                            "hover:shadow-sm",
-                            "focus-visible:outline-none",
-                            "focus-visible:ring-2",
-                            "focus-visible:ring-ring",
-                            "focus-visible:ring-offset-2",
-                            "transition-[background-color,border-color,box-shadow]",
-                            "w-full",
-                            "text-left",
-                          ])}
-                        >
-                          {record.team?.rank != null &&
-                          record.team.rank <= 3 ? (
-                            <span
-                              className={cn(
-                                [
-                                  "flex",
-                                  "size-9",
-                                  "shrink-0",
-                                  "items-center",
-                                  "justify-center",
-                                  "rounded-full",
-                                  "bg-muted",
-                                  "text-muted-foreground",
-                                ],
-                                record.team.rank === 1 &&
-                                  "bg-warning/15 text-warning",
-                                record.team.rank === 3 &&
-                                  "bg-warning/10 text-warning/80"
-                              )}
-                            >
-                              <span className="sr-only">
-                                {record.team.rank}
-                              </span>
-                              {record.team.rank === 1 ? (
-                                <TrophyIcon
-                                  className="size-5"
-                                  aria-hidden="true"
-                                />
-                              ) : (
-                                <MedalIcon
-                                  className="size-5"
-                                  aria-hidden="true"
-                                />
-                              )}
-                            </span>
-                          ) : (
-                            <span
-                              className={cn([
-                                "flex",
-                                "size-9",
-                                "shrink-0",
-                                "items-center",
-                                "justify-center",
-                                "rounded-full",
-                                "bg-muted",
-                                "font-mono",
-                                "text-sm",
-                                "font-semibold",
-                                "tabular-nums",
-                                "text-muted-foreground",
-                              ])}
-                            >
-                              {record.team?.rank}
-                            </span>
-                          )}
-
-                          <Avatar
-                            className={cn([
-                              "size-11",
-                              "shrink-0",
-                              "rounded-full",
-                              "ring-1",
-                              "ring-border/70",
-                            ])}
-                            src={
-                              record.team?.avatar_hash &&
-                              `/api/media?hash=${record.team?.avatar_hash}`
-                            }
-                            fallback={record.team?.name?.charAt(0)}
-                          />
-
-                          <div
-                            className={cn([
-                              "flex",
-                              "flex-col",
-                              "items-start",
-                              "flex-1",
-                              "min-w-0",
-                              "text-left",
-                            ])}
-                          >
-                            <span
-                              className={cn([
-                                "truncate",
-                                "w-full",
-                                "font-semibold",
-                                "text-base",
-                              ])}
-                            >
-                              {record.team?.name}
-                            </span>
-                            <span
-                              className={cn([
-                                "text-sm",
-                                "text-muted-foreground",
-                                "truncate",
-                              ])}
-                            >
-                              {record.team?.slogan}
-                            </span>
-                          </div>
-
-                          <Badge
-                            variant="tonal"
-                            size="md"
-                            className={cn([
-                              "font-mono",
-                              "flex",
-                              "gap-1.5",
-                              "items-center",
-                              "shrink-0",
-                              "px-3",
-                              "bg-warning/10",
-                              "text-warning",
-                              "group-hover:bg-warning/15",
-                            ])}
-                          >
-                            <StarIcon className={cn(["size-4"])} />
-                            {record.team?.pts}
-                          </Badge>
-                          <ChevronRightIcon
-                            className={cn([
-                              "size-4",
-                              "shrink-0",
-                              "text-muted-foreground/60",
-                              "transition-transform",
-                              "group-hover:translate-x-0.5",
-                              "group-hover:text-foreground",
-                            ])}
-                            aria-hidden="true"
-                          />
-                        </Card>
-                      }
-                    />
-                    <DialogContent size="preview">
-                      <TeamDetailsDialog team={record.team!} />
-                    </DialogContent>
-                  </Dialog>
-                ))}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <h2
+                    id="standings-heading"
+                    className="text-base font-semibold"
+                  >
+                    {t("game:scoreboard._")}
+                  </h2>
+                  <span className="text-xs text-muted-foreground">
+                    {t("game:scoreboard.chart.teams", { count: data.total })}
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  icon={<RefreshCwIcon />}
+                  aria-label={t("game:scoreboard.refresh")}
+                  title={t("game:scoreboard.refresh")}
+                  disabled={scoreboardQuery.isFetching || chartQuery.isFetching}
+                  onClick={refresh}
+                />
               </div>
-            </div>
+              <p className="text-xs text-muted-foreground">
+                {t(
+                  challenges.length
+                    ? "game:scoreboard.matrix_hint"
+                    : "game:scoreboard.no_challenges"
+                )}
+              </p>
+              <div
+                className="relative min-w-0"
+                aria-busy={scoreboardQuery.isFetching}
+              >
+                <ScoreboardTable
+                  records={data.records}
+                  challenges={challenges}
+                  selfTeamId={selfTeam?.id}
+                />
+                <LoadingOverlay loading={scoreboardQuery.isFetching} />
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+                <span>
+                  {t("game:scoreboard.showing", {
+                    from: data.records.length ? (page - 1) * size + 1 : 0,
+                    to: (page - 1) * size + data.records.length,
+                    total: data.total,
+                  })}
+                </span>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Field size="sm" className="w-32 sm:w-36">
+                    <FieldIcon>
+                      <ListOrderedIcon />
+                    </FieldIcon>
+                    <Select
+                      value={String(size)}
+                      onValueChange={(value) => {
+                        if (value) {
+                          setSize(Number(value));
+                          setPage(1);
+                        }
+                      }}
+                    >
+                      <SelectTrigger
+                        aria-label={t("game:scoreboard.page_size")}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[10, 20, 40, 60].map((value) => (
+                          <SelectItem key={value} value={String(value)}>
+                            {value}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Pagination
+                    size="sm"
+                    value={page}
+                    onChange={setPage}
+                    total={Math.ceil(data.total / size)}
+                  />
+                </div>
+              </div>
+            </section>
           </>
         ) : (
-          <div
-            className={cn([
-              "flex",
-              "flex-col",
-              "items-center",
-              "justify-center",
-              "flex-1",
-              "gap-5",
-              "select-none",
-            ])}
-          >
-            <MessageCircleDashedIcon className={cn(["size-12"])} />
-            <span>{t("game:scoreboard.empty")}</span>
+          <div className="relative flex min-h-80 flex-1 flex-col items-center justify-center gap-5">
+            {scoreboardQuery.isPending ? (
+              <LoadingOverlay loading />
+            ) : scoreboardQuery.isError ? (
+              <Button
+                variant="outline"
+                icon={<RefreshCwIcon />}
+                onClick={refresh}
+              >
+                {t("game:scoreboard.retry")}
+              </Button>
+            ) : (
+              <>
+                <MessageCircleDashedIcon className="size-12 text-muted-foreground" />
+                <span>{t("game:scoreboard.empty")}</span>
+              </>
+            )}
           </div>
         )}
       </div>

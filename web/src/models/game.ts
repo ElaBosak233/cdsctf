@@ -59,6 +59,13 @@ export type ScoreboardEntry = {
   submissions: ScoreboardSubmission[];
 };
 
+export type ScoreboardChallenge = {
+  challenge_id: number;
+  challenge_title: string;
+  challenge_category: number;
+  pts: number;
+};
+
 export type ScoreboardTeam = {
   id: number;
   name: string;

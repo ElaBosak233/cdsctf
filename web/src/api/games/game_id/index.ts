@@ -1,4 +1,8 @@
-import type { GameView, ScoreboardEntry } from "@/models/game";
+import type {
+  GameView,
+  ScoreboardChallenge,
+  ScoreboardEntry,
+} from "@/models/game";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetGameRequest = {
@@ -20,5 +24,9 @@ export async function getGameScoreboard(request: GetGameScoreboardRequest) {
     .get(`games/${request.id}/scoreboard`, {
       searchParams: toSearchParams(request),
     })
-    .json<{ records: ScoreboardEntry[]; total: number }>();
+    .json<{
+      records: ScoreboardEntry[];
+      total: number;
+      challenges: ScoreboardChallenge[];
+    }>();
 }

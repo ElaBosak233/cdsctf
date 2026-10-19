@@ -38,7 +38,27 @@ scoreboard:
   _: 积分榜
   blackout: 黑夜模式封榜
   empty: 但是谁也没有来。
+  solves: "{{count}} 道题"
+  refresh: "刷新排行榜"
+  retry: "排行榜加载失败，点击重试"
+  showing: "第 {{from}}–{{to}} 名，共 {{total}} 支队伍"
+  page_size: "每页队伍数"
+  matrix_hint: "每列对应一道题目。点击得分查看解题记录，横向滚动查看更多题目。"
+  no_challenges: "暂时没有可展示的题目。"
+  unsolved: "尚未解出"
+  solve_details: "{{title}}：{{pts}} 分，查看解题记录"
+  chart:
+    progression: 分数走势
+    title: 领先队伍的比赛进程
+    teams: "{{count}} 支队伍"
+    top_teams: "前 {{count}} 支队伍"
+    expand: "展开图表"
+    close: "关闭图表"
+    time_range: 图表时间范围
+    toggle_team: "切换 {{name}} 的曲线"
   columns:
+    team: "队伍"
+    solves: "解题数"
     user: 用户
     challenge: 题目
     score: 分数
