@@ -91,6 +91,14 @@ export default function Index() {
       }),
     enabled: gameId != null,
     placeholderData: keepPreviousData,
+    select: (response) => ({
+      ...response,
+      challenges: [...response.challenges].sort(
+        (a, b) =>
+          a.challenge_category - b.challenge_category ||
+          a.challenge_id - b.challenge_id
+      ),
+    }),
   });
   const challenges = challengeQuery.data?.challenges ?? [];
   const loading = challengeQuery.isFetching;
