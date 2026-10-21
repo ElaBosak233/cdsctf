@@ -244,7 +244,7 @@ mod tests {
                     id, name, username, description, banned, permissions,
                     hashed_password, avatar_hash, deleted_at, created_at, updated_at
                 ) VALUES (
-                    1, 'User', 'user', NULL, FALSE, '[]'::JSONB, '', NULL, NULL,
+                    1, 'User', 'user', NULL, FALSE, ARRAY[]::TEXT[], '', NULL, NULL,
                     to_timestamp(0), to_timestamp(0)
                 );
                 INSERT INTO challenges (
@@ -343,9 +343,9 @@ mod tests {
                         id, name, username, description, banned, permissions,
                         hashed_password, avatar_hash, deleted_at, created_at, updated_at
                     ) VALUES
-                        (1, 'Team user', 'team-user', NULL, FALSE, '[]'::JSONB, '', NULL, NULL,
+                        (1, 'Team user', 'team-user', NULL, FALSE, ARRAY[]::TEXT[], '', NULL, NULL,
                          to_timestamp(0), to_timestamp(0)),
-                        (2, 'Standalone user', 'standalone-user', NULL, FALSE, '[]'::JSONB, '', NULL, NULL,
+                        (2, 'Standalone user', 'standalone-user', NULL, FALSE, ARRAY[]::TEXT[], '', NULL, NULL,
                          to_timestamp(0), to_timestamp(0));
                     INSERT INTO {schema}.challenges (
                         id, title, description, category, tags, has_instance,
