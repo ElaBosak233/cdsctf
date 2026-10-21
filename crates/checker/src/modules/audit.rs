@@ -11,6 +11,8 @@ use cds_engine::{
 pub enum Status {
     Correct,
     Incorrect,
+    /// Another team's database id, after validating the script's subject
+    /// number.
     Cheat(i64),
 }
 
@@ -49,11 +51,11 @@ fn flag_table(lua: &Lua, flag: Flag) -> mlua::Result<Table> {
     Ok(table)
 }
 
-fn status_table(lua: &Lua, kind: &str, operator_id: Option<i64>) -> mlua::Result<Table> {
+fn status_table(lua: &Lua, kind: &str, subject_id: Option<i64>) -> mlua::Result<Table> {
     let table = lua.create_table()?;
     table.set("kind", kind)?;
-    if let Some(operator_id) = operator_id {
-        table.set("operator_id", operator_id)?;
+    if let Some(subject_id) = subject_id {
+        table.set("subject_id", subject_id)?;
     }
     Ok(table)
 }
@@ -99,7 +101,7 @@ pub fn install(lua: &Lua) -> Result<(), EngineError> {
     )?;
     module.set(
         "cheat",
-        lua.create_function(|lua, operator_id: i64| status_table(lua, "cheat", Some(operator_id)))?,
+        lua.create_function(|lua, subject_id: i64| status_table(lua, "cheat", Some(subject_id)))?,
     )?;
     Ok(())
 }

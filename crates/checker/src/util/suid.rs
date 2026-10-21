@@ -51,8 +51,8 @@ fn hmac32(k_mac: &[u8; 32], msg: &[u8]) -> [u8; 4] {
 /// Encode seed to suid with data and key.
 ///
 /// # Params
-/// - `data`: The data which is used to hide into leet flag. Usually operator's
-///   id.
+/// - `data`: The data hidden in the SUID flag, usually an opaque checker
+///   subject id.
 /// - `key`: The key for encryption.
 pub fn encode(data: i64, key: &str, hyphenated: bool) -> String {
     let (k_enc, k_mac) = derive_keys_from_string(key);
@@ -143,21 +143,14 @@ pub fn decode(payload: &str, key: &str) -> Result<i64, anyhow::Error> {
 mod tests {
     const KEY: &str = "Fr1endShip1sM4g1c";
 
-    /// Exercises `encode`/`decode` across several years (smoke test).
     #[test]
-    pub fn test() {
-        let mut payloads: Vec<String> = Vec::new();
-
-        for i in 2010..2021 {
-            let suid = super::encode(i as i64, KEY, false);
-            println!("{i} {:?}", suid);
-            payloads.push(suid);
-        }
-
-        for payload in payloads {
-            let payload = &payload;
-            let data = super::decode(payload, KEY).unwrap();
-            println!("{payload} {:?}", data)
+    fn round_trips_signed_ids_in_both_formats() {
+        for id in [i64::MIN, -i64::MAX, -42, -1, 0, 1, 42, i64::MAX] {
+            for hyphenated in [false, true] {
+                let payload = super::encode(id, KEY, hyphenated);
+                assert_eq!(payload.len(), if hyphenated { 36 } else { 32 });
+                assert_eq!(super::decode(&payload, KEY).unwrap(), id);
+            }
         }
     }
 }

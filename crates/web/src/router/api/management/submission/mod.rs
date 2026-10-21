@@ -139,7 +139,11 @@ pub async fn create_debug_submission(
     // Run the Lua checker synchronously (no queue, no DB record).
     let result = s
         .checker
-        .check(&challenge, operator.id, &body.content)
+        .check(
+            &challenge,
+            cds_checker::Subject::User(operator.id),
+            &body.content,
+        )
         .await;
 
     let status = match result {

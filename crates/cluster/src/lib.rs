@@ -440,13 +440,13 @@ impl Cluster {
             ..Default::default()
         };
 
-        let operator_id = if let (Some(_), Some(team)) = (game, team) {
-            team.id
+        let subject = if let (Some(_), Some(team)) = (game, team) {
+            cds_checker::Subject::Team(team.id)
         } else {
-            user.id
+            cds_checker::Subject::User(user.id)
         };
 
-        let checker_environ = self.checker.generate(&challenge, operator_id).await?;
+        let checker_environ = self.checker.generate(&challenge, subject).await?;
 
         let checker_env_vars = checker_environ
             .into_iter()

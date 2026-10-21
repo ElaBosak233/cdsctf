@@ -3,7 +3,7 @@
 local PREFIX = "flag"
 local CONTENT = "this_is_my_flag"
 
-function check(operator_id, content)
+function check(subject_id, content)
     local ok, flag = pcall(checker.audit.parse, content)
     if not ok or flag.prefix ~= PREFIX then
         return checker.audit.incorrect()
@@ -15,6 +15,6 @@ function check(operator_id, content)
     return checker.audit.incorrect()
 end
 
-function generate(operator_id)
+function generate(subject_id)
     return {}
 end

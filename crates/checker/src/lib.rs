@@ -4,6 +4,7 @@
 //! APIs are available under the `checker` global namespace.
 
 pub mod modules;
+mod subject;
 pub mod traits;
 pub mod util;
 
@@ -17,8 +18,8 @@ use cds_media::Media;
 use serde::Deserialize;
 use tracing::debug;
 
-pub use crate::modules::audit::Status;
 use crate::traits::CheckerError;
+pub use crate::{modules::audit::Status, subject::Subject};
 
 #[derive(Clone)]
 pub struct Checker {
@@ -94,42 +95,44 @@ impl Checker {
     pub async fn check(
         &self,
         challenge: &cds_db::ChallengeDetail,
-        operator_id: i64,
+        subject: Subject,
         content: &str,
     ) -> Result<Status, CheckerError> {
+        let subject_id = subject.subject_id()?;
         self.preload(challenge).await?;
         debug!(
             challenge_id = challenge.id,
-            operator_id, "Checking answer with Lua"
+            subject_id, "Checking answer with Lua"
         );
         let configure =
             self.configure_lua(challenge.id, Some(self.default_key(challenge.id).await?));
         let result: StatusOutput = cds_engine::execute(
             format!("challenge/{}", challenge.id),
             "check",
-            (operator_id, content),
+            (subject_id, content),
             configure.as_ref(),
         )
         .await?;
-        result.try_into()
+        result.into_status(subject)
     }
 
     pub async fn generate(
         &self,
         challenge: &cds_db::ChallengeDetail,
-        operator_id: i64,
+        subject: Subject,
     ) -> Result<HashMap<String, String>, CheckerError> {
+        let subject_id = subject.subject_id()?;
         self.preload(challenge).await?;
         debug!(
             challenge_id = challenge.id,
-            operator_id, "Generating environment variables"
+            subject_id, "Generating environment variables"
         );
         let configure =
             self.configure_lua(challenge.id, Some(self.default_key(challenge.id).await?));
         Ok(cds_engine::execute(
             format!("challenge/{}", challenge.id),
             "generate",
-            (operator_id,),
+            (subject_id,),
             configure.as_ref(),
         )
         .await?)
@@ -139,22 +142,33 @@ impl Checker {
 #[derive(Deserialize)]
 struct StatusOutput {
     kind: String,
-    operator_id: Option<i64>,
+    #[serde(alias = "operator_id")]
+    subject_id: Option<i64>,
 }
 
-impl TryFrom<StatusOutput> for Status {
-    type Error = CheckerError;
-
-    fn try_from(output: StatusOutput) -> Result<Self, Self::Error> {
-        match output.kind.as_str() {
+impl StatusOutput {
+    fn into_status(self, subject: Subject) -> Result<Status, CheckerError> {
+        match self.kind.as_str() {
             "correct" => Ok(Status::Correct),
             "incorrect" => Ok(Status::Incorrect),
-            "cheat" => output.operator_id.map(Status::Cheat).ok_or_else(|| {
-                CheckerError::ScriptError("cheat status requires operator_id".to_owned())
-            }),
+            "cheat" => {
+                let subject_id = self.subject_id.ok_or_else(|| {
+                    CheckerError::ScriptError("cheat status requires subject_id".to_owned())
+                })?;
+                // Only another team's flag can enter team cheat policy. A user
+                // flag (including a same-numbered user) is simply incorrect.
+                Ok(match (subject, Subject::from_subject_id(subject_id)) {
+                    (Subject::Team(team_id), Some(Subject::Team(peer_team_id)))
+                        if team_id != peer_team_id =>
+                    {
+                        Status::Cheat(peer_team_id)
+                    }
+                    _ => Status::Incorrect,
+                })
+            }
             _ => Err(CheckerError::ScriptError(format!(
                 "unknown checker status: {}",
-                output.kind
+                self.kind
             ))),
         }
     }
@@ -166,7 +180,7 @@ mod tests {
 
     use cds_engine::{ConfigureLua, mlua::Lua};
 
-    use super::{Status, StatusOutput, modules};
+    use super::{Status, StatusOutput, Subject, modules};
 
     const SIMPLE: &str = include_str!(
         "../../../web/src/pages/admin/challenges/challenge_id/checker/_blocks/examples/simple.lua"
@@ -198,11 +212,82 @@ mod tests {
 
     #[test]
     fn decodes_checker_status() {
-        let status = StatusOutput {
-            kind: "cheat".to_owned(),
-            operator_id: Some(42),
-        };
-        assert_eq!(Status::try_from(status).unwrap(), Status::Cheat(42));
+        for (subject, source, expected) in [
+            (Subject::Team(7), 42, Status::Cheat(42)),
+            (Subject::Team(7), -42, Status::Incorrect),
+            (Subject::Team(7), -7, Status::Incorrect),
+            (Subject::Team(7), 7, Status::Incorrect),
+            (Subject::Team(7), 0, Status::Incorrect),
+            (Subject::Team(7), i64::MIN, Status::Incorrect),
+            (Subject::User(7), 42, Status::Incorrect),
+            (Subject::User(7), 7, Status::Incorrect),
+            (Subject::User(7), -42, Status::Incorrect),
+        ] {
+            let status = StatusOutput {
+                kind: "cheat".to_owned(),
+                subject_id: Some(source),
+            };
+            assert_eq!(status.into_status(subject).unwrap(), expected);
+        }
+        for (kind, source) in [("cheat", None), ("unknown", Some(42))] {
+            assert!(
+                StatusOutput {
+                    kind: kind.to_owned(),
+                    subject_id: source,
+                }
+                .into_status(Subject::Team(7))
+                .is_err()
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn legacy_script_parameters_and_return_fields_remain_supported() {
+        let configure = configure();
+        let key = "test/legacy-checker-subject";
+        let script = r#"
+            function generate(operator_id)
+                return { FLAG = checker.suid.encode(operator_id) }
+            end
+
+            function check(operator_id, content)
+                local source = checker.suid.decode(content)
+                if source == operator_id then
+                    return checker.audit.correct()
+                end
+                return { kind = "cheat", operator_id = source }
+            end
+        "#;
+        cds_engine::preload(key, script, None).await.unwrap();
+        for owner in [Subject::User(7), Subject::Team(7)] {
+            let generated: HashMap<String, String> = cds_engine::execute(
+                key,
+                "generate",
+                (owner.subject_id().unwrap(),),
+                configure.as_ref(),
+            )
+            .await
+            .unwrap();
+            for submitter in [Subject::User(7), Subject::Team(7), Subject::Team(8)] {
+                let output: StatusOutput = cds_engine::execute(
+                    key,
+                    "check",
+                    (submitter.subject_id().unwrap(), generated["FLAG"].as_str()),
+                    configure.as_ref(),
+                )
+                .await
+                .unwrap();
+                let expected = match (owner, submitter) {
+                    _ if owner == submitter => Status::Correct,
+                    (Subject::Team(source), Subject::Team(_)) => Status::Cheat(source),
+                    _ => Status::Incorrect,
+                };
+                if owner != submitter {
+                    assert_eq!(output.subject_id, Some(owner.subject_id().unwrap()));
+                }
+                assert_eq!(output.into_status(submitter).unwrap(), expected);
+            }
+        }
     }
 
     #[tokio::test]
@@ -214,40 +299,57 @@ mod tests {
                 .unwrap();
         }
 
-        cds_engine::preload("test/simple", SIMPLE, None)
-            .await
-            .unwrap();
-        let status: StatusOutput = cds_engine::execute(
-            "test/simple",
-            "check",
-            (1_i64, "flag{this_is_my_flag}"),
-            configure.as_ref(),
-        )
-        .await
-        .unwrap();
-        assert_eq!(Status::try_from(status).unwrap(), Status::Correct);
-
-        cds_engine::preload("test/regex", REGEX, None)
-            .await
-            .unwrap();
-        let correct: StatusOutput = cds_engine::execute(
-            "test/regex",
-            "check",
-            (1_i64, "flag{this_is_my_flag_2026}"),
-            configure.as_ref(),
-        )
-        .await
-        .unwrap();
-        assert_eq!(Status::try_from(correct).unwrap(), Status::Correct);
-        let incorrect: StatusOutput = cds_engine::execute(
-            "test/regex",
-            "check",
-            (1_i64, "flag{this_is_my_flag}"),
-            configure.as_ref(),
-        )
-        .await
-        .unwrap();
-        assert_eq!(Status::try_from(incorrect).unwrap(), Status::Incorrect);
+        for (key, script, valid, invalid) in [
+            (
+                "test/simple",
+                SIMPLE,
+                "flag{this_is_my_flag}",
+                "flag{wrong}",
+            ),
+            (
+                "test/regex",
+                REGEX,
+                "flag{this_is_my_flag_2026}",
+                "flag{this_is_my_flag}",
+            ),
+        ] {
+            cds_engine::preload(key, script, None).await.unwrap();
+            for subject in [
+                Subject::User(1),
+                Subject::Team(1),
+                Subject::User(i64::MAX),
+                Subject::Team(i64::MAX),
+            ] {
+                let generated: HashMap<String, String> = cds_engine::execute(
+                    key,
+                    "generate",
+                    (subject.subject_id().unwrap(),),
+                    configure.as_ref(),
+                )
+                .await
+                .unwrap();
+                assert!(generated.is_empty());
+                for (content, expected) in [
+                    (valid, Status::Correct),
+                    (invalid, Status::Incorrect),
+                    ("not a flag", Status::Incorrect),
+                ] {
+                    let output: StatusOutput = cds_engine::execute(
+                        key,
+                        "check",
+                        (subject.subject_id().unwrap(), content),
+                        configure.as_ref(),
+                    )
+                    .await
+                    .unwrap();
+                    assert_eq!(
+                        output.into_status(subject).unwrap(),
+                        expected,
+                        "{key}: {subject:?}"
+                    );
+                }
+            }
+        }
 
         for (key, script) in [
             ("test/suid", SUID),
@@ -256,23 +358,72 @@ mod tests {
             ("test/leet-custom-key", LEET_CUSTOM_KEY),
         ] {
             cds_engine::preload(key, script, None).await.unwrap();
-            let mut generated: HashMap<String, String> =
-                cds_engine::execute(key, "generate", (7_i64,), configure.as_ref())
+            for id in [1, 7, i64::MAX] {
+                for owner in [Subject::User(id), Subject::Team(id)] {
+                    let mut generated: HashMap<String, String> = cds_engine::execute(
+                        key,
+                        "generate",
+                        (owner.subject_id().unwrap(),),
+                        configure.as_ref(),
+                    )
                     .await
                     .unwrap();
-            let flag = generated.remove("FLAG").unwrap();
-
-            let correct: StatusOutput =
-                cds_engine::execute(key, "check", (7_i64, flag.as_str()), configure.as_ref())
-                    .await
-                    .unwrap();
-            assert_eq!(Status::try_from(correct).unwrap(), Status::Correct);
-
-            let cheat: StatusOutput =
-                cds_engine::execute(key, "check", (8_i64, flag.as_str()), configure.as_ref())
-                    .await
-                    .unwrap();
-            assert_eq!(Status::try_from(cheat).unwrap(), Status::Cheat(7));
+                    let flag = generated.remove("FLAG").unwrap();
+                    let other_id = if id == 1 { 2 } else { 1 };
+                    for submitter in [
+                        owner,
+                        Subject::User(id),
+                        Subject::Team(id),
+                        Subject::User(other_id),
+                        Subject::Team(other_id),
+                    ] {
+                        let output: StatusOutput = cds_engine::execute(
+                            key,
+                            "check",
+                            (submitter.subject_id().unwrap(), flag.as_str()),
+                            configure.as_ref(),
+                        )
+                        .await
+                        .unwrap();
+                        // The unchanged scripts must recover the complete
+                        // signed subject before the
+                        // Rust boundary applies team policy.
+                        if submitter != owner {
+                            assert_eq!(output.kind, "cheat", "{key}: {owner:?} -> {submitter:?}");
+                            assert_eq!(output.subject_id, Some(owner.subject_id().unwrap()));
+                        }
+                        let expected = match (owner, submitter) {
+                            _ if owner == submitter => Status::Correct,
+                            (Subject::Team(source), Subject::Team(_)) => Status::Cheat(source),
+                            _ => Status::Incorrect,
+                        };
+                        assert_eq!(
+                            output.into_status(submitter).unwrap(),
+                            expected,
+                            "{key}: {owner:?} -> {submitter:?}"
+                        );
+                    }
+                    for invalid in [
+                        "not a flag".to_owned(),
+                        "flag{broken}".to_owned(),
+                        flag.replacen("flag{", "wrong{", 1),
+                    ] {
+                        let output: StatusOutput = cds_engine::execute(
+                            key,
+                            "check",
+                            (owner.subject_id().unwrap(), invalid.as_str()),
+                            configure.as_ref(),
+                        )
+                        .await
+                        .unwrap();
+                        assert_eq!(
+                            output.into_status(owner).unwrap(),
+                            Status::Incorrect,
+                            "{key}: {owner:?}"
+                        );
+                    }
+                }
+            }
         }
     }
 

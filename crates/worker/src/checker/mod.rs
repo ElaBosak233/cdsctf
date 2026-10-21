@@ -115,19 +115,14 @@ async fn check(
         return Err(anyhow!("challenge_not_found"));
     };
 
-    // Checker scripts key dynamic data off team id when present, otherwise the
-    // submitting user.
-    let operator_id = match submission.team_id {
-        Some(team_id) => team_id,
-        _ => submission.user_id,
+    let subject = match (submission.game_id, submission.team_id) {
+        (Some(_), Some(team_id)) => cds_checker::Subject::Team(team_id),
+        (None, None) => cds_checker::Subject::User(submission.user_id),
+        _ => return Err(anyhow!("invalid_submission_scope")),
     };
 
-    let checker_result = enforce_check_timeout(ctx.checker.check(
-        &challenge,
-        operator_id,
-        &submission.content,
-    ))
-    .await;
+    let checker_result =
+        enforce_check_timeout(ctx.checker.check(&challenge, subject, &submission.content)).await;
     let verdict = match checker_result {
         Ok(Ok(c_status)) => match c_status {
             cds_checker::Status::Correct => Verdict::Correct,

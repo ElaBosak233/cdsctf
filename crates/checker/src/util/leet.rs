@@ -80,8 +80,8 @@ pub static LEET_CHAR_TABLE: Lazy<HashMap<u8, Vec<u8>>> = Lazy::new(|| {
 ///
 /// # Params
 /// - `template`: The origin flag. Such as `HelloWorld`.
-/// - `data`: The data which is used to hide into leet flag. Usually operator's
-///   id.
+/// - `data`: The data hidden in the leet flag, usually an opaque checker
+///   subject id.
 /// - `key`: The key for encryption.
 pub fn encode(template: &str, data: i64, key: &str) -> String {
     let encrypted = super::xxtea::encrypt_raw(&data.to_le_bytes(), key);
@@ -152,24 +152,22 @@ pub fn decode(template: &str, payload: &str, key: &str) -> Result<i64, io::Error
 /// Unit tests for the Leet encoder/decoder helpers.
 #[cfg(test)]
 mod tests {
-    const TEMPLATE: &str = "MyLittlePony";
     const KEY: &str = "Fr1endShip1sM4g1c";
 
-    /// Exercises `encode`/`decode` across several years (smoke test).
     #[test]
-    pub fn test() {
-        let mut payloads: Vec<String> = Vec::new();
-
-        for i in 2010..2021 {
-            let leet_flag = super::encode(TEMPLATE, i as i64, KEY);
-            println!("{i} {:?}", leet_flag);
-            payloads.push(leet_flag);
-        }
-
-        for payload in payloads {
-            let payload = &payload;
-            let data = super::decode(TEMPLATE, payload, KEY).unwrap();
-            println!("{payload} {:?}", data)
+    fn round_trips_signed_ids_with_different_templates() {
+        for template in [
+            "MyLittlePony",
+            "this_is_my_flag",
+            "a",
+            "123456",
+            "___---",
+            "",
+        ] {
+            for id in [i64::MIN, -i64::MAX, -42, -1, 0, 1, 42, i64::MAX] {
+                let payload = super::encode(template, id, KEY);
+                assert_eq!(super::decode(template, &payload, KEY).unwrap(), id);
+            }
         }
     }
 }

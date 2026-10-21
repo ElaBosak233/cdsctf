@@ -46,7 +46,7 @@ const luaCompletions: Record<string, Completion[]> = {
     { label: "suid", type: "namespace", info: "SUID encoding helpers" },
   ],
   "checker.audit": [
-    { label: "cheat", type: "function", info: "cheat(operator_id)" },
+    { label: "cheat", type: "function", info: "cheat(subject_id)" },
     { label: "correct", type: "function", info: "correct()" },
     { label: "format", type: "function", info: "format(flag)" },
     { label: "incorrect", type: "function", info: "incorrect()" },
@@ -82,7 +82,7 @@ const luaCompletions: Record<string, Completion[]> = {
     {
       label: "encode",
       type: "function",
-      info: "encode(template, operator_id, options?: { key?: string })",
+      info: "encode(template, subject_id, options?: { key?: string })",
     },
   ],
   regex: [
@@ -97,7 +97,7 @@ const luaCompletions: Record<string, Completion[]> = {
     {
       label: "encode",
       type: "function",
-      info: "encode(data, options?: { key?: string; hyphenated?: boolean })",
+      info: "encode(subject_id, options?: { key?: string; hyphenated?: boolean })",
     },
   ],
   log: [
