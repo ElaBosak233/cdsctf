@@ -24,6 +24,6 @@ errors:
     title: Challenge instance is invalid
     description: Refresh the page and try again.
   no_more_renewal: This instance cannot be renewed anymore.
-  renewal_within_10_minutes: This instance cannot be renewed within ten minutes of expiry.
+  renewal_within_10_minutes: This instance expires in more than ten minutes. Please try again when ten minutes or less remain.
   too_many_team_instances: The team has reached its instance limit.
   too_many_user_instances: You have reached your instance limit.
