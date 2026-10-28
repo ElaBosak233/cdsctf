@@ -29,8 +29,8 @@ settings:
     size_error: アバターサイズが 5 MB の制限を超えています。
   avatar_delete_success: アバターが正常に削除されました。
 personal_access_tokens:
-  description: スクリプトや自動化クライアント用の認証情報を作成します。トークンは作成直後に一度だけ表示されます。
   _: パーソナルアクセストークン
+  description: スクリプトや自動化クライアント用の認証情報を作成します。トークンは作成直後に一度だけ表示されます。
   empty: 有効なパーソナルアクセストークンはありません。
   created_at: 作成日時 {{date}}
   expires_at: 有効期限 {{date}}

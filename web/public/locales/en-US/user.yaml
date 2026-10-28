@@ -31,8 +31,8 @@ settings:
       description: Choose an avatar no larger than 5 MB.
   avatar_delete_success: Avatar deleted successfully.
 personal_access_tokens:
-  description: Create credentials for scripts and automation. A token is shown only once after creation.
   _: Personal Access Tokens
+  description: Create credentials for scripts and automation. A token is shown only once after creation.
   empty: No active personal access tokens.
   created_at: Created {{date}}
   expires_at: Expires {{date}}

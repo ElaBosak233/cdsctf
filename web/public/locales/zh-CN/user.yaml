@@ -31,8 +31,8 @@ settings:
       description: 请选择不超过 5 MB 的头像。
   avatar_delete_success: 头像删除成功。
 personal_access_tokens:
-  description: 为脚本和自动化客户端创建访问凭据。令牌只会在创建成功后显示一次。
   _: 个人访问令牌
+  description: 为脚本和自动化客户端创建访问凭据。令牌只会在创建成功后显示一次。
   empty: 暂无有效的个人访问令牌。
   created_at: 创建于 {{date}}
   expires_at: 过期于 {{date}}
