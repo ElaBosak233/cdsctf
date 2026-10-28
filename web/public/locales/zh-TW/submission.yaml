@@ -33,6 +33,10 @@ notifications:
       title: 答案不正確
       description: 請檢查答案後再試一次。
       description_with_id: "送出紀錄 #{{id}} 的答案不正確，請檢查後再試一次。"
+    failed:
+      title: "檢查失敗"
+      description: "檢查器未能完成判定，請聯絡管理員處理。"
+      description_with_id: "送出紀錄 #{{id}} 的檢查失敗，請聯絡管理員處理。"
     cheat:
       title: 送出紀錄已被標記
       description: 偵測到可能的作弊行為，已記錄。
@@ -45,6 +49,7 @@ notifications:
       description_with_id: "送出紀錄 #{{id}} 為重複送出，不會改變解題結果。"
 status:
   _: 狀態
+  failed: "檢查失敗"
   queued: 排隊中
   processing: 處理中
   correct: 正確

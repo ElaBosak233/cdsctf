@@ -25,7 +25,6 @@ enum Level {
 /// script compatibility.
 pub(crate) fn install(lua: &Lua) -> Result<(), EngineError> {
     let budget = Arc::new(AtomicU32::new(0));
-    lua.set_app_data(LogBudget(budget.clone()));
     let log = global_module(lua, "log")?;
 
     install_level(lua, &log, "debug", Level::Debug, budget.clone())?;
@@ -37,14 +36,6 @@ pub(crate) fn install(lua: &Lua) -> Result<(), EngineError> {
         .set("print", create_log_function(lua, Level::Debug, budget)?)?;
     Ok(())
 }
-
-pub(crate) fn reset_budget(lua: &Lua) {
-    if let Some(budget) = lua.app_data_ref::<LogBudget>() {
-        budget.0.store(0, Ordering::Relaxed);
-    }
-}
-
-struct LogBudget(Arc<AtomicU32>);
 
 fn install_level(
     lua: &Lua,

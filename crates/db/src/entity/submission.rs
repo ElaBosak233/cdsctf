@@ -63,6 +63,8 @@ pub enum Status {
     Correct,
     #[sea_orm(string_value = "incorrect")]
     Incorrect,
+    #[sea_orm(string_value = "failed")]
+    Failed,
     #[sea_orm(string_value = "cheat")]
     Cheat,
     #[sea_orm(string_value = "expired")]

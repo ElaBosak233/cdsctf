@@ -33,6 +33,10 @@ notifications:
       title: 答案错误
       description: 请检查答案后重试。
       description_with_id: "提交 #{{id}} 的答案不正确，请检查后重试。"
+    failed:
+      title: "检查失败"
+      description: "检查器未能完成判定，请联系管理员处理。"
+      description_with_id: "提交 #{{id}} 的检查失败，请联系管理员处理。"
     cheat:
       title: 提交已被标记
       description: 检测到疑似作弊行为，相关记录已保存。
@@ -45,6 +49,7 @@ notifications:
       description_with_id: "提交 #{{id}} 为重复提交，不会改变解题结果。"
 status:
   _: 状态
+  failed: "检查失败"
   queued: 排队中
   processing: 处理中
   correct: 正确

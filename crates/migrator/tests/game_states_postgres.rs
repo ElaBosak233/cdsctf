@@ -155,3 +155,42 @@ async fn initial_state_columns_are_created_on_postgres() {
     );
     assert_eq!(user_idp_check_constraint_count(&database).await, 0);
 }
+
+#[tokio::test]
+#[ignore = "requires CDS_TEST_DATABASE_URL pointing to disposable PostgreSQL"]
+async fn submission_failure_constraint_supports_upgrade_and_rollback() {
+    let database_url = std::env::var("CDS_TEST_DATABASE_URL").unwrap();
+    let mut options = sea_orm::ConnectOptions::new(database_url);
+    let schema = format!("submission_failure_{}", std::process::id());
+    // Isolate migration history and tables from other migration tests.
+    options.max_connections(1).min_connections(1);
+    let database = Database::connect(options).await.unwrap();
+    database
+        .execute_unprepared(&format!(
+            "CREATE SCHEMA {schema}; SET search_path TO {schema}"
+        ))
+        .await
+        .unwrap();
+    Migrator::install(&database).await.unwrap();
+    database
+        .execute_unprepared(&format!("SET search_path TO {schema}, public"))
+        .await
+        .unwrap();
+    Migrator::up(&database, None).await.unwrap();
+    let definition = |database: sea_orm::DatabaseConnection| async move {
+        database.query_one_raw(Statement::from_string(DbBackend::Postgres,
+            "SELECT pg_get_constraintdef(oid) AS definition FROM pg_constraint WHERE conrelid = 'submissions'::regclass AND conname = 'chk_submissions_status'"
+        )).await.unwrap().unwrap().try_get::<String>("", "definition").unwrap()
+    };
+    assert!(definition(database.clone()).await.contains("failed"));
+    Migrator::down(&database, Some(1)).await.unwrap();
+    assert!(!definition(database.clone()).await.contains("failed"));
+    Migrator::up(&database, None).await.unwrap();
+    assert!(definition(database.clone()).await.contains("failed"));
+    database
+        .execute_unprepared(&format!(
+            "SET search_path TO public; DROP SCHEMA {schema} CASCADE"
+        ))
+        .await
+        .unwrap();
+}

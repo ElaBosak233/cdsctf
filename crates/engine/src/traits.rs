@@ -17,6 +17,8 @@ pub enum EngineError {
     MissingScript(String),
     #[error("script error: {0}")]
     ScriptError(String),
+    #[error("Lua execution capacity exhausted")]
+    Busy,
     #[error("script execution timed out")]
     Timeout,
     #[error(transparent)]

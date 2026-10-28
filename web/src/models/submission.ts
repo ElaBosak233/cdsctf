@@ -29,6 +29,7 @@ export enum Status {
   Processing = "processing",
   Correct = "correct",
   Incorrect = "incorrect",
+  Failed = "failed",
   Cheat = "cheat",
   Expired = "expired",
   Duplicate = "duplicate",

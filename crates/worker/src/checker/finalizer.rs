@@ -21,6 +21,7 @@ use cds_db::{
 pub(crate) enum Verdict {
     Correct,
     Incorrect,
+    Failed,
     Cheat { peer_team_id: i64 },
 }
 
@@ -113,6 +114,7 @@ async fn resolve_status(
     match verdict {
         Verdict::Correct => Ok((resolve_correct_status(transaction, submission).await?, None)),
         Verdict::Incorrect => Ok((Status::Incorrect, None)),
+        Verdict::Failed => Ok((Status::Failed, None)),
         Verdict::Cheat { peer_team_id } => match (submission.game_id, submission.team_id) {
             (Some(game_id), Some(team_id)) => Ok((
                 Status::Cheat,
@@ -497,18 +499,18 @@ mod tests {
             &game_submission(1, 100),
             processing_at(),
             0,
-            Verdict::Incorrect,
+            Verdict::Failed,
         )
         .await
         .unwrap();
         assert_eq!(
             ordinary,
             FinalizeOutcome::Committed {
-                status: Status::Incorrect,
+                status: Status::Failed,
                 score_game_id: None,
             }
         );
-        assert_eq!(status(&db, 1).await, "incorrect");
+        assert_eq!(status(&db, 1).await, "failed");
         assert_eq!(
             scalar_i64(&db, "SELECT COUNT(*) AS value FROM teams WHERE state = 0").await,
             0

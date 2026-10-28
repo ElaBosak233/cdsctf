@@ -54,6 +54,15 @@ function CheckerWatcher() {
                 }
               );
               break;
+            case Status.Failed:
+              toast.error(t("submission:notifications.result.failed.title"), {
+                id: `submission-${s.id}`,
+                description: t(
+                  "submission:notifications.result.failed.description_with_id",
+                  { id: s.id }
+                ),
+              });
+              break;
             case Status.Cheat:
               toast.error(t("submission:notifications.result.cheat.title"), {
                 id: `submission-${s.id}`,

@@ -54,3 +54,5 @@ pub mod m20261011_000013_create_user_idp;
 
 /// Defines the personal access token migration.
 pub mod m20261011_000014_create_personal_access_token;
+
+pub mod m20261028_000001_submission_failed;

@@ -3,19 +3,28 @@
 use std::time::Duration;
 
 use mlua::{ExternalResult, Lua, Table};
+use once_cell::sync::Lazy;
 use reqwest::{Method, redirect::Policy};
 
 use crate::{global_module, traits::EngineError};
 
 const MAX_HTTP_BODY_SIZE: usize = 2 * 1024 * 1024;
 
-pub(crate) fn install(lua: &Lua) -> Result<(), EngineError> {
-    let client = reqwest::Client::builder()
+// All VMs share connection pools; Lua state isolation does not require a new
+// HTTP client for each invocation.
+static CLIENT: Lazy<Result<reqwest::Client, reqwest::Error>> = Lazy::new(|| {
+    reqwest::Client::builder()
         .connect_timeout(Duration::from_secs(5))
         .timeout(Duration::from_secs(15))
         .redirect(Policy::limited(5))
         .build()
-        .map_err(anyhow::Error::from)?;
+});
+
+pub(crate) fn install(lua: &Lua) -> Result<(), EngineError> {
+    let client = CLIENT
+        .as_ref()
+        .map_err(|error| anyhow::anyhow!(error.to_string()))?
+        .clone();
     let module = global_module(lua, "http")?;
     module.set(
         "url_encode",

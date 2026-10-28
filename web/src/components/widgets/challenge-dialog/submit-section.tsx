@@ -103,6 +103,10 @@ function SubmitSection() {
             "submission:notifications.result.incorrect.description"
           ),
         });
+      } else if (result.status === Status.Failed) {
+        toast.error(t("submission:notifications.result.failed.title"), {
+          description: t("submission:notifications.result.failed.description"),
+        });
       } else if (result.status === Status.Cheat) {
         toast.error(t("submission:notifications.result.cheat.title"), {
           description: t("submission:notifications.result.cheat.description"),

@@ -33,6 +33,10 @@ notifications:
       title: 不正解です
       description: 解答を確認してもう一度お試しください。
       description_with_id: "提出 #{{id}} は不正解でした。解答を確認してもう一度お試しください。"
+    failed:
+      title: "判定失敗"
+      description: "判定を完了できませんでした。管理者にお問い合わせください。"
+      description_with_id: "提出 #{{id}} の判定を完了できませんでした。管理者にお問い合わせください。"
     cheat:
       title: 提出が報告されました
       description: 不正行為の可能性が検出され、記録されました。
@@ -45,6 +49,7 @@ notifications:
       description_with_id: "提出 #{{id}} は重複しているため、結果は変わりません。"
 status:
   _: ステータス
+  failed: "判定失敗"
   queued: キュー待ち
   processing: 処理中
   correct: 正解

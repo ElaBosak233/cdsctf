@@ -13,12 +13,11 @@ mod util;
 mod worker;
 
 use std::{
-    collections::{HashMap, HashSet},
     sync::{
-        Arc, Mutex,
+        Arc,
         atomic::{AtomicU32, Ordering},
     },
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use dashmap::DashMap;
@@ -38,6 +37,16 @@ use crate::traits::{DiagnosticKind, DiagnosticMarker, EngineError};
 
 const LUA_MEMORY_LIMIT: usize = 16 * 1024 * 1024;
 const LUA_CALL_TIMEOUT: Duration = Duration::from_secs(20);
+// Includes execution states and short-lived compilation/lint states. Native
+// HTTP/storage allocations are outside Lua's allocator limit.
+const MAX_LUA_STATES: usize = 24;
+const MAX_CHECKER_EXECUTIONS: usize = 16;
+const MAX_OTHER_EXECUTIONS: usize = 4;
+const MAX_SCRIPT_EXECUTIONS: usize = 4;
+static VM_PERMITS: Lazy<Arc<Semaphore>> = Lazy::new(|| Arc::new(Semaphore::new(MAX_LUA_STATES)));
+static EXECUTION_LIMITS: Lazy<ExecutionLimits> =
+    Lazy::new(|| ExecutionLimits::new(MAX_CHECKER_EXECUTIONS, MAX_OTHER_EXECUTIONS));
+
 const LUA_INSTRUCTION_BATCH: u32 = 10_000;
 const LUA_INSTRUCTION_BATCH_LIMIT: u32 = 500;
 
@@ -45,88 +54,44 @@ struct EngineContext {
     script: Arc<str>,
     bytecode: Arc<[u8]>,
     created_at: OffsetDateTime,
-    pool: Arc<LuaPool>,
-}
-
-struct InstructionBudget(Arc<AtomicU32>);
-
-struct NamespaceRegistry(Mutex<HashSet<String>>);
-
-struct LuaPool {
-    slots: Mutex<Vec<Lua>>,
     permits: Arc<Semaphore>,
 }
 
-struct LuaLease {
-    lua: Option<Lua>,
-    pool: Arc<LuaPool>,
-    reusable: bool,
+struct VmPermit {
     _permit: OwnedSemaphorePermit,
 }
 
-impl LuaPool {
-    fn new() -> Self {
-        let capacity = std::thread::available_parallelism()
-            .map(usize::from)
-            .unwrap_or(1)
-            .min(32);
+struct ExecutionLimits {
+    checkers: Arc<Semaphore>,
+    other: Arc<Semaphore>,
+}
+
+impl ExecutionLimits {
+    fn new(checkers: usize, other: usize) -> Self {
         Self {
-            slots: Mutex::new(Vec::with_capacity(capacity)),
-            permits: Arc::new(Semaphore::new(capacity)),
+            checkers: Arc::new(Semaphore::new(checkers)),
+            other: Arc::new(Semaphore::new(other)),
         }
     }
 
-    async fn checkout(self: &Arc<Self>, configure: &ConfigureLua) -> Result<LuaLease, EngineError> {
-        let permit = self
-            .permits
-            .clone()
-            .acquire_owned()
-            .await
-            .map_err(|_| anyhow::anyhow!("lua pool closed"))?;
-        let lua = self.slots.lock().expect("lua pool mutex poisoned").pop();
-        let lua = match lua {
-            Some(lua) => lua,
-            None => {
-                let lua = create_lua()?;
-                configure(&lua)?;
-                lua
-            }
+    // Fail fast: queued submissions remain in JetStream instead of consuming
+    // their processing lease while waiting for a VM.
+    fn try_acquire(
+        &self,
+        key: &str,
+        script: Arc<Semaphore>,
+    ) -> Result<(OwnedSemaphorePermit, OwnedSemaphorePermit), EngineError> {
+        let script = script.try_acquire_owned().map_err(|_| EngineError::Busy)?;
+        let domain = if key.starts_with("challenge/") {
+            &self.checkers
+        } else {
+            &self.other
         };
-        reset_instruction_budget(&lua);
-        logging::reset_budget(&lua);
-        Ok(LuaLease {
-            lua: Some(lua),
-            pool: self.clone(),
-            reusable: false,
-            _permit: permit,
-        })
-    }
-
-    fn release(&self, lua: Lua) {
-        self.slots
-            .lock()
-            .expect("lua pool mutex poisoned")
-            .push(lua);
-    }
-}
-
-impl LuaLease {
-    fn lua(&self) -> &Lua {
-        self.lua.as_ref().expect("lua lease already released")
-    }
-
-    fn mark_reusable(&mut self) {
-        self.reusable = true;
-    }
-}
-
-impl Drop for LuaLease {
-    fn drop(&mut self) {
-        if self.reusable
-            && let Some(lua) = self.lua.take()
-        {
-            self.pool.release(lua);
-        }
+        let domain = domain
+            .clone()
+            .try_acquire_owned()
+            .map_err(|_| EngineError::Busy)?;
+        Ok((script, domain))
     }
 }
 
@@ -146,20 +111,29 @@ pub async fn init() -> Result<(), EngineError> {
 
 /// Creates a restricted Lua state for one compilation or execution.
 pub fn create_lua() -> Result<Lua, EngineError> {
+    create_lua_with_deadline(Instant::now() + LUA_CALL_TIMEOUT)
+}
+
+fn create_lua_with_deadline(deadline: Instant) -> Result<Lua, EngineError> {
+    let permit = VM_PERMITS
+        .clone()
+        .try_acquire_owned()
+        .map_err(|_| EngineError::Busy)?;
     let libs = StdLib::COROUTINE | StdLib::TABLE | StdLib::STRING | StdLib::UTF8 | StdLib::MATH;
     let lua = Lua::new_with(libs, LuaOptions::default())?;
+    lua.set_app_data(VmPermit { _permit: permit });
     lua.set_memory_limit(LUA_MEMORY_LIMIT)?;
 
     let instruction_batches = Arc::new(AtomicU32::new(0));
-    lua.set_app_data(InstructionBudget(instruction_batches.clone()));
     lua.set_global_hook(
         HookTriggers::new().every_nth_instruction(LUA_INSTRUCTION_BATCH),
-        move |lua, _debug| {
-            let instruction_batches = lua
-                .app_data_ref::<InstructionBudget>()
-                .expect("instruction budget missing");
-            if instruction_batches.0.fetch_add(1, Ordering::Relaxed) >= LUA_INSTRUCTION_BATCH_LIMIT
-            {
+        move |_lua, _debug| {
+            if Instant::now() >= deadline {
+                return Err(mlua::Error::RuntimeError(
+                    "script execution timed out".to_owned(),
+                ));
+            }
+            if instruction_batches.fetch_add(1, Ordering::Relaxed) >= LUA_INSTRUCTION_BATCH_LIMIT {
                 Err(mlua::Error::RuntimeError(
                     "script instruction limit exceeded".to_owned(),
                 ))
@@ -169,96 +143,9 @@ pub fn create_lua() -> Result<Lua, EngineError> {
         },
     )?;
 
-    lua.set_app_data(NamespaceRegistry(Mutex::new(HashSet::new())));
     logging::install(&lua)?;
     modules::install(&lua)?;
     Ok(lua)
-}
-
-fn reset_instruction_budget(lua: &Lua) {
-    if let Some(budget) = lua.app_data_ref::<InstructionBudget>() {
-        budget.0.store(0, Ordering::Relaxed);
-    }
-}
-
-// Reuse native API implementations while keeping script writes local to one
-// call.
-fn proxy_table(
-    lua: &Lua,
-    source: &Table,
-    visited: &mut HashMap<usize, Table>,
-) -> mlua::Result<Table> {
-    let pointer = source.to_pointer() as usize;
-    if let Some(table) = visited.get(&pointer) {
-        return Ok(table.clone());
-    }
-
-    let target = lua.create_table()?;
-    visited.insert(pointer, target.clone());
-    for pair in source.pairs::<Value, Value>() {
-        let (key, value) = pair?;
-        let key = match key {
-            Value::Table(table) => Value::Table(proxy_table(lua, &table, visited)?),
-            value => value,
-        };
-        let value = match value {
-            Value::Table(table) => Value::Table(proxy_table(lua, &table, visited)?),
-            value => value,
-        };
-        target.raw_set(key, value)?;
-    }
-    let metatable = lua.create_table()?;
-    metatable.set("__index", source.clone())?;
-    metatable.set("__metatable", false)?;
-    target.set_metatable(Some(metatable))?;
-    Ok(target)
-}
-
-fn execution_environment(lua: &Lua) -> mlua::Result<Table> {
-    let globals = lua.globals();
-    let mut visited = HashMap::new();
-    let environment = lua.create_table()?;
-
-    let mut names = [
-        "crypto",
-        "http",
-        "json",
-        "coroutine",
-        "math",
-        "string",
-        "table",
-        "utf8",
-        "log",
-        "regex",
-        "time",
-    ]
-    .into_iter()
-    .map(str::to_owned)
-    .collect::<Vec<_>>();
-    if let Some(registry) = lua.app_data_ref::<NamespaceRegistry>() {
-        names.extend(
-            registry
-                .0
-                .lock()
-                .expect("lua namespace registry poisoned")
-                .iter()
-                .cloned(),
-        );
-    }
-
-    for name in names {
-        if let Value::Table(table) = globals.get(name.as_str())? {
-            environment.set(name.as_str(), proxy_table(lua, &table, &mut visited)?)?;
-        }
-    }
-    environment.set("print", globals.get::<Function>("print")?)?;
-    environment.set("_G", environment.clone())?;
-
-    let metatable = lua.create_table()?;
-    metatable.set("__index", globals)?;
-    metatable.set("__metatable", false)?;
-    environment.set_metatable(Some(metatable))?;
-    Ok(environment)
 }
 
 /// Creates and installs a module table below a host-owned namespace.
@@ -281,13 +168,6 @@ pub fn module(lua: &Lua, namespace: &str, name: &str) -> Result<Table, EngineErr
     };
     let table = lua.create_table()?;
     namespace_table.set(name, table.clone())?;
-    if let Some(registry) = lua.app_data_ref::<NamespaceRegistry>() {
-        registry
-            .0
-            .lock()
-            .expect("lua namespace registry poisoned")
-            .insert(namespace.to_owned());
-    }
     Ok(table)
 }
 
@@ -396,8 +276,7 @@ pub async fn lint(
     }
 }
 
-/// Compiles and caches a script. VM slots are reused, but every call receives
-/// a fresh protected environment so script globals are not shared.
+/// Caches compiled bytecode. Each execution owns a fresh, bounded Lua state.
 pub async fn preload(
     key: impl AsRef<str>,
     script: impl AsRef<str>,
@@ -418,16 +297,19 @@ pub async fn preload(
         .set_name(format!("@{key}"))
         .set_mode(ChunkMode::Text)
         .into_function()?;
-    let bytecode = function.dump(false);
-    GLOBAL_ENGINE.insert(
-        key.to_owned(),
-        EngineContext {
-            script: Arc::from(script.to_owned()),
-            bytecode: Arc::from(bytecode),
+    let bytecode: Arc<[u8]> = Arc::from(function.dump(false));
+    let script: Arc<str> = Arc::from(script);
+    let mut entry = GLOBAL_ENGINE
+        .entry(key.to_owned())
+        .or_insert_with(|| EngineContext {
+            script: script.clone(),
+            bytecode: bytecode.clone(),
             created_at: OffsetDateTime::now_utc(),
-            pool: Arc::new(LuaPool::new()),
-        },
-    );
+            permits: Arc::new(Semaphore::new(MAX_SCRIPT_EXECUTIONS)),
+        });
+    entry.script = script;
+    entry.bytecode = bytecode;
+    entry.created_at = OffsetDateTime::now_utc();
     Ok(())
 }
 
@@ -445,28 +327,34 @@ where
         .get(key.as_ref())
         .ok_or_else(|| EngineError::MissingContext(key.as_ref().to_owned()))?;
     let bytecode = context.bytecode.clone();
-    let pool = context.pool.clone();
+    let permits = context.permits.clone();
     drop(context);
 
-    let mut lease = pool.checkout(configure).await?;
-    let environment = execution_environment(lease.lua())?;
-    lease
-        .lua()
-        .load(bytecode.as_ref())
+    let _permits = EXECUTION_LIMITS.try_acquire(key.as_ref(), permits)?;
+    let deadline = tokio::time::Instant::now() + LUA_CALL_TIMEOUT;
+    let started = Instant::now();
+    let lua = create_lua()?;
+    configure(&lua)?;
+    lua.load(bytecode.as_ref())
         .set_mode(ChunkMode::Binary)
-        .set_environment(environment.clone())
         .exec()?;
-    let function = environment
+    let function = lua
+        .globals()
         .get::<Function>(function)
         .map_err(|_| EngineError::MissingFunction(function.to_owned()))?;
     let result: Result<Value, EngineError> =
-        tokio::time::timeout(LUA_CALL_TIMEOUT, function.call_async(args))
+        tokio::time::timeout_at(deadline, function.call_async(args))
             .await
             .map_err(|_| EngineError::Timeout)?
             .map_err(EngineError::from);
     let value = result?;
-    let output = lease.lua().from_value(value)?;
-    lease.mark_reusable();
+    let output = lua.from_value(value)?;
+    debug!(
+        key = key.as_ref(),
+        elapsed_ms = started.elapsed().as_millis(),
+        lua_bytes = lua.used_memory(),
+        "Lua execution completed"
+    );
     Ok(output)
 }
 
@@ -483,32 +371,38 @@ where
         .get(key.as_ref())
         .ok_or_else(|| EngineError::MissingContext(key.as_ref().to_owned()))?;
     let bytecode = context.bytecode.clone();
-    let pool = context.pool.clone();
+    let permits = context.permits.clone();
     drop(context);
 
-    let mut lease = pool.checkout(configure).await?;
-    let environment = execution_environment(lease.lua())?;
-    lease
-        .lua()
-        .load(bytecode.as_ref())
+    let _permits = EXECUTION_LIMITS.try_acquire(key.as_ref(), permits)?;
+    let deadline = tokio::time::Instant::now() + LUA_CALL_TIMEOUT;
+    let started = Instant::now();
+    let lua = create_lua()?;
+    configure(&lua)?;
+    lua.load(bytecode.as_ref())
         .set_mode(ChunkMode::Binary)
-        .set_environment(environment.clone())
         .exec()?;
-    let function = environment
+    let function = lua
+        .globals()
         .get::<Function>(function)
         .map_err(|_| EngineError::MissingFunction(function.to_owned()))?;
     let mut values = MultiValue::new();
     for arg in args {
-        values.push_back(lease.lua().to_value(arg)?);
+        values.push_back(lua.to_value(arg)?);
     }
     let result: Result<Value, EngineError> =
-        tokio::time::timeout(LUA_CALL_TIMEOUT, function.call_async(values))
+        tokio::time::timeout_at(deadline, function.call_async(values))
             .await
             .map_err(|_| EngineError::Timeout)?
             .map_err(EngineError::from);
     let value = result?;
-    let output = lease.lua().from_value(value)?;
-    lease.mark_reusable();
+    let output = lua.from_value(value)?;
+    debug!(
+        key = key.as_ref(),
+        elapsed_ms = started.elapsed().as_millis(),
+        lua_bytes = lua.used_memory(),
+        "Lua execution completed"
+    );
     Ok(output)
 }
 
@@ -737,7 +631,7 @@ mod tests {
             let value: i64 = execute(key, "value", (), &configure).await.unwrap();
             assert_eq!(value, 7);
         }
-        assert_eq!(created.load(Ordering::Relaxed), 65);
+        assert_eq!(created.load(Ordering::Relaxed), 128);
     }
 
     #[tokio::test]
@@ -827,7 +721,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn isolates_globals_between_pooled_executions() {
+    async fn isolates_globals_between_executions() {
         let _guard = ENGINE_TEST_LOCK.lock().await;
         clear_cache();
         let configure: &ConfigureLua = &|lua: &Lua| {
@@ -857,6 +751,113 @@ mod tests {
             .unwrap();
         assert_eq!(first, 101);
         assert_eq!(second, 101);
+    }
+
+    #[tokio::test]
+    async fn isolates_string_metatables_and_gc_settings_for_both_entry_points() {
+        let _guard = ENGINE_TEST_LOCK.lock().await;
+        let key = "test/vm-state-isolation";
+        preload(
+            key,
+            r#"
+            function value()
+                local library = getmetatable("").__index
+                library.counter = (library.counter or 0) + 1
+                local running = collectgarbage("isrunning")
+                collectgarbage("stop")
+                return {library.counter, running}
+            end
+        "#,
+            None,
+        )
+        .await
+        .unwrap();
+        for _ in 0..3 {
+            let value: (i64, bool) = execute(key, "value", (), configure()).await.unwrap();
+            assert_eq!(value, (1, true));
+            let value: (i64, bool) = super::execute_json(key, "value", &[], configure())
+                .await
+                .unwrap();
+            assert_eq!(value, (1, true));
+        }
+    }
+
+    #[test]
+    fn enforces_wall_clock_deadline_in_synchronous_lua() {
+        let lua = super::create_lua_with_deadline(std::time::Instant::now()).unwrap();
+        let error = lua.load("while true do end").exec().unwrap_err();
+        assert!(error.to_string().contains("timed out"));
+    }
+
+    #[test]
+    fn limits_scripts_and_domains_without_leaking_partial_reservations() {
+        use tokio::sync::Semaphore;
+        let limits = super::ExecutionLimits::new(2, 1);
+        let hot = Arc::new(Semaphore::new(1));
+        let cold = Arc::new(Semaphore::new(1));
+        let first = limits.try_acquire("challenge/hot", hot.clone()).unwrap();
+        assert!(matches!(
+            limits.try_acquire("challenge/hot", hot.clone()),
+            Err(EngineError::Busy)
+        ));
+        let second = limits.try_acquire("challenge/cold", cold.clone()).unwrap();
+        let third = Arc::new(Semaphore::new(1));
+        assert!(matches!(
+            limits.try_acquire("challenge/third", third.clone()),
+            Err(EngineError::Busy)
+        ));
+        assert_eq!(third.available_permits(), 1);
+        let idp = limits
+            .try_acquire("idp/login", Arc::new(Semaphore::new(1)))
+            .unwrap();
+        assert!(matches!(
+            limits.try_acquire("idp/other", Arc::new(Semaphore::new(1))),
+            Err(EngineError::Busy)
+        ));
+        drop((first, second, idp));
+        assert!(limits.try_acquire("challenge/third", third).is_ok());
+    }
+
+    #[tokio::test]
+    async fn rejects_saturation_and_recovers_after_cancellation_and_reload() {
+        let _guard = ENGINE_TEST_LOCK.lock().await;
+        let key = "challenge/test-admission";
+        let script = "function pause() time.sleep(60) return 0 end function value() return 7 end";
+        preload(key, script, None).await.unwrap();
+        let created = Arc::new(AtomicUsize::new(0));
+        let configure = Arc::new({
+            let created = created.clone();
+            move |_: &Lua| {
+                created.fetch_add(1, Ordering::Relaxed);
+                Ok(())
+            }
+        });
+        let mut tasks = tokio::task::JoinSet::new();
+        for _ in 0..super::MAX_SCRIPT_EXECUTIONS {
+            let configure = configure.clone();
+            tasks.spawn(
+                async move { execute::<_, i64>(key, "pause", (), configure.as_ref()).await },
+            );
+        }
+        tokio::time::timeout(Duration::from_secs(3), async {
+            while created.load(Ordering::Relaxed) < super::MAX_SCRIPT_EXECUTIONS {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .unwrap();
+        // Source updates retain the old version's quota until its calls finish.
+        preload(key, format!("{script} -- new version"), None)
+            .await
+            .unwrap();
+        assert!(matches!(
+            execute::<_, i64>(key, "value", (), configure.as_ref()).await,
+            Err(EngineError::Busy)
+        ));
+        tasks.abort_all();
+        while tasks.join_next().await.is_some() {}
+        let value: i64 = execute(key, "value", (), configure.as_ref()).await.unwrap();
+        assert_eq!(value, 7);
     }
 
     #[tokio::test]

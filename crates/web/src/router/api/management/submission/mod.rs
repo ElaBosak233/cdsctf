@@ -156,7 +156,11 @@ pub async fn create_debug_submission(
             );
             Status::Cheat
         }
-        _ => Status::Incorrect,
+        Ok(cds_checker::Status::Incorrect) => Status::Incorrect,
+        Err(error) => {
+            warn!(?error, challenge_id = challenge.id, "debug checker failed");
+            Status::Failed
+        }
     };
 
     info!(

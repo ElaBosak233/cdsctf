@@ -334,6 +334,7 @@ export default function Index() {
     { id: Status.Processing, name: t("submission:status.processing") },
     { id: Status.Correct, name: t("submission:status.correct") },
     { id: Status.Incorrect, name: t("submission:status.incorrect") },
+    { id: Status.Failed, name: t("submission:status.failed") },
     { id: Status.Cheat, name: t("submission:status.cheat") },
     { id: Status.Expired, name: t("submission:status.expired") },
     { id: Status.Duplicate, name: t("submission:status.duplicate") },

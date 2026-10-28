@@ -33,6 +33,10 @@ notifications:
       title: Answer incorrect
       description: Check the answer and try again.
       description_with_id: "Submission #{{id}} was incorrect. Check the answer and try again."
+    failed:
+      title: "Checker failed"
+      description: "The checker could not complete. Please contact an administrator."
+      description_with_id: "The checker could not complete submission #{{id}}. Please contact an administrator."
     cheat:
       title: Submission flagged
       description: Possible cheating was detected and recorded.
@@ -45,6 +49,7 @@ notifications:
       description_with_id: "Submission #{{id}} was a duplicate and did not change the result."
 status:
   _: Status
+  failed: "Checker failed"
   queued: Queued
   processing: Processing
   correct: Correct

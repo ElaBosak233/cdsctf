@@ -50,6 +50,23 @@ enum CheckOutcome {
     LeaseLost,
 }
 
+/// Only explicit Lua verdicts classify an answer. Admission errors are safe
+/// to retry because no script code ran; other failures require operator review.
+fn checker_verdict(
+    result: Result<cds_checker::Status, cds_checker::traits::CheckerError>,
+) -> Result<Verdict, cds_checker::traits::CheckerError> {
+    match result {
+        Ok(cds_checker::Status::Correct) => Ok(Verdict::Correct),
+        Ok(cds_checker::Status::Incorrect) => Ok(Verdict::Incorrect),
+        Ok(cds_checker::Status::Cheat(peer_team_id)) => Ok(Verdict::Cheat { peer_team_id }),
+        Err(error) if error.is_busy() => Err(error),
+        Err(error) => {
+            warn!(?error, "checker script failed");
+            Ok(Verdict::Failed)
+        }
+    }
+}
+
 async fn enforce_check_timeout<F: Future>(
     future: F,
 ) -> Result<F::Output, tokio::time::error::Elapsed> {
@@ -124,20 +141,7 @@ async fn check(
     let checker_result =
         enforce_check_timeout(ctx.checker.check(&challenge, subject, &submission.content)).await;
     let verdict = match checker_result {
-        Ok(Ok(c_status)) => match c_status {
-            cds_checker::Status::Correct => Verdict::Correct,
-            cds_checker::Status::Incorrect => Verdict::Incorrect,
-            cds_checker::Status::Cheat(peer_team_id) => Verdict::Cheat { peer_team_id },
-        },
-        Ok(Err(err)) => {
-            warn!(
-                submission_id = submission.id,
-                challenge_id = challenge.id,
-                error = ?err,
-                "checker script failed"
-            );
-            Verdict::Incorrect
-        }
+        Ok(result) => checker_verdict(result)?,
         Err(_) => {
             warn!(
                 submission_id = submission.id,
@@ -145,7 +149,7 @@ async fn check(
                 timeout_seconds = CHECK_TIMEOUT.as_secs(),
                 "checker invocation timed out"
             );
-            Verdict::Incorrect
+            Verdict::Failed
         }
     };
 
@@ -239,7 +243,7 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
     messages
         .for_each_concurrent(Some(MAX_IN_FLIGHT), |result| {
             let ctx = Arc::clone(&ctx);
-            async move {
+            let job = tokio::spawn(async move {
                 let message = match result {
                     Ok(message) => message,
                     Err(err) => {
@@ -362,7 +366,11 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
                                     return;
                                 }
                             };
-                            error!(submission_id = id, released, error = ?err, "submission check failed");
+                            if err.downcast_ref::<cds_checker::traits::CheckerError>().is_some_and(|error| error.is_busy()) {
+                                info!(submission_id = id, released, "checker capacity exhausted; submission deferred");
+                            } else {
+                                error!(submission_id = id, released, error = ?err, "submission check failed");
+                            }
                             if released {
                                 message
                                     .ack_with(AckKind::Nak(Some(TRANSIENT_RETRY_DELAY)))
@@ -373,6 +381,11 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
                     }
                 };
                 process.instrument(span).await;
+            });
+            async move {
+                if let Err(error) = job.await {
+                    error!(?error, "checker task failed; message will be redelivered");
+                }
             }
         })
         .await;
@@ -416,6 +429,25 @@ mod tests {
         let started_at = tokio::time::Instant::now();
         assert!(enforce_check_timeout(pending::<()>()).await.is_err());
         assert_eq!(started_at.elapsed(), Duration::from_secs(10));
+    }
+
+    #[test]
+    fn separates_checker_failures_from_wrong_answers_and_retries() {
+        use cds_checker::traits::CheckerError;
+        assert_eq!(
+            checker_verdict(Ok(cds_checker::Status::Incorrect)).unwrap(),
+            Verdict::Incorrect
+        );
+        assert_eq!(
+            checker_verdict(Ok(cds_checker::Status::Correct)).unwrap(),
+            Verdict::Correct
+        );
+        assert_eq!(
+            checker_verdict(Err(CheckerError::ScriptError("broken checker".to_owned()))).unwrap(),
+            Verdict::Failed
+        );
+        let busy = CheckerError::EngineError(cds_checker::traits::EngineError::Busy);
+        assert!(checker_verdict(Err(busy)).unwrap_err().is_busy());
     }
 
     #[test]

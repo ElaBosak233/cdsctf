@@ -207,6 +207,12 @@ function useColumns(): Array<ColumnDef<SubmissionView>> {
             );
           case Status.Incorrect:
             return <Badge>{t("submission:status.incorrect")}</Badge>;
+          case Status.Failed:
+            return (
+              <Badge className={cn(["bg-error", "text-error-foreground"])}>
+                {t("submission:status.failed")}
+              </Badge>
+            );
           case Status.Cheat:
             return (
               <Badge className={cn(["bg-error", "text-error-foreground"])}>
