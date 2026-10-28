@@ -1,4 +1,4 @@
-import type { Instance } from "@/models/challenge";
+import type { Instance } from "@/models/instance";
 import { api } from "@/utils/query";
 
 export type StopInstanceRequest = {
@@ -8,7 +8,7 @@ export type StopInstanceRequest = {
 export async function stopInstance(request: StopInstanceRequest) {
   return api
     .post(`instances/${request.id}/stop`, { json: request })
-    .json<unknown>();
+    .json<{ state: "stopping" }>();
 }
 
 export type RenewInstanceRequest = {

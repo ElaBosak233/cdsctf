@@ -1,5 +1,4 @@
-//! HTTP routing for `instance_id` — Axum router wiring and OpenAPI route
-//! registration.
+//! Authorized instance lifecycle operations and connection forwarding.
 
 use std::sync::Arc;
 
@@ -8,6 +7,7 @@ use axum::{
     extract::{State, WebSocketUpgrade},
     response::IntoResponse,
 };
+use cds_cluster::{k8s_openapi::api::core::v1::Pod, metadata::InstanceIdentity};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::Instrument;
@@ -18,10 +18,10 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Path, Query},
-    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
+    traits::{AppState, AuthPrincipal, WebError},
+    util::cluster::{Instance, StopInstanceResponse},
 };
 
-/// Paths are relative to `/instances/{instance_id}`.
 pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(renew_instance).with_state(state.clone()))
@@ -29,164 +29,105 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(wsrx).with_state(state.clone()))
 }
 
-/// Extends or refreshes a player instance from the API.
+/// Resolve authorization from validated identity, including terminal pods.
+async fn authorize(
+    s: &AppState,
+    principal: AuthPrincipal,
+    pod: &Pod,
+) -> Result<InstanceIdentity, WebError> {
+    let operator = principal
+        .operator
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let identity = InstanceIdentity::parse(&pod.metadata)?;
+    if operator.id != identity.creator_user_id {
+        let is_member = match identity.team_id {
+            Some(team_id) => {
+                cds_db::team_user::contains_user(&s.db.conn, team_id, operator.id).await?
+            }
+            None => false,
+        };
+        if !is_member {
+            return Err(WebError::Forbidden(json!("forbidden")));
+        }
+    }
+    Ok(identity)
+}
+
+async fn load_authorized(
+    s: &AppState,
+    principal: AuthPrincipal,
+    id: &str,
+) -> Result<(Pod, InstanceIdentity), WebError> {
+    if principal.operator.is_none() {
+        return Err(WebError::Unauthorized(json!("unauthorized")));
+    }
+    cds_cluster::metadata::validate_id(id)
+        .map_err(|_| WebError::BadRequest(json!("invalid_instance_id")))?;
+    let pod = s.cluster.get_pod(id).await?;
+    let identity = authorize(s, principal, &pod).await?;
+    Ok((pod, identity))
+}
+
 #[utoipa::path(
-    post,
-    path = "/renew",
-    tag = "instance",
-    params(
-        ("instance_id" = String, Path, description = "Instance / pod identifier"),
-    ),
+    post, path = "/renew", tag = "instance",
+    params(("instance_id" = String, Path, description = "Instance identifier")),
     responses(
-        (status = 200, description = "Renewed", body = EmptyJson),
-        (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
+        (status = 200, description = "Renewed instance", body = Instance),
+        (status = 400, description = "Renewal is not allowed", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 403, description = "Forbidden", body = crate::traits::ErrorResponse),
-        (status = 423, description = "Game paused", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
+        (status = 409, description = "Instance changed", body = crate::traits::ErrorResponse),
+        (status = 423, description = "Game paused", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
 #[tracing::instrument(skip_all, fields(handler = "renew_instance"))]
 pub async fn renew_instance(
     State(s): State<Arc<AppState>>,
-
-    Extension(ext): Extension<AuthPrincipal>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(instance_id): Path<String>,
-) -> Result<Json<EmptyJson>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
-
-    let pod = s.cluster.get_pod(&instance_id).await?;
-
-    let labels = pod.metadata.labels.unwrap_or_default();
-    let id = labels
-        .get("cds/instance_id")
-        .map(|s| s.to_string())
-        .unwrap_or_default();
-    let team_id = labels
-        .get("cds/team_id")
-        .map(|s| s.to_string())
-        .unwrap_or_default()
-        .parse::<i64>()
-        .unwrap_or_default();
-    let user_id = labels
-        .get("cds/user_id")
-        .map(|s| s.to_string())
-        .unwrap_or_default()
-        .parse::<i64>()
-        .unwrap_or_default();
-    let game_id = labels
-        .get("cds/game_id")
-        .map(|s| s.to_string())
-        .unwrap_or_default()
-        .parse::<i64>()
-        .unwrap_or_default();
-
-    if !(operator.id == user_id
-        || cds_db::team_user::contains_user(&s.db.conn, team_id, operator.id).await?)
-    {
-        return Err(WebError::Forbidden(json!("forbidden")));
-    }
-
-    if game_id != 0 {
+) -> Result<Json<Instance>, WebError> {
+    let (pod, identity) = load_authorized(&s, principal, &instance_id).await?;
+    if let Some(game_id) = identity.game_id {
         let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
         crate::util::loader::ensure_game_not_paused(&game)?;
     }
-
-    // SAFETY: the creation_timestamp could be safely unwrapped.
-    let started_at = time::OffsetDateTime::from_unix_timestamp(
-        pod.metadata.creation_timestamp.unwrap().0.as_second(),
-    )
-    .expect("Kubernetes timestamps must be representable as OffsetDateTime");
-
-    let annotations = pod.metadata.annotations.unwrap_or_default();
-
-    let renew = annotations
-        .get("cds/renew")
-        .map(|s| s.to_owned())
-        .unwrap_or_default()
-        .parse::<i64>()
-        .unwrap_or(3);
-    let duration = annotations
-        .get("cds/duration")
-        .map(|s| s.to_owned())
-        .unwrap_or_default()
-        .parse::<i64>()
-        .unwrap_or_default();
-
-    if renew == 3 {
-        return Err(WebError::BadRequest(json!("no_more_renewal")));
-    }
-
-    let now = time::OffsetDateTime::now_utc();
-    let next_start = started_at + time::Duration::seconds((renew + 1) * duration);
-    if next_start - now > time::Duration::minutes(10) {
-        return Err(WebError::BadRequest(json!("renewal_within_10_minutes")));
-    }
-
-    s.cluster.renew_challenge_instance(&id).await?;
-
-    Ok(Json(EmptyJson::default()))
+    let services = s
+        .cluster
+        .get_services_by_label(&format!("cds/instance_id={instance_id}"))
+        .await?;
+    let pod = s.cluster.renew_challenge_instance(&pod).await?;
+    Ok(Json(Instance::from_pod(
+        &pod,
+        services.first(),
+        &s.env,
+        cds_cluster::lifecycle::now(),
+    )?))
 }
 
-/// Tears down Kubernetes resources for an instance.
 #[utoipa::path(
-    post,
-    path = "/stop",
-    tag = "instance",
-    params(
-        ("instance_id" = String, Path, description = "Instance / pod identifier"),
-    ),
+    post, path = "/stop", tag = "instance",
+    params(("instance_id" = String, Path, description = "Instance identifier")),
     responses(
-        (status = 200, description = "Stopped", body = EmptyJson),
+        (status = 200, description = "Stop requested; poll until instance is gone", body = StopInstanceResponse),
+        (status = 400, description = "Invalid instance identifier", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 403, description = "Forbidden", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
+        (status = 409, description = "Instance changed", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
 #[tracing::instrument(skip_all, fields(handler = "stop_instance"))]
 pub async fn stop_instance(
     State(s): State<Arc<AppState>>,
-
-    Extension(ext): Extension<AuthPrincipal>,
+    Extension(principal): Extension<AuthPrincipal>,
     Path(instance_id): Path<String>,
-) -> Result<Json<EmptyJson>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
-
-    let pod = s.cluster.get_pod(&instance_id).await?;
-
-    let labels = pod.metadata.labels.unwrap_or_default();
-    let id = labels
-        .get("cds/instance_id")
-        .map(|s| s.to_string())
-        .unwrap_or_default();
-    let team_id = labels
-        .get("cds/team_id")
-        .map(|s| s.to_string())
-        .unwrap_or_default()
-        .parse::<i64>()
-        .unwrap_or_default();
-    let user_id = labels
-        .get("cds/user_id")
-        .map(|s| s.to_string())
-        .unwrap_or_default()
-        .parse::<i64>()
-        .unwrap_or_default();
-
-    if !(operator.id == user_id
-        || cds_db::team_user::contains_user(&s.db.conn, team_id, operator.id).await?)
-    {
-        return Err(WebError::Forbidden(json!("forbidden")));
-    }
-
-    s.cluster.delete_challenge_instance(&id).await?;
-
-    Ok(Json(EmptyJson::default()))
+) -> Result<Json<StopInstanceResponse>, WebError> {
+    let (pod, _) = load_authorized(&s, principal, &instance_id).await?;
+    s.cluster.stop_challenge_instance(&pod).await?;
+    Ok(Json(StopInstanceResponse::default()))
 }
 
 #[derive(Deserialize, Serialize, utoipa::ToSchema, utoipa::IntoParams)]
@@ -195,52 +136,54 @@ pub struct WsrxRequest {
     pub port: u32,
 }
 
-/// Proxies WebSocket traffic into a pod port via `wsrx`.
 #[utoipa::path(
-    get,
-    path = "/wsrx",
-    tag = "instance",
-    params(
-        ("instance_id" = String, Path, description = "Instance / pod identifier"),
-        WsrxRequest,
-    ),
+    get, path = "/wsrx", tag = "instance",
+    params(("instance_id" = String, Path, description = "Instance identifier"), WsrxRequest),
     responses(
         (status = 101, description = "WebSocket upgrade"),
-        (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
+        (status = 400, description = "Invalid port", body = crate::traits::ErrorResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Forbidden", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
         (status = 423, description = "Game paused", body = crate::traits::ErrorResponse),
-        (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
 #[tracing::instrument(skip_all, fields(handler = "wsrx"))]
 pub async fn wsrx(
     State(s): State<Arc<AppState>>,
-
+    Extension(principal): Extension<AuthPrincipal>,
     Path(instance_id): Path<String>,
     Query(query): Query<WsrxRequest>,
     ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {
-    let port = query.port;
-    let pod = s.cluster.get_pod(&instance_id).await?;
-    let game_id = pod
-        .metadata
-        .labels
-        .unwrap_or_default()
-        .get("cds/game_id")
-        .and_then(|value| value.parse::<i64>().ok())
-        .unwrap_or_default();
-    if game_id != 0 {
+    let (pod, identity) = load_authorized(&s, principal, &instance_id).await?;
+    let port = u16::try_from(query.port)
+        .ok()
+        .filter(|port| *port != 0)
+        .ok_or(WebError::BadRequest(json!("invalid_instance_port")))?;
+    if !pod
+        .spec
+        .as_ref()
+        .into_iter()
+        .flat_map(|s| &s.containers)
+        .flat_map(|c| c.ports.as_deref().unwrap_or_default())
+        .any(|p| {
+            p.container_port == i32::from(port) && p.protocol.as_deref().unwrap_or("TCP") == "TCP"
+        })
+    {
+        return Err(WebError::BadRequest(json!("invalid_instance_port")));
+    }
+    if let Some(game_id) = identity.game_id {
         let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
         crate::util::loader::ensure_game_not_paused(&game)?;
     }
-
     let span = tracing::info_span!("instance.tunnel", instance_id = %instance_id, port);
     Ok(ws.on_upgrade(move |socket| {
         async move {
-            match s.cluster.wsrx(&instance_id, port as u16, socket).await {
+            match s.cluster.wsrx(&instance_id, port, socket).await {
                 Ok(()) => tracing::info!(outcome = "succeeded", "instance tunnel completed"),
-                Err(err) => {
-                    tracing::warn!(outcome = "failed", error = ?err, "instance tunnel failed")
+                Err(error) => {
+                    tracing::warn!(outcome = "failed", error = ?error, "instance tunnel failed")
                 }
             }
         }

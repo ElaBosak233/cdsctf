@@ -10,7 +10,7 @@ actions:
     description: 这可能需要一些时间。
     error:
       title: 容器创建失败
-      description: 容器将被销毁。
+      description: 请查看实例状态，等待恢复或手动停止。
   stop:
     _: 停止
     sent: 已下发停止命令。
@@ -27,3 +27,37 @@ errors:
   renewal_within_10_minutes: 距离实例到期还超过十分钟，暂时不能续期。请在剩余时间不超过十分钟时重试。
   too_many_team_instances: 团队实例数量已达上限。
   too_many_user_instances: 你的实例数量已达上限。
+  instance_expired: "实例已到期，无法续期。"
+  instance_not_active: "实例当前状态不允许续期。"
+  instance_conflict: "实例状态已发生变化，请重试。"
+  instance_not_found: "实例已不存在，请刷新状态。"
+  instance_metadata_invalid: "实例元数据异常，请联系管理员。"
+  invalid_instance_id: "实例 ID 格式无效。"
+  invalid_instance_port: "请求的端口未向该实例开放。"
+loading: "正在查询实例状态…"
+query_error: "实例状态刷新失败，已保留上次查询结果。"
+retry: "重试"
+states:
+  starting: "启动中"
+  running: "运行中"
+  unhealthy: "运行异常"
+  succeeded: "已完成"
+  failed: "已失败"
+  stopping: "停止中"
+  unknown: "状态未知"
+reasons:
+  running: "容器已就绪。"
+  scheduling: "正在等待节点调度。"
+  initializing: "正在初始化运行环境。"
+  pulling_image: "正在准备容器和镜像。"
+  starting: "正在启动容器。"
+  not_ready: "正在等待容器就绪。"
+  image_pull_failed: "镜像拉取失败，平台将继续重试。"
+  invalid_configuration: "容器配置异常，请联系管理员。"
+  crash_loop_back_off: "容器正在反复重启，可等待恢复或手动停止。"
+  container_failed: "容器异常退出，可等待恢复或手动停止。"
+  pod_failed: "实例已失败，请联系管理员或重新启动。"
+  completed: "实例中的容器已正常结束。"
+  stopping: "正在等待实例资源回收。"
+  invalid_metadata: "实例元数据异常，请联系管理员。"
+  unknown: "暂时无法确定实例状态。"

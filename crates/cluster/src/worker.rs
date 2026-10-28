@@ -1,57 +1,79 @@
-//! Kubernetes integration — `worker` (cluster operations and helpers).
+//! Conservative cleanup: malformed resources are logged, never guessed at.
 
-use cds_db::sea_orm::sqlx::types::time;
-use tracing::{Instrument, info, warn};
+use tracing::{info, warn};
 
-use crate::Cluster;
+use crate::{
+    Cluster, lifecycle,
+    metadata::{InstanceIdentity, InstanceMetadata},
+};
 
-/// Background task that reaps stale resources.
 pub async fn cleaner(cluster: Cluster) {
     tokio::spawn(async move {
-        let interval = std::time::Duration::from_secs(10);
         loop {
-            let pods = cluster.get_pods_list().await.unwrap_or_default();
-            for pod in pods {
-                let id = pod
-                    .metadata
-                    .labels
-                    .unwrap_or_default()
-                    .get("cds/instance_id")
-                    .map(|s| s.to_owned())
-                    .unwrap_or_default();
-
-                // SAFETY: the creation_timestamp could be safely unwrapped.
-                let started_at = pod.metadata.creation_timestamp.unwrap().0.as_second();
-
-                let annotations = pod.metadata.annotations.unwrap_or_default();
-
-                let renew = annotations
-                    .get("cds/renew")
-                    .map(|s| s.to_owned())
-                    .unwrap_or_default()
-                    .parse::<i64>()
-                    .unwrap_or(3);
-                let duration = annotations
-                    .get("cds/duration")
-                    .map(|s| s.to_owned())
-                    .unwrap_or_default()
-                    .parse::<i64>()
-                    .unwrap_or(0);
-
-                let now = time::OffsetDateTime::now_utc().unix_timestamp();
-
-                if now > started_at + (renew + 1) * duration {
-                    let span = tracing::info_span!(parent: None, "instance.cleanup",
-                        instance_id = %id, operator_kind = "system");
-                    async {
-                        match cluster.delete_challenge_instance(&id).await {
-                            Ok(()) => info!(outcome = "succeeded", "expired instance cleanup completed"),
-                            Err(err) => warn!(outcome = "failed", error = ?err, "expired instance cleanup failed"),
-                        }
-                    }.instrument(span).await;
-                }
+            if let Err(error) = cleanup(&cluster).await {
+                warn!(error = ?error, "instance cleanup scan failed");
             }
-            tokio::time::sleep(interval).await;
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
         }
     });
+}
+
+async fn cleanup(cluster: &Cluster) -> Result<(), crate::traits::ClusterError> {
+    let pods = cluster.get_pods_list().await?;
+    let now = lifecycle::now();
+    for pod in &pods {
+        let metadata = match InstanceMetadata::parse(pod) {
+            Ok(metadata) => metadata,
+            Err(error) => {
+                warn!(pod = ?pod.metadata.name, error = ?error, "skipping instance with invalid metadata");
+                continue;
+            }
+        };
+        if metadata.expires_at <= now {
+            match cluster.delete_expired_instance(pod, now).await {
+                Ok(true) => {
+                    info!(instance_id = %metadata.identity.id, "expired instance cleanup requested")
+                }
+                Ok(false) => (), // A newer version won, e.g. a concurrent renewal.
+                Err(error) => {
+                    warn!(instance_id = %metadata.identity.id, error = ?error, "expired instance cleanup failed")
+                }
+            }
+        }
+    }
+    // Retry service cleanup even when the pod is already gone. Allow
+    // provisioning a grace period and recheck the live API before removing
+    // an apparent orphan.
+    for service in cluster.get_services_list().await? {
+        let Ok(identity) = InstanceIdentity::parse(&service.metadata) else {
+            continue;
+        };
+        if pods.iter().any(|p| {
+            p.metadata
+                .labels
+                .as_ref()
+                .and_then(|l| l.get(crate::metadata::INSTANCE_ID))
+                == Some(&identity.id)
+        }) {
+            continue;
+        }
+        if service
+            .metadata
+            .creation_timestamp
+            .as_ref()
+            .is_none_or(|t| now.saturating_sub(t.0.as_second()) < 60)
+        {
+            continue;
+        }
+        match cluster.get_pod(&identity.id).await {
+            Err(crate::traits::ClusterError::NotFound(_)) => {
+                cluster.delete_service(&identity.id).await?
+            }
+            Err(error) => {
+                warn!(instance_id = %identity.id, error = ?error, "could not verify orphan service")
+            }
+            Ok(_) => (),
+        }
+    }
+    Ok(())
 }

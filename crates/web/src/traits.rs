@@ -220,10 +220,38 @@ impl IntoResponse for WebError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 serde_json::json!(err.to_string()),
             ),
-            Self::ClusterError(err) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                serde_json::json!(err.to_string()),
-            ),
+            Self::ClusterError(err) => match err {
+                cds_cluster::traits::ClusterError::Renewal(reason) => (
+                    StatusCode::BAD_REQUEST,
+                    serde_json::json!(reason.to_string()),
+                ),
+                cds_cluster::traits::ClusterError::Conflict => {
+                    (StatusCode::CONFLICT, serde_json::json!("instance_conflict"))
+                }
+                cds_cluster::traits::ClusterError::NotFound(_) => (
+                    StatusCode::NOT_FOUND,
+                    serde_json::json!("instance_not_found"),
+                ),
+                cds_cluster::traits::ClusterError::InvalidMetadata(_) => (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    serde_json::json!("instance_metadata_invalid"),
+                ),
+                cds_cluster::traits::ClusterError::KubeError(cds_cluster::kube::Error::Api(
+                    error,
+                )) if error.code == 404 => (
+                    StatusCode::NOT_FOUND,
+                    serde_json::json!("instance_not_found"),
+                ),
+                cds_cluster::traits::ClusterError::KubeError(cds_cluster::kube::Error::Api(
+                    error,
+                )) if error.code == 409 => {
+                    (StatusCode::CONFLICT, serde_json::json!("instance_conflict"))
+                }
+                _ => (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    serde_json::json!(err.to_string()),
+                ),
+            },
             Self::OtherError(err) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 serde_json::json!(err.to_string()),

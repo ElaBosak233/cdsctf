@@ -1,12 +1,16 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { HTTPError } from "ky";
 import {
+  AlertCircleIcon,
   ClipboardCheckIcon,
   ClipboardIcon,
   ClockIcon,
   EthernetPortIcon,
+  LoaderCircleIcon,
   PlayIcon,
   TrashIcon,
 } from "lucide-react";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { createInstance, getInstances } from "@/api/instances";
@@ -16,13 +20,13 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldButton, FieldIcon } from "@/components/ui/field";
 import { TextField } from "@/components/ui/text-field";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { useInterval } from "@/hooks/use-interval";
+import { useTickerTime } from "@/hooks/use-ticker-time";
 import type { Port } from "@/models/challenge";
 import type { Instance, Nat } from "@/models/instance";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
 import { notifyApiError } from "@/utils/query";
-import { instanceExpiresAt, secondsUntil } from "@/utils/time";
+import { secondsUntil } from "@/utils/time";
 import { Context } from "./context";
 
 function PortInfo({ instance, port }: { instance: Instance; port: Port }) {
@@ -72,289 +76,327 @@ function NatInfo({ instance, nat }: { instance: Instance; nat: Nat }) {
 }
 
 function InstanceSection() {
-  const { t } = useTranslation();
-
   const { challenge, team, debug } = useContext(Context);
-  const user = useAuthStore((state) => state.user);
-
-  const mode = useMemo(() => {
-    if (team) {
-      return "game";
-    }
-
-    return "default";
-  }, [team]);
-
-  const [instance, setInstance] = useState<Instance>();
-  const [instanceStopLoading, setInstanceStopLoading] =
-    useState<boolean>(false);
-  const [instanceCreateLoading, setInstanceCreateLoading] =
-    useState<boolean>(false);
-  const [timeLeft, setTimeLeft] = useState(0);
-
-  useEffect(() => {
-    if (timeLeft <= 0) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft]);
-
-  const canPollInstances = useMemo(() => {
-    const cid = challenge?.id;
-    if (cid == null || !Number.isFinite(cid)) return false;
-    if (debug) return true;
-    if (mode === "game") {
-      return team?.id != null && team.game_id != null;
-    }
-    return user?.id != null;
-  }, [user?.id, challenge?.id, debug, mode, team?.game_id, team?.id]);
-
-  const fetchInstances = useCallback(async () => {
-    const cid = challenge?.id;
-    if (cid == null || !Number.isFinite(cid)) return;
-
-    let pollUserId: number | undefined;
-    let pollGameId: number | undefined;
-    let pollTeamId: number | undefined;
-
-    if (debug) {
-      pollUserId = mode !== "game" ? user?.id : undefined;
-      if (mode === "game" && team?.id != null && team.game_id != null) {
-        pollGameId = Number(team.game_id);
-        pollTeamId = Number(team.id);
-      }
-    } else if (mode === "game") {
-      if (team?.id == null || team.game_id == null) return;
-      pollGameId = Number(team.game_id);
-      pollTeamId = Number(team.id);
-    } else if (user?.id == null) {
-      return;
-    } else {
-      pollUserId = user.id;
-    }
-
-    try {
-      const res = await getInstances({
-        challenge_id: cid,
-        user_id: pollUserId,
-        game_id: pollGameId,
-        team_id: pollTeamId,
-      });
-      const current = res.instances?.[0];
-      setInstance(current);
-      const expiresAt = instanceExpiresAt(
-        current?.started_at,
-        Number(current?.duration),
-        Number(current?.renew)
-      );
-      setTimeLeft(
-        expiresAt == null ? 0 : Math.max(0, secondsUntil(expiresAt) ?? 0)
-      );
-
-      if (current?.status !== "waiting") {
-        setInstanceCreateLoading(false);
-      }
-
-      if (current?.status === "running") {
-        toast.dismiss("instance");
-      }
-
-      if (
-        current?.status === "waiting" &&
-        current?.reason !== "ContainerCreating"
-      ) {
-        toast.warning(t("instance:actions.start.error.title"), {
-          id: "instance",
-          description:
-            current?.reason || t("instance:actions.start.error.description"),
-        });
-        setInstanceStopLoading(true);
-      }
-    } catch (error) {
-      await notifyApiError(error, { id: "instance-poll-error" });
-    }
-  }, [user?.id, challenge?.id, debug, mode, team?.game_id, team?.id, t]);
-
-  async function handleInstanceRenew() {
-    if (!instance) return;
-
-    try {
-      await renewInstance({
-        id: instance.id!,
-      });
-
-      toast.success(t("challenge:instance.renew_success"), {
-        id: "renew",
-      });
-    } catch (error) {
-      await notifyApiError(error, {
-        id: "renew",
-        title: t("challenge:instance.renew_error"),
-      });
-    }
-  }
-
-  const handleInstanceStop = useCallback(async () => {
-    if (!instance) return;
-
-    try {
-      await stopInstance({
-        id: instance.id!,
-      });
-
-      toast.info(t("instance:actions.stop.sent"), {
-        id: "instance-stop",
-      });
-      setInstance(undefined);
-      setInstanceStopLoading(false);
-    } catch (error) {
-      await notifyApiError(error, {
-        id: "instance-stop",
-        title: t("instance:actions.stop.error"),
-      });
-    }
-  }, [instance, t]);
-
-  useEffect(() => {
-    if (instanceStopLoading) {
-      handleInstanceStop();
-    }
-  }, [handleInstanceStop, instanceStopLoading]);
-
-  async function handleInstanceCreate() {
-    const cid = challenge?.id;
-    if (cid == null || !Number.isFinite(cid)) return;
-
-    let createGameId: number | undefined;
-    let createTeamId: number | undefined;
-    if (debug) {
-      if (mode === "game" && team?.id != null && team.game_id != null) {
-        createGameId = Number(team.game_id);
-        createTeamId = Number(team.id);
-      }
-    } else if (mode === "game") {
-      if (team?.id == null || team.game_id == null) return;
-      createGameId = Number(team.game_id);
-      createTeamId = Number(team.id);
-    } else if (user?.id == null) {
-      return;
-    }
-
-    setInstanceCreateLoading(true);
-    toast.loading(t("instance:actions.start.creating"), {
-      id: "instance",
-    });
-    try {
-      if (debug) {
-        await createDebugInstance({
-          challenge_id: cid,
-        });
-      } else {
-        await createInstance({
-          challenge_id: cid,
-          game_id: createGameId,
-          team_id: createTeamId,
-        });
-      }
-
-      toast.loading(t("instance:actions.start.sent"), {
-        id: "instance",
-        description: t("instance:actions.start.description"),
-      });
-      fetchInstances();
-    } catch (error) {
-      await notifyApiError(error, {
-        id: "instance",
-      });
-    }
-  }
-
-  useInterval(fetchInstances, 2000, [fetchInstances], {
-    immediate: true,
-    enabled: canPollInstances,
-  });
+  const userId = useAuthStore((state) => state.user?.id);
+  const gameId = debug ? undefined : team?.game_id;
+  const teamId = debug ? undefined : team?.id;
 
   return (
-    <div className={cn(["flex", "gap-5", "justify-between", "items-end"])}>
-      {instance?.id ? (
-        <>
-          <div className={cn(["flex-1", "flex", "flex-col", "gap-3"])}>
-            {instance?.nats?.length
-              ? instance?.nats.map((nat) => (
-                  <NatInfo nat={nat} instance={instance} key={nat.node_port} />
-                ))
-              : instance?.ports?.map((port) => (
-                  <PortInfo instance={instance} port={port} key={port.port} />
-                ))}
-          </div>
-          <div className={cn(["flex", "flex-col", "gap-2", "items-center"])}>
-            <span
+    <InstanceControls
+      key={`${challenge?.id}:${userId}:${gameId}:${teamId}:${debug}`}
+      challengeId={challenge?.id}
+      userId={userId}
+      gameId={gameId}
+      teamId={teamId}
+      debug={!!debug}
+    />
+  );
+}
+
+function InstanceControls({
+  challengeId,
+  userId,
+  gameId,
+  teamId,
+  debug,
+}: {
+  challengeId?: number;
+  userId?: number;
+  gameId?: number;
+  teamId?: number;
+  debug: boolean;
+}) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const now = useTickerTime();
+  const [trackedId, setTrackedId] = useState<string>();
+  const [stoppingId, setStoppingId] = useState<string>();
+  const [creating, setCreating] = useState(false);
+  const [renewing, setRenewing] = useState(false);
+  const queryKey = [
+    "challenge-instances",
+    challengeId,
+    userId,
+    gameId,
+    teamId,
+    debug,
+  ];
+  const toastId = `instance:${challengeId}:${userId}:${teamId ?? "personal"}`;
+  const enabled =
+    challengeId != null && userId != null && (teamId == null || gameId != null);
+  const query = useQuery({
+    queryKey,
+    queryFn: () =>
+      getInstances({
+        challenge_id: challengeId,
+        user_id: teamId == null ? userId : undefined,
+        game_id: gameId,
+        team_id: teamId,
+      }),
+    enabled,
+    refetchInterval: 2000,
+    refetchIntervalInBackground: false,
+    retry: false,
+    meta: { suppressErrorToast: true },
+  });
+  const instances = query.data?.instances ?? [];
+  const instance = trackedId
+    ? instances.find((candidate) => candidate.id === trackedId)
+    : instances[0];
+  const stopping = stoppingId != null || instance?.state === "stopping";
+  const terminal =
+    instance?.state === "succeeded" || instance?.state === "failed";
+  const timeLeft = Math.max(0, secondsUntil(instance?.expires_at, now) ?? 0);
+  const displayedState = stopping ? "stopping" : instance?.state;
+  const transitioning =
+    displayedState === "starting" || displayedState === "stopping";
+
+  useEffect(() => {
+    if (
+      trackedId &&
+      !creating &&
+      query.isSuccess &&
+      !query.isFetching &&
+      !query.data.instances.some((candidate) => candidate.id === trackedId)
+    ) {
+      setTrackedId(undefined);
+      if (stoppingId === trackedId) setStoppingId(undefined);
+    }
+  }, [
+    trackedId,
+    stoppingId,
+    creating,
+    query.isSuccess,
+    query.isFetching,
+    query.data,
+  ]);
+
+  async function handleCreate() {
+    if (!enabled || creating || stopping) return;
+    setCreating(true);
+    toast.loading(t("instance:actions.start.creating"), { id: toastId });
+    try {
+      const response = debug
+        ? await createDebugInstance({ challenge_id: challengeId })
+        : await createInstance({
+            challenge_id: challengeId,
+            game_id: gameId,
+            team_id: teamId,
+          });
+      setTrackedId(response.instance_id);
+      toast.success(t("instance:actions.start.sent"), {
+        id: toastId,
+        description: t("instance:actions.start.description"),
+      });
+      await query.refetch();
+    } catch (error) {
+      await notifyApiError(error, { id: toastId });
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function handleRenew() {
+    if (!instance?.can_renew || renewing || stopping) return;
+    setRenewing(true);
+    try {
+      const renewed = await renewInstance({ id: instance.id });
+      queryClient.setQueryData<{ instances: Instance[] }>(
+        queryKey,
+        (previous) => ({
+          instances: (previous?.instances ?? []).map((candidate) =>
+            candidate.id === renewed.id ? renewed : candidate
+          ),
+        })
+      );
+      toast.success(t("instance:actions.renew.success"), {
+        id: `${toastId}:renew`,
+      });
+      await query.refetch();
+    } catch (error) {
+      await notifyApiError(error, { id: `${toastId}:renew` });
+    } finally {
+      setRenewing(false);
+    }
+  }
+
+  async function handleStop() {
+    if (!instance?.can_stop || stopping || creating) return;
+    setTrackedId(instance.id);
+    setStoppingId(instance.id);
+    try {
+      await stopInstance({ id: instance.id });
+      toast.info(t("instance:actions.stop.sent"), { id: `${toastId}:stop` });
+      await query.refetch();
+    } catch (error) {
+      // The known instance may have expired between the last poll and this request.
+      if (!(error instanceof HTTPError && error.response.status === 404)) {
+        setStoppingId(undefined);
+        await notifyApiError(error, { id: `${toastId}:stop` });
+      }
+      await query.refetch();
+    }
+  }
+
+  return (
+    <div className="flex min-w-0 flex-col gap-3">
+      {query.isError && (
+        <div
+          role="alert"
+          className="flex items-center gap-2 text-sm text-warning"
+        >
+          <AlertCircleIcon className="size-4 shrink-0" />
+          <span>{t("instance:query_error")}</span>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => void query.refetch()}
+          >
+            {t("instance:retry")}
+          </Button>
+        </div>
+      )}
+      <div className={cn(["flex", "gap-5", "justify-between", "items-end"])}>
+        {instance ? (
+          <>
+            <div
+              className={cn(["min-w-0", "flex-1", "flex", "flex-col", "gap-3"])}
+            >
+              {instance.ready && !stopping ? (
+                instance.nats?.length ? (
+                  instance.nats.map((nat) => (
+                    <NatInfo
+                      nat={nat}
+                      instance={instance}
+                      key={`${nat.protocol}:${nat.node_port}`}
+                    />
+                  ))
+                ) : (
+                  instance.ports?.map((port) => (
+                    <PortInfo
+                      instance={instance}
+                      port={port}
+                      key={`${port.protocol}:${port.port}`}
+                    />
+                  ))
+                )
+              ) : (
+                <div
+                  role="status"
+                  className="flex flex-col gap-1 text-sm text-secondary-foreground"
+                >
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-2",
+                      displayedState === "starting" && "text-info",
+                      displayedState === "stopping" && "text-error"
+                    )}
+                  >
+                    {transitioning && (
+                      <LoaderCircleIcon
+                        aria-hidden="true"
+                        className="size-4 shrink-0 motion-safe:animate-spin"
+                      />
+                    )}
+                    {t(`instance:states.${displayedState}`)}
+                  </span>
+                  <span>
+                    {t(
+                      `instance:reasons.${stopping ? "stopping" : instance.reason_code}`
+                    )}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className={cn(["flex", "flex-col", "gap-2", "items-center"])}>
+              {instance.expires_at && !terminal && (
+                <span
+                  className={cn([
+                    "text-secondary-foreground",
+                    "text-sm",
+                    "select-none",
+                  ])}
+                >
+                  {t("instance:remaining", {
+                    hours: String(Math.floor(timeLeft / 3600)).padStart(2, "0"),
+                    minutes: String(
+                      Math.floor((timeLeft % 3600) / 60)
+                    ).padStart(2, "0"),
+                    seconds: String(timeLeft % 60).padStart(2, "0"),
+                  })}
+                </span>
+              )}
+              <div className={cn(["flex", "gap-3"])}>
+                {terminal ? (
+                  <Button
+                    icon={<PlayIcon />}
+                    level="success"
+                    variant="solid"
+                    onClick={() => void handleCreate()}
+                    loading={creating}
+                    disabled={
+                      !enabled || query.isPending || query.isError || stopping
+                    }
+                  >
+                    {t("instance:actions.start._")}
+                  </Button>
+                ) : (
+                  <Button
+                    icon={<ClockIcon />}
+                    level="info"
+                    variant="solid"
+                    onClick={() => void handleRenew()}
+                    loading={renewing}
+                    disabled={!instance.can_renew || stopping || creating}
+                    className={cn(["items-center"])}
+                  >
+                    {t("instance:actions.renew._")}
+                  </Button>
+                )}
+                <Button
+                  icon={<TrashIcon />}
+                  variant="solid"
+                  level="error"
+                  onClick={() => void handleStop()}
+                  loading={stopping}
+                  disabled={
+                    !instance.can_stop || stopping || creating || renewing
+                  }
+                >
+                  {t("instance:actions.stop._")}
+                </Button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div
               className={cn([
+                "flex",
+                "flex-col",
                 "text-secondary-foreground",
                 "text-sm",
                 "select-none",
               ])}
             >
-              {t("instance:remaining", {
-                hours: String(Math.floor(timeLeft / 3600)).padStart(2, "0"),
-                minutes: String(Math.floor((timeLeft % 3600) / 60)).padStart(
-                  2,
-                  "0"
-                ),
-                seconds: String(timeLeft % 60).padStart(2, "0"),
-              })}
-            </span>
-            <div className={cn(["flex", "gap-3"])}>
-              <Button
-                icon={<ClockIcon />}
-                level={"info"}
-                variant={"solid"}
-                onClick={() => handleInstanceRenew()}
-                disabled={Number(instance.renew) === 3}
-                className={cn(["items-center"])}
-              >
-                {t("instance:actions.renew._")}
-              </Button>
-              <Button
-                icon={<TrashIcon />}
-                variant={"solid"}
-                level={"error"}
-                onClick={() => handleInstanceStop()}
-                loading={instanceStopLoading}
-              >
-                {t("instance:actions.stop._")}
-              </Button>
+              <span>{t("instance:hint1")}</span>
+              <span>{t("instance:hint2")}</span>
             </div>
-          </div>
-        </>
-      ) : (
-        <>
-          <div
-            className={cn([
-              "flex",
-              "flex-col",
-              "text-secondary-foreground",
-              "text-sm",
-              "select-none",
-            ])}
-          >
-            <span>{t("instance:hint1")}</span>
-            <span>{t("instance:hint2")}</span>
-          </div>
-          <Button
-            icon={<PlayIcon />}
-            variant={"solid"}
-            level={"success"}
-            onClick={handleInstanceCreate}
-            loading={instanceCreateLoading}
-          >
-            {t("instance:actions.start._")}
-          </Button>
-        </>
-      )}
+            <Button
+              icon={<PlayIcon />}
+              variant="solid"
+              level="success"
+              onClick={() => void handleCreate()}
+              loading={creating}
+              disabled={
+                !enabled || query.isPending || query.isError || stopping
+              }
+            >
+              {t("instance:actions.start._")}
+            </Button>
+          </>
+        )}
+      </div>
     </div>
   );
 }

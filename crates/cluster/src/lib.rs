@@ -7,6 +7,9 @@
 //! controlled rules, while `cds/internet=true` pods receive DNS + user-defined
 //! exceptions.
 
+pub mod lifecycle;
+pub mod metadata;
+pub mod status;
 /// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
 
@@ -37,26 +40,25 @@ use k8s_openapi::{
     },
     apimachinery::pkg::{
         api::resource::Quantity,
-        apis::meta::v1::{LabelSelector, ObjectMeta},
+        apis::meta::v1::{LabelSelector, ObjectMeta, OwnerReference},
         util::intstr::IntOrString,
     },
 };
 pub use kube;
 use kube::{
-    Client as K8sClient, Config as K8sConfig, ResourceExt,
+    Client as K8sClient, Config as K8sConfig,
     api::{Api, AttachParams, DeleteParams, ListParams, Patch, PatchParams, PostParams},
     config::{KubeConfigOptions, Kubeconfig},
 };
-use serde_json::json;
+use metadata::{InstanceIdentity, InstanceMetadata, InstanceMode};
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use tokio_util::{
     codec::{BytesCodec, Framed, FramedRead},
     sync::CancellationToken,
 };
 use tracing::{error, info};
-use uuid::Uuid;
 
-use crate::traits::{ClusterError, Nat};
+use crate::traits::ClusterError;
 
 /// Connected API client, target namespace, ingress mode (`Expose` vs `Proxy`),
 /// and checker for env generation.
@@ -249,7 +251,8 @@ pub async fn init(env: &Env, checker: &Checker) -> Result<Cluster, ClusterError>
 
 impl Cluster {
     /// Returns service.
-    pub async fn get_service(&self, id: Uuid) -> Result<Service, ClusterError> {
+    pub async fn get_service(&self, id: &str) -> Result<Service, ClusterError> {
+        metadata::validate_id(id)?;
         let service = self
             .get_services_by_label(&format!("cds/instance_id={}", id))
             .await?
@@ -268,7 +271,7 @@ impl Cluster {
 
         let services = service_api
             .list(&ListParams {
-                label_selector: Some(label.to_owned()),
+                label_selector: Some(metadata::selector(label)),
                 ..Default::default()
             })
             .await?;
@@ -290,13 +293,15 @@ impl Cluster {
     /// Deletes service.
 
     pub async fn delete_service(&self, id: &str) -> Result<(), ClusterError> {
+        metadata::validate_id(id)?;
         let service_api: Api<Service> =
             Api::namespaced(self.client.clone(), self.namespace.as_str());
 
         let _ = service_api
             .delete_collection(
                 &DeleteParams::default(),
-                &ListParams::default().labels(&format!("cds/instance_id={id}")),
+                &ListParams::default()
+                    .labels(&metadata::selector(&format!("cds/instance_id={id}"))),
             )
             .await?;
 
@@ -306,6 +311,7 @@ impl Cluster {
     /// Returns pod.
 
     pub async fn get_pod(&self, id: &str) -> Result<Pod, ClusterError> {
+        metadata::validate_id(id)?;
         let pod = self
             .get_pods_by_label(&format!("cds/instance_id={}", id))
             .await?
@@ -321,7 +327,9 @@ impl Cluster {
     pub async fn get_pods_list(&self) -> Result<Vec<Pod>, ClusterError> {
         let pod_api: Api<Pod> = Api::namespaced(self.client.clone(), self.namespace.as_str());
 
-        let pods = pod_api.list(&ListParams::default()).await?;
+        let pods = pod_api
+            .list(&ListParams::default().labels(metadata::MANAGED_SELECTOR))
+            .await?;
 
         Ok(pods.items)
     }
@@ -333,15 +341,29 @@ impl Cluster {
 
         let pods = pod_api
             .list(&ListParams {
-                label_selector: Some(label.to_owned()),
-                field_selector: Some(
-                    "status.phase!=Succeeded,status.phase!=Failed,status.phase!=Unknown".to_owned(),
-                ),
+                label_selector: Some(metadata::selector(label)),
                 ..Default::default()
             })
             .await?;
 
         Ok(pods.items)
+    }
+
+    /// Lists pods that still reserve an instance slot, including recovery and
+    /// deletion.
+    pub async fn get_active_pods_by_label(&self, label: &str) -> Result<Vec<Pod>, ClusterError> {
+        Ok(self
+            .get_pods_by_label(label)
+            .await?
+            .into_iter()
+            .filter(|pod| status::observe(pod).state.counts_toward_quota())
+            .collect())
+    }
+
+    /// Lists all managed services once for response projection and orphan
+    /// cleanup.
+    pub async fn get_services_list(&self) -> Result<Vec<Service>, ClusterError> {
+        self.get_services_by_label("").await
     }
 
     /// Creates pod.
@@ -354,22 +376,32 @@ impl Cluster {
         Ok(pod)
     }
 
-    /// Deletes pod.
-
+    /// Stops the observed pod and leaves a grace period for orderly
+    /// termination.
     pub async fn delete_pod(&self, id: &str) -> Result<(), ClusterError> {
-        let pod_api: Api<Pod> = Api::namespaced(self.client.clone(), self.namespace.as_str());
+        match self.get_pod(id).await {
+            Ok(pod) => {
+                lifecycle::stop(&Api::namespaced(self.client.clone(), &self.namespace), &pod).await
+            }
+            Err(ClusterError::NotFound(_)) => Ok(()),
+            Err(error) => Err(error),
+        }
+    }
 
-        let _ = pod_api
-            .delete_collection(
-                &DeleteParams {
-                    grace_period_seconds: Some(0),
-                    ..Default::default()
-                },
-                &ListParams::default().labels(&format!("cds/instance_id={id}")),
-            )
-            .await?;
-
-        Ok(())
+    /// Rejects a stale cleaner snapshot if an instance was renewed meanwhile.
+    pub async fn delete_expired_instance(&self, pod: &Pod, now: i64) -> Result<bool, ClusterError> {
+        let metadata = InstanceMetadata::parse(pod)?;
+        if lifecycle::delete_if_expired(
+            &Api::namespaced(self.client.clone(), &self.namespace),
+            pod,
+            now,
+        )
+        .await?
+        {
+            self.delete_service(&metadata.identity.id).await?;
+            return Ok(true);
+        }
+        Ok(false)
     }
 
     /// Creates challenge instance.
@@ -380,6 +412,7 @@ impl Cluster {
         team: Option<cds_db::TeamView>,
         game: Option<cds_db::GameDetail>,
         challenge: cds_db::ChallengeDetail,
+        mode: InstanceMode,
     ) -> Result<String, ClusterError> {
         let id = util::gen_safe_nanoid();
         let user_id = user.id;
@@ -399,44 +432,18 @@ impl Cluster {
             .flat_map(|container| container.ports.clone())
             .collect::<Vec<Port>>();
 
+        let identity = InstanceIdentity {
+            id: id.clone(),
+            creator_user_id: user.id,
+            challenge_id: challenge.id,
+            team_id,
+            game_id,
+            mode,
+        };
         let metadata = ObjectMeta {
             name: Some(name.clone()),
-            labels: Some(BTreeMap::from([
-                ("cds/app".to_owned(), "challenges".to_owned()),
-                ("cds/instance_id".to_owned(), id.to_string()),
-                ("cds/internet".to_owned(), format!("{}", instance.internet)),
-                ("cds/user_id".to_owned(), format!("{}", user.id)),
-                (
-                    "cds/team_id".to_owned(),
-                    format!(
-                        "{}",
-                        match &team {
-                            Some(team) => team.id,
-                            _ => 0,
-                        }
-                    ),
-                ),
-                (
-                    "cds/game_id".to_owned(),
-                    format!(
-                        "{}",
-                        match &game {
-                            Some(game) => game.id,
-                            _ => 0,
-                        }
-                    ),
-                ),
-                ("cds/challenge_id".to_owned(), format!("{}", challenge.id)),
-            ])),
-            annotations: Some(BTreeMap::from([
-                ("cds/challenge".to_owned(), json!(challenge).to_string()),
-                ("cds/user".to_owned(), json!(user).to_string()),
-                ("cds/team".to_owned(), json!(team).to_string()),
-                ("cds/game".to_owned(), json!(game).to_string()),
-                ("cds/renew".to_owned(), format!("{}", 0)),
-                ("cds/duration".to_owned(), format!("{}", instance.duration)),
-                ("cds/ports".to_owned(), json!(all_ports).to_string()),
-            ])),
+            labels: Some(identity.labels(instance.internet)?),
+            annotations: Some(InstanceMetadata::annotations(instance.duration)?),
             ..Default::default()
         };
 
@@ -524,7 +531,7 @@ impl Cluster {
             ..Default::default()
         };
 
-        let mut pod = self.create_pod(pod).await?;
+        let pod = self.create_pod(pod).await?;
 
         let service_type = match self.traffic {
             cds_env::cluster::Traffic::Expose => "NodePort",
@@ -532,7 +539,23 @@ impl Cluster {
         };
 
         let service = Service {
-            metadata: metadata.clone(),
+            metadata: ObjectMeta {
+                name: Some(name.clone()),
+                labels: metadata.labels.clone(),
+                owner_references: Some(vec![OwnerReference {
+                    api_version: "v1".to_owned(),
+                    kind: "Pod".to_owned(),
+                    name: name.clone(),
+                    uid: pod
+                        .metadata
+                        .uid
+                        .clone()
+                        .ok_or_else(|| metadata::invalid("uid"))?,
+                    controller: Some(true),
+                    block_owner_deletion: Some(false),
+                }]),
+                ..Default::default()
+            },
             spec: Some(ServiceSpec {
                 selector: Some(BTreeMap::from([(
                     "cds/instance_id".to_owned(),
@@ -556,46 +579,14 @@ impl Cluster {
             ..Default::default()
         };
 
-        let service = match self.create_service(service).await {
-            Ok(service) => service,
-            Err(err) => {
-                self.delete_challenge_instance(&id.to_string()).await?;
-                return Err(err);
+        if let Err(error) = self.create_service(service).await {
+            // Attempt both cleanups, but retain the original provisioning
+            // error.
+            if let Err(cleanup) = self.delete_challenge_instance(&id).await {
+                tracing::warn!(instance_id = %id, error = ?cleanup, "failed to roll back instance");
             }
-        };
-
-        let mut nats: Vec<Nat> = vec![];
-
-        if let Some(spec) = service.spec {
-            if let Some(ports) = spec.ports {
-                for port in ports {
-                    if let (Some(node_port), Some(protocol)) = (port.node_port, port.protocol) {
-                        nats.push(Nat {
-                            port: port.port,
-                            protocol: protocol.to_string(),
-                            node_port,
-                        });
-                    }
-                }
-            }
+            return Err(error);
         }
-
-        let pod_api: Api<Pod> = Api::namespaced(self.client.clone(), self.namespace.as_str());
-
-        let annotations = pod.annotations_mut();
-        annotations.insert("cds/nats".to_owned(), json!(nats).to_string());
-
-        pod_api
-            .patch(
-                &name,
-                &PatchParams::default(),
-                &Patch::Merge(json!({
-                    "metadata": {
-                        "annotations": annotations,
-                    }
-                })),
-            )
-            .await?;
 
         tracing::info!(
             resource = "instance",
@@ -610,58 +601,37 @@ impl Cluster {
         Ok(id)
     }
 
-    /// Extends lifetime metadata on a running challenge pod.
-    pub async fn renew_challenge_instance(&self, id: &str) -> Result<(), ClusterError> {
-        let name = format!("cds-{}", id);
-        let pod_api: Api<Pod> = Api::namespaced(self.client.clone(), self.namespace.as_str());
+    /// Renews an authorized snapshot using conflict detection and fresh rule
+    /// checks.
+    pub async fn renew_challenge_instance(&self, pod: &Pod) -> Result<Pod, ClusterError> {
+        let renewed =
+            lifecycle::renew(&Api::namespaced(self.client.clone(), &self.namespace), pod).await?;
+        tracing::info!(instance_id = ?renewed.metadata.name, resource = "instance", action = "renew", "resource step completed");
+        Ok(renewed)
+    }
 
-        let mut pod = self.get_pod(id).await?;
-
-        let annotations = pod.annotations_mut();
-
-        if let Some(renew) = annotations.get_mut("cds/renew") {
-            *renew = format!("{}", renew.parse::<i64>().unwrap_or(0) + 1);
-        }
-
-        pod_api
-            .patch(
-                &name,
-                &PatchParams::default(),
-                &Patch::Merge(json!({
-                    "metadata": {
-                        "annotations": annotations,
-                    }
-                })),
-            )
-            .await?;
-
-        tracing::info!(
-            resource = "instance",
-            action = "renew",
-            instance_id = id,
-            "resource step completed"
-        );
+    /// Stop exactly the authorized pod UID before removing its network entry.
+    pub async fn stop_challenge_instance(&self, pod: &Pod) -> Result<(), ClusterError> {
+        let identity = InstanceIdentity::parse(&pod.metadata)?;
+        lifecycle::stop(&Api::namespaced(self.client.clone(), &self.namespace), pod).await?;
+        self.delete_service(&identity.id).await?;
         Ok(())
     }
 
     /// Deletes challenge instance.
 
     pub async fn delete_challenge_instance(&self, id: &str) -> Result<(), ClusterError> {
-        self.delete_pod(id).await?;
+        metadata::validate_id(id)?;
+        let pod_result = self.delete_pod(id).await;
+        let service_result = self.delete_service(id).await;
+        pod_result?;
+        service_result?;
         tracing::info!(
-            resource = "instance",
-            action = "delete_pod",
             instance_id = id,
-            "resource step completed"
-        );
-        self.delete_service(id).await?;
-        tracing::info!(
             resource = "instance",
-            action = "delete_service",
-            instance_id = id,
-            "resource step completed"
+            action = "stop",
+            "instance stop requested"
         );
-
         Ok(())
     }
 

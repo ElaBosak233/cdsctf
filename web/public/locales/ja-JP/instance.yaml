@@ -8,11 +8,47 @@ actions:
     creating: コンテナの作成リクエストを送信しています。
     sent: コンテナ起動コマンドを送信しました。
     description: これは時間がかかる場合があります。
-    error: コンテナの作成中にエラーが発生しました。破棄処理を開始します。
+    error: コンテナを作成できませんでした。状態を確認してください。
   stop:
     _: 停止
     sent: コンテナ停止コマンドを送信しました。
+    error: コンテナを停止できませんでした
   renew:
     _: 延長
     success: 延長しました。
     error: 延長に失敗しました。
+errors:
+  instance_expired: "有効期限が切れたため延長できません。"
+  instance_not_active: "現在の状態では延長できません。"
+  instance_conflict: "インスタンスが変更されました。再試行してください。"
+  instance_not_found: "インスタンスは既に存在しません。状態を更新してください。"
+  instance_metadata_invalid: "メタデータに問題があります。管理者に連絡してください。"
+  invalid_instance_id: "インスタンス ID が無効です。"
+  invalid_instance_port: "指定されたポートは公開されていません。"
+loading: "インスタンスの状態を確認しています…"
+query_error: "状態を更新できませんでした。前回の結果を表示しています。"
+retry: "再試行"
+states:
+  starting: "起動中"
+  running: "実行中"
+  unhealthy: "異常"
+  succeeded: "完了"
+  failed: "失敗"
+  stopping: "停止中"
+  unknown: "不明"
+reasons:
+  running: "コンテナの準備ができています。"
+  scheduling: "ノードへの割り当てを待っています。"
+  initializing: "環境を初期化しています。"
+  pulling_image: "コンテナとイメージを準備しています。"
+  starting: "コンテナを起動しています。"
+  not_ready: "コンテナの準備完了を待っています。"
+  image_pull_failed: "イメージの取得に失敗しました。再試行します。"
+  invalid_configuration: "コンテナの設定に問題があります。管理者に連絡してください。"
+  crash_loop_back_off: "コンテナが再起動を繰り返しています。復旧を待つか、停止してください。"
+  container_failed: "コンテナが異常終了しました。復旧を待つか、停止してください。"
+  pod_failed: "インスタンスが失敗しました。管理者に連絡するか、再度起動してください。"
+  completed: "コンテナは正常に終了しました。"
+  stopping: "インスタンスのリソースが削除されるのを待っています。"
+  invalid_metadata: "インスタンスのメタデータに問題があります。管理者に連絡してください。"
+  unknown: "現在、状態を確認できません。"

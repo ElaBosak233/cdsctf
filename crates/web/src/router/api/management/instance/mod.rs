@@ -17,7 +17,7 @@ use utoipa_axum::{
 use crate::{
     extract::{Extension, Json as ReqJson, Query},
     traits::{AppState, AuthPrincipal, WebError},
-    util::cluster::Instance,
+    util::cluster::{Instance, project_instances},
 };
 
 /// Paths are relative to `/management/instances`.
@@ -64,6 +64,8 @@ pub async fn list_instances(
     let mut map: BTreeMap<String, String> = BTreeMap::new();
 
     if let Some(id) = params.id {
+        cds_cluster::metadata::validate_id(&id)
+            .map_err(|_| WebError::BadRequest(json!("invalid_instance_id")))?;
         map.insert("cds/instance_id".to_owned(), id);
     }
 
@@ -90,13 +92,10 @@ pub async fn list_instances(
         .join(",");
 
     let pods = s.cluster.get_pods_by_label(&labels).await?;
+    let services = s.cluster.get_services_by_label(&labels).await?;
+    let instances = project_instances(&pods, &services, &s.env);
 
-    let envs = pods
-        .into_iter()
-        .map(|pod| Instance::from(pod).with_env(&s.env))
-        .collect::<Vec<Instance>>();
-
-    Ok(Json(ListInstancesResponse { instances: envs }))
+    Ok(Json(ListInstancesResponse { instances }))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
@@ -143,7 +142,7 @@ pub async fn create_debug_instance(
 
     let existing_pods = s
         .cluster
-        .get_pods_by_label(
+        .get_active_pods_by_label(
             &BTreeMap::from([("cds/user_id", format!("{}", operator.id))])
                 .iter()
                 .map(|(k, v)| format!("{}={}", k, v))
@@ -152,13 +151,19 @@ pub async fn create_debug_instance(
         )
         .await?;
 
-    if existing_pods.len() >= 1 {
+    if !existing_pods.is_empty() {
         return Err(WebError::TooManyRequests(json!("too_many_user_pods")));
     }
 
     let instance_id = s
         .cluster
-        .create_challenge_instance(operator, None, None, challenge)
+        .create_challenge_instance(
+            operator,
+            None,
+            None,
+            challenge,
+            cds_cluster::metadata::InstanceMode::Debug,
+        )
         .await?;
 
     Ok((

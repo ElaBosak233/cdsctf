@@ -10,7 +10,7 @@ actions:
     description: This may take a while.
     error:
       title: Container creation failed
-      description: The container will be destroyed.
+      description: Check the instance status, wait for recovery, or stop it manually.
   stop:
     _: Stop
     sent: Container stop command sent.
@@ -27,3 +27,37 @@ errors:
   renewal_within_10_minutes: This instance expires in more than ten minutes. Please try again when ten minutes or less remain.
   too_many_team_instances: The team has reached its instance limit.
   too_many_user_instances: You have reached your instance limit.
+  instance_expired: "This instance has expired and cannot be renewed."
+  instance_not_active: "This instance cannot be renewed in its current state."
+  instance_conflict: "The instance changed. Please try again."
+  instance_not_found: "This instance no longer exists. Refresh its status."
+  instance_metadata_invalid: "Instance metadata is invalid. Contact an administrator."
+  invalid_instance_id: "The instance ID is invalid."
+  invalid_instance_port: "The requested port is not exposed by this instance."
+loading: "Checking instance status…"
+query_error: "Could not refresh the instance status. The last result is still shown."
+retry: "Retry"
+states:
+  starting: "Starting"
+  running: "Running"
+  unhealthy: "Unhealthy"
+  succeeded: "Completed"
+  failed: "Failed"
+  stopping: "Stopping"
+  unknown: "Unknown"
+reasons:
+  running: "Containers are ready."
+  scheduling: "Waiting for a node to be assigned."
+  initializing: "Initializing the environment."
+  pulling_image: "Preparing containers and images."
+  starting: "Starting containers."
+  not_ready: "Waiting for containers to become ready."
+  image_pull_failed: "Image pull failed. The platform will retry."
+  invalid_configuration: "Container configuration is invalid. Contact an administrator."
+  crash_loop_back_off: "A container is repeatedly restarting. Wait for recovery or stop the instance."
+  container_failed: "A container exited with an error. Wait for recovery or stop the instance."
+  pod_failed: "The instance failed. Contact an administrator or start a new instance."
+  completed: "The containers finished successfully."
+  stopping: "Waiting for instance resources to be removed."
+  invalid_metadata: "Instance metadata is invalid. Contact an administrator."
+  unknown: "The instance status is currently unavailable."

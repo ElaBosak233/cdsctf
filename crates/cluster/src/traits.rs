@@ -5,6 +5,12 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ClusterError {
+    #[error("invalid instance metadata: {0}")]
+    InvalidMetadata(String),
+    #[error("{0}")]
+    Renewal(#[from] crate::lifecycle::RenewalError),
+    #[error("instance changed during operation")]
+    Conflict,
     #[error("kube error: {0}")]
     KubeError(#[from] kube::Error),
     #[error("failed to infer env: {0}")]

@@ -8,11 +8,47 @@ actions:
     creating: 正在建立容器。
     sent: 已發出啟動命令。
     description: 這可能需要一些時間。
-    error: 建立容器時發生錯誤，即將銷毀容器。
+    error: 建立容器失敗，請查看實例狀態。
   stop:
     _: 停止
     sent: 已發出停止命令。
+    error: 容器停止失敗
   renew:
     _: 續期
     success: 續期成功。
     error: 續期失敗。
+errors:
+  instance_expired: "實例已到期，無法續期。"
+  instance_not_active: "實例目前狀態不允許續期。"
+  instance_conflict: "實例狀態已變更，請重試。"
+  instance_not_found: "實例已不存在，請重新整理狀態。"
+  instance_metadata_invalid: "實例中繼資料異常，請聯絡管理員。"
+  invalid_instance_id: "實例 ID 格式無效。"
+  invalid_instance_port: "該實例未開放請求的連接埠。"
+loading: "正在查詢實例狀態…"
+query_error: "無法更新實例狀態，已保留上次查詢結果。"
+retry: "重試"
+states:
+  starting: "啟動中"
+  running: "執行中"
+  unhealthy: "執行異常"
+  succeeded: "已完成"
+  failed: "已失敗"
+  stopping: "停止中"
+  unknown: "狀態未知"
+reasons:
+  running: "容器已就緒。"
+  scheduling: "正在等待節點排程。"
+  initializing: "正在初始化執行環境。"
+  pulling_image: "正在準備容器與映像。"
+  starting: "正在啟動容器。"
+  not_ready: "正在等待容器就緒。"
+  image_pull_failed: "映像拉取失敗，平台將繼續重試。"
+  invalid_configuration: "容器設定異常，請聯絡管理員。"
+  crash_loop_back_off: "容器正在反覆重新啟動，可等待恢復或手動停止。"
+  container_failed: "容器異常結束，可等待恢復或手動停止。"
+  pod_failed: "實例已失敗，請聯絡管理員或重新啟動。"
+  completed: "容器已正常結束。"
+  stopping: "正在等待回收實例資源。"
+  invalid_metadata: "實例中繼資料異常，請聯絡管理員。"
+  unknown: "目前無法確定實例狀態。"

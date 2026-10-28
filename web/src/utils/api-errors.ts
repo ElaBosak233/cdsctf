@@ -236,6 +236,15 @@ export const API_ERROR_I18N_KEYS: Readonly<Record<string, ApiErrorI18nKeys>> = {
     "instance:errors.challenge_invalid.title",
     "instance:errors.challenge_invalid.description"
   ),
+  instance_expired: message("instance:errors.instance_expired"),
+  instance_not_active: message("instance:errors.instance_not_active"),
+  instance_conflict: message("instance:errors.instance_conflict"),
+  instance_not_found: message("instance:errors.instance_not_found"),
+  instance_metadata_invalid: message(
+    "instance:errors.instance_metadata_invalid"
+  ),
+  invalid_instance_id: message("instance:errors.invalid_instance_id"),
+  invalid_instance_port: message("instance:errors.invalid_instance_port"),
   no_more_renewal: message("instance:errors.no_more_renewal"),
   renewal_within_10_minutes: message(
     "instance:errors.renewal_within_10_minutes"
