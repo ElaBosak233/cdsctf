@@ -7,12 +7,15 @@
 //!
 //! Each job is a plain string decimal: the submission **database id** (`i64`).
 //!
-//! # Startup
+//! # Recovery
 //!
 //! [`spawn`] returns expired `Processing` rows to `Queued` and
-//! re-publishes every queued submission so no job is lost after a restart.
+//! re-publishes queued submissions. Periodic scans also recover persisted work
+//! whose initial message publication failed, without restarting the
+//! application.
 
 mod finalizer;
+mod recovery;
 
 use std::{future::Future, sync::Arc, time::Duration};
 
@@ -20,7 +23,7 @@ use anyhow::anyhow;
 use cds_checker::Checker;
 use cds_db::{
     DB, SubmissionView, UserAccountView,
-    submission::{FindSubmissionsOptions, PROCESSING_LEASE_SECONDS, Status},
+    submission::{PROCESSING_LEASE_SECONDS, Status},
 };
 use cds_queue::{Queue, async_nats::jetstream::AckKind};
 use futures_util::StreamExt as _;
@@ -202,37 +205,6 @@ async fn check(
     Ok(CheckOutcome::Committed)
 }
 
-/// Re-publishes historical `Queued` rows so they are checked after deploys /
-/// crashes.
-#[tracing::instrument(skip_all)]
-async fn recover_queued(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
-    let reset = cds_db::submission::reset_stale_processing(&ctx.db.conn).await?;
-    let (unchecked_submissions, _) = cds_db::submission::find(
-        &ctx.db.conn,
-        FindSubmissionsOptions {
-            status: Some(Status::Queued),
-            sorts: Some("created_at".to_owned()),
-            ..Default::default()
-        },
-    )
-    .await?;
-
-    let recovered = unchecked_submissions.len();
-    for submission in unchecked_submissions {
-        let id = submission.id;
-        ctx.queue.publish(SUBJECT, id, None).await?;
-    }
-
-    info!(
-        count = recovered,
-        reset,
-        subject = SUBJECT,
-        "queued submissions recovered"
-    );
-
-    Ok(())
-}
-
 /// Pulls messages and runs at most [`MAX_IN_FLIGHT`] checker jobs concurrently.
 #[tracing::instrument(skip_all, fields(subject = SUBJECT))]
 async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
@@ -393,23 +365,21 @@ async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-/// Starts the consumer task after calling [`recover_queued`].
+/// Starts the consumer and independent publication recovery tasks.
 #[tracing::instrument(skip_all, fields(handler = "spawn"))]
 pub async fn spawn(db: &DB, queue: &Queue, checker: &Checker) {
     let ctx = Arc::new(Context::new(db, queue, checker));
-    recover_queued(Arc::clone(&ctx))
-        .instrument(
-            tracing::info_span!(parent: None, "submission.recover", operator_kind = "system"),
-        )
-        .await
-        .unwrap();
-
     let run_ctx = Arc::clone(&ctx);
     tokio::spawn(async move {
-        if let Err(err) = run(run_ctx).await {
-            error!("{:?}", err);
+        loop {
+            match run(Arc::clone(&run_ctx)).await {
+                Err(error) => error!(?error, "checker consumer stopped; reconnecting"),
+                Ok(()) => warn!("checker message stream ended; reconnecting"),
+            }
+            tokio::time::sleep(TRANSIENT_RETRY_DELAY).await;
         }
     });
+    tokio::spawn(recovery::run(ctx));
 
     info!(
         subject = SUBJECT,

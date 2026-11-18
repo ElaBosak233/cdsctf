@@ -12,10 +12,10 @@ use cds_db::{
     },
     submission::{ActiveModel, Status},
 };
-use cds_worker::calculator;
+use cds_worker::{calculator, checker};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tracing::info;
+use tracing::{info, warn};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -159,6 +159,23 @@ pub async fn update_submission_status(
         cds_db::game::request_score_recalculation(&transaction, game_id).await?;
     }
     transaction.commit().await.map_err(cds_db::DbError::from)?;
+
+    if next_status == Status::Queued
+        && let Err(error) = s
+            .queue
+            .publish(
+                checker::SUBJECT,
+                submission.id,
+                principal.operator.as_ref().map(|operator| operator.id),
+            )
+            .await
+    {
+        warn!(
+            submission_id = submission.id,
+            ?error,
+            "submission requeued; immediate publication failed, queued recovery will retry"
+        );
+    }
 
     if let Some(game_id) = score_game_id {
         calculator::notify(

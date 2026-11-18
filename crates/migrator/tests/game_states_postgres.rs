@@ -2,6 +2,38 @@ use cds_migrator::Migrator;
 use sea_orm::{ConnectionTrait, Database, DbBackend, Statement};
 use sea_orm_migration::MigratorTrait;
 
+async fn isolated_database(prefix: &str) -> (sea_orm::DatabaseConnection, String) {
+    let mut options = sea_orm::ConnectOptions::new(
+        std::env::var("CDS_TEST_DATABASE_URL").expect("requires disposable PostgreSQL"),
+    );
+    options.max_connections(1).min_connections(1);
+    let database = Database::connect(options).await.unwrap();
+    // Both migrations need this database-wide extension. Install it once in
+    // public, outside the per-test schemas that are removed after each test.
+    static EXTENSION: tokio::sync::OnceCell<()> = tokio::sync::OnceCell::const_new();
+    EXTENSION
+        .get_or_init(|| async {
+            database
+                .execute_unprepared("CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public")
+                .await
+                .unwrap();
+        })
+        .await;
+    let schema = format!("{prefix}_{}", std::process::id());
+    database
+        .execute_unprepared(&format!(
+            "CREATE SCHEMA {schema}; SET search_path TO {schema}"
+        ))
+        .await
+        .unwrap();
+    Migrator::install(&database).await.unwrap();
+    database
+        .execute_unprepared(&format!("SET search_path TO {schema}, public"))
+        .await
+        .unwrap();
+    (database, schema)
+}
+
 async fn game_state_columns(
     database: &sea_orm::DatabaseConnection,
 ) -> Vec<(String, String, String)> {
@@ -117,14 +149,7 @@ async fn user_idp_check_constraint_count(database: &sea_orm::DatabaseConnection)
 #[tokio::test]
 #[ignore = "requires CDS_TEST_DATABASE_URL pointing to disposable PostgreSQL"]
 async fn initial_state_columns_are_created_on_postgres() {
-    let database_url = std::env::var("CDS_TEST_DATABASE_URL")
-        .expect("CDS_TEST_DATABASE_URL must point to disposable PostgreSQL");
-    let database = Database::connect(database_url).await.unwrap();
-
-    database
-        .execute_unprepared("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
-        .await
-        .unwrap();
+    let (database, schema) = isolated_database("initial_states").await;
     Migrator::up(&database, None).await.unwrap();
     assert_eq!(timestamp_column_types(&database).await.len(), 21);
     let columns = game_state_columns(&database).await;
@@ -154,28 +179,18 @@ async fn initial_state_columns_are_created_on_postgres() {
         ]
     );
     assert_eq!(user_idp_check_constraint_count(&database).await, 0);
+    database
+        .execute_unprepared(&format!(
+            "SET search_path TO public; DROP SCHEMA {schema} CASCADE"
+        ))
+        .await
+        .unwrap();
 }
 
 #[tokio::test]
 #[ignore = "requires CDS_TEST_DATABASE_URL pointing to disposable PostgreSQL"]
 async fn submission_failure_constraint_supports_upgrade_and_rollback() {
-    let database_url = std::env::var("CDS_TEST_DATABASE_URL").unwrap();
-    let mut options = sea_orm::ConnectOptions::new(database_url);
-    let schema = format!("submission_failure_{}", std::process::id());
-    // Isolate migration history and tables from other migration tests.
-    options.max_connections(1).min_connections(1);
-    let database = Database::connect(options).await.unwrap();
-    database
-        .execute_unprepared(&format!(
-            "CREATE SCHEMA {schema}; SET search_path TO {schema}"
-        ))
-        .await
-        .unwrap();
-    Migrator::install(&database).await.unwrap();
-    database
-        .execute_unprepared(&format!("SET search_path TO {schema}, public"))
-        .await
-        .unwrap();
+    let (database, schema) = isolated_database("submission_failure").await;
     Migrator::up(&database, None).await.unwrap();
     let definition = |database: sea_orm::DatabaseConnection| async move {
         database.query_one_raw(Statement::from_string(DbBackend::Postgres,

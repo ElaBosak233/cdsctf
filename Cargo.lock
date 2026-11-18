@@ -1229,7 +1229,10 @@ dependencies = [
  "anyhow",
  "cds-checker",
  "cds-db",
+ "cds-env",
  "cds-mailbox",
+ "cds-media",
+ "cds-migrator",
  "cds-queue",
  "futures-util",
  "serde",
@@ -1237,6 +1240,7 @@ dependencies = [
  "time",
  "tokio",
  "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

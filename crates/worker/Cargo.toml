@@ -26,3 +26,9 @@ tracing      = { workspace = true }
 
 [lib]
 path = "src/lib.rs"
+
+[dev-dependencies]
+cds-env = { workspace = true }
+cds-media = { workspace = true }
+cds-migrator = { workspace = true }
+tracing-subscriber = { workspace = true }

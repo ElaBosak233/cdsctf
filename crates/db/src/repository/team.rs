@@ -256,6 +256,23 @@ pub async fn contains_user_in_game(
         > 0)
 }
 
+/// Loads a passed team only when the user is its member in this game.
+/// Submission admission needs the team's display fields, not a separate count.
+pub async fn find_passed_member_in_game(
+    conn: &impl ConnectionTrait,
+    team_id: i64,
+    game_id: i64,
+    user_id: i64,
+) -> Result<Option<TeamView>, DbError> {
+    Ok(
+        user_game_membership_query(game_id, user_id, Some(State::Passed))
+            .filter(Column::Id.eq(team_id))
+            .into_model::<TeamView>()
+            .one(conn)
+            .await?,
+    )
+}
+
 /// Updates only the policy state of one team in the requested game.
 ///
 /// The game predicate prevents a stale or cross-game identifier from changing

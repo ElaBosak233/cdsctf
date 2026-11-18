@@ -5,10 +5,9 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    SubmissionSummary, TeamView,
+    SubmissionSummary,
     sea_orm::{ActiveValue::NotSet, Set},
     submission::{FindSubmissionsOptions, Status},
-    team::{FindTeamOptions, State as TState},
 };
 use cds_worker::checker::SUBJECT;
 use serde::{Deserialize, Serialize};
@@ -127,7 +126,8 @@ pub struct CreateSubmissionRequest {
     pub challenge_id: i64,
 }
 
-/// Creates a submission; author is always the authenticated user.
+/// Persists a submission and returns its admission snapshot. Judging is
+/// asynchronous; failed immediate publication is retried by queued recovery.
 #[utoipa::path(
     post,
     path = "/",
@@ -166,7 +166,7 @@ pub async fn create_submission(
         return Err(WebError::BadRequest(json!("challenge_not_found")));
     }
 
-    if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
+    let (game, team) = if let (Some(game_id), Some(team_id)) = (body.game_id, body.team_id) {
         let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
 
         if !game.enabled {
@@ -181,22 +181,14 @@ pub async fn create_submission(
             return Err(WebError::NotFound(json!("game_challenge_not_found")));
         }
 
-        if cds_db::team::find::<TeamView>(
-            &s.db.conn,
-            FindTeamOptions {
-                id: Some(team_id),
-                game_id: Some(game.id),
-                state: Some(TState::Passed),
-                user_id: Some(operator.id),
-                ..Default::default()
-            },
-        )
-        .await?
-        .1 == 0
-        {
-            return Err(WebError::BadRequest(json!("team_not_found")));
-        };
-    }
+        let team =
+            cds_db::team::find_passed_member_in_game(&s.db.conn, team_id, game.id, operator.id)
+                .await?
+                .ok_or_else(|| WebError::BadRequest(json!("team_not_found")))?;
+        (Some(game), Some(team))
+    } else {
+        (None, None)
+    };
 
     // Block submission if the team has a prior Cheat record for this
     // challenge in the game (e.g. after an auto-ban that was later lifted).
@@ -227,7 +219,7 @@ pub async fn create_submission(
         return Err(WebError::TooManyRequests(json!("submission")));
     }
 
-    let submission = cds_db::submission::create(
+    let submission = cds_db::submission::create_record(
         &s.db.conn,
         cds_db::submission::ActiveModel {
             content: Set(body.content),
@@ -241,9 +233,17 @@ pub async fn create_submission(
     )
     .await?;
 
-    s.queue
+    if let Err(error) = s
+        .queue
         .publish(SUBJECT, submission.id, Some(operator.id))
-        .await?;
+        .await
+    {
+        warn!(
+            submission_id = submission.id,
+            ?error,
+            "submission persisted; immediate publication failed, queued recovery will retry"
+        );
+    }
     info!(
         submission_id = submission.id,
         user_id = operator.id,
@@ -251,15 +251,32 @@ pub async fn create_submission(
         game_id = body.game_id,
         challenge_id = body.challenge_id,
         subject = SUBJECT,
-        "submission created and queued"
+        "submission persisted for asynchronous checking"
     );
 
-    let submission = cds_db::submission::find_by_id(&s.db.conn, submission.id)
-        .await?
-        .ok_or_else(|| WebError::NotFound(json!("not_found")))?;
-
+    // Display information was loaded during authorization, before the write.
+    // No database read can now turn a committed submission into an HTTP error.
     Ok((
         StatusCode::CREATED,
-        Json(SubmissionSummary::from(&submission)),
+        Json(SubmissionSummary {
+            id: submission.id,
+            status: submission.status,
+            user_id: submission.user_id,
+            user_name: operator.name.clone(),
+            user_avatar_hash: operator.avatar_hash.clone(),
+            team_id: submission.team_id,
+            team_name: team.as_ref().map(|team| team.name.clone()),
+            team_avatar_hash: team.and_then(|team| team.avatar_hash),
+            game_id: submission.game_id,
+            game_title: game.map(|game| game.title),
+            challenge_id: submission.challenge_id,
+            challenge_title: challenge.title,
+            challenge_category: challenge.category,
+            created_at: submission.created_at,
+            processing_at: submission.processing_at,
+            checked_at: submission.checked_at,
+            pts: submission.pts,
+            rank: submission.rank,
+        }),
     ))
 }

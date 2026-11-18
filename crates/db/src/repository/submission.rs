@@ -19,7 +19,7 @@ pub use crate::{
         scoreboard::ScoreboardSubmission,
         submission::{SubmissionSummary, SubmissionView},
     },
-    entity::submission::{ActiveModel, Status},
+    entity::submission::{ActiveModel, Model as SubmissionRecord, Status},
 };
 
 pub const PROCESSING_LEASE_SECONDS: i64 = 15;
@@ -769,11 +769,13 @@ pub async fn count_correct(conn: &impl ConnectionTrait) -> Result<u64, DbError> 
         .await?)
 }
 
-/// Inserts a new row and returns the persisted model.
-pub async fn create(
+/// Inserts a submission without loading its user, challenge, team, or game.
+/// Callers that already validated those relations can build an admission
+/// response without fallible reads after this write has committed.
+pub async fn create_record(
     conn: &impl ConnectionTrait,
     model: ActiveModel,
-) -> Result<SubmissionView, DbError> {
+) -> Result<SubmissionRecord, DbError> {
     let submission = model.insert(conn).await?;
     tracing::info!(
         resource = "submission",
@@ -787,9 +789,48 @@ pub async fn create(
         "database step completed",
     );
 
-    Ok(find_by_id(conn, submission.id)
+    Ok(submission)
+}
+
+/// Inserts a new row and loads its associated display information.
+pub async fn create(
+    conn: &impl ConnectionTrait,
+    model: ActiveModel,
+) -> Result<SubmissionView, DbError> {
+    let submission = create_record(conn, model).await?;
+    find_by_id(conn, submission.id)
         .await?
-        .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))?)
+        .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))
+}
+
+/// Lists one page of queued work eligible for publication recovery. Only IDs
+/// are needed; recovery must not load the associated display information.
+pub async fn find_queued_ids_before(
+    conn: &impl ConnectionTrait,
+    cutoff: time::OffsetDateTime,
+    after_id: Option<i64>,
+    limit: u64,
+) -> Result<Vec<i64>, DbError> {
+    Ok(queued_recovery_query(cutoff, after_id, limit)
+        .into_tuple::<i64>()
+        .all(conn)
+        .await?)
+}
+
+fn queued_recovery_query(
+    cutoff: time::OffsetDateTime,
+    after_id: Option<i64>,
+    limit: u64,
+) -> sea_orm::Select<Entity> {
+    let mut query = Entity::find()
+        .select_only()
+        .column(Column::Id)
+        .filter(Column::Status.eq(Status::Queued))
+        .filter(Column::CreatedAt.lte(cutoff));
+    if let Some(id) = after_id {
+        query = query.filter(Column::Id.gt(id));
+    }
+    query.order_by_asc(Column::Id).limit(limit)
 }
 
 /// Applies an active model update to the database.
