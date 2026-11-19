@@ -154,3 +154,50 @@ async fn admission_insert_succeeds_without_any_associated_tables() {
     assert!(record.processing_at.is_none() && record.checked_at.is_none());
     transaction.rollback().await.unwrap();
 }
+
+#[tokio::test]
+#[ignore = "requires CDS_TEST_DATABASE_URL pointing to PostgreSQL"]
+async fn cheat_precheck_uses_only_the_requested_submission_scope() {
+    let database = Database::connect(std::env::var("CDS_TEST_DATABASE_URL").unwrap())
+        .await
+        .unwrap();
+    let transaction = database.begin().await.unwrap();
+    transaction
+        .execute_unprepared(
+            r#"
+        CREATE TEMP TABLE submissions (
+            id BIGINT PRIMARY KEY, status TEXT NOT NULL,
+            challenge_id BIGINT NOT NULL, team_id BIGINT, game_id BIGINT
+        ) ON COMMIT DROP;
+        INSERT INTO submissions VALUES
+            (1, 'cheat', 10, 20, 30),
+            (2, 'correct', 11, 20, 30),
+            (3, 'incorrect', 10, 21, 30),
+            (4, 'cheat', 10, NULL, NULL);
+    "#,
+        )
+        .await
+        .unwrap();
+    assert!(
+        submission::has_cheat(&transaction, 10, 20, 30)
+            .await
+            .unwrap()
+    );
+    for (challenge, team, game) in [(11, 20, 30), (10, 21, 30), (10, 20, 31)] {
+        assert!(
+            !submission::has_cheat(&transaction, challenge, team, game)
+                .await
+                .unwrap()
+        );
+    }
+    transaction
+        .execute_unprepared("DELETE FROM submissions WHERE id=1")
+        .await
+        .unwrap();
+    assert!(
+        !submission::has_cheat(&transaction, 10, 20, 30)
+            .await
+            .unwrap()
+    );
+    transaction.rollback().await.unwrap();
+}

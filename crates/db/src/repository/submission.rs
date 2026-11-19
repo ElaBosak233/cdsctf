@@ -717,21 +717,17 @@ pub async fn has_cheat(
     team_id: i64,
     game_id: i64,
 ) -> Result<bool, DbError> {
-    let (submissions, _) = find(
-        conn,
-        FindSubmissionsOptions {
-            challenge_id: Some(challenge_id),
-            team_id: Some(Some(team_id)),
-            game_id: Some(Some(game_id)),
-            status: Some(Status::Cheat),
-            page: Some(1),
-            size: Some(1),
-            ..Default::default()
-        },
-    )
-    .await?;
-
-    Ok(!submissions.is_empty())
+    Ok(Entity::find()
+        .select_only()
+        .column(Column::Id)
+        .filter(Column::ChallengeId.eq(challenge_id))
+        .filter(Column::TeamId.eq(team_id))
+        .filter(Column::GameId.eq(game_id))
+        .filter(Column::Status.eq(Status::Cheat))
+        .into_tuple::<i64>()
+        .one(conn)
+        .await?
+        .is_some())
 }
 
 /// Returns challenge_ids where the team has a `Cheat` submission, filtered to
