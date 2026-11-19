@@ -97,7 +97,9 @@ fn other_correct_in_scope_query(
         .column(Column::Id)
         .filter(Column::Id.ne(submission.id))
         .filter(Column::ChallengeId.eq(submission.challenge_id))
-        .filter(Column::Status.eq(Status::Correct));
+        // This fixed policy must remain visible to PostgreSQL's partial-index
+        // planner, including when a prepared statement uses a generic plan.
+        .filter(Expr::col(Column::Status).eq(Expr::Constant(Status::Correct.into())));
 
     query = match (submission.game_id, submission.team_id) {
         (Some(game_id), Some(team_id)) => query
@@ -723,7 +725,8 @@ pub async fn has_cheat(
         .filter(Column::ChallengeId.eq(challenge_id))
         .filter(Column::TeamId.eq(team_id))
         .filter(Column::GameId.eq(game_id))
-        .filter(Column::Status.eq(Status::Cheat))
+        // Keep the partial-index predicate constant; scope IDs remain bound.
+        .filter(Expr::col(Column::Status).eq(Expr::Constant(Status::Cheat.into())))
         .into_tuple::<i64>()
         .one(conn)
         .await?
@@ -740,7 +743,7 @@ pub async fn find_cheat_challenge_ids(
 ) -> Result<Vec<i64>, DbError> {
     let submissions = Entity::find()
         .filter(Column::ChallengeId.is_in(challenge_ids))
-        .filter(Column::Status.eq(Status::Cheat))
+        .filter(Expr::col(Column::Status).eq(Expr::Constant(Status::Cheat.into())))
         .filter(Column::TeamId.eq(team_id))
         .filter(Column::GameId.eq(game_id))
         .select_only()
@@ -961,9 +964,9 @@ mod score_tests {
             .build(DbBackend::Postgres);
         assert!(team.sql.contains("\"submissions\".\"id\" <> $1"));
         assert!(team.sql.contains("\"submissions\".\"challenge_id\" = $2"));
-        assert!(team.sql.contains("\"submissions\".\"status\" = $3"));
-        assert!(team.sql.contains("\"submissions\".\"game_id\" = $4"));
-        assert!(team.sql.contains("\"submissions\".\"team_id\" = $5"));
+        assert!(team.sql.contains("\"status\" = 'correct'"));
+        assert!(team.sql.contains("\"submissions\".\"game_id\" = $3"));
+        assert!(team.sql.contains("\"submissions\".\"team_id\" = $4"));
 
         let standalone = other_correct_in_scope_query(&submission(6, 9, None, None))
             .unwrap()
@@ -978,7 +981,7 @@ mod score_tests {
                 .sql
                 .contains("\"submissions\".\"team_id\" IS NULL")
         );
-        assert!(standalone.sql.contains("\"submissions\".\"user_id\" = $4"));
+        assert!(standalone.sql.contains("\"submissions\".\"user_id\" = $3"));
     }
 
     #[test]

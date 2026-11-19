@@ -190,6 +190,18 @@ async fn cheat_precheck_uses_only_the_requested_submission_scope() {
                 .unwrap()
         );
     }
+    assert_eq!(
+        submission::find_cheat_challenge_ids(&transaction, vec![10, 11], 20, 30)
+            .await
+            .unwrap(),
+        vec![10]
+    );
+    assert!(
+        submission::find_cheat_challenge_ids(&transaction, vec![10], 20, 31)
+            .await
+            .unwrap()
+            .is_empty()
+    );
     transaction
         .execute_unprepared("DELETE FROM submissions WHERE id=1")
         .await
