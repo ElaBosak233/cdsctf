@@ -24,6 +24,7 @@ use crate::{
     extract::{Query, VJson},
     router::api::user::UserResponse,
     traits::{AppState, WebError},
+    util::email::validate_new_address,
 };
 
 /// Builds the Axum router fragment for this module.
@@ -108,6 +109,7 @@ pub struct CreateUserRequest {
     request_body = CreateUserRequest,
     responses(
         (status = 201, description = "Created user", body = UserResponse),
+        (status = 400, description = "Invalid or disallowed email", body = crate::traits::ErrorResponse),
         (status = 409, description = "Conflict", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -117,6 +119,8 @@ pub async fn create_user(
     State(s): State<Arc<AppState>>,
     VJson(mut body): VJson<CreateUserRequest>,
 ) -> Result<(StatusCode, Json<UserResponse>), WebError> {
+    let email_config = cds_db::get_config(&s.db.conn).await.email;
+    validate_new_address(&body.email, &email_config.whitelist)?;
     body.username = body.username.to_lowercase();
     if !cds_db::user::is_username_unique(&s.db.conn, 0, &body.username).await? {
         return Err(WebError::Conflict(json!("username_already_exists")));

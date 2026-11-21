@@ -26,7 +26,10 @@ editor:
     size_error:
       title: 图片过大
       description: 请选择不超过 10 MB 的图片。
+email_allowed_domains: "允许的邮箱域名为 {{domains}}。"
 errors:
+  email_domain_not_allowed: "此邮箱域名不在白名单内，请换用允许的邮箱。"
+  invalid_email: "请输入有效的邮箱地址。"
   default:
     title: 暂时无法完成请求
     description: 请重试；如果问题持续存在，请联系管理员。

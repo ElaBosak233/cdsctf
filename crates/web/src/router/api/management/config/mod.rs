@@ -7,7 +7,7 @@ mod logo;
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, middleware::from_fn};
-use cds_db::Config;
+use cds_db::config::{Config, auth, captcha, email, meta};
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -18,6 +18,7 @@ use crate::{
     extract::Json as ReqJson,
     middleware::auth::require_management_config,
     traits::{AppState, WebError},
+    util::email::normalize_whitelist,
 };
 
 /// Builds the Axum router fragment for this module.
@@ -36,7 +37,45 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct AdminConfigResponse {
-    pub config: Config,
+    pub config: AdminConfig,
+}
+
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct AdminConfig {
+    meta: meta::Config,
+    auth: auth::Config,
+    email: AdminEmailConfig,
+    captcha: captcha::Config,
+    logo_hash: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+pub struct AdminEmailConfig {
+    enabled: bool,
+    host: String,
+    port: u16,
+    tls: email::Tls,
+    username: String,
+    whitelist: Vec<String>,
+}
+
+impl From<Config> for AdminConfig {
+    fn from(config: Config) -> Self {
+        Self {
+            meta: config.meta,
+            auth: config.auth,
+            email: AdminEmailConfig {
+                enabled: config.email.enabled,
+                host: config.email.host,
+                port: config.email.port,
+                tls: config.email.tls,
+                username: config.email.username,
+                whitelist: config.email.whitelist,
+            },
+            captcha: config.captcha,
+            logo_hash: config.logo_hash,
+        }
+    }
 }
 
 /// Returns config.
@@ -45,7 +84,7 @@ pub struct AdminConfigResponse {
     path = "/",
     tag = "management-config",
     responses(
-        (status = 200, description = "Full config", body = AdminConfigResponse),
+        (status = 200, description = "Administrative config", body = AdminConfigResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -54,7 +93,7 @@ pub async fn get_config(
     State(s): State<Arc<AppState>>,
 ) -> Result<Json<AdminConfigResponse>, WebError> {
     Ok(Json(AdminConfigResponse {
-        config: cds_db::get_config(&s.db.conn).await,
+        config: cds_db::get_config(&s.db.conn).await.into(),
     }))
 }
 
@@ -66,16 +105,20 @@ pub async fn get_config(
     request_body = Config,
     responses(
         (status = 200, description = "Saved config", body = AdminConfigResponse),
+        (status = 400, description = "Invalid configuration", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
 #[tracing::instrument(skip_all, fields(handler = "update_config"))]
 pub async fn update_config(
     State(s): State<Arc<AppState>>,
-    ReqJson(body): ReqJson<Config>,
+    ReqJson(mut body): ReqJson<Config>,
 ) -> Result<Json<AdminConfigResponse>, WebError> {
+    normalize_whitelist(&mut body.email.whitelist)?;
     let config = cds_db::config::save(&s.db.conn, body).await?;
-    Ok(Json(AdminConfigResponse { config }))
+    Ok(Json(AdminConfigResponse {
+        config: config.into(),
+    }))
 }
 
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
@@ -137,4 +180,26 @@ pub async fn get_statistics(
             },
         },
     }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn admin_config_omits_smtp_password_and_can_be_saved_without_it() {
+        let mut config = Config::default();
+        config.email.host = "smtp.example.org".to_owned();
+        config.email.password = "stored-secret".to_owned();
+
+        let response = AdminConfigResponse {
+            config: config.into(),
+        };
+        let json = serde_json::to_value(response).unwrap();
+        assert!(json["config"]["email"].get("password").is_none());
+
+        let update: Config = serde_json::from_value(json["config"].clone()).unwrap();
+        assert_eq!(update.email.host, "smtp.example.org");
+        assert!(update.email.password.is_empty());
+    }
 }

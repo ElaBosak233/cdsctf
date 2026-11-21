@@ -18,6 +18,7 @@ export type PublicConfig = {
   };
   email?: {
     enabled?: boolean;
+    whitelist?: string[];
   };
   logo_hash?: string | null;
 };
@@ -38,9 +39,12 @@ export type AdminConfig = Omit<PublicConfig, "captcha" | "email"> & {
     port?: number;
     tls?: "starttls" | "tls" | "none";
     username?: string;
-    password?: string;
     whitelist?: Array<string>;
   };
+};
+
+export type UpdateConfigRequest = Omit<AdminConfig, "email"> & {
+  email?: NonNullable<AdminConfig["email"]> & { password?: string };
 };
 
 export type Version = {

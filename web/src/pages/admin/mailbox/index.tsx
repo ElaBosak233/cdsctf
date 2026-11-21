@@ -1,6 +1,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
-import { MailCheckIcon, SaveIcon, TypeIcon } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  EthernetPortIcon,
+  KeyRoundIcon,
+  ListFilterIcon,
+  MailCheckIcon,
+  PowerIcon,
+  SaveIcon,
+  ServerIcon,
+  ShieldCheckIcon,
+  UserRoundIcon,
+} from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -12,6 +22,7 @@ import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -27,12 +38,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { TagsField } from "@/components/ui/tags-field";
 import { TextField } from "@/components/ui/text-field";
+import type { AdminConfig } from "@/models/config";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
+import { isEmailDomainRule, splitEmailDomainRules } from "@/utils/email-domain";
+import { notifyApiError } from "@/utils/query";
+
+function mailboxFormValues(email: AdminConfig["email"]) {
+  return {
+    ...email,
+    password: "",
+    whitelist: [...new Set(email?.whitelist)],
+  };
+}
 
 export default function Index() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
   const { config: globalConfig } = useConfigStore();
   const { data: config } = useQuery({
@@ -47,23 +71,41 @@ export default function Index() {
     port: z.number().min(0).max(65535),
     tls: z.enum(["starttls", "tls", "none"]).optional(),
     username: z.string().default("").optional(),
-    password: z.string().default("").optional(),
-    whitelist: z.array(z.string()).default([]).optional(),
+    password: z.string().optional(),
+    whitelist: z
+      .array(z.string())
+      .refine((value) => value.every(isEmailDomainRule), {
+        message: t("admin:mailbox.form.whitelist.invalid"),
+      }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: config?.email,
+    defaultValues: mailboxFormValues(config?.email),
   });
 
   useEffect(() => {
-    form.reset(config?.email);
+    form.reset(mailboxFormValues(config?.email));
   }, [config?.email, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!config) return;
-    await updateConfig({ ...config, email: values });
-    toast.success(t("admin:mailbox.actions.update.success"));
+    const { password, ...email } = values;
+    try {
+      const response = await updateConfig({
+        ...config,
+        email: {
+          ...email,
+          password: password || undefined,
+        },
+      });
+      queryClient.setQueryData(["admin", "config"], response);
+      form.reset(mailboxFormValues(response.config.email));
+      void queryClient.invalidateQueries({ queryKey: ["configs"] });
+      toast.success(t("admin:mailbox.actions.update.success"));
+    } catch (error) {
+      await notifyApiError(error);
+    }
   }
 
   return (
@@ -101,31 +143,36 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>{t("admin:mailbox.form.enabled._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <TypeIcon />
-                    </FieldIcon>
-                    <Select
-                      onValueChange={(value) => {
-                        field.onChange(value === "true");
-                      }}
-                      value={String(field.value)}
-                    >
+                <Field>
+                  <FieldIcon>
+                    <PowerIcon />
+                  </FieldIcon>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === "true")}
+                    value={String(field.value)}
+                  >
+                    <FormControl>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">
-                          {t("admin:mailbox.enabled.true")}
-                        </SelectItem>
-                        <SelectItem value="false">
-                          {t("admin:mailbox.enabled.false")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </FormControl>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="true">
+                        {t("admin:mailbox.enabled.true")}
+                      </SelectItem>
+                      <SelectItem value="false">
+                        {t("admin:mailbox.enabled.false")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <FormDescription>
+                  {t(
+                    field.value
+                      ? "admin:mailbox.form.enabled.description.enabled"
+                      : "admin:mailbox.form.enabled.description.disabled"
+                  )}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -143,7 +190,7 @@ export default function Index() {
                       <FormControl>
                         <Field>
                           <FieldIcon>
-                            <TypeIcon />
+                            <ServerIcon />
                           </FieldIcon>
                           <TextField
                             {...field}
@@ -169,7 +216,7 @@ export default function Index() {
                       <FormControl>
                         <Field>
                           <FieldIcon>
-                            <TypeIcon />
+                            <EthernetPortIcon />
                           </FieldIcon>
                           <NumberField
                             value={field.value}
@@ -191,7 +238,7 @@ export default function Index() {
                       <FormControl>
                         <Field>
                           <FieldIcon>
-                            <TypeIcon />
+                            <ShieldCheckIcon />
                           </FieldIcon>
                           <Select
                             onValueChange={field.onChange}
@@ -229,7 +276,7 @@ export default function Index() {
                     <FormControl>
                       <Field>
                         <FieldIcon>
-                          <TypeIcon />
+                          <UserRoundIcon />
                         </FieldIcon>
                         <TextField
                           {...field}
@@ -252,27 +299,63 @@ export default function Index() {
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
                     <FormLabel>{t("admin:mailbox.form.password._")}</FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <TypeIcon />
-                        </FieldIcon>
+                    <Field>
+                      <FieldIcon>
+                        <KeyRoundIcon />
+                      </FieldIcon>
+                      <FormControl>
                         <TextField
                           {...field}
-                          placeholder={t(
-                            "admin:mailbox.form.password.placeholder"
-                          )}
-                          value={field.value || ""}
-                          onChange={field.onChange}
+                          type="password"
+                          autoComplete="new-password"
                         />
-                      </Field>
-                    </FormControl>
+                      </FormControl>
+                    </Field>
+                    <FormDescription>
+                      {t("admin:mailbox.form.password.description")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </>
           )}
+
+          <FormField
+            control={form.control}
+            name="whitelist"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>{t("admin:mailbox.form.whitelist._")}</FormLabel>
+                <Field>
+                  <FieldIcon className="h-auto self-stretch">
+                    <ListFilterIcon aria-hidden="true" />
+                  </FieldIcon>
+                  <FormControl>
+                    <TagsField
+                      value={field.value}
+                      onValueChange={(rules) =>
+                        field.onChange([
+                          ...new Set(
+                            rules.map((rule) => rule.trim().toLowerCase())
+                          ),
+                        ])
+                      }
+                      onBlur={field.onBlur}
+                      inputRef={field.ref}
+                      parsePaste={splitEmailDomainRules}
+                      commitOnBlur
+                      placeholder="example.edu"
+                    />
+                  </FormControl>
+                </Field>
+                <FormDescription>
+                  {t("admin:mailbox.form.whitelist.description")}
+                </FormDescription>
+                <FormMessage className="static block" />
+              </FormItem>
+            )}
+          />
 
           <div className={cn(["flex-1"])} />
           <Button

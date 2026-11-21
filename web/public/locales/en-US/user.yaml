@@ -167,7 +167,9 @@ actions:
 emails:
   _: Emails
   brief: Add or edit this user's email addresses
-  verify_code_placeholder: I_d0nt_kn0w
+  verify_code_label: "Verification code"
+  verify_code_placeholder: "Paste code"
+  verify_code_required: "Enter the verification code."
   empty: No emails have been added for this user yet.
   verified:
     "true":
@@ -205,8 +207,12 @@ emails:
         verify the email.
       success: "Email {{email}} verified successfully."
     send_verify:
-      _: Send Verification Email
-      success: "Verification email sent to {{email}}."
+      _: "Send code"
+      resend: "Resend code"
+      retry_in: "Resend in {{seconds}}s"
+      success: "Check your inbox for the verification code."
+      cooldown: "A verification code was requested recently. Check your inbox or try again when the timer ends."
+      failed: "Could not request a verification code. Try again."
 change_password:
   form:
     old_password:

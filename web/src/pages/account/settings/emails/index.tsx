@@ -103,8 +103,8 @@ export default function Index() {
           {emails?.map((email, index) => (
             <React.Fragment key={email.email}>
               <Item className={cn(["bg-card", "text-card-foreground"])}>
-                <ItemContent className="gap-1">
-                  <ItemTitle>{email.email}</ItemTitle>
+                <ItemContent className="min-w-0 gap-1">
+                  <ItemTitle className="break-all">{email.email}</ItemTitle>
                   <ItemDescription>
                     {email.verified ? (
                       <span className={cn(["flex", "gap-1", "items-center"])}>
@@ -117,18 +117,19 @@ export default function Index() {
                   </ItemDescription>
                 </ItemContent>
                 <ItemActions>
-                  <Button
-                    variant="ghost"
-                    size={"sm"}
-                    square
-                    disabled={email.verified}
-                    onClick={() => {
-                      setVerifyEmail(email.email);
-                      setVerifyDialogOpen(true);
-                    }}
-                  >
-                    <MailCheckIcon />
-                  </Button>
+                  {!email.verified && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={<MailCheckIcon />}
+                      onClick={() => {
+                        setVerifyEmail(email.email);
+                        setVerifyDialogOpen(true);
+                      }}
+                    >
+                      {t("user:emails.actions.verify._")}
+                    </Button>
+                  )}
                   <Button
                     level={"error"}
                     variant="ghost"
@@ -158,6 +159,7 @@ export default function Index() {
       <Dialog open={verifyDialogOpen} onOpenChange={setVerifyDialogOpen}>
         <DialogContent>
           <VerifyDialog
+            key={verifyEmail}
             email={verifyEmail}
             onClose={() => setVerifyDialogOpen(false)}
             bump={bump}

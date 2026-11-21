@@ -25,7 +25,10 @@ import {
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { TextField } from "@/components/ui/text-field";
+import { EmailDomainHint } from "@/components/widgets/email-domain-hint";
+import { useEmailValidation } from "@/hooks/use-email-validation";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 
 interface CreateEmailDialogProps {
   userId: number;
@@ -36,18 +39,20 @@ interface CreateEmailDialogProps {
 export function CreateEmailDialog(props: CreateEmailDialogProps) {
   const { userId, onClose, onSuccess } = props;
   const { t } = useTranslation();
+  const emailValidation = useEmailValidation(
+    t("user:emails.form.email.message")
+  );
 
   const [loading, setLoading] = useState(false);
 
   const formSchema = z.object({
-    email: z.email({
-      message: t("user:emails.form.email.message"),
-    }),
+    email: emailValidation.schema,
     verified: z.boolean(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
       email: "",
       verified: false,
@@ -56,23 +61,28 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    await addEmail({
-      user_id: userId,
-      email: values.email,
-      verified: values.verified,
-    });
+    try {
+      await addEmail({
+        user_id: userId,
+        email: values.email,
+        verified: values.verified,
+      });
 
-    toast.success(
-      t("user:emails.actions.create.success", { email: values.email })
-    );
-    onSuccess();
-    onClose();
-    form.reset({
-      email: "",
-      verified: false,
-    });
-
-    setLoading(false);
+      toast.success(
+        t("user:emails.actions.create.success", { email: values.email })
+      );
+      onSuccess();
+      onClose();
+      form.reset({
+        email: "",
+        verified: false,
+      });
+    } catch (error) {
+      if (emailValidation.handleServerError(error, form.setError)) return;
+      await notifyApiError(error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -95,20 +105,21 @@ export function CreateEmailDialog(props: CreateEmailDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("user:emails.form.email._")}</FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <MailIcon />
-                      </FieldIcon>
+                  <Field>
+                    <FieldIcon>
+                      <MailIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         placeholder={t("user:emails.form.email.placeholder")}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
-                  <FormMessage />
+                    </FormControl>
+                  </Field>
+                  <EmailDomainHint whitelist={emailValidation.whitelist} />
+                  <FormMessage className="static block" />
                 </FormItem>
               )}
             />

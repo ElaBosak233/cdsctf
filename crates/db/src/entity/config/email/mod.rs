@@ -12,6 +12,10 @@ pub struct Config {
     pub port: u16,
     pub tls: Tls,
     pub username: String,
+    /// Omit or leave blank to keep the stored SMTP password when saving
+    /// configuration.
+    #[serde(default)]
+    #[schema(write_only)]
     pub password: String,
     pub whitelist: Vec<String>,
 }

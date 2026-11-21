@@ -165,7 +165,9 @@ actions:
 emails:
   _: 電子郵件
   brief: 新增或編輯此使用者綁定的電子郵件地址
-  verify_code_placeholder: I_d0nt_kn0w
+  verify_code_label: "驗證碼"
+  verify_code_placeholder: "貼上驗證碼"
+  verify_code_required: "請輸入驗證碼。"
   empty: 此使用者尚未新增任何電子郵件地址。
   verified:
     "true":
@@ -199,8 +201,12 @@ emails:
       disabled: "{{title}} 未啟用郵件服務，可直接確認此電子郵件地址。"
       success: "電子郵件 {{email}} 驗證成功。"
     send_verify:
-      _: 傳送驗證郵件
-      success: "驗證信已傳送至 {{email}}。"
+      _: "傳送驗證碼"
+      resend: "重新傳送"
+      retry_in: "{{seconds}} 秒後可重送"
+      success: "驗證碼傳送請求已提交，請查收電子郵件。"
+      cooldown: "剛剛已請求傳送驗證碼，請查收電子郵件，或在倒數結束後重試。"
+      failed: "驗證碼傳送請求失敗，請再試一次。"
 change_password:
   form:
     old_password:

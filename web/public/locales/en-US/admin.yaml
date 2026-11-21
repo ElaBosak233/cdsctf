@@ -49,9 +49,8 @@ platform:
 mailbox:
   _: Mailbox
   enabled:
-    _: Enable Mailbox
-    "true": "Yes"
-    "false": "No"
+    "true": Require email verification
+    "false": Skip email verification
   tls:
     _: TLS
     none: None
@@ -59,7 +58,10 @@ mailbox:
     starttls: StartTLS
   form:
     enabled:
-      _: Enable Mailbox
+      _: Email verification
+      description:
+        enabled: Users verify new email addresses with a code and can reset their password by email.
+        disabled: New email addresses are marked as verified automatically. Password reset by email is disabled.
     host:
       _: SMTP Host
       placeholder: smtp.example.com
@@ -72,7 +74,11 @@ mailbox:
       placeholder: Mailbox Username
     password:
       _: Password
-      placeholder: Mailbox P4ssw0rd
+      description: Optional. Leave blank to keep the current password.
+    whitelist:
+      _: "Allowed email domains"
+      description: "The allowlist applies to all new email addresses. Press Enter to add a rule, or paste one rule per line. Use *.example.org for subdomains. Leave the list empty to allow all domains."
+      invalid: "Enter valid domains, using *. only at the start of a subdomain rule."
   actions:
     update:
       _: Update Mailbox Settings

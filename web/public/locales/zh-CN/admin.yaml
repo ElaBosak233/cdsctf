@@ -49,9 +49,8 @@ platform:
 mailbox:
   _: 邮箱
   enabled:
-    _: 启用邮箱
-    "true": 是
-    "false": 否
+    "true": 要求邮件验证码
+    "false": 跳过邮箱验证
   tls:
     _: TLS
     none: 无
@@ -59,7 +58,10 @@ mailbox:
     starttls: StartTLS
   form:
     enabled:
-      _: 启用邮箱
+      _: 邮箱验证
+      description:
+        enabled: 用户通过邮件验证码验证新增邮箱，并可通过邮件找回密码。
+        disabled: 用户新增的邮箱自动标记为已验证。邮件找回密码停用。
     host:
       _: SMTP 主机
       placeholder: smtp.example.com
@@ -72,7 +74,11 @@ mailbox:
       placeholder: 邮箱用户名
     password:
       _: 密码
-      placeholder: 邮箱密码
+      description: 选填。留空时沿用已保存的密码。
+    whitelist:
+      _: "邮箱域名白名单"
+      description: "新增邮箱始终按此列表校验。按回车添加规则，也可按每行一条批量粘贴。用 *.example.org 允许其子域名。列表为空时允许所有域名。"
+      invalid: "请输入有效的域名。仅允许在子域名规则开头使用 *.。"
   actions:
     update:
       _: 更新邮箱设置

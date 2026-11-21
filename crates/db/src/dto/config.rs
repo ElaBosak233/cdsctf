@@ -14,6 +14,8 @@ pub struct PublicConfig {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct PublicEmailConfig {
     pub enabled: bool,
+    #[serde(default)]
+    pub whitelist: Vec<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
@@ -35,6 +37,7 @@ impl From<&Config> for PublicConfig {
             auth: config.auth.clone(),
             email: PublicEmailConfig {
                 enabled: config.email.enabled,
+                whitelist: config.email.whitelist.clone(),
             },
             captcha: PublicCaptchaConfig {
                 provider: config.captcha.provider.clone(),
@@ -63,7 +66,10 @@ mod tests {
         config.captcha.turnstile.secret_key = "turnstile-secret".to_owned();
 
         let value = serde_json::to_value(PublicConfig::from(&config)).unwrap();
-        assert_eq!(value["email"], serde_json::json!({"enabled": false}));
+        assert_eq!(
+            value["email"],
+            serde_json::json!({"enabled": false, "whitelist": ["internal.example"]}),
+        );
         assert!(value["captcha"]["turnstile"].get("secret_key").is_none());
         assert!(value["captcha"]["turnstile"].get("url").is_none());
     }

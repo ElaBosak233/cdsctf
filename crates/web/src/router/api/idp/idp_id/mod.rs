@@ -292,6 +292,9 @@ pub async fn register(
     body.validate()
         .map_err(|_| WebError::UnprocessableEntity(json!("validation_failed")))?;
 
+    let email_config = cds_db::get_config(&s.db.conn).await.email;
+    util::email::validate_new_address(&body.email, &email_config.whitelist)?;
+
     let pending_key = format!("idp_pending:{}", body.token);
     let pending: Option<PendingIdentityState> = s.cache.take(&pending_key).await?;
     let pending = pending.ok_or(WebError::BadRequest(json!("invalid_or_expired_token")))?;
@@ -319,7 +322,7 @@ pub async fn register(
     }
 
     let hashed_password = util::crypto::hash_password(body.password);
-    let email_verified = !cds_db::get_config(&s.db.conn).await.email.enabled;
+    let email_verified = !email_config.enabled;
     let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
 
     let user = cds_db::user::create::<UserAccountView>(

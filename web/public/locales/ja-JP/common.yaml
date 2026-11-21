@@ -19,7 +19,10 @@ actions:
   close: 閉じる
 tooltip:
   copy: クリップボードにコピー
+email_allowed_domains: "利用できるメールドメインは {{domains}} です。"
 errors:
+  email_domain_not_allowed: "このメールドメインは使用できません。許可されているドメインのアドレスを入力してください。"
+  invalid_email: "有効なメールアドレスを入力してください。"
   default: エラーが発生しました
   unexpected: エラーが発生しました
   network: ネットワークエラー

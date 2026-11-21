@@ -156,13 +156,12 @@ pub async fn user_register(
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(mut body): ReqJson<UserRegisterRequest>,
 ) -> Result<(StatusCode, Json<UserResponse>), WebError> {
-    if !cds_db::get_config(&s.db.conn)
-        .await
-        .auth
-        .local_registration_enabled
-    {
+    let config = cds_db::get_config(&s.db.conn).await;
+    if !config.auth.local_registration_enabled {
         return Err(WebError::BadRequest(json!("registration_disabled")));
     }
+
+    util::email::validate_new_address(&body.email, &config.email.whitelist)?;
 
     if !s
         .captcha
@@ -215,7 +214,7 @@ pub async fn user_register(
         cds_db::email::ActiveModel {
             user_id: Set(user.id),
             email: Set(body.email),
-            verified: Set(!cds_db::get_config(&s.db.conn).await.email.enabled),
+            verified: Set(!config.email.enabled),
         },
     )
     .await?;

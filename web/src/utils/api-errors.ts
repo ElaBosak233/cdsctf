@@ -136,6 +136,9 @@ export const API_ERROR_I18N_KEYS: Readonly<Record<string, ApiErrorI18nKeys>> = {
     "account:errors.captcha_invalid.description"
   ),
   email_already_exists: message("account:errors.email_already_exists"),
+  email_domain_not_allowed: message("common:errors.email_domain_not_allowed"),
+  invalid_email: message("common:errors.invalid_email"),
+  invalid_email_domain_rule: message("admin:mailbox.form.whitelist.invalid"),
   email_already_verified: message("account:errors.email_already_verified"),
   email_code_expired: message(
     "account:errors.email_code_expired.title",

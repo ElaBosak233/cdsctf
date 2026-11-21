@@ -26,7 +26,10 @@ editor:
     size_error:
       title: Image is too large
       description: Choose an image no larger than 10 MB.
+email_allowed_domains: "Allowed domains are {{domains}}."
 errors:
+  email_domain_not_allowed: "This email domain is not allowed. Use an address from a supported domain."
+  invalid_email: "Enter a valid email address."
   default:
     title: The request could not be completed
     description: Try again. If the problem persists, contact an administrator.

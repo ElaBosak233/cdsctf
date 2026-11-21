@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/form";
 import { TextField } from "@/components/ui/text-field";
 import { Captcha, type CaptchaRef } from "@/components/widgets/captcha";
+import { EmailDomainHint } from "@/components/widgets/email-domain-hint";
+import { useEmailValidation } from "@/hooks/use-email-validation";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { notifyApiError } from "@/utils/query";
@@ -35,6 +37,9 @@ function RegisterForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { t } = useTranslation();
+  const emailValidation = useEmailValidation(
+    t("account:register.form.email.invalid")
+  );
 
   const captchaRef = useRef<CaptchaRef>(null);
 
@@ -51,7 +56,7 @@ function RegisterForm() {
       name: z.string({
         message: t("account:register.form.name.message"),
       }),
-      email: z.email(t("account:register.form.email.invalid")),
+      email: emailValidation.schema,
       password: z
         .string({
           message: t("account:register.form.password.message"),
@@ -74,6 +79,7 @@ function RegisterForm() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -94,6 +100,7 @@ function RegisterForm() {
         )
       );
     } catch (error) {
+      if (emailValidation.handleServerError(error, form.setError)) return;
       await notifyApiError(error, {
         id: "register-error",
         title: t("account:register.toast.failure._"),
@@ -163,18 +170,19 @@ function RegisterForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("account:register.form.email._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <MailIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <MailIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <TextField
                       {...field}
                       placeholder={t("account:register.form.email._")}
                     />
-                  </Field>
-                </FormControl>
-                <FormMessage />
+                  </FormControl>
+                </Field>
+                <EmailDomainHint whitelist={emailValidation.whitelist} />
+                <FormMessage className="static block" />
               </FormItem>
             )}
           />

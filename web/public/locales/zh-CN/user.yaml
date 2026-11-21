@@ -167,7 +167,9 @@ actions:
 emails:
   _: 邮箱
   brief: 添加、编辑该用户的绑定邮箱
-  verify_code_placeholder: I_d0nt_kn0w
+  verify_code_label: "验证码"
+  verify_code_placeholder: "粘贴验证码"
+  verify_code_required: "请输入验证码。"
   empty: 该用户尚未添加任何邮箱。
   verified:
     "true":
@@ -201,8 +203,12 @@ emails:
       disabled: "{{title}} 未启用邮件服务，直接确认即可验证邮箱。"
       success: "邮箱 {{email}} 验证成功。"
     send_verify:
-      _: 发送验证邮件
-      success: "验证邮件已发送至邮箱 {{email}}。"
+      _: "发送验证码"
+      resend: "重新发送"
+      retry_in: "{{seconds}} 秒后可重发"
+      success: "验证码发送请求已提交，请查收邮件。"
+      cooldown: "刚刚已有一次发送请求，请查收邮件或在倒计时结束后重试。"
+      failed: "验证码发送请求失败，请重试。"
 change_password:
   form:
     old_password:

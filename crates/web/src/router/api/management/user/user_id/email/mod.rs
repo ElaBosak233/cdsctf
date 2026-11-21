@@ -19,6 +19,7 @@ use utoipa_axum::{
 use crate::{
     extract::{Json as ReqJson, Path},
     traits::{AppState, EmptyJson, WebError},
+    util::email::validate_new_address,
 };
 
 /// Builds the Axum router fragment for this module.
@@ -85,6 +86,7 @@ pub struct AdminEmailResponse {
     request_body = AdminAddEmailRequest,
     responses(
         (status = 200, description = "Email added", body = AdminEmailResponse),
+        (status = 400, description = "Invalid or disallowed email", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -94,6 +96,9 @@ pub async fn add_email(
     Path(user_id): Path<i64>,
     ReqJson(body): ReqJson<AdminAddEmailRequest>,
 ) -> Result<Json<AdminEmailResponse>, WebError> {
+    let email_config = cds_db::get_config(&s.db.conn).await.email;
+    validate_new_address(&body.email, &email_config.whitelist)?;
+
     let email = cds_db::email::create::<EmailView>(
         &s.db.conn,
         cds_db::email::ActiveModel {

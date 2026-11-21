@@ -21,6 +21,13 @@ pub mod traits;
 /// the typed cache API (streams, Pub/Sub, modules, Cluster and Sentinel).
 pub use redis;
 
+const DELETE_IF_EQUAL_SCRIPT: &str = r#"
+if redis.call('GET', KEYS[1]) == ARGV[1] then
+  return redis.call('DEL', KEYS[1])
+end
+return 0
+"#;
+
 const FIXED_WINDOW_SCRIPT: &str = r#"
 local current = tonumber(redis.call('GET', KEYS[1]))
 local window = tonumber(ARGV[1])
@@ -186,6 +193,21 @@ impl Cache {
             .map(|bytes| serde_json::from_slice(&bytes))
             .transpose()
             .map_err(Into::into)
+    }
+
+    /// Deletes a key atomically if its JSON value equals the expected value.
+    pub async fn delete_if_equal<T: Serialize>(
+        &self,
+        key: impl AsRef<str>,
+        expected: T,
+    ) -> Result<bool, CacheError> {
+        let mut connection = self.connection();
+        let deleted: bool = redis::Script::new(DELETE_IF_EQUAL_SCRIPT)
+            .key(self.key(key))
+            .arg(serde_json::to_vec(&expected)?)
+            .invoke_async(&mut connection)
+            .await?;
+        Ok(deleted)
     }
 
     /// Stores a JSON value without expiry. Prefer

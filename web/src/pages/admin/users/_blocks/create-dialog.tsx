@@ -26,6 +26,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { TextField } from "@/components/ui/text-field";
+import { EmailDomainHint } from "@/components/widgets/email-domain-hint";
+import { useEmailValidation } from "@/hooks/use-email-validation";
 import { BASIC_PERMISSION, PERMISSIONS } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
@@ -39,6 +41,7 @@ interface CreateUserDialogProps {
 function CreateUserDialog(props: CreateUserDialogProps) {
   const { onClose } = props;
   const { t } = useTranslation();
+  const emailValidation = useEmailValidation(t("user:form.email.message"));
 
   const sharedStore = useSharedStore();
 
@@ -49,7 +52,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
       .string()
       .min(3, { message: t("user:form.username.messages.min") }),
     name: z.string().min(2, { message: t("user:form.name.messages._") }),
-    email: z.email({ message: t("user:form.email.message") }),
+    email: emailValidation.schema,
     password: z
       .string()
       .min(6, { message: t("user:form.password.messages.min") }),
@@ -58,6 +61,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
       permissions: [BASIC_PERMISSION],
       username: "",
@@ -78,6 +82,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
       );
       onClose();
     } catch (error) {
+      if (emailValidation.handleServerError(error, form.setError)) return;
       await notifyApiError(error);
     } finally {
       sharedStore.setRefresh();
@@ -164,11 +169,11 @@ function CreateUserDialog(props: CreateUserDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("user:form.email._")}</FormLabel>
-                  <FormControl>
-                    <Field size={"sm"}>
-                      <FieldIcon>
-                        <MailIcon />
-                      </FieldIcon>
+                  <Field size={"sm"}>
+                    <FieldIcon>
+                      <MailIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         type="email"
@@ -176,9 +181,10 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
-                  <FormMessage />
+                    </FormControl>
+                  </Field>
+                  <EmailDomainHint whitelist={emailValidation.whitelist} />
+                  <FormMessage className="static block" />
                 </FormItem>
               )}
             />

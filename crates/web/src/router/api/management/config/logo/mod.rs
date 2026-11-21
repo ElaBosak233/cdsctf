@@ -6,7 +6,7 @@ use axum::{
     Json, Router,
     extract::{DefaultBodyLimit, Multipart, State},
 };
-use cds_db::config::{get as get_config, save as save_config};
+use cds_db::config::{self, get as get_config};
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -51,9 +51,7 @@ pub async fn save_logo(
 
     s.media.save("media".to_owned(), hash.clone(), data).await?;
 
-    let mut config = get_config(&s.db.conn).await?;
-    config.logo_hash = Some(hash);
-    save_config(&s.db.conn, config).await?;
+    config::set_logo_hash(&s.db.conn, Some(hash)).await?;
 
     Ok(Json(EmptyJson::default()))
 }
@@ -70,13 +68,11 @@ pub async fn save_logo(
 )]
 #[tracing::instrument(skip_all, fields(handler = "delete_logo"))]
 pub async fn delete_logo(State(s): State<Arc<AppState>>) -> Result<Json<EmptyJson>, WebError> {
-    let mut config = get_config(&s.db.conn).await?;
-
-    if let Some(hash) = config.logo_hash.take() {
+    let config = get_config(&s.db.conn).await?;
+    if let Some(hash) = config.logo_hash {
         s.media.delete("media".to_owned(), hash).await?;
+        config::set_logo_hash(&s.db.conn, None).await?;
     }
-
-    save_config(&s.db.conn, config).await?;
 
     Ok(Json(EmptyJson::default()))
 }

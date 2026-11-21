@@ -10,6 +10,7 @@ export async function getEmails() {
 
 export type AddEmailRequest = {
   email: string;
+  code?: string;
 };
 
 export async function addEmail(request: AddEmailRequest) {
@@ -35,8 +36,10 @@ export type VerifyEmailRequest = {
 
 export async function verifyEmail(request: VerifyEmailRequest) {
   return api
-    .post(`users/me/emails/${request.email}/verify`, { json: request })
-    .json<{ email: EmailView }>();
+    .post(`users/me/emails/${encodeURIComponent(request.email)}/verify`, {
+      json: request,
+    })
+    .json<Record<string, never>>();
 }
 
 export type SendVerifyEmailRequest = {
@@ -45,8 +48,17 @@ export type SendVerifyEmailRequest = {
 
 export async function sendVerifyEmail(request: SendVerifyEmailRequest) {
   return api
-    .post(`users/me/emails/${request.email}/verify/send`, {
+    .post(`users/me/emails/${encodeURIComponent(request.email)}/verify/send`, {
       searchParams: toSearchParams({ locale: i18n.resolvedLanguage }),
     })
-    .json<Record<string, never>>();
+    .json<{ retry_after_seconds: number }>();
+}
+
+export async function sendBindEmail(request: { email: string }) {
+  return api
+    .post("users/me/emails/bind/send", {
+      json: request,
+      searchParams: toSearchParams({ locale: i18n.resolvedLanguage }),
+    })
+    .json<{ retry_after_seconds: number }>();
 }

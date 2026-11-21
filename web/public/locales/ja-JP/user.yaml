@@ -165,7 +165,9 @@ actions:
 emails:
   _: メールアドレス
   brief: このユーザーのメールアドレスを追加または編集します
-  verify_code_placeholder: I_d0nt_kn0w
+  verify_code_label: "確認コード"
+  verify_code_placeholder: "確認コードを貼り付け"
+  verify_code_required: "確認コードを入力してください。"
   empty: このユーザーのメールアドレスはまだ登録されていません。
   verified:
     'true':
@@ -199,8 +201,12 @@ emails:
       disabled: '{{title}} ではメールサービスが有効ではありません。直接確認してメールアドレスを認証できます。'
       success: メールアドレス {{email}} を認証しました。
     send_verify:
-      _: 認証メールを送信
-      success: 認証メールを {{email}} に送信しました。
+      _: "確認コードを送信"
+      resend: "確認コードを再送信"
+      retry_in: "{{seconds}} 秒後に再送信"
+      success: "確認コードの送信を受け付けました。メールを確認してください。"
+      cooldown: "直前に確認コードが要求されました。メールを確認するか、時間をおいて再送信してください。"
+      failed: "確認コードの送信を要求できませんでした。もう一度お試しください。"
 change_password:
   form:
     old_password:

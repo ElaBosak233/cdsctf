@@ -19,7 +19,10 @@ actions:
   close: 關閉
 tooltip:
   copy: 複製到剪貼簿
+email_allowed_domains: "允許的電子郵件網域為 {{domains}}。"
 errors:
+  email_domain_not_allowed: "此電子郵件網域不在白名單內，請改用允許的電子郵件地址。"
+  invalid_email: "請輸入有效的電子郵件地址。"
   default: 發生錯誤
   unexpected: 發生錯誤
   network: 網路錯誤

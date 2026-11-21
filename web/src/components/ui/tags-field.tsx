@@ -15,12 +15,21 @@ const SPLITTER_REGEX = /[\n#?=&\t,./-]+/;
  */
 const FORMATTING_REGEX = /^[^a-zA-Z0-9]*|[^a-zA-Z0-9]*$/g;
 
+function parsePastedTags(text: string) {
+  return text
+    .split(SPLITTER_REGEX)
+    .map((item) => item.replace(FORMATTING_REGEX, ""));
+}
+
 type TagsFieldProps = React.ComponentProps<"div"> & {
   value: Array<string>;
   onValueChange: (value: Array<string>) => void;
   placeholder?: string;
   maxItems?: number;
   minItems?: number;
+  parsePaste?: (text: string) => string[];
+  commitOnBlur?: boolean;
+  inputRef?: React.Ref<HTMLInputElement>;
 };
 
 type TagsFieldContextProps = {
@@ -41,6 +50,13 @@ function TagsField(props: TagsFieldProps) {
     placeholder,
     maxItems,
     minItems,
+    parsePaste = parsePastedTags,
+    commitOnBlur,
+    inputRef,
+    id,
+    "aria-label": ariaLabel,
+    "aria-describedby": describedBy,
+    "aria-invalid": invalid,
     className,
     dir,
     ref,
@@ -74,6 +90,12 @@ function TagsField(props: TagsFieldProps) {
     [value, onValueChange, parseMaxItems]
   );
 
+  const commitInput = useCallback(() => {
+    if (!inputValue.trim()) return;
+    onValueChangeHandler(inputValue);
+    setInputValue("");
+  }, [inputValue, onValueChangeHandler]);
+
   const RemoveValue = useCallback(
     (val: string) => {
       if (value.includes(val) && value.length > parseMinItems) {
@@ -86,10 +108,10 @@ function TagsField(props: TagsFieldProps) {
   const handlePaste = useCallback(
     (e: React.ClipboardEvent<HTMLInputElement>) => {
       e.preventDefault();
-      const tags = e.clipboardData.getData("text").split(SPLITTER_REGEX);
+      const tags = parsePaste(e.clipboardData.getData("text"));
       const newValue = [...value];
       tags.forEach((item) => {
-        const parsedItem = item.replace(FORMATTING_REGEX, "").trim();
+        const parsedItem = item.trim();
         if (
           parsedItem.length > 0 &&
           !newValue.includes(parsedItem) &&
@@ -101,7 +123,7 @@ function TagsField(props: TagsFieldProps) {
       onValueChange(newValue);
       setInputValue("");
     },
-    [value, onValueChange, parseMaxItems]
+    [value, onValueChange, parseMaxItems, parsePaste]
   );
 
   const handleSelect = React.useCallback(
@@ -220,8 +242,7 @@ function TagsField(props: TagsFieldProps) {
         case "Enter":
           if (inputValue.trim() !== "") {
             e.preventDefault();
-            onValueChangeHandler(inputValue);
-            setInputValue("");
+            commitInput();
           }
           break;
       }
@@ -234,7 +255,7 @@ function TagsField(props: TagsFieldProps) {
       dir,
       isValueSelected,
       selectedValue,
-      onValueChangeHandler,
+      commitInput,
     ]
   );
 
@@ -326,15 +347,20 @@ function TagsField(props: TagsFieldProps) {
         ))}
         {!disableInput && (
           <TextField
+            ref={inputRef}
+            id={id}
             tabIndex={0}
-            aria-label="input tag"
+            aria-label={ariaLabel ?? (id ? undefined : "input tag")}
+            aria-describedby={describedBy}
+            aria-invalid={invalid}
+            onBlur={commitOnBlur ? commitInput : undefined}
             disabled={disableInput || disabled}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             value={inputValue}
             onSelect={handleSelect}
             onChange={activeIndex === -1 ? handleChange : undefined}
-            placeholder={placeholder}
+            placeholder={value.length === 0 ? placeholder : undefined}
             onClick={() => setActiveIndex(-1)}
             className={cn([
               "bg-transparent",

@@ -49,9 +49,8 @@ platform:
 mailbox:
   _: 郵件服務
   enabled:
-    _: 啟用郵件服務
-    "true": 是
-    "false": 否
+    "true": 要求郵件驗證碼
+    "false": 略過電子郵件驗證
   tls:
     _: TLS
     none: 無
@@ -59,7 +58,10 @@ mailbox:
     starttls: StartTLS
   form:
     enabled:
-      _: 啟用郵件服務
+      _: 電子郵件驗證
+      description:
+        enabled: 使用者透過郵件驗證碼驗證新增的電子郵件地址，也可透過郵件重設密碼。
+        disabled: 使用者新增的電子郵件地址會自動標記為已驗證。郵件密碼重設功能將停用。
     host:
       _: SMTP 主機
       placeholder: smtp.example.com
@@ -72,7 +74,11 @@ mailbox:
       placeholder: SMTP 使用者名稱
     password:
       _: 密碼
-      placeholder: SMTP 密碼
+      description: 選填。留空時沿用已儲存的密碼。
+    whitelist:
+      _: "電子郵件網域白名單"
+      description: "新增的電子郵件地址一律依此清單檢查。按 Enter 加入規則，也可每行一條批次貼上。使用 *.example.org 允許其子網域。清單為空時允許所有網域。"
+      invalid: "請輸入有效的網域。*. 僅可用於子網域規則的開頭。"
   actions:
     update:
       _: 更新郵件服務設定

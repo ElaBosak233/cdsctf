@@ -1,12 +1,13 @@
 //! HTTP routing for `email` — Axum router wiring and OpenAPI route
 //! registration.
 
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use axum::{Json, Router, extract::State};
 use cds_db::{
-    EmailView,
-    sea_orm::{Set, Unchanged},
+    EmailView, UserAccountView,
+    sea_orm::{Set, SqlErr, Unchanged},
+    traits::DbError,
 };
 use cds_mailbox::{CODE_TTL, EmailPurpose, Payload};
 use cds_worker::mailbox::SUBJECT;
@@ -14,6 +15,7 @@ use garde::Validate;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use time::OffsetDateTime;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -31,6 +33,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::from(Router::new().with_state(state.clone()))
         .routes(routes!(get_email).with_state(state.clone()))
         .routes(routes!(add_email).with_state(state.clone()))
+        .routes(routes!(send_bind_email).with_state(state.clone()))
         .routes(routes!(delete_email).with_state(state.clone()))
         .routes(routes!(verify_email).with_state(state.clone()))
         .routes(routes!(send_verify_email).with_state(state.clone()))
@@ -69,6 +72,13 @@ pub async fn get_email(
 pub struct UserAddEmailRequest {
     #[garde(email)]
     pub email: String,
+    /// Required when the platform enables email verification.
+    pub code: Option<String>,
+}
+
+#[derive(Debug, Serialize, utoipa::ToSchema)]
+pub struct AddEmailResponse {
+    pub email: EmailView,
 }
 
 /// Associates a new email address with a user.
@@ -78,7 +88,9 @@ pub struct UserAddEmailRequest {
     tag = "user",
     request_body = UserAddEmailRequest,
     responses(
-        (status = 200, description = "Email added", body = EmptyJson),
+        (status = 200, description = "Email added", body = AddEmailResponse),
+        (status = 400, description = "Invalid email or verification code", body = crate::traits::ErrorResponse),
+        (status = 409, description = "Email already linked", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -88,20 +100,51 @@ pub async fn add_email(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<UserAddEmailRequest>,
-) -> Result<Json<EmptyJson>, WebError> {
+) -> Result<Json<AddEmailResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
 
-    let _ = cds_db::email::create::<EmailView>(
+    let email_config = cds_db::get_config(&s.db.conn).await.email;
+    let email = body.email.to_lowercase();
+    util::email::validate_new_address(&email, &email_config.whitelist)?;
+
+    if !cds_db::user::is_email_unique(&s.db.conn, &email).await? {
+        return Err(WebError::Conflict(json!("email_already_exists")));
+    }
+
+    if email_config.enabled {
+        let code = body
+            .code
+            .as_deref()
+            .map(str::trim)
+            .filter(|code| !code.is_empty())
+            .ok_or_else(|| WebError::BadRequest(json!("email_code_required")))?;
+        consume_verification_code(
+            &s,
+            &verification_code_key("bind", operator.id, &email),
+            code,
+        )
+        .await?;
+    }
+
+    let email = cds_db::email::create::<EmailView>(
         &s.db.conn,
         cds_db::email::ActiveModel {
             user_id: Set(operator.id),
-            email: Set(body.email.to_lowercase()),
-            verified: Set(!cds_db::get_config(&s.db.conn).await.email.enabled),
+            email: Set(email),
+            verified: Set(true),
         },
     )
-    .await?;
+    .await
+    .map_err(|error| match &error {
+        DbError::SeaORM(error)
+            if matches!(error.sql_err(), Some(SqlErr::UniqueConstraintViolation(_))) =>
+        {
+            WebError::Conflict(json!("email_already_exists"))
+        }
+        _ => error.into(),
+    })?;
 
-    Ok(Json(EmptyJson::default()))
+    Ok(Json(AddEmailResponse { email }))
 }
 
 /// Deletes email.
@@ -176,20 +219,12 @@ pub async fn verify_email(
     }
 
     if cds_db::get_config(&s.db.conn).await.email.enabled {
-        let code = s
-            .cache
-            .get::<String>(format!("mailbox:{}:code", email.email.to_owned()))
-            .await?
-            .ok_or(WebError::BadRequest("email_code_expired".into()))?;
-
-        if code != body.code {
-            return Err(WebError::BadRequest(json!("email_code_incorrect")));
-        }
-
-        let _ = s
-            .cache
-            .take::<String>(format!("mailbox:{}:code", email.email.to_owned()))
-            .await?;
+        consume_verification_code(
+            &s,
+            &verification_code_key("verify", operator.id, &email.email),
+            body.code.trim(),
+        )
+        .await?;
     }
 
     let _ = cds_db::email::update::<EmailView>(
@@ -206,6 +241,83 @@ pub async fn verify_email(
     Ok(Json(EmptyJson::default()))
 }
 
+const VERIFY_RESEND_WAIT: Duration = Duration::from_secs(60);
+
+fn verification_code_key(purpose: &str, user_id: i64, email: &str) -> String {
+    format!("mailbox:{purpose}:{user_id}:{email}:code")
+}
+
+async fn consume_verification_code(s: &AppState, key: &str, code: &str) -> Result<(), WebError> {
+    if s.cache.delete_if_equal(key, code).await? {
+        return Ok(());
+    }
+
+    let error = if s.cache.exists(key).await? {
+        "email_code_incorrect"
+    } else {
+        "email_code_expired"
+    };
+    Err(WebError::BadRequest(json!(error)))
+}
+
+#[derive(Debug, Serialize, utoipa::ToSchema)]
+pub struct VerificationSendResponse {
+    pub retry_after_seconds: u64,
+}
+
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
+pub struct SendBindEmailRequest {
+    pub email: String,
+}
+
+/// Requests a verification code for an address before linking it.
+#[utoipa::path(
+    post,
+    path = "/bind/send",
+    tag = "user",
+    request_body = SendBindEmailRequest,
+    params(util::email::EmailLocaleQuery),
+    responses(
+        (status = 200, description = "Verification mail queued", body = VerificationSendResponse),
+        (status = 400, description = "Invalid or disallowed email", body = crate::traits::ErrorResponse),
+        (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 409, description = "Email already linked", body = crate::traits::ErrorResponse),
+        (status = 429, description = "Verification cooldown", body = crate::traits::ErrorResponse),
+        (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
+    )
+)]
+#[tracing::instrument(skip_all, fields(handler = "send_bind_email"))]
+pub async fn send_bind_email(
+    State(s): State<Arc<AppState>>,
+    Extension(ext): Extension<AuthPrincipal>,
+    Query(locale): Query<util::email::EmailLocaleQuery>,
+    ReqJson(body): ReqJson<SendBindEmailRequest>,
+) -> Result<Json<VerificationSendResponse>, WebError> {
+    let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
+    let config = cds_db::get_config(&s.db.conn).await;
+    if !config.email.enabled {
+        return Err(WebError::BadRequest(json!("email_disabled")));
+    }
+
+    let email = body.email.to_lowercase();
+    util::email::validate_new_address(&email, &config.email.whitelist)?;
+    if !cds_db::user::is_email_unique(&s.db.conn, &email).await? {
+        return Err(WebError::Conflict(json!("email_already_exists")));
+    }
+
+    let key = verification_code_key("bind", operator.id, &email);
+    queue_verification(
+        &s,
+        &operator,
+        &email,
+        &key,
+        locale.locale.as_deref(),
+        &config.meta.title,
+    )
+    .await
+    .map(Json)
+}
+
 /// Sends an address-verification message through the mail queue.
 #[utoipa::path(
     post,
@@ -216,7 +328,8 @@ pub async fn verify_email(
         util::email::EmailLocaleQuery,
     ),
     responses(
-        (status = 200, description = "Verification mail queued", body = EmptyJson),
+        (status = 200, description = "Verification mail queued", body = VerificationSendResponse),
+        (status = 429, description = "Verification cooldown", body = crate::traits::ErrorResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
@@ -228,7 +341,7 @@ pub async fn send_verify_email(
     Extension(ext): Extension<AuthPrincipal>,
     Path(email): Path<String>,
     Query(locale): Query<util::email::EmailLocaleQuery>,
-) -> Result<Json<EmptyJson>, WebError> {
+) -> Result<Json<VerificationSendResponse>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
     let config = cds_db::get_config(&s.db.conn).await;
     if !config.email.enabled {
@@ -248,40 +361,64 @@ pub async fn send_verify_email(
         return Err(WebError::BadRequest(json!("email_already_verified")));
     }
 
-    if s.cache
-        .get::<i64>(format!("mailbox:{}:buffer", email.email.to_owned()))
-        .await?
-        .is_some()
-    {
-        return Err(WebError::BadRequest(json!("email_send_too_frequently")));
-    }
+    let key = verification_code_key("verify", operator.id, &email.email);
+    queue_verification(
+        &s,
+        &operator,
+        &email.email,
+        &key,
+        locale.locale.as_deref(),
+        &config.meta.title,
+    )
+    .await
+    .map(Json)
+}
 
+async fn queue_verification(
+    s: &AppState,
+    operator: &UserAccountView,
+    email: &str,
+    code_key: &str,
+    locale: Option<&str>,
+    title: &str,
+) -> Result<VerificationSendResponse, WebError> {
     let code = nanoid!();
     let payload = Payload::transactional(
-        operator.name,
-        email.email.clone(),
+        operator.name.clone(),
+        email.to_owned(),
         EmailPurpose::Verify,
-        locale.locale.as_deref(),
+        locale,
         &code,
-        &config.meta.title,
+        title,
     )?;
-    s.cache
-        .set_with_ttl(
-            format!("mailbox:{}:code", email.email.to_owned()),
-            code.to_owned(),
-            CODE_TTL,
-        )
-        .await?;
 
-    s.queue.publish(SUBJECT, payload, Some(operator.id)).await?;
+    let cooldown_key = format!("mailbox:verify:{email}:cooldown");
+    let deadline = OffsetDateTime::now_utc().unix_timestamp() + VERIFY_RESEND_WAIT.as_secs() as i64;
+    if !s
+        .cache
+        .set_if_absent(&cooldown_key, deadline, VERIFY_RESEND_WAIT)
+        .await?
+    {
+        let expires_at = s.cache.get::<i64>(&cooldown_key).await?.unwrap_or_default();
+        let retry_after_seconds = (expires_at - OffsetDateTime::now_utc().unix_timestamp()).max(1);
+        return Err(WebError::TooManyRequests(json!({
+            "code": "email_send_too_frequently",
+            "retry_after_seconds": retry_after_seconds,
+        })));
+    }
 
-    s.cache
-        .set_with_ttl(
-            format!("mailbox:{}:buffer", email.email.to_owned()),
-            1,
-            std::time::Duration::from_secs(60),
-        )
-        .await?;
+    let result: Result<(), WebError> = async {
+        s.cache.set_with_ttl(code_key, code, CODE_TTL).await?;
+        s.queue.publish(SUBJECT, payload, Some(operator.id)).await?;
+        Ok(())
+    }
+    .await;
+    if result.is_err() {
+        let _ = s.cache.delete_if_equal(&cooldown_key, deadline).await;
+    }
+    result?;
 
-    Ok(Json(EmptyJson::default()))
+    Ok(VerificationSendResponse {
+        retry_after_seconds: (deadline - OffsetDateTime::now_utc().unix_timestamp()).max(0) as u64,
+    })
 }
