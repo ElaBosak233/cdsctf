@@ -70,16 +70,21 @@ checker:
     suid: Dynamic pseudo-UUID string judgment
     suid_custom_key: Dynamic pseudo-UUID string judgment (custom key)
 attachment:
-  empty: "Oops, it seems there are no attachments yet."
+  empty: No attachments yet
+  count_one: "{{count}} file"
+  count_other: "{{count}} files"
+  load_error: Could not load attachments.
+  retry: Retry
   upload:
     _: Upload Attachment
     progress: "Upload progress {{percent}}%"
     success: File uploaded successfully.
     error: File upload failed.
-    hint: >-
-      The attachment will be directly hosted by the server. It is recommended to
-      fully consider factors such as storage space and traffic.
+    hint: "Drag files here. Up to {{limit}} per file."
+    too_large: "A file exceeds the {{limit}} limit."
   filename: Filename
+  file_type: File type
+  unknown_type: Unknown
   size: Size
   actions:
     _: Actions

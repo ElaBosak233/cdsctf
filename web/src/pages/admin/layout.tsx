@@ -9,7 +9,7 @@ import {
   UserRoundIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link, Outlet, useLocation } from "react-router";
+import { Link, Outlet, useLocation, useMatch } from "react-router";
 import { Button } from "@/components/ui/button";
 import { ScrollableNav } from "@/components/ui/scrollable-nav";
 import {
@@ -33,6 +33,7 @@ import {
   MANAGEMENT_USER_PERMISSION,
 } from "@/models/user";
 import { useAuthStore } from "@/storages/auth";
+import { cn } from "@/utils";
 import { isSubRoute } from "@/utils/route";
 
 export default function Layout() {
@@ -41,6 +42,9 @@ export default function Layout() {
 
   const location = useLocation();
   const pathname = location.pathname;
+  const attachmentPage = useMatch(
+    "/admin/challenges/:challenge_id/attachments"
+  );
 
   const options = [
     {
@@ -127,7 +131,12 @@ export default function Layout() {
           />
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset className="min-h-(--app-content-height)">
+      <SidebarInset
+        className={cn(
+          "min-h-(--app-content-height)",
+          attachmentPage && "h-[max(28rem,var(--app-content-height))]"
+        )}
+      >
         <ScrollableNav className="lg:hidden">
           {options.map((option) => (
             <Button

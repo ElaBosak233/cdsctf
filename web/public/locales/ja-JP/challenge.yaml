@@ -70,14 +70,20 @@ checker:
     suid: 動的疑似 UUID 文字列判定
     suid_custom_key: 動的疑似 UUID 文字列判定（カスタムキー）
 attachment:
-  empty: 添付ファイルはまだありません。
+  empty: 添付ファイルはまだありません
+  count_other: "{{count}} 件のファイル"
+  load_error: 添付ファイルを読み込めませんでした。
+  retry: 再試行
   upload:
     _: 添付ファイルのアップロード
     progress: アップロードの進行状況 {{percent}}%
     success: ファイルをアップロードしました。
     error: アップロードに失敗しました。
-    hint: 添付ファイルはサーバーから直接配信されます。ストレージ容量や通信量にご注意ください。
+    hint: "ここにファイルをドロップ。1 ファイルにつき最大 {{limit}}。"
+    too_large: "上限の {{limit}} を超えるファイルがあります。"
   filename: ファイル名
+  file_type: ファイル形式
+  unknown_type: 不明
   size: ファイルサイズ
   actions:
     _: 操作

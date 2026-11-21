@@ -70,14 +70,20 @@ checker:
     suid: 動態偽 UUID 字串比對
     suid_custom_key: 動態偽 UUID 字串比對（自訂金鑰）
 attachment:
-  empty: 目前尚無附件。
+  empty: 目前尚無附件
+  count_other: "{{count}} 個檔案"
+  load_error: 無法載入附件。
+  retry: 重試
   upload:
     _: 上傳附件
     progress: "上傳進度 {{percent}}%"
     success: 檔案上傳成功。
     error: 檔案上傳失敗。
-    hint: 附件將由伺服器直接提供，請留意儲存空間與流量用量。
+    hint: "拖曳檔案到此處，單一檔案最大 {{limit}}。"
+    too_large: "有檔案超過 {{limit}} 的大小限制。"
   filename: 檔名
+  file_type: 檔案類型
+  unknown_type: 未知
   size: 檔案大小
   actions:
     _: 操作

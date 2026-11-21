@@ -195,6 +195,7 @@ type UseDropzoneProps<TUploadRes, TUploadError> = {
 type UseDropzoneReturn<TUploadRes, TUploadError> = {
   getRootProps: ReturnType<typeof rootUseDropzone>["getRootProps"];
   getInputProps: ReturnType<typeof rootUseDropzone>["getInputProps"];
+  open: ReturnType<typeof rootUseDropzone>["open"];
   onRemoveFile: (id: string) => Promise<void>;
   onRetry: (id: string) => Promise<void>;
   canRetry: (id: string) => boolean;
@@ -383,6 +384,7 @@ function useDropzone<TUploadRes, TUploadError = string>(
   return {
     getRootProps: dropzone.getRootProps,
     getInputProps: dropzone.getInputProps,
+    open: dropzone.open,
     inputId,
     rootMessageId,
     rootDescriptionId,
@@ -400,6 +402,7 @@ function useDropzone<TUploadRes, TUploadError = string>(
 const DropZoneContext = createContext<UseDropzoneReturn<unknown, unknown>>({
   getRootProps: () => ({}) as never,
   getInputProps: () => ({}) as never,
+  open: () => {},
   onRemoveFile: async () => {},
   onRetry: async () => {},
   canRetry: () => false,

@@ -70,14 +70,20 @@ checker:
     suid: 动态伪 UUID 字符串评判
     suid_custom_key: 动态伪 UUID 字符串评判（自定义密钥）
 attachment:
-  empty: 哎呀，好像还没有附件呢。
+  empty: 暂无附件
+  count_other: "{{count}} 个文件"
+  load_error: 无法加载附件。
+  retry: 重试
   upload:
     _: 上传附件
     progress: "上传进度 {{percent}}%"
     success: 文件上传成功。
     error: 文件上传失败。
-    hint: 附件将由服务器直接托管，建议充分考虑存储空间和流量等因素。
+    hint: "拖拽文件到此处，单个文件最大 {{limit}}。"
+    too_large: "有文件超过 {{limit}} 的大小限制。"
   filename: 文件名
+  file_type: 文件类型
+  unknown_type: 未知
   size: 文件大小
   actions:
     _: 操作
