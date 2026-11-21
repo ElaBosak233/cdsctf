@@ -170,12 +170,13 @@ export default function Index() {
           "py-6",
           "sm:px-6",
           "lg:h-(--app-content-height)",
+          "lg:flex-none",
           "lg:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]",
           "lg:grid-rows-[auto_minmax(0,1fr)]",
           "lg:gap-x-12",
-          "lg:gap-y-4",
+          "lg:gap-y-3",
           "lg:px-8",
-          "lg:py-12",
+          "lg:py-[clamp(1rem,calc(10vh-3rem),3rem)]",
         ])}
       >
         <div
@@ -237,9 +238,6 @@ export default function Index() {
             "lg:row-start-1",
             "lg:row-span-2",
             "lg:min-h-0",
-            "lg:flex",
-            "lg:items-center",
-            "lg:justify-center",
             "lg:overflow-y-auto",
           ])}
           aria-labelledby={selectedGame?.id ? "selected-game-title" : undefined}
@@ -255,50 +253,54 @@ export default function Index() {
                 "flex-col",
                 "items-center",
                 "text-center",
+                "lg:my-auto",
+                "lg:min-h-0",
               ])}
             >
-              <div className={cn(["mx-auto", "w-full"])}>
-                {selectedGame.poster_hash ? (
-                  <Image
-                    key={selectedGame.id}
-                    src={`/api/media?hash=${selectedGame.poster_hash}`}
-                    alt={selectedGame.title}
-                    fallback={
-                      <FlagIcon
-                        className={cn(["size-12", "text-muted-foreground"])}
-                        strokeWidth={1.25}
-                      />
-                    }
-                    className={cn([
-                      "aspect-video",
-                      "mx-auto",
-                      "w-full",
-                      "rounded-elevated",
-                      "border",
-                      "bg-card/50",
-                      "shadow-sm",
-                    ])}
-                  />
-                ) : (
-                  <div
-                    className={cn([
-                      "flex",
-                      "w-full",
-                      "aspect-video",
-                      "items-center",
-                      "justify-center",
-                      "rounded-elevated",
-                      "border",
-                      "bg-card/50",
-                      "shadow-sm",
-                    ])}
-                  >
+              <div
+                className={cn([
+                  "w-full",
+                  "lg:aspect-video",
+                  "lg:min-h-32",
+                  "lg:@container-size",
+                ])}
+              >
+                <div
+                  className={cn([
+                    "mx-auto",
+                    "flex",
+                    "aspect-video",
+                    "w-full",
+                    "items-center",
+                    "justify-center",
+                    "overflow-hidden",
+                    "rounded-elevated",
+                    "border",
+                    "bg-card/50",
+                    "shadow-sm",
+                    "lg:w-[min(100%,calc(100cqh*16/9))]",
+                  ])}
+                >
+                  {selectedGame.poster_hash ? (
+                    <Image
+                      key={selectedGame.id}
+                      src={`/api/media?hash=${selectedGame.poster_hash}`}
+                      alt={selectedGame.title}
+                      fallback={
+                        <FlagIcon
+                          className={cn(["size-12", "text-muted-foreground"])}
+                          strokeWidth={1.25}
+                        />
+                      }
+                      className={cn(["size-full"])}
+                    />
+                  ) : (
                     <FlagIcon
                       className={cn(["size-16", "text-secondary-foreground"])}
                       strokeWidth={1}
                     />
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               <div
@@ -306,9 +308,12 @@ export default function Index() {
                   "mt-6",
                   "flex",
                   "w-full",
+                  "shrink-0",
                   "flex-col",
                   "items-center",
                   "gap-3",
+                  "lg:mt-4",
+                  "lg:gap-2",
                 ])}
               >
                 {selectedStatus && (
@@ -330,29 +335,19 @@ export default function Index() {
                 >
                   {selectedGame.title}
                 </h2>
-                <div
-                  className={cn([
-                    "flex",
-                    "min-h-12",
-                    "w-full",
-                    "items-center",
-                    "justify-center",
-                  ])}
-                >
-                  {selectedGame.sketch && (
-                    <p
-                      className={cn([
-                        "max-w-xl",
-                        "line-clamp-2",
-                        "text-sm",
-                        "leading-relaxed",
-                        "text-secondary-foreground",
-                      ])}
-                    >
-                      {selectedGame.sketch}
-                    </p>
-                  )}
-                </div>
+                {selectedGame.sketch && (
+                  <p
+                    className={cn([
+                      "max-w-xl",
+                      "line-clamp-2",
+                      "text-sm",
+                      "leading-relaxed",
+                      "text-secondary-foreground",
+                    ])}
+                  >
+                    {selectedGame.sketch}
+                  </p>
+                )}
                 <div
                   className={cn([
                     "flex",
@@ -416,6 +411,7 @@ export default function Index() {
             "min-h-0",
             "flex-col",
             "gap-4",
+            "lg:gap-3",
             "lg:col-start-1",
             "lg:row-start-2",
           ])}
@@ -461,6 +457,9 @@ export default function Index() {
                     "px-3",
                     "py-2.5",
                     "text-left",
+                    "lg:min-h-14",
+                    "lg:py-1",
+                    "lg:[@media(max-height:44rem)]:min-h-12",
                   ])}
                   variant={selected ? "tonal" : "ghost"}
                   onClick={() => setSelectedGame(game)}
