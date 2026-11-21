@@ -184,7 +184,6 @@ rust-s3 = { version = "0.38", default-features = false, features = [
   "fail-on-err",
   "tags",
 ] }
-scraper = { version = "0.29" }
 shadow-rs = { version = "2.0" }
 webp = { version = "0.3.1", features = ["image"] }
 

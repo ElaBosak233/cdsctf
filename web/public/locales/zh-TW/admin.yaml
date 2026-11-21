@@ -73,12 +73,6 @@ mailbox:
     password:
       _: 密碼
       placeholder: SMTP 密碼
-    verification_email:
-      _: 驗證信範本
-      placeholder: xHTML (RFC 2557)
-    reset_password_email:
-      _: 重設密碼信範本
-      placeholder: xHTML (RFC 2557)
   actions:
     update:
       _: 更新郵件服務設定

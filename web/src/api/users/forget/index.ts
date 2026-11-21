@@ -1,4 +1,5 @@
-import { api } from "@/utils/query";
+import i18n from "@/utils/i18n";
+import { api, toSearchParams } from "@/utils/query";
 
 export type UserForgetRequest = {
   email?: string;
@@ -18,6 +19,9 @@ export type UserSendForgetEmailRequest = {
 
 export async function sendForgetEmail(request: UserSendForgetEmailRequest) {
   return api
-    .post(`users/forget/send`, { json: request })
+    .post(`users/forget/send`, {
+      json: request,
+      searchParams: toSearchParams({ locale: i18n.resolvedLanguage }),
+    })
     .json<Record<string, never>>();
 }

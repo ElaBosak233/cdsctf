@@ -1,0 +1,14 @@
+{
+  "greeting": "{name}，你好！",
+  "code_label": "验证码",
+  "expiry": "验证码在 1 小时内有效。",
+  "ignore": "如果你没有请求此验证码，可以忽略这封邮件。",
+  "verify": {
+    "heading": "验证你的邮箱",
+    "instruction": "请在邮箱验证页面输入下方验证码。"
+  },
+  "reset": {
+    "heading": "重置你的密码",
+    "instruction": "请在密码重置页面输入下方验证码，然后设置新密码。"
+  }
+}

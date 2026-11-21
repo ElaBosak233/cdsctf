@@ -1,9 +1,6 @@
 //! HTTP routing for `config` — Axum router wiring and OpenAPI route
 //! registration.
 
-/// Defines the `email` submodule (see sibling `*.rs` files).
-mod email;
-
 /// Defines the `logo` submodule (see sibling `*.rs` files).
 mod logo;
 
@@ -30,7 +27,6 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(get_config).with_state(state.clone()))
         .routes(routes!(update_config).with_state(state.clone()))
         .nest("/logo", logo::router(state.clone()))
-        .nest("/mailbox", email::router(state.clone()))
         .route_layer(from_fn(require_management_config));
 
     OpenApiRouter::from(Router::new().with_state(state.clone()))

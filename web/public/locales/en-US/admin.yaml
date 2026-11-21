@@ -73,12 +73,6 @@ mailbox:
     password:
       _: Password
       placeholder: Mailbox P4ssw0rd
-    verification_email:
-      _: Verification Email Template
-      placeholder: xHTML (RFC 2557)
-    reset_password_email:
-      _: Reset Password Email Template
-      placeholder: xHTML (RFC 2557)
   actions:
     update:
       _: Update Mailbox Settings

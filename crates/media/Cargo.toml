@@ -11,19 +11,17 @@ rust-version = { workspace = true }
 version      = { workspace = true }
 
 [dependencies]
-tracing = { workspace = true }
 cds-env = { workspace = true }
+tracing = { workspace = true }
 
-anyhow     = { workspace = true }
-hex        = { workspace = true }
-image      = { workspace = true }
-ring       = { workspace = true }
-rust-embed = { workspace = true }
-rust-s3    = { workspace = true }
-serde      = { workspace = true }
-thiserror  = { workspace = true }
-utoipa     = { workspace = true }
-webp       = { workspace = true }
+anyhow    = { workspace = true }
+hex       = { workspace = true }
+image     = { workspace = true }
+ring      = { workspace = true }
+rust-s3   = { workspace = true }
+serde     = { workspace = true }
+thiserror = { workspace = true }
+webp      = { workspace = true }
 
 [package.metadata.cargo-machete]
 ignored = ["rust-s3"]

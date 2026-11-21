@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_db::{EmailView, UserAccountView};
-use cds_media::config::email::EmailType;
+use cds_mailbox::{CODE_TTL, EmailPurpose, Payload};
 use cds_worker::mailbox::SUBJECT;
 use garde::Validate;
 use nanoid::nanoid;
@@ -17,7 +17,7 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::Json as ReqJson,
+    extract::{Json as ReqJson, Query},
     traits::{AppState, EmptyJson, WebError},
     util,
 };
@@ -95,6 +95,7 @@ pub struct UserSendForgetEmailRequest {
     path = "/send",
     tag = "user",
     request_body = UserSendForgetEmailRequest,
+    params(util::email::EmailLocaleQuery),
     responses(
         (status = 200, description = "Email queued", body = EmptyJson),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
@@ -104,9 +105,11 @@ pub struct UserSendForgetEmailRequest {
 #[tracing::instrument(skip_all, fields(handler = "send_forget_email"))]
 pub async fn send_forget_email(
     State(s): State<Arc<AppState>>,
+    Query(locale): Query<util::email::EmailLocaleQuery>,
     ReqJson(body): ReqJson<UserSendForgetEmailRequest>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    if !cds_db::get_config(&s.db.conn).await.email.enabled {
+    let config = cds_db::get_config(&s.db.conn).await;
+    if !config.email.enabled {
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
 
@@ -127,34 +130,23 @@ pub async fn send_forget_email(
     }
 
     let code = nanoid!();
+    let payload = Payload::transactional(
+        user.name,
+        email.email.clone(),
+        EmailPurpose::Reset,
+        locale.locale.as_deref(),
+        &code,
+        &config.meta.title,
+    )?;
     s.cache
         .set_with_ttl(
             format!("mailbox:{}:code", email.email.to_owned()),
             code.to_owned(),
-            std::time::Duration::from_secs(60 * 60),
+            CODE_TTL,
         )
         .await?;
 
-    let body = s
-        .media
-        .config()
-        .email()
-        .get_email(EmailType::Forget)
-        .await?;
-
-    s.queue
-        .publish(
-            SUBJECT,
-            cds_mailbox::Payload {
-                name: user.name.to_owned(),
-                email: email.email.to_owned(),
-                subject: util::email::extract_title(&body)
-                    .unwrap_or("Reset Your Password".to_owned()),
-                body: body.replace("%CODE%", &code).replace("%USER%", &user.name),
-            },
-            None,
-        )
-        .await?;
+    s.queue.publish(SUBJECT, payload, None).await?;
 
     s.cache
         .set_with_ttl(

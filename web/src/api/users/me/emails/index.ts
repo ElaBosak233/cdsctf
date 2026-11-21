@@ -1,5 +1,6 @@
 import type { EmailView } from "@/models/email";
-import { api } from "@/utils/query";
+import i18n from "@/utils/i18n";
+import { api, toSearchParams } from "@/utils/query";
 
 export async function getEmails() {
   return api
@@ -44,6 +45,8 @@ export type SendVerifyEmailRequest = {
 
 export async function sendVerifyEmail(request: SendVerifyEmailRequest) {
   return api
-    .post(`users/me/emails/${request.email}/verify/send`)
+    .post(`users/me/emails/${request.email}/verify/send`, {
+      searchParams: toSearchParams({ locale: i18n.resolvedLanguage }),
+    })
     .json<Record<string, never>>();
 }

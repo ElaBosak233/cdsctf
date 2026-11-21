@@ -73,12 +73,6 @@ mailbox:
     password:
       _: 密码
       placeholder: 邮箱密码
-    verification_email:
-      _: 验证邮件模板
-      placeholder: xHTML (RFC 2557)
-    reset_password_email:
-      _: 重置密码邮件模板
-      placeholder: xHTML (RFC 2557)
   actions:
     update:
       _: 更新邮箱设置

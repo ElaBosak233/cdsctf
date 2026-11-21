@@ -1,13 +1,9 @@
-//! Web utility — `email` (shared HTTP helpers).
+//! Query parameters shared by the account mail endpoints.
 
-use scraper::{Html, Selector};
-
-/// Pulls a human-readable title from HTML email bodies.
-pub fn extract_title(html: &str) -> Option<String> {
-    let document = Html::parse_document(html);
-    let selector = Selector::parse("title").ok()?;
-    document
-        .select(&selector)
-        .next()
-        .map(|elem| elem.inner_html())
+#[derive(serde::Deserialize, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
+pub struct EmailLocaleQuery {
+    /// Preferred email language. Falls back to en-US when omitted or
+    /// unsupported.
+    pub locale: Option<String>,
 }

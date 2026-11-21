@@ -1,9 +1,7 @@
 //! S3-compatible object storage: buckets, keys with optional global prefix,
 //! presigned URLs.
 //!
-//! Initialization creates the bucket when it does not exist, then uploads
-//! embedded default objects (see [`Media::ensure_embeds`]) so the platform
-//! always has baseline media files.
+//! Initialization creates the bucket when it does not exist.
 
 /// Defines the `challenge` submodule (see sibling `*.rs` files).
 pub mod challenge;
@@ -21,25 +19,17 @@ pub mod traits;
 pub mod util;
 
 use std::{
-    collections::HashSet,
     path::{Component, Path},
     sync::Arc,
 };
 
 use cds_env::Env;
-use rust_embed::Embed;
 use s3::{
     bucket::Bucket, bucket_ops::BucketConfiguration, creds::Credentials, error::S3Error,
     region::Region,
 };
 
 use crate::{config::Config, presigner::Presigner, traits::MediaError};
-
-/// Files shipped inside this crate and optionally synced to the remote bucket
-/// on startup.
-#[derive(Embed)]
-#[folder = "./embed/"]
-pub struct Embeds;
 
 /// Active bucket handle, normalized key prefix, and optional presigning client
 /// (may use a different endpoint).
@@ -57,8 +47,7 @@ pub enum SaveIfAbsent {
     AlreadyExists,
 }
 
-/// Connects to S3/MinIO from `env.media`, ensures the bucket exists, and
-/// uploads missing embeds.
+/// Connects to S3-compatible storage from `env.media` and ensures the bucket exists.
 pub async fn init(env: &Env) -> Result<Media, MediaError> {
     let region = Region::Custom {
         region: env.media.region.clone(),
@@ -146,15 +135,11 @@ pub async fn init(env: &Env) -> Result<Media, MediaError> {
         None
     };
 
-    let media = Media {
+    Ok(Media {
         bucket,
         prefix,
         presigner,
-    };
-
-    media.ensure_embeds().await?;
-
-    Ok(media)
+    })
 }
 
 impl Media {
@@ -395,47 +380,6 @@ impl Media {
         } else {
             format!("{}/{}", self.prefix, key)
         }
-    }
-
-    /// Uploads embedded default assets if they are missing remotely.
-    async fn ensure_embeds(&self) -> Result<(), MediaError> {
-        let existing = self.list_existing_embed_keys().await?;
-
-        for file in Embeds::iter() {
-            if let Some(content) = Embeds::get(&file) {
-                let key = self.with_prefix(file.as_ref());
-                if existing.contains(&key) {
-                    continue;
-                }
-                self.bucket
-                    .put_object(&key, content.data.as_ref())
-                    .await
-                    .map_err(|err| map_s3_error(err, false))?;
-            }
-        }
-
-        Ok(())
-    }
-
-    /// Lists which compile-time embed keys already exist remotely (avoids
-    /// redundant uploads).
-    async fn list_existing_embed_keys(&self) -> Result<HashSet<String>, MediaError> {
-        let mut existing = HashSet::new();
-        for file in Embeds::iter() {
-            let key = self.with_prefix(file.as_ref());
-            let results = self
-                .bucket
-                .list(key.clone(), Some("/".to_string()))
-                .await
-                .map_err(|err| map_s3_error(err, false))?;
-            if results
-                .iter()
-                .any(|result| result.contents.iter().any(|object| object.key == key))
-            {
-                existing.insert(key);
-            }
-        }
-        Ok(existing)
     }
 }
 

@@ -102,7 +102,7 @@ async fn bootstrap() -> Result<Arc<AppState>, anyhow::Error> {
 
     let cluster = cds_cluster::init(&env, &checker).await?;
 
-    let mailbox = cds_mailbox::Mailbox::new(db.clone());
+    let mailbox = cds_mailbox::Mailbox::new(db.clone(), media.clone());
     let captcha = cds_captcha::init(&db, &cache)?;
 
     let state = Arc::from(AppState {

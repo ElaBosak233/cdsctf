@@ -8,7 +8,7 @@ use cds_db::{
     EmailView,
     sea_orm::{Set, Unchanged},
 };
-use cds_media::config::email::EmailType;
+use cds_mailbox::{CODE_TTL, EmailPurpose, Payload};
 use cds_worker::mailbox::SUBJECT;
 use garde::Validate;
 use nanoid::nanoid;
@@ -20,7 +20,7 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Extension, Json as ReqJson, Path},
+    extract::{Extension, Json as ReqJson, Path, Query},
     traits::{AppState, AuthPrincipal, EmptyJson, WebError},
     util,
 };
@@ -213,6 +213,7 @@ pub async fn verify_email(
     tag = "user",
     params(
         ("mailbox" = String, Path, description = "Email address"),
+        util::email::EmailLocaleQuery,
     ),
     responses(
         (status = 200, description = "Verification mail queued", body = EmptyJson),
@@ -226,9 +227,11 @@ pub async fn send_verify_email(
     State(s): State<Arc<AppState>>,
     Extension(ext): Extension<AuthPrincipal>,
     Path(email): Path<String>,
+    Query(locale): Query<util::email::EmailLocaleQuery>,
 ) -> Result<Json<EmptyJson>, WebError> {
     let operator = ext.operator.ok_or(WebError::Unauthorized("".into()))?;
-    if !cds_db::get_config(&s.db.conn).await.email.enabled {
+    let config = cds_db::get_config(&s.db.conn).await;
+    if !config.email.enabled {
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
 
@@ -254,36 +257,23 @@ pub async fn send_verify_email(
     }
 
     let code = nanoid!();
+    let payload = Payload::transactional(
+        operator.name,
+        email.email.clone(),
+        EmailPurpose::Verify,
+        locale.locale.as_deref(),
+        &code,
+        &config.meta.title,
+    )?;
     s.cache
         .set_with_ttl(
             format!("mailbox:{}:code", email.email.to_owned()),
             code.to_owned(),
-            std::time::Duration::from_secs(60 * 60),
+            CODE_TTL,
         )
         .await?;
 
-    let body = s
-        .media
-        .config()
-        .email()
-        .get_email(EmailType::Verify)
-        .await?;
-
-    s.queue
-        .publish(
-            SUBJECT,
-            cds_mailbox::Payload {
-                name: operator.name.to_owned(),
-                email: email.email.to_owned(),
-                subject: util::email::extract_title(&body)
-                    .unwrap_or("Verify Your Email".to_owned()),
-                body: body
-                    .replace("%CODE%", &code)
-                    .replace("%USER%", &operator.name),
-            },
-            Some(operator.id),
-        )
-        .await?;
+    s.queue.publish(SUBJECT, payload, Some(operator.id)).await?;
 
     s.cache
         .set_with_ttl(

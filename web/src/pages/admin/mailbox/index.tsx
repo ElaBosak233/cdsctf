@@ -7,9 +7,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { z } from "zod";
 import { getConfigs, updateConfig } from "@/api/management/configs";
-import { getEmail, saveEmail } from "@/api/management/configs/email";
 import { Button } from "@/components/ui/button";
-import { Editor } from "@/components/ui/editor";
 import { Field, FieldIcon } from "@/components/ui/field";
 import {
   Form,
@@ -42,16 +40,6 @@ export default function Index() {
     queryFn: getConfigs,
     select: (response) => response.config,
   });
-  const { data: verifyBody } = useQuery({
-    queryKey: ["admin", "email-template", "verify"],
-    queryFn: () => getEmail("verify"),
-    select: (response) => response.content,
-  });
-  const { data: forgetBody } = useQuery({
-    queryKey: ["admin", "email-template", "forget"],
-    queryFn: () => getEmail("forget"),
-    select: (response) => response.content,
-  });
 
   const formSchema = z.object({
     enabled: z.boolean(),
@@ -61,50 +49,21 @@ export default function Index() {
     username: z.string().default("").optional(),
     password: z.string().default("").optional(),
     whitelist: z.array(z.string()).default([]).optional(),
-
-    verify_body: z.string().default("").optional(),
-    forget_body: z.string().default("").optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      ...config?.email,
-      verify_body: verifyBody,
-      forget_body: forgetBody,
-    },
+    defaultValues: config?.email,
   });
 
   useEffect(() => {
-    form.reset(
-      { ...config?.email, verify_body: verifyBody, forget_body: forgetBody },
-      {
-        keepDefaultValues: false,
-      }
-    );
-  }, [config?.email, verifyBody, forgetBody, form]);
+    form.reset(config?.email);
+  }, [config?.email, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      await updateConfig({
-        ...config,
-        email: { ...values },
-      });
-
-      if (values.enabled) {
-        await saveEmail({
-          type: "verify",
-          data: values.verify_body!,
-        });
-
-        await saveEmail({
-          type: "forget",
-          data: values.forget_body!,
-        });
-      }
-    } finally {
-      toast.success(t("admin:mailbox.actions.update.success"));
-    }
+    if (!config) return;
+    await updateConfig({ ...config, email: values });
+    toast.success(t("admin:mailbox.actions.update.success"));
   }
 
   return (
@@ -312,66 +271,6 @@ export default function Index() {
                   </FormItem>
                 )}
               />
-
-              <Separator />
-
-              <FormField
-                control={form.control}
-                name={"verify_body"}
-                render={({ field }) => (
-                  <FormItem className={cn(["w-full"])}>
-                    <FormLabel>
-                      {t("admin:mailbox.form.verification_email._")}
-                    </FormLabel>
-                    <FormControl>
-                      <Field>
-                        <Editor
-                          {...field}
-                          lang="html"
-                          placeholder={t(
-                            "admin:mailbox.form.verification_email.placeholder"
-                          )}
-                          value={field.value ?? ""}
-                          tabSize={4}
-                          onChange={field.onChange}
-                          showLineNumbers
-                          className={cn(["h-120"])}
-                        />
-                      </Field>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name={"forget_body"}
-                render={({ field }) => (
-                  <FormItem className={cn(["w-full"])}>
-                    <FormLabel>
-                      {t("admin:mailbox.form.reset_password_email._")}
-                    </FormLabel>
-                    <FormControl>
-                      <Field>
-                        <Editor
-                          {...field}
-                          lang="html"
-                          placeholder={t(
-                            "admin:mailbox.form.reset_password_email.placeholder"
-                          )}
-                          value={field.value ?? ""}
-                          tabSize={4}
-                          onChange={field.onChange}
-                          showLineNumbers
-                          className={cn(["h-120"])}
-                        />
-                      </Field>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </>
           )}
 
@@ -381,6 +280,7 @@ export default function Index() {
             variant={"solid"}
             size={"lg"}
             icon={<SaveIcon />}
+            loading={form.formState.isSubmitting}
             className={cn(["mt-2"])}
           >
             {t("common:actions.save")}

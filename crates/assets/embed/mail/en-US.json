@@ -1,0 +1,14 @@
+{
+  "greeting": "Hi {name},",
+  "code_label": "Verification code",
+  "expiry": "This code expires in 1 hour.",
+  "ignore": "If you didn’t request this code, you can ignore this email.",
+  "verify": {
+    "heading": "Verify your email address",
+    "instruction": "Enter this code on the email verification page."
+  },
+  "reset": {
+    "heading": "Reset your password",
+    "instruction": "Enter this code on the password reset page to set a new password."
+  }
+}
