@@ -223,7 +223,7 @@ mod tests {
         let app = Router::new()
             .route(
                 "/api/private",
-                post(|| async {
+                post(async || -> StatusCode {
                     panic!("handler must not run");
                 }),
             )

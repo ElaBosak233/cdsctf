@@ -15,7 +15,9 @@ pub fn init_cpu_usage_observable_gauge() {
                 .f64_observable_gauge("cdsctf.cpu_usage")
                 .with_description("CPU usage")
                 .with_callback(|observer| {
-                    let mut system = System::new();
+                    let Ok(mut system) = System::new() else {
+                        return;
+                    };
                     system.refresh_processes(ProcessesToUpdate::All, true);
                     let pid =
                         sysinfo::get_current_pid().expect("Failed to get current process's PID");
@@ -42,7 +44,9 @@ pub fn init_ram_usage_observable_gauge() {
                 .u64_observable_gauge("cdsctf.ram_usage")
                 .with_description("RAM usage")
                 .with_callback(|observer| {
-                    let mut system = System::new();
+                    let Ok(mut system) = System::new() else {
+                        return;
+                    };
                     system.refresh_processes(ProcessesToUpdate::All, true);
                     let pid =
                         sysinfo::get_current_pid().expect("Failed to get current process's PID");
