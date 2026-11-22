@@ -40,8 +40,8 @@ state:
   state_wrapper: ({{state}})
 has_writeup:
   _: 解答レポート
-  'true': 提出済み
-  'false': 未提出
+  "true": 提出済み
+  "false": 未提出
 search:
   name: チーム名
 actions:
@@ -54,7 +54,7 @@ actions:
       _: 参加
       title: チームに参加
   participate_after_login: 参加するにはログインしてください
-  participate: '{{name}}として参加'
+  participate: "{{name}}として参加"
   disband:
     _: チームを解散する
     message: チームは直ちに解散します。すべてのメンバーがほかのチームを作成したり、参加したりできるようになります。
@@ -69,7 +69,7 @@ actions:
   ready:
     _: 準備完了
     success: 準備ができました。
-    description: '{{name}}が登場します！'
+    description: "{{name}}が登場します！"
     title: 最終確認
     message: この操作によりチームの状態は審査待ちになります。その後、メンバーの追加や脱退、大会からの離脱など、チームの状態に影響する操作は行えません。
     of_course: 本当に準備完了です！
