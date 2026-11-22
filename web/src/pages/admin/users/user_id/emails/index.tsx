@@ -137,7 +137,7 @@ export default function Emails() {
                   <ItemContent>
                     <ItemTitle className={cn(["text-base"])}>
                       {email.email}
-                      {email.verified && (
+                      {email.verified && !isLastVerified && (
                         <Badge
                           className={cn(["bg-success/15", "text-success"])}
                         >
@@ -147,15 +147,14 @@ export default function Emails() {
                       )}
                     </ItemTitle>
                     <ItemDescription>
-                      {email.verified
-                        ? t("user:emails.verified.true.long")
-                        : t("user:emails.verified.false.long")}
+                      {t(
+                        isLastVerified
+                          ? "user:emails.last_verified.status"
+                          : email.verified
+                            ? "user:emails.verified.true.long"
+                            : "user:emails.verified.false.long"
+                      )}
                     </ItemDescription>
-                    {isLastVerified && (
-                      <ItemDescription>
-                        {t("user:emails.last_verified.description")}
-                      </ItemDescription>
-                    )}
                   </ItemContent>
                   <ItemActions className={cn(["flex", "flex-wrap", "gap-3"])}>
                     <div

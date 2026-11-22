@@ -125,7 +125,9 @@ export default function Index() {
                   <ItemContent className="min-w-0 gap-1">
                     <ItemTitle className="break-all">{email.email}</ItemTitle>
                     <ItemDescription>
-                      {email.verified ? (
+                      {isLastVerified ? (
+                        t("user:emails.last_verified.status")
+                      ) : email.verified ? (
                         <span className={cn(["flex", "gap-1", "items-center"])}>
                           <span>{t("user:emails.verified.true._")}</span>
                           <CheckIcon
@@ -136,11 +138,6 @@ export default function Index() {
                         t("user:emails.verified.false._")
                       )}
                     </ItemDescription>
-                    {isLastVerified && (
-                      <ItemDescription>
-                        {t("user:emails.last_verified.description")}
-                      </ItemDescription>
-                    )}
                   </ItemContent>
                   <ItemActions>
                     {emailEnabled && !email.verified && (

@@ -175,6 +175,7 @@ emails:
   basic_verification: 验证一个邮箱后即可获得基础权限。
   basic_contact_admin: 请联系管理员授予基础权限。
   last_verified:
+    status: 这是最后一个已验证邮箱。验证另一个邮箱后即可移除。
     title: 无法移除最后一个已验证邮箱
     description: 请先验证另一个邮箱。
   _: 邮箱

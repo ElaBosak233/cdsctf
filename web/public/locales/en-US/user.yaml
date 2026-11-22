@@ -175,6 +175,7 @@ emails:
   basic_verification: Verify an email address to get basic access.
   basic_contact_admin: Contact an administrator to request basic access.
   last_verified:
+    status: This is the last verified email address. Verify another address to remove it.
     title: The last verified email cannot be removed
     description: Verify another email address first.
   _: Emails

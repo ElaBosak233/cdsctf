@@ -1,6 +1,6 @@
 _: ユーザー
 empty: ユーザーはまだいません。
-result_count: '{{count}} 人のユーザー'
+result_count: "{{count}} 人のユーザー"
 list:
   columns:
     user: ユーザー
@@ -173,6 +173,7 @@ emails:
   basic_verification: メールアドレスを認証すると、基本権限が付与されます。
   basic_contact_admin: 基本権限の付与については管理者にお問い合わせください。
   last_verified:
+    status: 最後の認証済みメールアドレスです。別のアドレスを認証すると削除できます。
     title: 最後の認証済みメールアドレスは削除できません
     description: 先に別のメールアドレスを認証してください。
   _: メールアドレス
@@ -182,10 +183,10 @@ emails:
   verify_code_required: "確認コードを入力してください。"
   empty: このユーザーのメールアドレスはまだ登録されていません。
   verified:
-    'true':
+    "true":
       _: 認証済み
       long: このメールアドレスは認証済みです。
-    'false':
+    "false":
       _: 未認証
       long: このメールアドレスはまだ認証されていません。
   form:

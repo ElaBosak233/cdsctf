@@ -173,6 +173,7 @@ emails:
   basic_verification: 驗證一個電子郵件地址後即可取得基礎權限。
   basic_contact_admin: 請聯絡管理員授予基礎權限。
   last_verified:
+    status: 這是最後一個已驗證的電子郵件地址。驗證另一個地址後即可移除。
     title: 無法移除最後一個已驗證的電子郵件地址
     description: 請先驗證另一個電子郵件地址。
   _: 電子郵件
