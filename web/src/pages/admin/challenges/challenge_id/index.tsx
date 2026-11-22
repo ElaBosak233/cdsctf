@@ -108,19 +108,19 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full", "sm:w-3/4"])}>
                 <FormLabel>{t("challenge:form.title._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <TypeIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <TypeIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <TextField
                       {...field}
                       placeholder={t("challenge:form.title.placeholder")}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -131,46 +131,42 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full", "sm:w-1/4"])}>
                 <FormLabel>{t("challenge:form.category._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <LibraryIcon />
-                    </FieldIcon>
-                    <Select
-                      {...field}
-                      onValueChange={(value) => {
-                        field.onChange(Number(value));
-                      }}
-                      value={String(field.value)}
-                    >
+                <Field>
+                  <FieldIcon>
+                    <LibraryIcon />
+                  </FieldIcon>
+                  <Select
+                    {...field}
+                    onValueChange={(value) => {
+                      field.onChange(Number(value));
+                    }}
+                    value={String(field.value)}
+                  >
+                    <FormControl>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        {categories?.map((category) => {
-                          const Icon = category.icon!;
-                          return (
-                            <SelectItem
-                              key={category.id}
-                              value={String(category.id)}
+                    </FormControl>
+                    <SelectContent>
+                      {categories?.map((category) => {
+                        const Icon = category.icon!;
+                        return (
+                          <SelectItem
+                            key={category.id}
+                            value={String(category.id)}
+                          >
+                            <span
+                              className={cn(["flex", "gap-2", "items-center"])}
                             >
-                              <span
-                                className={cn([
-                                  "flex",
-                                  "gap-2",
-                                  "items-center",
-                                ])}
-                              >
-                                <Icon />
-                                {category.name?.toUpperCase()}
-                              </span>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </FormControl>
+                              <Icon />
+                              {category.name?.toUpperCase()}
+                            </span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -182,17 +178,17 @@ export default function Index() {
           render={({ field }) => (
             <FormItem className={cn(["w-full"])}>
               <FormLabel>{t("challenge:form.tags._")}</FormLabel>
-              <FormControl>
-                <Field>
-                  <FieldIcon>
-                    <TagIcon />
-                  </FieldIcon>
+              <Field autoHeight>
+                <FieldIcon>
+                  <TagIcon />
+                </FieldIcon>
+                <FormControl>
                   <TagsField
                     value={field.value || []}
                     onValueChange={(value) => field.onChange(value)}
                   />
-                </Field>
-              </FormControl>
+                </FormControl>
+              </Field>
               <FormMessage />
             </FormItem>
           )}
@@ -204,32 +200,32 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full", "sm:w-1/3"])}>
                 <FormLabel>{t("challenge:form.has_attachment._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <FolderIcon />
-                    </FieldIcon>
-                    <Select
-                      {...field}
-                      onValueChange={(value) => {
-                        field.onChange(value === "true");
-                      }}
-                      value={String(field.value)}
-                    >
+                <Field>
+                  <FieldIcon>
+                    <FolderIcon />
+                  </FieldIcon>
+                  <Select
+                    {...field}
+                    onValueChange={(value) => {
+                      field.onChange(value === "true");
+                    }}
+                    value={String(field.value)}
+                  >
+                    <FormControl>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">
-                          {t("challenge:form.has_attachment.true")}
-                        </SelectItem>
-                        <SelectItem value="false">
-                          {t("challenge:form.has_attachment.false")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </FormControl>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="true">
+                        {t("challenge:form.has_attachment.true")}
+                      </SelectItem>
+                      <SelectItem value="false">
+                        {t("challenge:form.has_attachment.false")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -240,42 +236,38 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full", "sm:w-1/3"])}>
                 <FormLabel>{t("challenge:form.has_instance._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <ContainerIcon />
-                    </FieldIcon>
-                    <Select
-                      {...field}
-                      onValueChange={(value) => {
-                        field.onChange(value === "true");
-                      }}
-                      value={String(field.value)}
-                    >
+                <Field>
+                  <FieldIcon>
+                    <ContainerIcon />
+                  </FieldIcon>
+                  <Select
+                    {...field}
+                    onValueChange={(value) => {
+                      field.onChange(value === "true");
+                    }}
+                    value={String(field.value)}
+                  >
+                    <FormControl>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">
-                          <span
-                            className={cn(["flex", "gap-2", "items-center"])}
-                          >
-                            <ShipWheelIcon />
-                            {t("challenge:form.has_instance.true")}
-                          </span>
-                        </SelectItem>
-                        <SelectItem value="false">
-                          <span
-                            className={cn(["flex", "gap-2", "items-center"])}
-                          >
-                            <BoxIcon />
-                            {t("challenge:form.has_instance.false")}
-                          </span>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </FormControl>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="true">
+                        <span className={cn(["flex", "gap-2", "items-center"])}>
+                          <ShipWheelIcon />
+                          {t("challenge:form.has_instance.true")}
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="false">
+                        <span className={cn(["flex", "gap-2", "items-center"])}>
+                          <BoxIcon />
+                          {t("challenge:form.has_instance.false")}
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -286,32 +278,32 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full", "sm:w-1/3"])}>
                 <FormLabel>{t("challenge:form.has_writeup._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <PencilLineIcon />
-                    </FieldIcon>
-                    <Select
-                      {...field}
-                      onValueChange={(value) => {
-                        field.onChange(value === "true");
-                      }}
-                      value={String(field.value)}
-                    >
+                <Field>
+                  <FieldIcon>
+                    <PencilLineIcon />
+                  </FieldIcon>
+                  <Select
+                    {...field}
+                    onValueChange={(value) => {
+                      field.onChange(value === "true");
+                    }}
+                    value={String(field.value)}
+                  >
+                    <FormControl>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">
-                          {t("challenge:form.has_writeup.true")}
-                        </SelectItem>
-                        <SelectItem value="false">
-                          {t("challenge:form.has_writeup.false")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </FormControl>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="true">
+                        {t("challenge:form.has_writeup.true")}
+                      </SelectItem>
+                      <SelectItem value="false">
+                        {t("challenge:form.has_writeup.false")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}

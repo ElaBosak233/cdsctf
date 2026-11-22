@@ -371,11 +371,11 @@ export default function Index() {
                         <FormLabel>
                           {t("user:personal_access_tokens.create.name")}
                         </FormLabel>
-                        <FormControl>
-                          <Field size="sm">
-                            <FieldIcon>
-                              <KeyRoundIcon />
-                            </FieldIcon>
+                        <Field size="sm">
+                          <FieldIcon>
+                            <KeyRoundIcon />
+                          </FieldIcon>
+                          <FormControl>
                             <TextField
                               {...field}
                               maxLength={64}
@@ -384,8 +384,8 @@ export default function Index() {
                               )}
                               value={field.value || ""}
                             />
-                          </Field>
-                        </FormControl>
+                          </FormControl>
+                        </Field>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -398,11 +398,11 @@ export default function Index() {
                         <FormLabel>
                           {t("user:personal_access_tokens.create.expires_at")}
                         </FormLabel>
-                        <FormControl>
-                          <Field size="sm">
-                            <FieldIcon>
-                              <CalendarIcon />
-                            </FieldIcon>
+                        <Field size="sm">
+                          <FieldIcon>
+                            <CalendarIcon />
+                          </FieldIcon>
+                          <FormControl>
                             <DateTimePicker
                               {...field}
                               granularity="minute"
@@ -410,8 +410,8 @@ export default function Index() {
                                 "user:personal_access_tokens.create.expires_at_placeholder"
                               )}
                             />
-                          </Field>
-                        </FormControl>
+                          </FormControl>
+                        </Field>
                         <FormMessage />
                       </FormItem>
                     )}

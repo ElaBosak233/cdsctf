@@ -131,19 +131,19 @@ export default function Index() {
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
                   <FormLabel>{t("user:form.username._")}</FormLabel>
-                  <FormControl>
-                    <Field disabled>
-                      <FieldIcon>
-                        <UserRoundIcon />
-                      </FieldIcon>
+                  <Field disabled>
+                    <FieldIcon>
+                      <UserRoundIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         placeholder={t("user:form.username.placeholder")}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}
@@ -155,19 +155,19 @@ export default function Index() {
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
                   <FormLabel>{t("user:form.name._")}</FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <UserRoundIcon />
-                      </FieldIcon>
+                  <Field>
+                    <FieldIcon>
+                      <UserRoundIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         placeholder={t("user:form.name.placeholder")}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}

@@ -101,17 +101,17 @@ function ForgetForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("account:forget.form.email._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <MailIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <MailIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <TextField
                       placeholder={t("account:forget.form.email._")}
                       {...field}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -123,25 +123,25 @@ function ForgetForm() {
               render={({ field }) => (
                 <FormItem className={cn(["flex-1"])}>
                   <FormLabel>{t("account:forget.form.code._")}</FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <MailIcon />
-                      </FieldIcon>
+                  <Field>
+                    <FieldIcon>
+                      <MailIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         placeholder={t("account:forget.form.code._")}
                         {...field}
                       />
-                      <FieldButton
-                        icon={<SendIcon />}
-                        onClick={handleSendForgetEmail}
-                        className={cn(["aspect-auto"])}
-                        disabled={!form.watch("email")?.trim()}
-                      >
-                        {t("account:forget.form.code.request")}
-                      </FieldButton>
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                    <FieldButton
+                      icon={<SendIcon />}
+                      onClick={handleSendForgetEmail}
+                      className={cn(["aspect-auto"])}
+                      disabled={!form.watch("email")?.trim()}
+                    >
+                      {t("account:forget.form.code.request")}
+                    </FieldButton>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}
@@ -153,18 +153,18 @@ function ForgetForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("account:forget.form.password._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <LockIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <LockIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <TextField
                       placeholder={t("account:forget.form.password._")}
                       type={"password"}
                       {...field}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}

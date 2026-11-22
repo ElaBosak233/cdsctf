@@ -242,18 +242,18 @@ export default function Index() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("admin:idp.form.name._")}</FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <TypeIcon />
-                          </FieldIcon>
+                      <Field>
+                        <FieldIcon>
+                          <TypeIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <TextField
                             {...field}
                             placeholder={t("admin:idp.form.name.placeholder")}
                             value={field.value || ""}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -264,18 +264,18 @@ export default function Index() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("admin:idp.form.portal._")}</FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <LinkIcon />
-                          </FieldIcon>
+                      <Field>
+                        <FieldIcon>
+                          <LinkIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <TextField
                             {...field}
                             placeholder={t("admin:idp.form.portal.placeholder")}
                             value={field.value || ""}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}

@@ -127,17 +127,17 @@ function RegisterForm() {
               render={({ field }) => (
                 <FormItem className={cn(["flex-1"])}>
                   <FormLabel>{t("account:register.form.username._")}</FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <UserRoundIcon />
-                      </FieldIcon>
+                  <Field>
+                    <FieldIcon>
+                      <UserRoundIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         placeholder={t("account:register.form.username._")}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}
@@ -148,17 +148,17 @@ function RegisterForm() {
               render={({ field }) => (
                 <FormItem className={cn(["flex-1"])}>
                   <FormLabel>{t("account:register.form.name._")}</FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <TypeIcon />
-                      </FieldIcon>
+                  <Field>
+                    <FieldIcon>
+                      <TypeIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         placeholder={t("account:register.form.name._")}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}
@@ -192,18 +192,18 @@ function RegisterForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("account:register.form.password._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <LockIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <LockIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <TextField
                       type={"password"}
                       {...field}
                       placeholder={t("account:register.form.password._")}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -216,11 +216,11 @@ function RegisterForm() {
                 <FormLabel>
                   {t("account:register.form.confirm_password._")}
                 </FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <LockIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <LockIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <TextField
                       type={"password"}
                       {...field}
@@ -228,8 +228,8 @@ function RegisterForm() {
                         "account:register.form.confirm_password._"
                       )}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}

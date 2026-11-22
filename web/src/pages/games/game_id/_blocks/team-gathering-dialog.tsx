@@ -197,19 +197,19 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
                       <FormLabel className="sr-only">
                         {t("team:form.name._")}
                       </FormLabel>
-                      <FormControl>
-                        <Field size="sm">
-                          <FieldIcon>
-                            <TypeIcon />
-                          </FieldIcon>
+                      <Field size="sm">
+                        <FieldIcon>
+                          <TypeIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <TextField
                             {...field}
                             value={field.value ?? ""}
                             onChange={field.onChange}
                             placeholder={t("team:form.name._")}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -245,19 +245,19 @@ function TeamGatheringDialog(props: TeamGatheringDialogProps) {
                       <FormLabel className="sr-only">
                         {t("team:form.invite_code._")}
                       </FormLabel>
-                      <FormControl>
-                        <Field size="sm">
-                          <FieldIcon>
-                            <KeyIcon />
-                          </FieldIcon>
+                      <Field size="sm">
+                        <FieldIcon>
+                          <KeyIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <TextField
                             {...field}
                             value={field.value ?? ""}
                             onChange={field.onChange}
                             placeholder={t("team:form.invite_code._")}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}

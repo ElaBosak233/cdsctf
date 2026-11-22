@@ -209,11 +209,11 @@ export default function Index() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("user:form.username._")}</FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <UserRoundIcon />
-                          </FieldIcon>
+                      <Field>
+                        <FieldIcon>
+                          <UserRoundIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <TextField
                             {...field}
                             disabled
@@ -221,8 +221,8 @@ export default function Index() {
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -233,19 +233,19 @@ export default function Index() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("user:form.name._")}</FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <TypeIcon />
-                          </FieldIcon>
+                      <Field>
+                        <FieldIcon>
+                          <TypeIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <TextField
                             {...field}
                             placeholder={t("user:form.name.placeholder")}
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}

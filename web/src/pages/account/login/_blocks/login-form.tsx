@@ -123,19 +123,19 @@ function LoginForm({ onAuthenticated }: { onAuthenticated?: () => void }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{`${t("user:username")} / ${t("user:email")}`}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <UserRoundIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <UserRoundIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <TextField
                       {...field}
                       value={field.value || ""}
                       onChange={field.onChange}
                       placeholder={t("user:username")}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -163,11 +163,11 @@ function LoginForm({ onAuthenticated }: { onAuthenticated?: () => void }) {
                     </Link>
                   )}
                 </FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <LockIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <LockIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <TextField
                       {...field}
                       value={field.value || ""}
@@ -175,8 +175,8 @@ function LoginForm({ onAuthenticated }: { onAuthenticated?: () => void }) {
                       placeholder={t("user:password")}
                       type={"password"}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}

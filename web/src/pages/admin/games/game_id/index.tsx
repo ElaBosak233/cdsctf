@@ -311,19 +311,19 @@ export default function Index() {
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
                   <FormLabel>{t("game:form.title._")}</FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <TypeIcon />
-                      </FieldIcon>
+                  <Field>
+                    <FieldIcon>
+                      <TypeIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         placeholder={t("game:form.title.placeholder")}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}
@@ -519,32 +519,32 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>{t("game:form.public._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <LockOpenIcon />
-                    </FieldIcon>
-                    <Select
-                      {...field}
-                      onValueChange={(value) => {
-                        field.onChange(value === "true");
-                      }}
-                      value={String(field.value)}
-                    >
+                <Field>
+                  <FieldIcon>
+                    <LockOpenIcon />
+                  </FieldIcon>
+                  <Select
+                    {...field}
+                    onValueChange={(value) => {
+                      field.onChange(value === "true");
+                    }}
+                    value={String(field.value)}
+                  >
+                    <FormControl>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">
-                          {t("game:form.public.true")}
-                        </SelectItem>
-                        <SelectItem value="false">
-                          {t("game:form.public.false")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </FormControl>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="true">
+                        {t("game:form.public.true")}
+                      </SelectItem>
+                      <SelectItem value="false">
+                        {t("game:form.public.false")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -555,32 +555,30 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>{t("game:form.writeup_required._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <FileCheck2Icon />
-                    </FieldIcon>
-                    <Select
-                      {...field}
-                      onValueChange={(value) =>
-                        field.onChange(value === "true")
-                      }
-                      value={String(field.value)}
-                    >
+                <Field>
+                  <FieldIcon>
+                    <FileCheck2Icon />
+                  </FieldIcon>
+                  <Select
+                    {...field}
+                    onValueChange={(value) => field.onChange(value === "true")}
+                    value={String(field.value)}
+                  >
+                    <FormControl>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">
-                          {t("game:form.writeup_required.true")}
-                        </SelectItem>
-                        <SelectItem value="false">
-                          {t("game:form.writeup_required.false")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </FormControl>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="true">
+                        {t("game:form.writeup_required.true")}
+                      </SelectItem>
+                      <SelectItem value="false">
+                        {t("game:form.writeup_required.false")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -591,18 +589,18 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>{t("game:form.member_limit_min._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <UsersRoundIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <UsersRoundIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <NumberField
                       placeholder={t("game:form.member_limit_min.placeholder")}
                       value={field.value}
                       onValueChange={(value) => field.onChange(value)}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -613,18 +611,18 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>{t("game:form.member_limit_max._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <UsersRoundIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <UsersRoundIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <NumberField
                       placeholder={t("game:form.member_limit_max.placeholder")}
                       value={field.value}
                       onValueChange={(value) => field.onChange(value)}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -645,17 +643,17 @@ export default function Index() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("game:form.started_at._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <ClockIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <ClockIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <DateTimePicker
                       {...field}
                       placeholder={t("game:form.started_at.placeholder")}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -666,17 +664,17 @@ export default function Index() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("game:form.frozen_at._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <ClockFadingIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <ClockFadingIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <DateTimePicker
                       {...field}
                       placeholder={t("game:form.frozen_at.placeholder")}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -687,17 +685,17 @@ export default function Index() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("game:form.ended_at._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <ClockAlertIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <ClockAlertIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <DateTimePicker
                       {...field}
                       placeholder={t("game:form.ended_at.placeholder")}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}

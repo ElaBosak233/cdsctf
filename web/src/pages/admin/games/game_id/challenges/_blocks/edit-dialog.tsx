@@ -218,11 +218,11 @@ function EditDialog(props: EditDialogProps) {
                       <FormLabel>
                         {t("game:challenge.form.max_pts._")}
                       </FormLabel>
-                      <FormControl>
-                        <Field size={"sm"}>
-                          <FieldIcon>
-                            <HashIcon />
-                          </FieldIcon>
+                      <Field size={"sm"}>
+                        <FieldIcon>
+                          <HashIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <NumberField
                             placeholder={t(
                               "game:challenge.form.max_pts.placeholder"
@@ -230,8 +230,8 @@ function EditDialog(props: EditDialogProps) {
                             value={field.value}
                             onValueChange={(value) => field.onChange(value)}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -244,11 +244,11 @@ function EditDialog(props: EditDialogProps) {
                       <FormLabel>
                         {t("game:challenge.form.min_pts._")}
                       </FormLabel>
-                      <FormControl>
-                        <Field size={"sm"}>
-                          <FieldIcon>
-                            <HashIcon />
-                          </FieldIcon>
+                      <Field size={"sm"}>
+                        <FieldIcon>
+                          <HashIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <NumberField
                             placeholder={t(
                               "game:challenge.form.min_pts.placeholder"
@@ -256,8 +256,8 @@ function EditDialog(props: EditDialogProps) {
                             value={field.value}
                             onValueChange={(value) => field.onChange(value)}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -270,11 +270,11 @@ function EditDialog(props: EditDialogProps) {
                       <FormLabel>
                         {t("game:challenge.form.difficulty._")}
                       </FormLabel>
-                      <FormControl>
-                        <Field size={"sm"}>
-                          <FieldIcon>
-                            <HashIcon />
-                          </FieldIcon>
+                      <Field size={"sm"}>
+                        <FieldIcon>
+                          <HashIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <NumberField
                             placeholder={t(
                               "game:challenge.form.difficulty.placeholder"
@@ -282,8 +282,8 @@ function EditDialog(props: EditDialogProps) {
                             value={field.value}
                             onValueChange={(value) => field.onChange(value)}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -295,11 +295,11 @@ function EditDialog(props: EditDialogProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("game:challenge.form.frozen_at")}</FormLabel>
-                    <FormControl>
-                      <Field size={"sm"}>
-                        <FieldIcon>
-                          <ClockFadingIcon />
-                        </FieldIcon>
+                    <Field size={"sm"}>
+                      <FieldIcon>
+                        <ClockFadingIcon />
+                      </FieldIcon>
+                      <FormControl>
                         <DateTimePicker
                           {...field}
                           clearable
@@ -307,8 +307,8 @@ function EditDialog(props: EditDialogProps) {
                             "game:challenge.form.frozen_at_placeholder"
                           )}
                         />
-                      </Field>
-                    </FormControl>
+                      </FormControl>
+                    </Field>
                     <FormMessage />
                   </FormItem>
                 )}

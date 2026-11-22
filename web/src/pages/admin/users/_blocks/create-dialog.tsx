@@ -121,19 +121,19 @@ function CreateUserDialog(props: CreateUserDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("user:form.username._")}</FormLabel>
-                  <FormControl>
-                    <Field size={"sm"}>
-                      <FieldIcon>
-                        <UserRoundIcon />
-                      </FieldIcon>
+                  <Field size={"sm"}>
+                    <FieldIcon>
+                      <UserRoundIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         placeholder={t("user:form.username.placeholder")}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}
@@ -145,19 +145,19 @@ function CreateUserDialog(props: CreateUserDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("user:form.name._")}</FormLabel>
-                  <FormControl>
-                    <Field size={"sm"}>
-                      <FieldIcon>
-                        <UserRoundCheckIcon />
-                      </FieldIcon>
+                  <Field size={"sm"}>
+                    <FieldIcon>
+                      <UserRoundCheckIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         placeholder={t("user:form.name.placeholder")}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}
@@ -195,11 +195,11 @@ function CreateUserDialog(props: CreateUserDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("user:form.password._")}</FormLabel>
-                  <FormControl>
-                    <Field size={"sm"}>
-                      <FieldIcon>
-                        <KeyIcon />
-                      </FieldIcon>
+                  <Field size={"sm"}>
+                    <FieldIcon>
+                      <KeyIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         type="password"
@@ -207,8 +207,8 @@ function CreateUserDialog(props: CreateUserDialogProps) {
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}

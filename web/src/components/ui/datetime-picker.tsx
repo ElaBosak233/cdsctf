@@ -591,7 +591,11 @@ type DateTimePickerProps = {
 } & Pick<
   DayPickerProps,
   "locale" | "weekStartsOn" | "showWeekNumber" | "showOutsideDays"
->;
+> &
+  Pick<
+    React.ComponentProps<"button">,
+    "id" | "aria-describedby" | "aria-invalid"
+  >;
 
 type DateTimePickerRef = {
   value?: Date;
@@ -609,6 +613,9 @@ function DateTimePicker({
   clearable = false,
   clearLabel = "Clear date and time",
   className,
+  id,
+  "aria-describedby": describedBy,
+  "aria-invalid": invalid,
   ref,
   ...props
 }: DateTimePickerProps & { ref?: React.Ref<DateTimePickerRef> }) {
@@ -764,6 +771,9 @@ function DateTimePicker({
         )}
       >
         <PopoverTrigger
+          id={id}
+          aria-describedby={describedBy}
+          aria-invalid={invalid}
           disabled={disabled}
           render={
             <Button

@@ -254,11 +254,11 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>{t("challenge:form.instance.duration._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <ClockIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <ClockIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <NumberField
                       placeholder={t(
                         "challenge:form.instance.duration.placeholder"
@@ -266,8 +266,8 @@ export default function Index() {
                       value={field.value}
                       onValueChange={(value) => field.onChange(value)}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -278,32 +278,32 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>{t("challenge:form.instance.internet._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <NetworkIcon />
-                    </FieldIcon>
-                    <Select
-                      {...field}
-                      onValueChange={(value) => {
-                        field.onChange(value === "true");
-                      }}
-                      value={String(field.value)}
-                    >
+                <Field>
+                  <FieldIcon>
+                    <NetworkIcon />
+                  </FieldIcon>
+                  <Select
+                    {...field}
+                    onValueChange={(value) => {
+                      field.onChange(value === "true");
+                    }}
+                    value={String(field.value)}
+                  >
+                    <FormControl>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">
-                          {t("challenge:form.instance.internet.true")}
-                        </SelectItem>
-                        <SelectItem value="false">
-                          {t("challenge:form.instance.internet.false")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </FormControl>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="true">
+                        {t("challenge:form.instance.internet.true")}
+                      </SelectItem>
+                      <SelectItem value="false">
+                        {t("challenge:form.instance.internet.false")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -329,11 +329,11 @@ export default function Index() {
                   <FormLabel>
                     {t("challenge:form.instance.containers.image._")}
                   </FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <ContainerIcon />
-                      </FieldIcon>
+                  <Field>
+                    <FieldIcon>
+                      <ContainerIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         placeholder={t(
@@ -342,8 +342,8 @@ export default function Index() {
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}
@@ -357,17 +357,17 @@ export default function Index() {
                     <FormLabel>
                       {t("challenge:form.instance.containers.cpu_limit._")}
                     </FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <CpuIcon />
-                        </FieldIcon>
+                    <Field>
+                      <FieldIcon>
+                        <CpuIcon />
+                      </FieldIcon>
+                      <FormControl>
                         <NumberField
                           value={field.value}
                           onValueChange={(value) => field.onChange(value)}
                         />
-                      </Field>
-                    </FormControl>
+                      </FormControl>
+                    </Field>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -380,17 +380,17 @@ export default function Index() {
                     <FormLabel>
                       {t("challenge:form.instance.containers.memory_limit._")}
                     </FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <MemoryStickIcon />
-                        </FieldIcon>
+                    <Field>
+                      <FieldIcon>
+                        <MemoryStickIcon />
+                      </FieldIcon>
+                      <FormControl>
                         <NumberField
                           value={field.value}
                           onValueChange={(value) => field.onChange(value)}
                         />
-                      </Field>
-                    </FormControl>
+                      </FormControl>
+                    </Field>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -405,39 +405,39 @@ export default function Index() {
                         "challenge:form.instance.containers.image_pull_policy._"
                       )}
                     </FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <DownloadIcon />
-                        </FieldIcon>
-                        <Select
-                          {...field}
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
+                    <Field>
+                      <FieldIcon>
+                        <DownloadIcon />
+                      </FieldIcon>
+                      <Select
+                        {...field}
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Always">
-                              {t(
-                                "challenge:form.instance.containers.image_pull_policy.always"
-                              )}
-                            </SelectItem>
-                            <SelectItem value="IfNotPresent">
-                              {t(
-                                "challenge:form.instance.containers.image_pull_policy.if_not_present"
-                              )}
-                            </SelectItem>
-                            <SelectItem value="Never">
-                              {t(
-                                "challenge:form.instance.containers.image_pull_policy.never"
-                              )}
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                    </FormControl>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Always">
+                            {t(
+                              "challenge:form.instance.containers.image_pull_policy.always"
+                            )}
+                          </SelectItem>
+                          <SelectItem value="IfNotPresent">
+                            {t(
+                              "challenge:form.instance.containers.image_pull_policy.if_not_present"
+                            )}
+                          </SelectItem>
+                          <SelectItem value="Never">
+                            {t(
+                              "challenge:form.instance.containers.image_pull_policy.never"
+                            )}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </Field>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -463,17 +463,17 @@ export default function Index() {
                     name={`containers.${containerIndex}.ports.${portIndex}.port`}
                     render={({ field }) => (
                       <FormItem className={cn(["flex-1"])}>
-                        <FormControl>
-                          <Field size={"sm"}>
-                            <FieldIcon>
-                              <MemoryStickIcon />
-                            </FieldIcon>
+                        <Field size={"sm"}>
+                          <FieldIcon>
+                            <MemoryStickIcon />
+                          </FieldIcon>
+                          <FormControl>
                             <NumberField
                               value={field.value}
                               onValueChange={(value) => field.onChange(value)}
                             />
-                          </Field>
-                        </FormControl>
+                          </FormControl>
+                        </Field>
                         <FormMessage className={cn(["-top-5"])} />
                       </FormItem>
                     )}
@@ -483,34 +483,34 @@ export default function Index() {
                     name={`containers.${containerIndex}.ports.${portIndex}.protocol`}
                     render={({ field }) => (
                       <FormItem className={cn(["flex-1"])}>
-                        <FormControl>
-                          <Field size={"sm"}>
-                            <FieldIcon>
-                              <HandshakeIcon />
-                            </FieldIcon>
-                            <Select
-                              {...field}
-                              onValueChange={field.onChange}
-                              value={field.value}
-                            >
+                        <Field size={"sm"}>
+                          <FieldIcon>
+                            <HandshakeIcon />
+                          </FieldIcon>
+                          <Select
+                            {...field}
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
                               <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="TCP">
-                                  {t(
-                                    "challenge:form.instance.containers.ports.protocol.tcp"
-                                  )}
-                                </SelectItem>
-                                <SelectItem value="UDP">
-                                  {t(
-                                    "challenge:form.instance.containers.ports.protocol.udp"
-                                  )}
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </Field>
-                        </FormControl>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="TCP">
+                                {t(
+                                  "challenge:form.instance.containers.ports.protocol.tcp"
+                                )}
+                              </SelectItem>
+                              <SelectItem value="UDP">
+                                {t(
+                                  "challenge:form.instance.containers.ports.protocol.udp"
+                                )}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </Field>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -547,11 +547,11 @@ export default function Index() {
                     name={`containers.${containerIndex}.envs.${envIndex}.key`}
                     render={({ field }) => (
                       <FormItem className={cn(["flex-1"])}>
-                        <FormControl>
-                          <Field size={"sm"}>
-                            <FieldIcon>
-                              <KeyIcon />
-                            </FieldIcon>
+                        <Field size={"sm"}>
+                          <FieldIcon>
+                            <KeyIcon />
+                          </FieldIcon>
+                          <FormControl>
                             <TextField
                               {...field}
                               placeholder={t(
@@ -560,8 +560,8 @@ export default function Index() {
                               value={field.value || ""}
                               onChange={field.onChange}
                             />
-                          </Field>
-                        </FormControl>
+                          </FormControl>
+                        </Field>
                         <FormMessage className={cn(["-top-5"])} />
                       </FormItem>
                     )}
@@ -571,11 +571,11 @@ export default function Index() {
                     name={`containers.${containerIndex}.envs.${envIndex}.value`}
                     render={({ field }) => (
                       <FormItem className={cn(["flex-1"])}>
-                        <FormControl>
-                          <Field size={"sm"}>
-                            <FieldIcon>
-                              <TextIcon />
-                            </FieldIcon>
+                        <Field size={"sm"}>
+                          <FieldIcon>
+                            <TextIcon />
+                          </FieldIcon>
+                          <FormControl>
                             <TextField
                               {...field}
                               placeholder={t(
@@ -584,8 +584,8 @@ export default function Index() {
                               value={field.value || ""}
                               onChange={field.onChange}
                             />
-                          </Field>
-                        </FormControl>
+                          </FormControl>
+                        </Field>
                         <FormMessage className={cn(["-top-5"])} />
                       </FormItem>
                     )}

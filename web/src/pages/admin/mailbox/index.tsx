@@ -187,11 +187,11 @@ export default function Index() {
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
                       <FormLabel>{t("admin:mailbox.form.host._")}</FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <ServerIcon />
-                          </FieldIcon>
+                      <Field>
+                        <FieldIcon>
+                          <ServerIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <TextField
                             {...field}
                             placeholder={t(
@@ -200,8 +200,8 @@ export default function Index() {
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -213,17 +213,17 @@ export default function Index() {
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
                       <FormLabel>{t("admin:mailbox.form.port._")}</FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <EthernetPortIcon />
-                          </FieldIcon>
+                      <Field>
+                        <FieldIcon>
+                          <EthernetPortIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <NumberField
                             value={field.value}
                             onValueChange={(value) => field.onChange(value)}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -235,32 +235,32 @@ export default function Index() {
                   render={({ field }) => (
                     <FormItem className={cn(["w-full"])}>
                       <FormLabel>TLS</FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <ShieldCheckIcon />
-                          </FieldIcon>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={String(field.value)}
-                          >
+                      <Field>
+                        <FieldIcon>
+                          <ShieldCheckIcon />
+                        </FieldIcon>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={String(field.value)}
+                        >
+                          <FormControl>
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="tls">
-                                {t("admin:mailbox.tls.tls")}
-                              </SelectItem>
-                              <SelectItem value="starttls">
-                                {t("admin:mailbox.tls.starttls")}
-                              </SelectItem>
-                              <SelectItem value="none">
-                                {t("admin:mailbox.tls.none")}
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </Field>
-                      </FormControl>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="tls">
+                              {t("admin:mailbox.tls.tls")}
+                            </SelectItem>
+                            <SelectItem value="starttls">
+                              {t("admin:mailbox.tls.starttls")}
+                            </SelectItem>
+                            <SelectItem value="none">
+                              {t("admin:mailbox.tls.none")}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -273,11 +273,11 @@ export default function Index() {
                 render={({ field }) => (
                   <FormItem className={cn(["w-full"])}>
                     <FormLabel>{t("admin:mailbox.form.username._")}</FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <UserRoundIcon />
-                        </FieldIcon>
+                    <Field>
+                      <FieldIcon>
+                        <UserRoundIcon />
+                      </FieldIcon>
+                      <FormControl>
                         <TextField
                           {...field}
                           placeholder={t(
@@ -286,8 +286,8 @@ export default function Index() {
                           value={field.value || ""}
                           onChange={field.onChange}
                         />
-                      </Field>
-                    </FormControl>
+                      </FormControl>
+                    </Field>
                     <FormMessage />
                   </FormItem>
                 )}

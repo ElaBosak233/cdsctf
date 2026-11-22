@@ -2,7 +2,6 @@ import { cva } from "class-variance-authority";
 import * as React from "react";
 import { cn } from "@/utils";
 import { Button } from "./button";
-import { TagsField } from "./tags-field";
 
 const FieldContext = React.createContext<{
   size?: "sm" | "md";
@@ -15,14 +14,22 @@ const FieldContext = React.createContext<{
 type FieldRootProps = React.ComponentProps<"div"> & {
   size?: "sm" | "md";
   disabled?: boolean;
+  autoHeight?: boolean;
 };
 
 function FieldRoot(props: FieldRootProps) {
-  const { className, size, disabled, children, ref, ...rest } = props;
+  const {
+    className,
+    size,
+    disabled,
+    children,
+    ref,
+    autoHeight = false,
+    ...rest
+  } = props;
 
   let hasIcon = false;
   let hasExtraButton = false;
-  let autoHeight = false;
 
   React.Children.forEach(children, (child) => {
     if (!React.isValidElement(child)) return;
@@ -31,12 +38,17 @@ function FieldRoot(props: FieldRootProps) {
 
     if (type === FieldIcon) hasIcon = true;
     if (type === FieldButton) hasExtraButton = true;
-    if (type === TagsField) autoHeight = true;
   });
 
   return (
     <FieldContext.Provider
-      value={{ size, disabled, hasIcon, hasExtraButton, autoHeight }}
+      value={{
+        size,
+        disabled,
+        hasIcon,
+        hasExtraButton,
+        autoHeight,
+      }}
     >
       <div
         className={cn(["flex", "items-center"], className)}

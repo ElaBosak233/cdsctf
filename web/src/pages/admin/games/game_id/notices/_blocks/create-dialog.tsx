@@ -99,18 +99,18 @@ function CreateDialog(props: CreateDialogProps) {
               render={({ field }) => (
                 <FormItem className={cn(["w-full"])}>
                   <FormLabel>{t("game:notice.form.title._")}</FormLabel>
-                  <FormControl>
-                    <Field size={"sm"}>
-                      <FieldIcon>
-                        <TypeIcon />
-                      </FieldIcon>
+                  <Field size={"sm"}>
+                    <FieldIcon>
+                      <TypeIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}

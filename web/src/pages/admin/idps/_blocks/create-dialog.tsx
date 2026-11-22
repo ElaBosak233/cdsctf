@@ -101,19 +101,19 @@ function CreateDialog(props: CreateDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("admin:idp.form.name._")}</FormLabel>
-                  <FormControl>
-                    <Field size="sm">
-                      <FieldIcon>
-                        <TypeIcon />
-                      </FieldIcon>
+                  <Field size="sm">
+                    <FieldIcon>
+                      <TypeIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         placeholder={t("admin:idp.form.name.placeholder")}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}

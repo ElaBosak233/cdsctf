@@ -224,11 +224,11 @@ export default function Index() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("team:name")}</FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <TypeIcon />
-                          </FieldIcon>
+                      <Field>
+                        <FieldIcon>
+                          <TypeIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <TextField
                             disabled={disabled}
                             placeholder={t("team:name")}
@@ -236,8 +236,8 @@ export default function Index() {
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -248,11 +248,11 @@ export default function Index() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("team:email")}</FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <MailIcon />
-                          </FieldIcon>
+                      <Field>
+                        <FieldIcon>
+                          <MailIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <TextField
                             disabled={disabled}
                             placeholder={t("team:email")}
@@ -260,8 +260,8 @@ export default function Index() {
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -338,11 +338,11 @@ export default function Index() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("team:slogan._")}</FormLabel>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <MessageCircleIcon />
-                      </FieldIcon>
+                  <Field>
+                    <FieldIcon>
+                      <MessageCircleIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         disabled={disabled}
                         placeholder={t("team:slogan._")}
@@ -350,8 +350,8 @@ export default function Index() {
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}

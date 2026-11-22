@@ -103,11 +103,11 @@ export default function Index() {
                 <FormLabel>
                   {t("user:change_password.form.new_password._")}
                 </FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <LockIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <LockIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <TextField
                       {...field}
                       type={"password"}
@@ -117,8 +117,8 @@ export default function Index() {
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -131,11 +131,11 @@ export default function Index() {
                 <FormLabel>
                   {t("user:change_password.form.confirm_password._")}
                 </FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <LockIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <LockIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <TextField
                       {...field}
                       type={"password"}
@@ -145,8 +145,8 @@ export default function Index() {
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}

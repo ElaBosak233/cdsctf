@@ -194,11 +194,11 @@ export default function Index() {
                     <FormLabel>
                       {t("admin:platform.form.meta.title._")}
                     </FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <TypeIcon />
-                        </FieldIcon>
+                    <Field>
+                      <FieldIcon>
+                        <TypeIcon />
+                      </FieldIcon>
+                      <FormControl>
                         <TextField
                           {...field}
                           placeholder={t(
@@ -207,8 +207,8 @@ export default function Index() {
                           value={field.value || ""}
                           onChange={field.onChange}
                         />
-                      </Field>
-                    </FormControl>
+                      </FormControl>
+                    </Field>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -221,17 +221,17 @@ export default function Index() {
                     <FormLabel>
                       {t("admin:platform.form.meta.keywords._")}
                     </FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <TagsIcon />
-                        </FieldIcon>
+                    <Field autoHeight>
+                      <FieldIcon>
+                        <TagsIcon />
+                      </FieldIcon>
+                      <FormControl>
                         <TagsField
                           value={field.value || []}
                           onValueChange={(value) => field.onChange(value)}
                         />
-                      </Field>
-                    </FormControl>
+                      </FormControl>
+                    </Field>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -300,11 +300,11 @@ export default function Index() {
                 <FormLabel>
                   {t("admin:platform.form.meta.description._")}
                 </FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <TextIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <TextIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <TextField
                       {...field}
                       placeholder={t(
@@ -313,8 +313,8 @@ export default function Index() {
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -327,18 +327,18 @@ export default function Index() {
                 <FormLabel>
                   {t("admin:platform.form.meta.highlight_banner._")}
                 </FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <MegaphoneIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <MegaphoneIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <TextField
                       {...field}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}
@@ -349,18 +349,18 @@ export default function Index() {
             render={({ field }) => (
               <FormItem className={cn(["w-full"])}>
                 <FormLabel>{t("admin:platform.form.meta.footer._")}</FormLabel>
-                <FormControl>
-                  <Field>
-                    <FieldIcon>
-                      <ListEndIcon />
-                    </FieldIcon>
+                <Field>
+                  <FieldIcon>
+                    <ListEndIcon />
+                  </FieldIcon>
+                  <FormControl>
                     <TextField
                       {...field}
                       value={field.value || ""}
                       onChange={field.onChange}
                     />
-                  </Field>
-                </FormControl>
+                  </FormControl>
+                </Field>
                 <FormMessage />
               </FormItem>
             )}

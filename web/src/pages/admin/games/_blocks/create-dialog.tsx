@@ -104,19 +104,19 @@ function CreateDialog(props: CreateDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("game:form.title._")}</FormLabel>
-                  <FormControl>
-                    <Field size={"sm"}>
-                      <FieldIcon>
-                        <TypeIcon />
-                      </FieldIcon>
+                  <Field size={"sm"}>
+                    <FieldIcon>
+                      <TypeIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         placeholder={t("game:form.title.placeholder")}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}
@@ -127,18 +127,18 @@ function CreateDialog(props: CreateDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("game:form.started_at._")}</FormLabel>
-                  <FormControl>
-                    <Field size={"sm"}>
-                      <FieldIcon>
-                        <CalendarIcon />
-                      </FieldIcon>
+                  <Field size={"sm"}>
+                    <FieldIcon>
+                      <CalendarIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <DateTimePicker
                         {...field}
                         clearable
                         placeholder={t("game:form.started_at.placeholder")}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}
@@ -149,18 +149,18 @@ function CreateDialog(props: CreateDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("game:form.ended_at._")}</FormLabel>
-                  <FormControl>
-                    <Field size={"sm"}>
-                      <FieldIcon>
-                        <CalendarIcon />
-                      </FieldIcon>
+                  <Field size={"sm"}>
+                    <FieldIcon>
+                      <CalendarIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <DateTimePicker
                         {...field}
                         clearable
                         placeholder={t("game:form.ended_at.placeholder")}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}

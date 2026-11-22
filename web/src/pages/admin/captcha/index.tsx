@@ -122,36 +122,36 @@ export default function Index() {
                   <FormDescription>
                     {t("admin:captcha.form.provider.description")}
                   </FormDescription>
-                  <FormControl>
-                    <Field>
-                      <FieldIcon>
-                        <LockIcon />
-                      </FieldIcon>
-                      <Select
-                        {...field}
-                        onValueChange={(value) => field.onChange(value)}
-                        value={String(field.value)}
-                      >
+                  <Field>
+                    <FieldIcon>
+                      <LockIcon />
+                    </FieldIcon>
+                    <Select
+                      {...field}
+                      onValueChange={(value) => field.onChange(value)}
+                      value={String(field.value)}
+                    >
+                      <FormControl>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">
-                            {t("admin:captcha.provider.none")}
-                          </SelectItem>
-                          <SelectItem value="pow">
-                            {t("admin:captcha.provider.pow")}
-                          </SelectItem>
-                          <SelectItem value="image">
-                            {t("admin:captcha.provider.image")}
-                          </SelectItem>
-                          <SelectItem value="turnstile">
-                            {t("admin:captcha.provider.turnstile")}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                  </FormControl>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">
+                          {t("admin:captcha.provider.none")}
+                        </SelectItem>
+                        <SelectItem value="pow">
+                          {t("admin:captcha.provider.pow")}
+                        </SelectItem>
+                        <SelectItem value="image">
+                          {t("admin:captcha.provider.image")}
+                        </SelectItem>
+                        <SelectItem value="turnstile">
+                          {t("admin:captcha.provider.turnstile")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}
@@ -168,17 +168,17 @@ export default function Index() {
                     <FormDescription>
                       {t("admin:captcha.form.difficulty.description")}
                     </FormDescription>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <ClockIcon />
-                        </FieldIcon>
+                    <Field>
+                      <FieldIcon>
+                        <ClockIcon />
+                      </FieldIcon>
+                      <FormControl>
                         <NumberField
                           value={field.value}
                           onValueChange={(value) => field.onChange(value)}
                         />
-                      </Field>
-                    </FormControl>
+                      </FormControl>
+                    </Field>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -195,18 +195,18 @@ export default function Index() {
                     <FormLabel>
                       {t("admin:captcha.form.turnstile.url._")}
                     </FormLabel>
-                    <FormControl>
-                      <Field>
-                        <FieldIcon>
-                          <LinkIcon />
-                        </FieldIcon>
+                    <Field>
+                      <FieldIcon>
+                        <LinkIcon />
+                      </FieldIcon>
+                      <FormControl>
                         <TextField
                           {...field}
                           value={field.value || ""}
                           onChange={field.onChange}
                         />
-                      </Field>
-                    </FormControl>
+                      </FormControl>
+                    </Field>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -220,18 +220,18 @@ export default function Index() {
                       <FormLabel>
                         {t("admin:captcha.form.turnstile.site_key._")}
                       </FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <KeyIcon />
-                          </FieldIcon>
+                      <Field>
+                        <FieldIcon>
+                          <KeyIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <TextField
                             {...field}
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -244,18 +244,18 @@ export default function Index() {
                       <FormLabel>
                         {t("admin:captcha.form.turnstile.secret_key._")}
                       </FormLabel>
-                      <FormControl>
-                        <Field>
-                          <FieldIcon>
-                            <LockKeyholeIcon />
-                          </FieldIcon>
+                      <Field>
+                        <FieldIcon>
+                          <LockKeyholeIcon />
+                        </FieldIcon>
+                        <FormControl>
                           <TextField
                             {...field}
                             value={field.value || ""}
                             onChange={field.onChange}
                           />
-                        </Field>
-                      </FormControl>
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}

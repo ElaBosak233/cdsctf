@@ -112,19 +112,19 @@ function CreateDialog(props: CreateDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("challenge:form.title._")}</FormLabel>
-                  <FormControl>
-                    <Field size={"sm"}>
-                      <FieldIcon>
-                        <TypeIcon />
-                      </FieldIcon>
+                  <Field size={"sm"}>
+                    <FieldIcon>
+                      <TypeIcon />
+                    </FieldIcon>
+                    <FormControl>
                       <TextField
                         {...field}
                         placeholder={t("challenge:form.title.placeholder")}
                         value={field.value || ""}
                         onChange={field.onChange}
                       />
-                    </Field>
-                  </FormControl>
+                    </FormControl>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}
@@ -135,46 +135,46 @@ function CreateDialog(props: CreateDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("challenge:form.category._")}</FormLabel>
-                  <FormControl>
-                    <Field size={"sm"}>
-                      <FieldIcon>
-                        <LibraryIcon />
-                      </FieldIcon>
-                      <Select
-                        {...field}
-                        onValueChange={(value) => {
-                          field.onChange(Number(value));
-                        }}
-                        value={String(field.value)}
-                      >
+                  <Field size={"sm"}>
+                    <FieldIcon>
+                      <LibraryIcon />
+                    </FieldIcon>
+                    <Select
+                      {...field}
+                      onValueChange={(value) => {
+                        field.onChange(Number(value));
+                      }}
+                      value={String(field.value)}
+                    >
+                      <FormControl>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
-                          {categories?.map((category) => {
-                            const Icon = category.icon!;
-                            return (
-                              <SelectItem
-                                key={category.id}
-                                value={String(category.id)}
+                      </FormControl>
+                      <SelectContent>
+                        {categories?.map((category) => {
+                          const Icon = category.icon!;
+                          return (
+                            <SelectItem
+                              key={category.id}
+                              value={String(category.id)}
+                            >
+                              <span
+                                className={cn([
+                                  "flex",
+                                  "gap-2",
+                                  "items-center",
+                                ])}
                               >
-                                <span
-                                  className={cn([
-                                    "flex",
-                                    "gap-2",
-                                    "items-center",
-                                  ])}
-                                >
-                                  <Icon />
-                                  {category.name?.toUpperCase()}
-                                </span>
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                  </FormControl>
+                                <Icon />
+                                {category.name?.toUpperCase()}
+                              </span>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </Field>
                   <FormMessage />
                 </FormItem>
               )}
