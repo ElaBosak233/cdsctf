@@ -9,7 +9,7 @@ use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
     EmailView, Permission, UserAccountView,
     sea_orm::ActiveValue::{NotSet, Set},
-    user::FindUserOptions,
+    user::{FindUserOptions, PermissionFilter},
 };
 use garde::Validate;
 use serde::{Deserialize, Serialize};
@@ -22,6 +22,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Query, VJson},
+    middleware::auth::MANAGEMENT_PERMISSIONS,
     router::api::user::UserResponse,
     traits::{AppState, WebError},
     util::email::validate_new_address,
@@ -36,12 +37,24 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         .nest("/{user_id}", user_id::router(state.clone()))
 }
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, utoipa::ToSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ManagementAccess {
+    Management,
+    NoManagement,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
 #[into_params(parameter_in = Query)]
 pub struct GetUsersRequest {
-    pub id: Option<i64>,
-    pub name: Option<String>,
+    /// Searches display names and login names, or matches an exact positive
+    /// #ID.
+    pub q: Option<String>,
     pub banned: Option<bool>,
+    /// Filters accounts by the presence of management permissions.
+    pub access: Option<ManagementAccess>,
+    /// Requires a specific permission. Can be used in place of access.
+    pub permission: Option<Permission>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -61,6 +74,7 @@ pub struct AdminUsersListResponse {
     params(GetUsersRequest),
     responses(
         (status = 200, description = "Users", body = AdminUsersListResponse),
+        (status = 400, description = "Invalid filters", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -69,18 +83,37 @@ pub async fn get_users(
     State(s): State<Arc<AppState>>,
     Query(params): Query<GetUsersRequest>,
 ) -> Result<Json<AdminUsersListResponse>, WebError> {
-    let page = params.page.unwrap_or(1);
-    let size = params.size.unwrap_or(10).min(100);
+    let page = params.page.unwrap_or(1).max(1);
+    let size = params.size.unwrap_or(10).clamp(1, 100);
+    let permissions = match (params.access, params.permission) {
+        (Some(_), Some(_)) => return Err(WebError::BadRequest(json!("invalid_query"))),
+        (Some(ManagementAccess::Management), None) => {
+            Some(PermissionFilter::AnyOf(MANAGEMENT_PERMISSIONS.to_vec()))
+        }
+        (Some(ManagementAccess::NoManagement), None) => {
+            Some(PermissionFilter::NoneOf(MANAGEMENT_PERMISSIONS.to_vec()))
+        }
+        (None, Some(permission)) => Some(PermissionFilter::AnyOf(vec![permission])),
+        (None, None) => None,
+    };
+    let keyword = params.q.as_deref().map(str::trim).filter(|q| !q.is_empty());
+    let search_id = keyword
+        .and_then(|q| q.strip_prefix('#'))
+        .filter(|id| id.bytes().all(|byte| byte.is_ascii_digit()))
+        .and_then(|id| id.parse::<i64>().ok())
+        .filter(|&id| id > 0);
 
     let (users, total) = cds_db::user::find(
         &s.db.conn,
         FindUserOptions {
-            id: params.id,
-            name: params.name,
+            id: search_id,
+            keyword: keyword.filter(|_| search_id.is_none()).map(str::to_owned),
             banned: params.banned,
+            permissions,
             sorts: params.sorts,
             page: Some(page),
             size: Some(size),
+            ..Default::default()
         },
     )
     .await?;

@@ -486,9 +486,6 @@ const router = createBrowserRouter([
                 permissions: [MANAGEMENT_USER_PERMISSION],
               } satisfies AccessPolicy,
             },
-            lazy: async () => ({
-              Component: (await import("@/pages/admin/users/layout")).default,
-            }),
             children: [
               {
                 index: true,

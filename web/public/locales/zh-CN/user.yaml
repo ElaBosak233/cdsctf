@@ -111,8 +111,15 @@ statistics:
   top_categories: 解题最多的分类
   error: 统计数据加载失败，请稍后重试。
 search:
-  username: 用户名
   banned: 账号状态
+  query: "昵称、登录用户名或 #ID"
+  query_placeholder: "昵称、用户名或 #ID"
+  all_statuses: "全部状态"
+  all_permissions: "全部权限"
+  has_management: "有管理权限"
+  no_management: "无管理权限"
+  no_matches: "没有符合筛选条件的用户。"
+  load_error: "无法加载用户列表。"
 form:
   username:
     _: 用户名

@@ -71,6 +71,7 @@ pub async fn get_game_users(
             sorts: params.sorts,
             page: Some(page),
             size: Some(size),
+            ..Default::default()
         },
     )
     .await?;

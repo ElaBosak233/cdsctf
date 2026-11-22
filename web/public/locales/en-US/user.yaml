@@ -111,8 +111,15 @@ statistics:
   top_categories: Most solved categories
   error: Unable to load statistics. Please try again later.
 search:
-  username: Username
   banned: Account status
+  query: "Nickname, login name, or #ID"
+  query_placeholder: "Name, login, or #ID"
+  all_statuses: "All statuses"
+  all_permissions: "All permissions"
+  has_management: "Has management access"
+  no_management: "No management access"
+  no_matches: "No users match these filters."
+  load_error: "Could not load users."
 form:
   username:
     _: Username

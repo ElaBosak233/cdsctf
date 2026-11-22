@@ -109,8 +109,15 @@ statistics:
   top_categories: 解題最多的分類
   error: 統計資料載入失敗，請稍後重試。
 search:
-  username: 使用者名稱
   banned: 帳號狀態
+  query: "暱稱、登入使用者名稱或 #ID"
+  query_placeholder: "暱稱、帳號或 #ID"
+  all_statuses: "全部狀態"
+  all_permissions: "全部權限"
+  has_management: "有管理權限"
+  no_management: "無管理權限"
+  no_matches: "沒有符合篩選條件的使用者。"
+  load_error: "無法載入使用者清單。"
 form:
   username:
     _: 使用者名稱

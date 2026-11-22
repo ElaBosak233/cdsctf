@@ -3,25 +3,37 @@
 use std::{fmt::Debug, str::FromStr};
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, ConnectionTrait, EntityName, EntityTrait, ExprTrait,
-    FromQueryResult, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, Unchanged,
+    ActiveEnum, ActiveModelTrait, ColumnTrait, Condition, ConnectionTrait, EntityName, EntityTrait,
+    ExprTrait, FromQueryResult, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
+    Unchanged,
     prelude::Expr,
-    sea_query::{Func, Query},
+    sea_query::{
+        Func, Query,
+        extension::postgres::{PgBinOper, PgExpr},
+    },
 };
 
 pub use super::team_user::find_users as find_by_team_id;
 pub(crate) use crate::entity::user::{Column, Entity};
-use crate::{EmailView, traits::DbError};
+use crate::{EmailView, Permission, traits::DbError};
 pub use crate::{
     dto::user::{UserAccountView, UserProfile, UserSummary},
     entity::user::{ActiveModel, Model},
 };
+
+#[derive(Clone, Debug)]
+pub enum PermissionFilter {
+    AnyOf(Vec<Permission>),
+    NoneOf(Vec<Permission>),
+}
 
 #[derive(Clone, Debug, Default)]
 pub struct FindUserOptions {
     pub id: Option<i64>,
     pub name: Option<String>,
     pub banned: Option<bool>,
+    pub keyword: Option<String>,
+    pub permissions: Option<PermissionFilter>,
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
@@ -81,6 +93,8 @@ async fn find_scoped<T>(
         id,
         name,
         banned,
+        keyword,
+        permissions,
         page,
         size,
         sorts,
@@ -103,8 +117,31 @@ where
         sql = sql.filter(condition);
     }
 
+    if let Some(keyword) = keyword {
+        let literal = keyword
+            .replace('\\', "\\\\")
+            .replace('%', "\\%")
+            .replace('_', "\\_");
+        let pattern = format!("%{literal}%");
+        sql = sql.filter(
+            Condition::any()
+                .add(Expr::col(Column::Username).ilike(&pattern))
+                .add(Expr::col(Column::Name).ilike(&pattern)),
+        );
+    }
+
     if let Some(banned) = banned {
         sql = sql.filter(Column::Banned.eq(banned));
+    }
+
+    if let Some(permissions) = permissions {
+        let (include, permissions) = match permissions {
+            PermissionFilter::AnyOf(permissions) => (true, permissions),
+            PermissionFilter::NoneOf(permissions) => (false, permissions),
+        };
+        let values: Vec<_> = permissions.iter().map(ActiveEnum::to_value).collect();
+        let overlaps = Expr::col(Column::Permissions).binary(PgBinOper::Overlap, values);
+        sql = sql.filter(if include { overlaps } else { overlaps.not() });
     }
 
     if let Some(game_id) = game_id {
@@ -134,8 +171,8 @@ where
     }
 
     if let (Some(page), Some(size)) = (page, size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
+        let offset = std::cmp::min(page.saturating_sub(1).saturating_mul(size), i64::MAX as u64);
+        sql = sql.order_by_asc(Column::Id).offset(offset).limit(size);
     }
 
     let users = sql.into_model::<T>().all(conn).await?;

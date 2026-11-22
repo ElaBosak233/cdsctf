@@ -1,11 +1,12 @@
 import type { Permission, UserAccountView } from "@/models/user";
 import { api, toSearchParams } from "@/utils/query";
 
+export type ManagementAccess = "management" | "no_management";
+
 export type GetUsersRequest = {
-  id?: number;
-  name?: string;
-  username?: string;
-  email?: string;
+  q?: string;
+  access?: ManagementAccess;
+  permission?: Permission;
   banned?: boolean;
   page?: number;
   size?: number;

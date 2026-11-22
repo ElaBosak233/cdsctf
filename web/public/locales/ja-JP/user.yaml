@@ -109,8 +109,15 @@ statistics:
   top_categories: 正解数の多いカテゴリ
   error: 統計データを読み込めませんでした。しばらくしてから再度お試しください。
 search:
-  username: ユーザー名
   banned: アカウント状態
+  query: "表示名、ログイン名、または #ID"
+  query_placeholder: "表示名・ログイン名・#ID"
+  all_statuses: "すべての状態"
+  all_permissions: "すべての権限"
+  has_management: "管理権限あり"
+  no_management: "管理権限なし"
+  no_matches: "条件に一致するユーザーがいません。"
+  load_error: "ユーザー一覧を読み込めませんでした。"
 form:
   username:
     _: ユーザー名

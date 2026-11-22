@@ -56,6 +56,7 @@ import { parseTimestamp } from "@/utils/time";
 
 function UserCell({ row }: { row: Row<UserAccountView> }) {
   const user = row.original;
+  const displayName = user.name || user.username;
   const { t } = useTranslation();
   const { isCopied, copyToClipboard } = useClipboard();
 
@@ -63,11 +64,11 @@ function UserCell({ row }: { row: Row<UserAccountView> }) {
     <div className={cn(["flex", "min-w-0", "items-center", "gap-3"])}>
       <Avatar
         src={user.avatar_hash && `/api/media?hash=${user.avatar_hash}`}
-        fallback={user.username?.charAt(0)}
+        fallback={displayName.charAt(0)}
         className="size-9 shrink-0"
       />
       <div className={cn(["min-w-0", "flex-1"])}>
-        <div className="truncate text-sm font-semibold">{user.username}</div>
+        <div className="truncate text-sm font-semibold">{displayName}</div>
         <div
           className={cn([
             "mt-0.5",
@@ -80,6 +81,12 @@ function UserCell({ row }: { row: Row<UserAccountView> }) {
           ])}
         >
           <span className="shrink-0 font-mono">#{user.id}</span>
+          {user.name && (
+            <>
+              <span className="shrink-0">·</span>
+              <span className="truncate">{user.username}</span>
+            </>
+          )}
           <Tooltip>
             <TooltipTrigger
               render={
@@ -102,12 +109,6 @@ function UserCell({ row }: { row: Row<UserAccountView> }) {
             ></TooltipTrigger>
             <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
           </Tooltip>
-          {user.name && (
-            <>
-              <span className="shrink-0">·</span>
-              <span className="truncate">{user.name}</span>
-            </>
-          )}
         </div>
       </div>
     </div>
