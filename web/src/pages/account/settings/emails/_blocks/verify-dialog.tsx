@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { CheckIcon, KeyRoundIcon, MailCheckIcon, SendIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -19,8 +20,7 @@ import {
 } from "@/components/ui/form";
 import { TextField } from "@/components/ui/text-field";
 import { useEmailVerification } from "@/hooks/use-email-verification";
-import { patchAuthenticatedUser } from "@/storages/auth";
-import { useConfigStore } from "@/storages/config";
+import { sessionQueryKey } from "@/storages/auth";
 import { cn } from "@/utils";
 import { notifyApiError } from "@/utils/query";
 
@@ -32,17 +32,14 @@ interface VerifyDialogProps {
 
 export function VerifyDialog({ email, onClose, bump }: VerifyDialogProps) {
   const { t } = useTranslation();
-  const config = useConfigStore((state) => state.config);
-  const requiresCode = config?.email?.enabled;
+  const queryClient = useQueryClient();
   const verification = useEmailVerification(email, sendVerifyEmail);
 
   const schema = z.object({
     code: z
       .string()
       .trim()
-      .refine((value) => !requiresCode || value.length > 0, {
-        message: t("user:emails.verify_code_required"),
-      }),
+      .min(1, { message: t("user:emails.verify_code_required") }),
   });
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -52,7 +49,7 @@ export function VerifyDialog({ email, onClose, bump }: VerifyDialogProps) {
   async function handleVerify({ code }: z.infer<typeof schema>) {
     try {
       await verifyEmail({ email, code });
-      patchAuthenticatedUser({ verified: true });
+      await queryClient.invalidateQueries({ queryKey: sessionQueryKey });
       toast.success(t("user:emails.actions.verify.success", { email }));
       bump();
       onClose();
@@ -81,73 +78,55 @@ export function VerifyDialog({ email, onClose, bump }: VerifyDialogProps) {
             onSubmit={form.handleSubmit(handleVerify)}
             className="flex flex-col gap-3"
           >
-            {requiresCode ? (
-              <>
-                {verification.feedback && (
-                  <p
-                    role="status"
-                    className={cn(
-                      "text-sm",
-                      verification.failed
-                        ? "text-error"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {verification.feedback}
-                  </p>
+            {verification.feedback && (
+              <p
+                role="status"
+                className={cn(
+                  "text-sm",
+                  verification.failed ? "text-error" : "text-muted-foreground"
                 )}
-                <FormField
-                  control={form.control}
-                  name="code"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t("user:emails.verify_code_label")}
-                      </FormLabel>
-                      <Field size="sm">
-                        <FieldIcon>
-                          <KeyRoundIcon />
-                        </FieldIcon>
-                        <FormControl>
-                          <TextField
-                            {...field}
-                            autoComplete="one-time-code"
-                            autoCapitalize="none"
-                            spellCheck={false}
-                            placeholder={t(
-                              "user:emails.verify_code_placeholder"
-                            )}
-                          />
-                        </FormControl>
-                      </Field>
-                      <FormMessage className="static block" />
-                    </FormItem>
-                  )}
-                />
-              </>
-            ) : (
-              <p className="text-muted-foreground text-sm">
-                {t("user:emails.actions.verify.disabled", {
-                  title: config?.meta?.title,
-                })}
+              >
+                {verification.feedback}
               </p>
             )}
-            <DialogFooter className="flex-wrap">
-              {requiresCode && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  icon={<SendIcon />}
-                  loading={verification.sending}
-                  disabled={
-                    verification.coolingDown || form.formState.isSubmitting
-                  }
-                  onClick={() => verification.request()}
-                >
-                  {verification.sendLabel}
-                </Button>
+            <FormField
+              control={form.control}
+              name="code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("user:emails.verify_code_label")}</FormLabel>
+                  <Field size="sm">
+                    <FieldIcon>
+                      <KeyRoundIcon />
+                    </FieldIcon>
+                    <FormControl>
+                      <TextField
+                        {...field}
+                        autoComplete="one-time-code"
+                        autoCapitalize="none"
+                        spellCheck={false}
+                        placeholder={t("user:emails.verify_code_placeholder")}
+                      />
+                    </FormControl>
+                  </Field>
+                  <FormMessage className="static block" />
+                </FormItem>
               )}
+            />
+            <DialogFooter className="flex-wrap">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                icon={<SendIcon />}
+                loading={verification.sending}
+                disabled={
+                  verification.coolingDown || form.formState.isSubmitting
+                }
+                onClick={() => verification.request()}
+              >
+                {verification.sendLabel}
+              </Button>
               <Button
                 type="submit"
                 variant="solid"

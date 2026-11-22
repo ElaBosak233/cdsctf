@@ -158,7 +158,7 @@ pub async fn create_debug_instance(
     let instance_id = s
         .cluster
         .create_challenge_instance(
-            operator,
+            operator.id,
             None,
             None,
             challenge,

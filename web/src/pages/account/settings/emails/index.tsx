@@ -23,6 +23,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useRefresh } from "@/hooks/use-refresh";
 import type { EmailView } from "@/models/email";
+import { BASIC_PERMISSION, hasPermission } from "@/models/user";
+import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 
@@ -34,6 +36,10 @@ export default function Index() {
   const { t } = useTranslation();
 
   const configStore = useConfigStore();
+  const emailEnabled = configStore.config?.email?.enabled === true;
+  const hasBasic = useAuthStore((state) =>
+    hasPermission(state.user?.permissions, BASIC_PERMISSION)
+  );
   const { tick, bump } = useRefresh();
 
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
@@ -48,6 +54,8 @@ export default function Index() {
     queryKey: ["account", "emails", tick],
     queryFn: async () => (await getEmails()).emails ?? [],
   });
+
+  const verifiedCount = emails.filter((email) => email.verified).length;
 
   return (
     <>
@@ -91,6 +99,15 @@ export default function Index() {
           </Button>
         </div>
         <Separator />
+        {!hasBasic && (
+          <p className="text-sm text-muted-foreground">
+            {t(
+              emailEnabled && verifiedCount === 0
+                ? "user:emails.basic_verification"
+                : "user:emails.basic_contact_admin"
+            )}
+          </p>
+        )}
         <ItemGroup
           className={cn([
             "overflow-hidden",
@@ -100,52 +117,64 @@ export default function Index() {
             "text-card-foreground",
           ])}
         >
-          {emails?.map((email, index) => (
-            <React.Fragment key={email.email}>
-              <Item className={cn(["bg-card", "text-card-foreground"])}>
-                <ItemContent className="min-w-0 gap-1">
-                  <ItemTitle className="break-all">{email.email}</ItemTitle>
-                  <ItemDescription>
-                    {email.verified ? (
-                      <span className={cn(["flex", "gap-1", "items-center"])}>
-                        <span>{t("user:emails.verified.true._")}</span>
-                        <CheckIcon className={cn(["size-4", "text-success"])} />
-                      </span>
-                    ) : (
-                      t("user:emails.verified.false._")
+          {emails.map((email, index) => {
+            const isLastVerified = email.verified && verifiedCount === 1;
+            return (
+              <React.Fragment key={email.email}>
+                <Item className={cn(["bg-card", "text-card-foreground"])}>
+                  <ItemContent className="min-w-0 gap-1">
+                    <ItemTitle className="break-all">{email.email}</ItemTitle>
+                    <ItemDescription>
+                      {email.verified ? (
+                        <span className={cn(["flex", "gap-1", "items-center"])}>
+                          <span>{t("user:emails.verified.true._")}</span>
+                          <CheckIcon
+                            className={cn(["size-4", "text-success"])}
+                          />
+                        </span>
+                      ) : (
+                        t("user:emails.verified.false._")
+                      )}
+                    </ItemDescription>
+                    {isLastVerified && (
+                      <ItemDescription>
+                        {t("user:emails.last_verified.description")}
+                      </ItemDescription>
                     )}
-                  </ItemDescription>
-                </ItemContent>
-                <ItemActions>
-                  {!email.verified && (
+                  </ItemContent>
+                  <ItemActions>
+                    {emailEnabled && !email.verified && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={<MailCheckIcon />}
+                        onClick={() => {
+                          setVerifyEmail(email.email);
+                          setVerifyDialogOpen(true);
+                        }}
+                      >
+                        {t("user:emails.actions.verify._")}
+                      </Button>
+                    )}
                     <Button
+                      level={"error"}
                       variant="ghost"
-                      size="sm"
-                      icon={<MailCheckIcon />}
+                      size={"sm"}
+                      square
+                      icon={<TrashIcon />}
+                      aria-label={t("user:emails.actions.delete._")}
+                      disabled={isLastVerified}
                       onClick={() => {
-                        setVerifyEmail(email.email);
-                        setVerifyDialogOpen(true);
+                        setDeleteEmail(email.email);
+                        setDeleteDialogOpen(true);
                       }}
-                    >
-                      {t("user:emails.actions.verify._")}
-                    </Button>
-                  )}
-                  <Button
-                    level={"error"}
-                    variant="ghost"
-                    size={"sm"}
-                    square
-                    icon={<TrashIcon />}
-                    onClick={() => {
-                      setDeleteEmail(email.email);
-                      setDeleteDialogOpen(true);
-                    }}
-                  />
-                </ItemActions>
-              </Item>
-              {index !== emails.length - 1 && <ItemSeparator />}
-            </React.Fragment>
-          ))}
+                    />
+                  </ItemActions>
+                </Item>
+                {index !== emails.length - 1 && <ItemSeparator />}
+              </React.Fragment>
+            );
+          })}
         </ItemGroup>
       </div>
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>

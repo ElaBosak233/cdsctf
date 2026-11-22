@@ -23,6 +23,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Json as ReqJson, Query},
+    middleware::auth::basic_operator,
     traits::{AppState, AuthPrincipal, WebError},
 };
 
@@ -62,6 +63,7 @@ pub struct ChallengesListResponse {
     responses(
         (status = 200, description = "Challenges", body = ChallengesListResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -71,7 +73,7 @@ pub async fn list_challenges(
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<ListChallengesRequest>,
 ) -> Result<Json<ChallengesListResponse>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let _ = basic_operator(&ext)?;
 
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
@@ -135,6 +137,7 @@ fn valid_status_scope(user_id: Option<i64>, team_id: Option<i64>, game_id: Optio
         (status = 200, description = "Per-challenge status", body = ChallengeStatusesResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 423, description = "Game paused", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -145,7 +148,7 @@ pub async fn query_challenge_status(
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<QueryChallengeStatusRequest>,
 ) -> Result<Json<ChallengeStatusesResponse>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let _ = basic_operator(&ext)?;
 
     if !valid_status_scope(body.user_id, body.team_id, body.game_id) {
         return Err(WebError::BadRequest(json!("either_user_or_team")));

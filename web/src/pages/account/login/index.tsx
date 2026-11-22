@@ -19,6 +19,7 @@ import { useAuthStore } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import {
+  getPostLoginTarget,
   getSafeRedirect,
   rememberIdpRedirect,
   withRedirect,
@@ -42,7 +43,7 @@ export default function Index() {
     if (status !== "authenticated" || !user) return;
     if (authenticatedByForm.current) return;
 
-    navigate(redirect, { replace: true });
+    navigate(getPostLoginTarget(user, redirect), { replace: true });
     toast.warning(t("account:login.warning.already_logged_in"), {
       id: "login-already",
     });

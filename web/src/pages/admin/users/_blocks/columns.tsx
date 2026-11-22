@@ -45,7 +45,9 @@ import {
 import { useClipboard } from "@/hooks/use-clipboard";
 import type { Column, ColumnDef, Row } from "@/hooks/use-data-table";
 import {
+  BASIC_PERMISSION,
   hasAnyPermission,
+  hasPermission,
   MANAGEMENT_PERMISSIONS,
   type UserAccountView,
 } from "@/models/user";
@@ -117,6 +119,7 @@ function UserCell({ row }: { row: Row<UserAccountView> }) {
 
 function AccountStatusCell({ row }: { row: Row<UserAccountView> }) {
   const { t } = useTranslation();
+  const hasBasic = hasPermission(row.original.permissions, BASIC_PERMISSION);
   return (
     <div className={cn(["flex", "flex-wrap", "items-center", "gap-1.5"])}>
       <Badge
@@ -142,17 +145,13 @@ function AccountStatusCell({ row }: { row: Row<UserAccountView> }) {
       <Badge
         variant="outline"
         className={cn(
-          row.original.verified
+          hasBasic
             ? ["border-success/20", "bg-success/10", "text-success"]
             : ["text-warning"]
         )}
       >
-        {row.original.verified ? <CircleCheckIcon /> : <AlertCircleIcon />}
-        {t(
-          row.original.verified
-            ? "user:list.verified.true"
-            : "user:list.verified.false"
-        )}
+        {hasBasic ? <CircleCheckIcon /> : <AlertCircleIcon />}
+        {t(hasBasic ? "user:list.basic.true" : "user:list.basic.false")}
       </Badge>
     </div>
   );

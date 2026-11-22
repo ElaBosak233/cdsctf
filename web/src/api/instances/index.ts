@@ -7,6 +7,7 @@ export type GetInstanceRequest = {
   user_id?: number;
   team_id?: number;
   challenge_id?: number;
+  debug?: boolean;
 };
 
 export async function getInstances(request: GetInstanceRequest) {

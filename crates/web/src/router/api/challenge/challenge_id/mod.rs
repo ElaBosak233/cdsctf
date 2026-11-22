@@ -16,6 +16,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Path},
+    middleware::auth::basic_operator,
     traits::{AppState, AuthPrincipal, WebError},
 };
 
@@ -53,7 +54,7 @@ pub async fn get_challenge(
     Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
 ) -> Result<Json<ChallengeDetailResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
 

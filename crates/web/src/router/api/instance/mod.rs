@@ -7,7 +7,8 @@ mod instance_id;
 use std::{collections::BTreeMap, sync::Arc};
 
 use axum::{Json, Router, extract::State, http::StatusCode};
-use cds_db::{TeamUserView, team_user::FindTeamUserOptions};
+use cds_cluster::metadata::InstanceMode;
+use cds_db::{Permission, TeamUserView, UserAccountView, team_user::FindTeamUserOptions};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -17,6 +18,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Json as ReqJson, Query},
+    middleware::auth::{basic_operator, require_permissions},
     traits::{AppState, AuthPrincipal, WebError},
     util::cluster::{Instance, project_instances},
 };
@@ -38,11 +40,25 @@ pub struct GetInstanceRequest {
     pub team_id: Option<i64>,
     pub game_id: Option<i64>,
     pub challenge_id: Option<i64>,
+    /// Requests instances created by the caller for administrative testing.
+    pub debug: Option<bool>,
 }
 
 #[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
 pub struct ListInstancesResponse {
     pub instances: Vec<Instance>,
+}
+
+fn instance_operator(principal: &AuthPrincipal, debug: bool) -> Result<&UserAccountView, WebError> {
+    if !debug {
+        return basic_operator(principal);
+    }
+    let operator = principal
+        .operator
+        .as_ref()
+        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    require_permissions(operator, &[Permission::ManagementChallenge])?;
+    Ok(operator)
 }
 
 /// Lists instances matching label filters (collection query).
@@ -69,19 +85,18 @@ pub async fn list_instances(
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<GetInstanceRequest>,
 ) -> Result<Json<ListInstancesResponse>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let debug = params.debug.unwrap_or_default();
+    let operator = instance_operator(&ext, debug)?;
     let mut map: BTreeMap<String, String> = BTreeMap::new();
 
-    match (params.user_id, params.team_id, params.game_id) {
-        (Some(user_id), None, None) => {
+    match (params.user_id, params.team_id, params.game_id, debug) {
+        (Some(user_id), None, None, _) => {
             if operator.id != user_id {
                 return Err(WebError::Forbidden(json!("forbidden")));
             }
             map.insert("cds/user_id".to_owned(), format!("{}", user_id));
         }
-        (_, Some(team_id), Some(game_id)) => {
+        (_, Some(team_id), Some(game_id), false) => {
             let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
             crate::util::loader::ensure_game_not_paused(&game)?;
             let team =
@@ -115,7 +130,8 @@ pub async fn list_instances(
 
     let pods = s.cluster.get_pods_by_label(&labels).await?;
     let services = s.cluster.get_services_by_label(&labels).await?;
-    let instances = project_instances(&pods, &services, &s.env);
+    let mut instances = project_instances(&pods, &services, &s.env);
+    instances.retain(|instance| (instance.mode == InstanceMode::Debug) == debug);
 
     Ok(Json(ListInstancesResponse { instances }))
 }
@@ -156,9 +172,7 @@ pub async fn create_instance(
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateInstanceRequest>,
 ) -> Result<(StatusCode, Json<CreateInstanceResponse>), WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 
@@ -251,11 +265,45 @@ pub async fn create_instance(
     };
     let instance_id = s
         .cluster
-        .create_challenge_instance(operator, team, game, challenge, mode)
+        .create_challenge_instance(operator.id, team, game, challenge, mode)
         .await?;
 
     Ok((
         StatusCode::CREATED,
         Json(CreateInstanceResponse { instance_id }),
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn player_and_debug_instances_enforce_their_own_permissions() {
+        for (permission, debug) in [
+            (Permission::Basic, false),
+            (Permission::ManagementChallenge, true),
+        ] {
+            let principal = AuthPrincipal {
+                operator: Some(UserAccountView {
+                    id: 1,
+                    name: String::new(),
+                    username: String::new(),
+                    banned: false,
+                    permissions: vec![permission],
+                    description: None,
+                    hashed_password: String::new(),
+                    avatar_hash: None,
+                    created_at: time::OffsetDateTime::UNIX_EPOCH,
+                    updated_at: time::OffsetDateTime::UNIX_EPOCH,
+                }),
+                ..Default::default()
+            };
+            assert!(instance_operator(&principal, debug).is_ok());
+            assert!(matches!(
+                instance_operator(&principal, !debug),
+                Err(WebError::Forbidden(_))
+            ));
+        }
+    }
 }

@@ -6,9 +6,9 @@ list:
     user: 使用者
     status: 帳號狀態
     created_at: 註冊時間
-  verified:
-    "true": 已驗證
-    "false": 未驗證
+  basic:
+    "true": 有基礎權限
+    "false": 無基礎權限
 edit:
   _: 編輯使用者
   info: 基本資訊
@@ -170,6 +170,11 @@ actions:
     _: 解除封禁
     success: "使用者 {{username}} 已解除封禁。"
 emails:
+  basic_verification: 驗證一個電子郵件地址後即可取得基礎權限。
+  basic_contact_admin: 請聯絡管理員授予基礎權限。
+  last_verified:
+    title: 無法移除最後一個已驗證的電子郵件地址
+    description: 請先驗證另一個電子郵件地址。
   _: 電子郵件
   brief: 新增或編輯此使用者綁定的電子郵件地址
   verify_code_label: "驗證碼"
@@ -205,7 +210,6 @@ emails:
       success: "電子郵件 {{email}} 刪除成功。"
     verify:
       _: 驗證電子郵件
-      disabled: "{{title}} 未啟用郵件服務，可直接確認此電子郵件地址。"
       success: "電子郵件 {{email}} 驗證成功。"
     send_verify:
       _: "傳送驗證碼"

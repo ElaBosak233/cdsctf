@@ -46,7 +46,6 @@ pub struct UserAccountView {
     pub id: i64,
     pub name: String,
     pub username: String,
-    pub verified: Option<bool>,
     pub banned: bool,
     pub permissions: Vec<Permission>,
     pub description: Option<String>,

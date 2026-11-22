@@ -178,6 +178,9 @@ impl IntoResponse for WebError {
                 cds_db::traits::DbError::NotFound(msg) => {
                     (StatusCode::NOT_FOUND, serde_json::json!(msg.clone()))
                 }
+                cds_db::traits::DbError::Conflict(msg) => {
+                    (StatusCode::CONFLICT, serde_json::json!(msg.clone()))
+                }
                 _ => {
                     error!("{:?}", err);
 

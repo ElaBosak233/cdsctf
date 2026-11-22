@@ -7,7 +7,10 @@ use axum::{
     extract::{State, WebSocketUpgrade},
     response::IntoResponse,
 };
-use cds_cluster::{k8s_openapi::api::core::v1::Pod, metadata::InstanceIdentity};
+use cds_cluster::{
+    k8s_openapi::api::core::v1::Pod,
+    metadata::{InstanceIdentity, InstanceMode},
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::Instrument;
@@ -16,6 +19,7 @@ use utoipa_axum::{
     routes,
 };
 
+use super::instance_operator;
 use crate::{
     extract::{Extension, Path, Query},
     traits::{AppState, AuthPrincipal, WebError},
@@ -32,11 +36,12 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 /// Resolve authorization from validated identity, including terminal pods.
 async fn authorize(
     s: &AppState,
-    principal: AuthPrincipal,
+    principal: &AuthPrincipal,
     pod: &Pod,
 ) -> Result<InstanceIdentity, WebError> {
     let operator = principal
         .operator
+        .as_ref()
         .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
     let identity = InstanceIdentity::parse(&pod.metadata)?;
     if operator.id != identity.creator_user_id {
@@ -55,7 +60,7 @@ async fn authorize(
 
 async fn load_authorized(
     s: &AppState,
-    principal: AuthPrincipal,
+    principal: &AuthPrincipal,
     id: &str,
 ) -> Result<(Pod, InstanceIdentity), WebError> {
     if principal.operator.is_none() {
@@ -88,7 +93,8 @@ pub async fn renew_instance(
     Extension(principal): Extension<AuthPrincipal>,
     Path(instance_id): Path<String>,
 ) -> Result<Json<Instance>, WebError> {
-    let (pod, identity) = load_authorized(&s, principal, &instance_id).await?;
+    let (pod, identity) = load_authorized(&s, &principal, &instance_id).await?;
+    instance_operator(&principal, identity.mode == InstanceMode::Debug)?;
     if let Some(game_id) = identity.game_id {
         let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
         crate::util::loader::ensure_game_not_paused(&game)?;
@@ -125,7 +131,7 @@ pub async fn stop_instance(
     Extension(principal): Extension<AuthPrincipal>,
     Path(instance_id): Path<String>,
 ) -> Result<Json<StopInstanceResponse>, WebError> {
-    let (pod, _) = load_authorized(&s, principal, &instance_id).await?;
+    let (pod, _) = load_authorized(&s, &principal, &instance_id).await?;
     s.cluster.stop_challenge_instance(&pod).await?;
     Ok(Json(StopInstanceResponse::default()))
 }
@@ -156,7 +162,8 @@ pub async fn wsrx(
     Query(query): Query<WsrxRequest>,
     ws: WebSocketUpgrade,
 ) -> Result<impl IntoResponse, WebError> {
-    let (pod, identity) = load_authorized(&s, principal, &instance_id).await?;
+    let (pod, identity) = load_authorized(&s, &principal, &instance_id).await?;
+    instance_operator(&principal, identity.mode == InstanceMode::Debug)?;
     let port = u16::try_from(query.port)
         .ok()
         .filter(|port| *port != 0)

@@ -322,7 +322,6 @@ pub async fn register(
     }
 
     let hashed_password = util::crypto::hash_password(body.password);
-    let email_verified = !email_config.enabled;
     let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
 
     let user = cds_db::user::create::<UserAccountView>(
@@ -331,23 +330,16 @@ pub async fn register(
             username: Set(body.username),
             name: Set(body.name),
             hashed_password: Set(hashed_password),
-            permissions: Set(vec![cds_db::Permission::Basic]),
+            permissions: Set(Vec::new()),
             ..Default::default()
         },
     )
     .await
     .map_err(registration_db_error)?;
 
-    let _ = cds_db::email::create::<EmailView>(
-        &transaction,
-        cds_db::email::ActiveModel {
-            user_id: Set(user.id),
-            email: Set(body.email),
-            verified: Set(email_verified),
-        },
-    )
-    .await
-    .map_err(registration_db_error)?;
+    cds_db::email::create(&transaction, user.id, body.email, false)
+        .await
+        .map_err(registration_db_error)?;
 
     let _ = create_user_idp(
         &transaction,

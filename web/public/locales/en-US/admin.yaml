@@ -61,7 +61,7 @@ mailbox:
       _: Email verification
       description:
         enabled: Users verify new email addresses with a code and can reset their password by email.
-        disabled: New email addresses are marked as verified automatically. Password reset by email is disabled.
+        disabled: Email verification and password reset by email are unavailable. Administrators can grant basic access directly.
     host:
       _: SMTP Host
       placeholder: smtp.example.com

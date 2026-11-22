@@ -52,6 +52,7 @@ export default function Emails() {
   });
 
   const hasEmails = useMemo(() => emails.length > 0, [emails.length]);
+  const verifiedCount = emails.filter((email) => email.verified).length;
 
   function handleRefresh() {
     void refetch();
@@ -120,68 +121,83 @@ export default function Emails() {
       <Separator />
       {hasEmails ? (
         <ItemGroup className={cn(["rounded-xl", "border"])}>
-          {emails.map((email, index) => (
-            <Fragment key={email.email}>
-              <Item
-                className={cn([
-                  "flex",
-                  "flex-col",
-                  "gap-4",
-                  "md:flex-row",
-                  "md:items-center",
-                ])}
-              >
-                <ItemContent>
-                  <ItemTitle className={cn(["text-base"])}>
-                    {email.email}
-                    {email.verified && (
-                      <Badge className={cn(["bg-success/15", "text-success"])}>
-                        <CheckIcon className={cn(["size-3.5"])} />
-                        {t("user:emails.verified.true._")}
-                      </Badge>
+          {emails.map((email, index) => {
+            const isLastVerified = email.verified && verifiedCount === 1;
+            return (
+              <Fragment key={email.email}>
+                <Item
+                  className={cn([
+                    "flex",
+                    "flex-col",
+                    "gap-4",
+                    "md:flex-row",
+                    "md:items-center",
+                  ])}
+                >
+                  <ItemContent>
+                    <ItemTitle className={cn(["text-base"])}>
+                      {email.email}
+                      {email.verified && (
+                        <Badge
+                          className={cn(["bg-success/15", "text-success"])}
+                        >
+                          <CheckIcon className={cn(["size-3.5"])} />
+                          {t("user:emails.verified.true._")}
+                        </Badge>
+                      )}
+                    </ItemTitle>
+                    <ItemDescription>
+                      {email.verified
+                        ? t("user:emails.verified.true.long")
+                        : t("user:emails.verified.false.long")}
+                    </ItemDescription>
+                    {isLastVerified && (
+                      <ItemDescription>
+                        {t("user:emails.last_verified.description")}
+                      </ItemDescription>
                     )}
-                  </ItemTitle>
-                  <ItemDescription>
-                    {email.verified
-                      ? t("user:emails.verified.true.long")
-                      : t("user:emails.verified.false.long")}
-                  </ItemDescription>
-                </ItemContent>
-                <ItemActions className={cn(["flex", "flex-wrap", "gap-3"])}>
-                  <div
-                    className={cn([
-                      "flex",
-                      "items-center",
-                      "gap-2",
-                      "text-sm",
-                      "text-muted-foreground",
-                    ])}
-                  >
-                    <span>{t("user:emails.verified.true._")}</span>
-                    <Switch
-                      checked={email.verified}
-                      onCheckedChange={(checked) =>
-                        handleToggle(email.email, checked === true)
-                      }
-                      disabled={updatingEmail === email.email}
+                  </ItemContent>
+                  <ItemActions className={cn(["flex", "flex-wrap", "gap-3"])}>
+                    <div
+                      className={cn([
+                        "flex",
+                        "items-center",
+                        "gap-2",
+                        "text-sm",
+                        "text-muted-foreground",
+                      ])}
+                    >
+                      <span>{t("user:emails.verified.true._")}</span>
+                      <Switch
+                        checked={email.verified}
+                        onCheckedChange={(checked) =>
+                          handleToggle(email.email, checked === true)
+                        }
+                        aria-label={t("user:emails.verified.true._")}
+                        disabled={
+                          isLastVerified || updatingEmail === email.email
+                        }
+                      />
+                    </div>
+                    <Button
+                      variant={"ghost"}
+                      size={"sm"}
+                      level={"error"}
+                      square
+                      icon={<TrashIcon />}
+                      aria-label={t("user:emails.actions.delete._")}
+                      disabled={isLastVerified}
+                      onClick={() => {
+                        setDeleteTarget(email.email);
+                        setDeleteDialogOpen(true);
+                      }}
                     />
-                  </div>
-                  <Button
-                    variant={"ghost"}
-                    size={"sm"}
-                    level={"error"}
-                    square
-                    icon={<TrashIcon />}
-                    onClick={() => {
-                      setDeleteTarget(email.email);
-                      setDeleteDialogOpen(true);
-                    }}
-                  />
-                </ItemActions>
-              </Item>
-              {index !== emails.length - 1 && <ItemSeparator />}
-            </Fragment>
-          ))}
+                  </ItemActions>
+                </Item>
+                {index !== emails.length - 1 && <ItemSeparator />}
+              </Fragment>
+            );
+          })}
         </ItemGroup>
       ) : (
         <div

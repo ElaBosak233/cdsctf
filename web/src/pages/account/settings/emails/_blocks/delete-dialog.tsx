@@ -1,4 +1,5 @@
 import { TrashIcon } from "lucide-react";
+import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { deleteEmail } from "@/api/users/me/emails";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DialogBody, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { cn } from "@/utils";
+import { notifyApiError } from "@/utils/query";
 
 interface DeleteDialogProps {
   email: string;
@@ -16,15 +18,21 @@ interface DeleteDialogProps {
 function DeleteDialog(props: DeleteDialogProps) {
   const { email, bump, onClose } = props;
   const { t } = useTranslation();
+  const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
-    await deleteEmail({
-      email: email,
-    });
-
-    toast.success(t("user:emails.actions.delete.success", { email }));
-    onClose();
-    bump();
+    setDeleting(true);
+    try {
+      await deleteEmail({ email });
+      toast.success(t("user:emails.actions.delete.success", { email }));
+      onClose();
+      bump();
+    } catch (error) {
+      await notifyApiError(error);
+      bump();
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -60,6 +68,7 @@ function DeleteDialog(props: DeleteDialogProps) {
             level={"error"}
             variant={"solid"}
             size={"sm"}
+            loading={deleting}
             onClick={handleDelete}
           >
             {t("common:actions.confirm")}

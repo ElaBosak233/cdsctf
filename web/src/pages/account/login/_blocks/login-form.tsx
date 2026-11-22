@@ -30,7 +30,7 @@ import { setAuthenticatedUser } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { notifyApiError } from "@/utils/query";
-import { getSafeRedirect } from "@/utils/redirect";
+import { getPostLoginTarget, getSafeRedirect } from "@/utils/redirect";
 
 function LoginForm({ onAuthenticated }: { onAuthenticated?: () => void }) {
   const configStore = useConfigStore();
@@ -71,23 +71,17 @@ function LoginForm({ onAuthenticated }: { onAuthenticated?: () => void }) {
       onAuthenticated?.();
       setAuthenticatedUser(res.user);
 
-      if (res.user?.verified) {
-        toast.success(t("account:login.success._"), {
-          id: "login",
-          description: t("account:login.success.welcome", {
-            name: res.user?.name,
-          }),
-        });
-        navigate(getSafeRedirect(searchParams.get("redirect")), {
-          replace: true,
-        });
-      } else {
-        toast.warning(t("account:login.warning.not_verified"), {
-          id: "verify",
-          description: t("account:login.warning.verify_email"),
-        });
-        navigate("/account/settings/emails");
-      }
+      const target = getPostLoginTarget(
+        res.user,
+        getSafeRedirect(searchParams.get("redirect"))
+      );
+      toast.success(t("account:login.success._"), {
+        id: "login",
+        description: t("account:login.success.welcome", {
+          name: res.user.name,
+        }),
+      });
+      navigate(target, { replace: true });
     } catch (error) {
       if (!(error instanceof HTTPError)) {
         await notifyApiError(error);

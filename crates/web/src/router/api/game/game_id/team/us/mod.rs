@@ -35,6 +35,7 @@ use utoipa_axum::{
 use super::TeamResponse;
 use crate::{
     extract::{Extension, Json as ReqJson, Path},
+    middleware::auth::basic_operator,
     traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
@@ -63,6 +64,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     responses(
         (status = 200, description = "Current team", body = TeamResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -72,9 +74,7 @@ pub async fn get_team(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<TeamResponse>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
@@ -101,6 +101,7 @@ pub struct UpdateTeamRequest {
     responses(
         (status = 200, description = "Updated team", body = TeamResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -111,9 +112,7 @@ pub async fn update_team(
     Path(game_id): Path<i64>,
     ReqJson(body): ReqJson<UpdateTeamRequest>,
 ) -> Result<Json<TeamResponse>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
 
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
@@ -183,6 +182,7 @@ pub async fn delete_team(
         (status = 200, description = "Team ready", body = TeamResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -192,9 +192,7 @@ pub async fn set_team_ready(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<TeamResponse>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 

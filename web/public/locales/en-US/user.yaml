@@ -6,9 +6,9 @@ list:
     user: User
     status: Account Status
     created_at: Registered
-  verified:
-    "true": Verified
-    "false": Unverified
+  basic:
+    "true": Basic access
+    "false": No basic access
 edit:
   _: Edit User
   info: Info
@@ -172,6 +172,11 @@ actions:
     _: Unban account
     success: "User {{username}} was unbanned."
 emails:
+  basic_verification: Verify an email address to get basic access.
+  basic_contact_admin: Contact an administrator to request basic access.
+  last_verified:
+    title: The last verified email cannot be removed
+    description: Verify another email address first.
   _: Emails
   brief: Add or edit this user's email addresses
   verify_code_label: "Verification code"
@@ -209,9 +214,6 @@ emails:
       success: "Email {{email}} deleted successfully."
     verify:
       _: Verify Email
-      disabled: >-
-        {{title}} has not enabled email service, you can directly confirm to
-        verify the email.
       success: "Email {{email}} verified successfully."
     send_verify:
       _: "Send code"

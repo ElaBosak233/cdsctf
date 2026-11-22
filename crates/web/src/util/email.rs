@@ -2,7 +2,7 @@
 
 use serde_json::json;
 
-use crate::traits::WebError;
+use crate::traits::{AppState, WebError};
 
 #[derive(serde::Deserialize, utoipa::IntoParams)]
 #[into_params(parameter_in = Query)]
@@ -67,6 +67,23 @@ pub fn validate_new_address(address: &str, rules: &[String]) -> Result<(), WebEr
     } else {
         Err(WebError::BadRequest(json!("email_domain_not_allowed")))
     }
+}
+
+pub async fn consume_verification_code(
+    s: &AppState,
+    key: &str,
+    code: &str,
+) -> Result<(), WebError> {
+    if s.cache.delete_if_equal(key, code).await? {
+        return Ok(());
+    }
+
+    let error = if s.cache.exists(key).await? {
+        "email_code_incorrect"
+    } else {
+        "email_code_expired"
+    };
+    Err(WebError::BadRequest(json!(error)))
 }
 
 #[cfg(test)]

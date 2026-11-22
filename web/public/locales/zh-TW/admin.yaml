@@ -61,7 +61,7 @@ mailbox:
       _: 電子郵件驗證
       description:
         enabled: 使用者透過郵件驗證碼驗證新增的電子郵件地址，也可透過郵件重設密碼。
-        disabled: 使用者新增的電子郵件地址會自動標記為已驗證。郵件密碼重設功能將停用。
+        disabled: 電子郵件驗證和郵件密碼重設暫停使用。管理員可以直接授予基礎權限。
     host:
       _: SMTP 主機
       placeholder: smtp.example.com

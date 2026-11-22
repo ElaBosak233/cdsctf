@@ -5,7 +5,6 @@ use std::sync::Arc;
 use axum::{Json, Router, extract::State};
 use cds_db::note::{FindNotesOptions, NoteView};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -13,6 +12,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Query},
+    middleware::auth::basic_operator,
     traits::{AppState, AuthPrincipal, WebError},
 };
 
@@ -49,6 +49,7 @@ pub struct ListNotesResponse {
     responses(
         (status = 200, description = "Public notes", body = ListNotesResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -59,7 +60,7 @@ pub async fn list_notes(
     Extension(ap): Extension<AuthPrincipal>,
     Query(params): Query<ListNotesRequest>,
 ) -> Result<Json<ListNotesResponse>, WebError> {
-    let _ = ap.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let _ = basic_operator(&ap)?;
 
     let (notes, total) = cds_db::note::find(
         &s.db.conn,

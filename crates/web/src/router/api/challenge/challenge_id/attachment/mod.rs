@@ -15,6 +15,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Path},
+    middleware::auth::basic_operator,
     model::Metadata,
     traits::{AppState, AuthPrincipal, WebError},
 };
@@ -44,6 +45,7 @@ pub struct ChallengeAttachmentsListResponse {
     responses(
         (status = 200, description = "Attachment metadata", body = ChallengeAttachmentsListResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -54,7 +56,7 @@ pub async fn get_challenge_attachment(
     Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
 ) -> Result<Json<ChallengeAttachmentsListResponse>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
 
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id)
         .await?

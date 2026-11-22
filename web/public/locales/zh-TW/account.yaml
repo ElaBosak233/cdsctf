@@ -14,9 +14,8 @@ login:
       please_input_password: 請輸入密碼
   warning:
     already_logged_in: 你已登入
-    not_verified: 你的帳號尚未驗證
-    verify_email: 請先驗證你的電子郵件地址
 guard:
+  basic_required: 此功能需要基礎權限
   login_required: 請登入後繼續
   unavailable: 暫時無法確認登入狀態，請重試
   forbidden: 你沒有權限存取此頁面
@@ -106,3 +105,5 @@ captcha:
   _: 人機驗證
   please_refresh: 請重新整理驗證碼
   expired: 驗證碼已失效
+errors:
+  email_not_verified: 請使用已驗證的電子郵件地址重設密碼。

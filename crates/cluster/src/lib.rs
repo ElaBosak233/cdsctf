@@ -408,14 +408,13 @@ impl Cluster {
 
     pub async fn create_challenge_instance(
         &self,
-        user: cds_db::UserAccountView,
+        user_id: i64,
         team: Option<cds_db::TeamView>,
         game: Option<cds_db::GameDetail>,
         challenge: cds_db::ChallengeDetail,
         mode: InstanceMode,
     ) -> Result<String, ClusterError> {
         let id = util::gen_safe_nanoid();
-        let user_id = user.id;
         let challenge_id = challenge.id;
         let game_id = game.as_ref().map(|game| game.id);
         let team_id = team.as_ref().map(|team| team.id);
@@ -434,7 +433,7 @@ impl Cluster {
 
         let identity = InstanceIdentity {
             id: id.clone(),
-            creator_user_id: user.id,
+            creator_user_id: user_id,
             challenge_id: challenge.id,
             team_id,
             game_id,
@@ -450,7 +449,7 @@ impl Cluster {
         let subject = if let (Some(_), Some(team)) = (game, team) {
             cds_checker::Subject::Team(team.id)
         } else {
-            cds_checker::Subject::User(user.id)
+            cds_checker::Subject::User(user_id)
         };
 
         let checker_environ = self.checker.generate(&challenge, subject).await?;

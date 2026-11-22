@@ -3,6 +3,7 @@ import { ErrorBoundary } from "@/components/utils/error-boundary";
 import { HydrateFallback } from "@/components/utils/hydrate-fallback";
 import type { AccessPolicy } from "@/components/utils/route-access-boundary";
 import {
+  BASIC_PERMISSION,
   MANAGEMENT_CHALLENGE_PERMISSION,
   MANAGEMENT_CONFIG_PERMISSION,
   MANAGEMENT_GAME_PERMISSION,
@@ -48,7 +49,7 @@ const router = createBrowserRouter([
       {
         path: "playground",
         handle: {
-          access: { authenticated: true } satisfies AccessPolicy,
+          access: { permissions: [BASIC_PERMISSION] } satisfies AccessPolicy,
         },
         children: [
           {
@@ -98,7 +99,9 @@ const router = createBrowserRouter([
               {
                 path: "team",
                 handle: {
-                  access: { authenticated: true } satisfies AccessPolicy,
+                  access: {
+                    permissions: [BASIC_PERMISSION],
+                  } satisfies AccessPolicy,
                 },
                 lazy: async () => ({
                   Component: (await import("@/pages/games/game_id/team/layout"))
@@ -133,7 +136,9 @@ const router = createBrowserRouter([
               {
                 path: "challenges",
                 handle: {
-                  access: { authenticated: true } satisfies AccessPolicy,
+                  access: {
+                    permissions: [BASIC_PERMISSION],
+                  } satisfies AccessPolicy,
                 },
                 lazy: async () => ({
                   Component: (await import("@/pages/games/game_id/challenges"))

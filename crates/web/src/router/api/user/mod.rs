@@ -13,8 +13,8 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    EmailView, Permission, UserAccountView, UserProfile, sea_orm::ActiveValue::Set,
-    user::FindUserOptions,
+    UserAccountView, UserProfile,
+    sea_orm::{ActiveValue::Set, TransactionTrait},
 };
 use garde::Validate;
 use serde::{Deserialize, Serialize};
@@ -185,39 +185,25 @@ pub async fn user_register(
     }
 
     let hashed_password = util::crypto::hash_password(body.password);
-    let is_first_user =
-        cds_db::user::find::<UserAccountView>(&s.db.conn, FindUserOptions::default())
-            .await?
-            .1
-            == 0;
-
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
+    let permissions = if cds_db::user::is_first_registration(&transaction).await? {
+        MANAGEMENT_PERMISSIONS.to_vec()
+    } else {
+        Vec::new()
+    };
     let user = cds_db::user::create::<UserAccountView>(
-        &s.db.conn,
+        &transaction,
         cds_db::user::ActiveModel {
             username: Set(body.username),
             name: Set(body.name),
             hashed_password: Set(hashed_password),
-            permissions: Set(if is_first_user {
-                std::iter::once(Permission::Basic)
-                    .chain(MANAGEMENT_PERMISSIONS.iter().copied())
-                    .collect()
-            } else {
-                vec![Permission::Basic]
-            }),
+            permissions: Set(permissions),
             ..Default::default()
         },
     )
     .await?;
-
-    let _ = cds_db::email::create::<EmailView>(
-        &s.db.conn,
-        cds_db::email::ActiveModel {
-            user_id: Set(user.id),
-            email: Set(body.email),
-            verified: Set(!config.email.enabled),
-        },
-    )
-    .await?;
+    cds_db::email::create(&transaction, user.id, body.email, false).await?;
+    transaction.commit().await.map_err(cds_db::DbError::from)?;
 
     info!(
         user_id = user.id,

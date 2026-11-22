@@ -4,13 +4,9 @@
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::{
-    EmailView,
-    sea_orm::{Set, Unchanged},
-};
+use cds_db::EmailView;
 use garde::Validate;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
     routes,
@@ -99,13 +95,11 @@ pub async fn add_email(
     let email_config = cds_db::get_config(&s.db.conn).await.email;
     validate_new_address(&body.email, &email_config.whitelist)?;
 
-    let email = cds_db::email::create::<EmailView>(
+    let email = cds_db::email::create(
         &s.db.conn,
-        cds_db::email::ActiveModel {
-            user_id: Set(user_id),
-            email: Set(body.email.to_lowercase()),
-            verified: Set(body.verified.unwrap_or(true)),
-        },
+        user_id,
+        body.email.to_lowercase(),
+        body.verified.unwrap_or_default(),
     )
     .await?;
 
@@ -129,6 +123,7 @@ pub struct AdminUpdateEmailRequest {
     request_body = AdminUpdateEmailRequest,
     responses(
         (status = 200, description = "Updated", body = AdminEmailResponse),
+        (status = 409, description = "Last verified email", body = crate::traits::ErrorResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -140,24 +135,8 @@ pub async fn update_email(
     ReqJson(body): ReqJson<AdminUpdateEmailRequest>,
 ) -> Result<Json<AdminEmailResponse>, WebError> {
     let email =
-        cds_db::email::find_by_email::<cds_db::email::Model>(&s.db.conn, email.to_lowercase())
-            .await?
-            .ok_or(WebError::BadRequest(json!("email_not_found")))?;
-
-    if email.user_id != user_id {
-        return Err(WebError::Forbidden(json!("email_not_found")));
-    }
-
-    let email = cds_db::email::update::<EmailView>(
-        &s.db.conn,
-        cds_db::email::ActiveModel {
-            email: Unchanged(email.email),
-            user_id: Unchanged(email.user_id),
-            verified: Set(body.verified),
-            ..Default::default()
-        },
-    )
-    .await?;
+        cds_db::email::set_verified(&s.db.conn, user_id, &email.to_lowercase(), body.verified)
+            .await?;
 
     Ok(Json(AdminEmailResponse { email }))
 }
@@ -173,6 +152,7 @@ pub async fn update_email(
     ),
     responses(
         (status = 200, description = "Deleted", body = EmptyJson),
+        (status = 409, description = "Last verified email", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -207,24 +187,7 @@ pub async fn verify_email(
     Path((user_id, email)): Path<(i64, String)>,
 ) -> Result<Json<AdminEmailResponse>, WebError> {
     let email =
-        cds_db::email::find_by_email::<cds_db::email::Model>(&s.db.conn, email.to_lowercase())
-            .await?
-            .ok_or(WebError::BadRequest(json!("email_not_found")))?;
-
-    if email.user_id != user_id {
-        return Err(WebError::Forbidden(json!("email_not_found")));
-    }
-
-    let email = cds_db::email::update::<EmailView>(
-        &s.db.conn,
-        cds_db::email::ActiveModel {
-            email: Unchanged(email.email.to_owned()),
-            user_id: Unchanged(email.user_id),
-            verified: Set(true),
-            ..Default::default()
-        },
-    )
-    .await?;
+        cds_db::email::set_verified(&s.db.conn, user_id, &email.to_lowercase(), true).await?;
 
     Ok(Json(AdminEmailResponse { email }))
 }

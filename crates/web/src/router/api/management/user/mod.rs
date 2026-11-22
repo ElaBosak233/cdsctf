@@ -7,8 +7,11 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State, http::StatusCode};
 use cds_db::{
-    EmailView, Permission, UserAccountView,
-    sea_orm::ActiveValue::{NotSet, Set},
+    Permission, UserAccountView,
+    sea_orm::{
+        ActiveValue::{NotSet, Set},
+        TransactionTrait,
+    },
     user::{FindUserOptions, PermissionFilter},
 };
 use garde::Validate;
@@ -160,28 +163,22 @@ pub async fn create_user(
     }
 
     let hashed_password = crate::util::crypto::hash_password(body.password);
+    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
     let user = cds_db::user::create::<UserAccountView>(
-        &s.db.conn,
+        &transaction,
         cds_db::user::ActiveModel {
             name: Set(body.name),
             username: Set(body.username),
             hashed_password: Set(hashed_password),
             banned: body.banned.map_or(NotSet, Set),
-            permissions: Set(body.permissions.unwrap_or_else(|| vec![Permission::Basic])),
+            permissions: Set(body.permissions.unwrap_or_default()),
             ..Default::default()
         },
     )
     .await?;
 
-    let _ = cds_db::email::create::<EmailView>(
-        &s.db.conn,
-        cds_db::email::ActiveModel {
-            user_id: Set(user.id),
-            email: Set(body.email),
-            verified: Set(true),
-        },
-    )
-    .await?;
+    cds_db::email::create(&transaction, user.id, body.email.to_lowercase(), false).await?;
+    transaction.commit().await.map_err(cds_db::DbError::from)?;
 
     info!(
         user_id = user.id,

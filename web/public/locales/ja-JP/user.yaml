@@ -6,9 +6,9 @@ list:
     user: ユーザー
     status: アカウント状態
     created_at: 登録日時
-  verified:
-    'true': 認証済み
-    'false': 未認証
+  basic:
+    "true": 基本権限あり
+    "false": 基本権限なし
 edit:
   _: ユーザーを編集
   info: 情報
@@ -170,6 +170,11 @@ actions:
     _: 利用停止を解除
     success: ユーザー {{username}} の利用停止を解除しました。
 emails:
+  basic_verification: メールアドレスを認証すると、基本権限が付与されます。
+  basic_contact_admin: 基本権限の付与については管理者にお問い合わせください。
+  last_verified:
+    title: 最後の認証済みメールアドレスは削除できません
+    description: 先に別のメールアドレスを認証してください。
   _: メールアドレス
   brief: このユーザーのメールアドレスを追加または編集します
   verify_code_label: "確認コード"
@@ -205,7 +210,6 @@ emails:
       success: メールアドレス {{email}} を削除しました。
     verify:
       _: メールアドレスを認証
-      disabled: '{{title}} ではメールサービスが有効ではありません。直接確認してメールアドレスを認証できます。'
       success: メールアドレス {{email}} を認証しました。
     send_verify:
       _: "確認コードを送信"

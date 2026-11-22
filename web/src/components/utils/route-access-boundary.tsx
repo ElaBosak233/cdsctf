@@ -5,12 +5,21 @@ import {
 } from "lucide-react";
 import type { PropsWithChildren } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate, useLocation, useMatches } from "react-router";
+import { Link, Navigate, useLocation, useMatches } from "react-router";
+import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/use-session";
-import { hasPermission, type Permission } from "@/models/user";
+import {
+  BASIC_PERMISSION,
+  hasPermission,
+  type Permission,
+} from "@/models/user";
 import { useAuthStore } from "@/storages/auth";
 import { cn } from "@/utils";
-import { getLocationTarget, getLoginUrl } from "@/utils/redirect";
+import {
+  emailSettingsPath,
+  getLocationTarget,
+  getLoginUrl,
+} from "@/utils/redirect";
 
 export type AccessPolicy = {
   authenticated?: boolean;
@@ -95,6 +104,9 @@ function RouteAccessBoundary({ children }: PropsWithChildren) {
     );
 
   if (permissionForbidden || anyPermissionForbidden) {
+    const needsBasic =
+      policy.permissions?.includes(BASIC_PERMISSION) &&
+      !hasPermission(user?.permissions, BASIC_PERMISSION);
     return (
       <div
         className={cn([
@@ -111,8 +123,21 @@ function RouteAccessBoundary({ children }: PropsWithChildren) {
       >
         <ShieldXIcon className={cn(["size-16"])} strokeWidth={1.2} />
         <p className="text-sm text-muted-foreground">
-          {t("account:guard.forbidden")}
+          {t(
+            needsBasic
+              ? "account:guard.basic_required"
+              : "account:guard.forbidden"
+          )}
         </p>
+        {needsBasic && (
+          <Button
+            size="sm"
+            variant="outline"
+            render={<Link to={emailSettingsPath} />}
+          >
+            {t("user:settings.email")}
+          </Button>
+        )}
       </div>
     );
   }

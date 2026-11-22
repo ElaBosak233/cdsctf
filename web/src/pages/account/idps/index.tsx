@@ -19,6 +19,7 @@ import {
 import {
   clearIdpRedirect,
   getIdpRedirect,
+  getPostLoginTarget,
   withRedirect,
 } from "@/utils/redirect";
 
@@ -90,7 +91,7 @@ export default function Index() {
         setAuthenticatedUser(res.user!);
         clearIdpRedirect();
         toast.success(t("account:idp.login.success"));
-        navigate(redirect, { replace: true });
+        navigate(getPostLoginTarget(res.user!, redirect), { replace: true });
       } catch (error) {
         if (error instanceof HTTPError) {
           const body = await parseErrorResponse(error);

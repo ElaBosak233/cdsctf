@@ -20,6 +20,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Json as ReqJson, Query},
+    middleware::auth::basic_operator,
     traits::{AppState, AuthPrincipal, WebError},
 };
 
@@ -70,6 +71,7 @@ pub struct ListSubmissionsResponse {
     responses(
         (status = 200, description = "Submissions (content redacted)", body = ListSubmissionsResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -80,9 +82,7 @@ pub async fn list_submissions(
     Extension(ext): Extension<AuthPrincipal>,
     Query(params): Query<ListSubmissionsRequest>,
 ) -> Result<Json<ListSubmissionsResponse>, WebError> {
-    let _ = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let _ = basic_operator(&ext)?;
 
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
@@ -151,9 +151,7 @@ pub async fn create_submission(
     Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateSubmissionRequest>,
 ) -> Result<(StatusCode, Json<SubmissionSummary>), WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
 
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, body.challenge_id).await?;
 

@@ -129,6 +129,7 @@ function InstanceControls({
     queryFn: () =>
       getInstances({
         challenge_id: challengeId,
+        debug: debug || undefined,
         user_id: teamId == null ? userId : undefined,
         game_id: gameId,
         team_id: teamId,

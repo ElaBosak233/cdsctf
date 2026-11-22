@@ -18,6 +18,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Path},
+    middleware::auth::basic_operator,
     traits::{AppState, AuthPrincipal, WebError},
 };
 
@@ -41,6 +42,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         (status = 200, description = "File bytes or redirect"),
         (status = 302, description = "Presigned redirect"),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
     )
 )]
@@ -51,7 +53,7 @@ pub async fn get_attachment(
     Extension(ext): Extension<AuthPrincipal>,
     Path((challenge_id, filename)): Path<(i64, String)>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id)
         .await?
         .has_attachment

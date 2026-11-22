@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { HTTPError } from "ky";
 import {
   CheckIcon,
@@ -29,7 +30,7 @@ import { TextField } from "@/components/ui/text-field";
 import { EmailDomainHint } from "@/components/widgets/email-domain-hint";
 import { useEmailValidation } from "@/hooks/use-email-validation";
 import { useEmailVerification } from "@/hooks/use-email-verification";
-import { patchAuthenticatedUser } from "@/storages/auth";
+import { sessionQueryKey } from "@/storages/auth";
 import { useConfigStore } from "@/storages/config";
 import { cn } from "@/utils";
 import { getApiErrorCode, notifyApiError } from "@/utils/query";
@@ -41,6 +42,7 @@ interface CreateDialogProps {
 
 export function CreateDialog({ onClose, bump }: CreateDialogProps) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const cachedVerification = useConfigStore(
     (state) => state.config?.email?.enabled
   );
@@ -102,7 +104,8 @@ export function CreateDialog({ onClose, bump }: CreateDialogProps) {
         email: values.email,
         code: requiresVerification ? values.code : undefined,
       });
-      patchAuthenticatedUser({ verified: true });
+      if (email.verified)
+        await queryClient.invalidateQueries({ queryKey: sessionQueryKey });
       toast.success(
         t("user:emails.actions.create.success", { email: email.email })
       );

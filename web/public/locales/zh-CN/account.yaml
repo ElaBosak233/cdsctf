@@ -14,9 +14,8 @@ login:
       please_input_password: 请输入密码
   warning:
     already_logged_in: 你已经登录了
-    not_verified: 你还未经过验证
-    verify_email: 请先验证你的邮箱
 guard:
+  basic_required: 此功能需要基础权限
   login_required:
     title: 需要登录
     description: 请登录后继续操作。
@@ -111,6 +110,7 @@ captcha:
   please_refresh: 请刷新验证码
   expired: 验证码已过期
 errors:
+  email_not_verified: 请使用已验证的邮箱找回密码。
   idp_request_failed:
     title: 身份提供商暂不可用
     description: 请重试或选择其他登录方式。

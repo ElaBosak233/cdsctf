@@ -25,11 +25,6 @@ async fn user_permissions_filter_applies_before_counting_and_pagination() {
                 created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
                 updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
             ) ON COMMIT DROP;
-            CREATE TEMP TABLE emails (
-                user_id BIGINT NOT NULL,
-                verified BOOLEAN NOT NULL
-            ) ON COMMIT DROP;
-
             INSERT INTO users (id, name, username, banned, permissions) VALUES
                 (1, 'Test Basic', 'basic', false, ARRAY['basic']),
                 (2, 'Test Config', 'config', false, ARRAY['basic', 'management:config']),

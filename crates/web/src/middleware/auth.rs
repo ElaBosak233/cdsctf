@@ -58,6 +58,19 @@ pub fn require_permissions(
     }
 }
 
+/// Resolves the authenticated account for a player feature.
+pub fn basic_operator(principal: &AuthPrincipal) -> Result<&UserAccountView, WebError> {
+    let operator = principal
+        .operator
+        .as_ref()
+        .ok_or_else(|| WebError::Unauthorized(json!("unauthorized")))?;
+
+    if !has_permissions(operator, &[Permission::Basic]) {
+        return Err(WebError::Forbidden(json!("basic_permission_required")));
+    }
+    Ok(operator)
+}
+
 /// Loads the signed-in user (if any), enforces banned accounts, bumps a session
 /// counter, then continues the chain.
 pub async fn extract(
@@ -249,7 +262,6 @@ mod tests {
             id: 1,
             name: "Test User".to_owned(),
             username: "test".to_owned(),
-            verified: Some(true),
             banned: false,
             permissions,
             description: None,
@@ -279,6 +291,27 @@ mod tests {
         let user = user_with_permissions(vec![Permission::ManagementChallenge]);
 
         assert!(has_any_permissions(&user, MANAGEMENT_PERMISSIONS));
+    }
+
+    #[test]
+    fn basic_access_checks_permissions_for_sessions_and_tokens() {
+        assert!(matches!(
+            basic_operator(&AuthPrincipal::default()),
+            Err(WebError::Unauthorized(_))
+        ));
+        for auth_method in [AuthMethod::Session, AuthMethod::PersonalAccessToken] {
+            let mut principal = AuthPrincipal {
+                operator: Some(user_with_permissions(vec![Permission::ManagementChallenge])),
+                auth_method,
+                ..Default::default()
+            };
+            assert!(matches!(
+                basic_operator(&principal),
+                Err(WebError::Forbidden(code)) if code == "basic_permission_required"
+            ));
+            principal.operator = Some(user_with_permissions(vec![Permission::Basic]));
+            assert!(basic_operator(&principal).is_ok());
+        }
     }
 
     #[test]

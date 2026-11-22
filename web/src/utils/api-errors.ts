@@ -147,6 +147,12 @@ export const API_ERROR_I18N_KEYS: Readonly<Record<string, ApiErrorI18nKeys>> = {
   email_code_incorrect: message("account:errors.email_code_incorrect"),
   email_disabled: message("account:errors.email_disabled"),
   email_not_found: message("account:errors.email_not_found"),
+  email_not_verified: message("account:errors.email_not_verified"),
+  basic_permission_required: message("account:guard.basic_required"),
+  last_verified_email: message(
+    "user:emails.last_verified.title",
+    "user:emails.last_verified.description"
+  ),
   email_send_too_frequently: message(
     "account:errors.email_send_too_frequently.title",
     "account:errors.email_send_too_frequently.description"

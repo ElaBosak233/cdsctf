@@ -4,11 +4,7 @@
 use std::{sync::Arc, time::Duration};
 
 use axum::{Json, Router, extract::State};
-use cds_db::{
-    EmailView, UserAccountView,
-    sea_orm::{Set, SqlErr, Unchanged},
-    traits::DbError,
-};
+use cds_db::{EmailView, UserAccountView};
 use cds_mailbox::{CODE_TTL, EmailPurpose, Payload};
 use cds_worker::mailbox::SUBJECT;
 use garde::Validate;
@@ -72,7 +68,7 @@ pub async fn get_email(
 pub struct UserAddEmailRequest {
     #[garde(email)]
     pub email: String,
-    /// Required when the platform enables email verification.
+    /// Required to verify the address when email delivery is enabled.
     pub code: Option<String>,
 }
 
@@ -118,7 +114,7 @@ pub async fn add_email(
             .map(str::trim)
             .filter(|code| !code.is_empty())
             .ok_or_else(|| WebError::BadRequest(json!("email_code_required")))?;
-        consume_verification_code(
+        util::email::consume_verification_code(
             &s,
             &verification_code_key("bind", operator.id, &email),
             code,
@@ -126,23 +122,7 @@ pub async fn add_email(
         .await?;
     }
 
-    let email = cds_db::email::create::<EmailView>(
-        &s.db.conn,
-        cds_db::email::ActiveModel {
-            user_id: Set(operator.id),
-            email: Set(email),
-            verified: Set(true),
-        },
-    )
-    .await
-    .map_err(|error| match &error {
-        DbError::SeaORM(error)
-            if matches!(error.sql_err(), Some(SqlErr::UniqueConstraintViolation(_))) =>
-        {
-            WebError::Conflict(json!("email_already_exists"))
-        }
-        _ => error.into(),
-    })?;
+    let email = cds_db::email::create(&s.db.conn, operator.id, email, email_config.enabled).await?;
 
     Ok(Json(AddEmailResponse { email }))
 }
@@ -157,6 +137,7 @@ pub async fn add_email(
     ),
     responses(
         (status = 200, description = "Removed", body = EmptyJson),
+        (status = 409, description = "Last verified email", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -218,25 +199,17 @@ pub async fn verify_email(
         return Err(WebError::BadRequest(json!("email_already_verified")));
     }
 
-    if cds_db::get_config(&s.db.conn).await.email.enabled {
-        consume_verification_code(
-            &s,
-            &verification_code_key("verify", operator.id, &email.email),
-            body.code.trim(),
-        )
-        .await?;
+    if !cds_db::get_config(&s.db.conn).await.email.enabled {
+        return Err(WebError::BadRequest(json!("email_disabled")));
     }
 
-    let _ = cds_db::email::update::<EmailView>(
-        &s.db.conn,
-        cds_db::email::ActiveModel {
-            email: Unchanged(email.email.to_owned()),
-            user_id: Unchanged(email.user_id),
-            verified: Set(true),
-            ..Default::default()
-        },
+    util::email::consume_verification_code(
+        &s,
+        &verification_code_key("verify", operator.id, &email.email),
+        body.code.trim(),
     )
     .await?;
+    cds_db::email::set_verified(&s.db.conn, operator.id, &email.email, true).await?;
 
     Ok(Json(EmptyJson::default()))
 }
@@ -245,19 +218,6 @@ const VERIFY_RESEND_WAIT: Duration = Duration::from_secs(60);
 
 fn verification_code_key(purpose: &str, user_id: i64, email: &str) -> String {
     format!("mailbox:{purpose}:{user_id}:{email}:code")
-}
-
-async fn consume_verification_code(s: &AppState, key: &str, code: &str) -> Result<(), WebError> {
-    if s.cache.delete_if_equal(key, code).await? {
-        return Ok(());
-    }
-
-    let error = if s.cache.exists(key).await? {
-        "email_code_incorrect"
-    } else {
-        "email_code_expired"
-    };
-    Err(WebError::BadRequest(json!(error)))
 }
 
 #[derive(Debug, Serialize, utoipa::ToSchema)]

@@ -4,7 +4,6 @@
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::{EmailView, UserAccountView};
 use cds_mailbox::{CODE_TTL, EmailPurpose, Payload};
 use cds_worker::mailbox::SUBJECT;
 use garde::Validate;
@@ -47,6 +46,7 @@ pub struct UserForgetRequest {
     request_body = UserForgetRequest,
     responses(
         (status = 200, description = "Password reset", body = EmptyJson),
+        (status = 409, description = "Address no longer verified for the account", body = crate::traits::ErrorResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
@@ -56,27 +56,15 @@ pub async fn user_forget(
     State(s): State<Arc<AppState>>,
     ReqJson(body): ReqJson<UserForgetRequest>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let user: UserAccountView = cds_db::user::find_by_email(&s.db.conn, body.email.to_lowercase())
+    let email = body.email.to_lowercase();
+    let user = cds_db::user::find_by_verified_email(&s.db.conn, &email)
         .await?
-        .ok_or(WebError::BadRequest("user_not_found".into()))?;
+        .ok_or_else(|| WebError::BadRequest(json!("email_not_verified")))?;
 
-    let code = s
-        .cache
-        .get::<String>(format!("mailbox:{}:code", body.email.to_lowercase()))
-        .await?
-        .ok_or(WebError::BadRequest("email_code_expired".into()))?;
-
-    if code != body.code {
-        return Err(WebError::BadRequest(json!("email_code_incorrect")));
-    }
-
+    util::email::consume_verification_code(&s, &reset_code_key(user.id, &email), &body.code)
+        .await?;
     let hashed_password = util::crypto::hash_password(body.password);
-
-    cds_db::user::update_password(&s.db.conn, user.id, hashed_password).await?;
-
-    let _ = s
-        .cache
-        .take::<String>(format!("mailbox:{}:code", body.email.to_lowercase()))
+    cds_db::user::reset_password_by_verified_email(&s.db.conn, user.id, &email, hashed_password)
         .await?;
 
     Ok(Json(EmptyJson::default()))
@@ -113,48 +101,38 @@ pub async fn send_forget_email(
         return Err(WebError::BadRequest(json!("email_disabled")));
     }
 
-    let email: EmailView = cds_db::email::find_by_email(&s.db.conn, body.email.to_owned())
+    let email = body.email.to_lowercase();
+    let user = cds_db::user::find_by_verified_email(&s.db.conn, &email)
         .await?
-        .ok_or(WebError::BadRequest("email_not_found".into()))?;
+        .ok_or_else(|| WebError::BadRequest(json!("email_not_verified")))?;
+    let cooldown_key = format!("mailbox:reset:{}:{email}:buffer", user.id);
 
-    let user: UserAccountView = cds_db::user::find_by_email(&s.db.conn, email.email.to_owned())
-        .await?
-        .ok_or(WebError::BadRequest("user_not_found".into()))?;
-
-    if s.cache
-        .get::<i64>(format!("mailbox:{}:buffer", email.email.to_owned()))
-        .await?
-        .is_some()
-    {
+    if s.cache.get::<i64>(&cooldown_key).await?.is_some() {
         return Err(WebError::BadRequest(json!("email_send_too_frequently")));
     }
 
     let code = nanoid!();
     let payload = Payload::transactional(
         user.name,
-        email.email.clone(),
+        email.clone(),
         EmailPurpose::Reset,
         locale.locale.as_deref(),
         &code,
         &config.meta.title,
     )?;
     s.cache
-        .set_with_ttl(
-            format!("mailbox:{}:code", email.email.to_owned()),
-            code.to_owned(),
-            CODE_TTL,
-        )
+        .set_with_ttl(reset_code_key(user.id, &email), code.to_owned(), CODE_TTL)
         .await?;
 
     s.queue.publish(SUBJECT, payload, None).await?;
 
     s.cache
-        .set_with_ttl(
-            format!("mailbox:{}:buffer", email.email.to_owned()),
-            1,
-            std::time::Duration::from_secs(60),
-        )
+        .set_with_ttl(cooldown_key, 1, std::time::Duration::from_secs(60))
         .await?;
 
     Ok(Json(EmptyJson::default()))
+}
+
+fn reset_code_key(user_id: i64, email: &str) -> String {
+    format!("mailbox:reset:{user_id}:{email}:code")
 }

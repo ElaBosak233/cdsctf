@@ -3,9 +3,9 @@
 use std::{fmt::Debug, str::FromStr};
 
 use sea_orm::{
-    ActiveEnum, ActiveModelTrait, ColumnTrait, Condition, ConnectionTrait, EntityName, EntityTrait,
-    ExprTrait, FromQueryResult, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set,
-    Unchanged,
+    ActiveEnum, ActiveModelTrait, ColumnTrait, Condition, ConnectionTrait, DatabaseTransaction,
+    DbBackend, EntityName, EntityTrait, ExprTrait, FromQueryResult, Order, PaginatorTrait,
+    QueryFilter, QueryOrder, QuerySelect, Set, SqlErr, Statement, TransactionTrait, Unchanged,
     prelude::Expr,
     sea_query::{
         Func, Query,
@@ -37,33 +37,6 @@ pub struct FindUserOptions {
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
-}
-
-/// Begins the canonical user query with its derived verification flag.
-fn base_find() -> sea_orm::Select<Entity> {
-    Entity::find().column_as(
-        Expr::exists(
-            Query::select()
-                .expr(Expr::val(1))
-                .from(crate::entity::email::Entity.table_name())
-                .and_where(
-                    Expr::col((
-                        crate::entity::email::Entity.table_name(),
-                        crate::entity::email::Column::UserId,
-                    ))
-                    .eq(Expr::col((Entity.table_name(), Column::Id))),
-                )
-                .and_where(
-                    Expr::col((
-                        crate::entity::email::Entity.table_name(),
-                        crate::entity::email::Column::Verified,
-                    ))
-                    .eq(true),
-                )
-                .to_owned(),
-        ),
-        "verified",
-    )
 }
 
 /// Queries rows using filter options and returns `(rows, total_count)`.
@@ -103,7 +76,7 @@ async fn find_scoped<T>(
 ) -> Result<(Vec<T>, u64), DbError>
 where
     T: FromQueryResult, {
-    let mut sql = base_find();
+    let mut sql = Entity::find();
 
     if let Some(id) = id {
         sql = sql.filter(Column::Id.eq(id));
@@ -188,7 +161,7 @@ pub async fn find_by_id<T>(
 ) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
-    Ok(base_find()
+    Ok(Entity::find()
         .filter(Column::Id.eq(user_id))
         .filter(Column::DeletedAt.is_null())
         .into_model::<T>()
@@ -196,47 +169,36 @@ where
         .await?)
 }
 
-/// Looks up by account.
+fn matching_verified_email(address: &str) -> Expr {
+    use crate::entity::email::{Column as EmailColumn, Entity as EmailEntity};
 
+    let emails = EmailEntity.table_name();
+    let mut query = Query::select();
+    query
+        .expr(Expr::val(1))
+        .from(emails)
+        .and_where(
+            Expr::col((emails, EmailColumn::UserId))
+                .eq(Expr::col((Entity.table_name(), Column::Id))),
+        )
+        .and_where(Expr::expr(Func::lower(Expr::col((emails, EmailColumn::Email)))).eq(address))
+        .and_where(Expr::col((emails, EmailColumn::Verified)).eq(true));
+    Expr::exists(query)
+}
+
+/// Looks up a login name or verified email address.
 pub async fn find_by_account<T>(
     conn: &impl ConnectionTrait,
     account: String,
 ) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult + Debug, {
-    Ok(base_find()
+    let account = account.to_lowercase();
+    Ok(Entity::find()
         .filter(
             Condition::any()
-                .add(
-                    Expr::expr(Func::lower(Expr::col(Column::Username))).eq(account.to_lowercase()),
-                )
-                .add(Expr::exists(
-                    Query::select()
-                        .expr(Expr::val(1))
-                        .from(crate::entity::email::Entity.table_name())
-                        .and_where(
-                            Expr::col((
-                                crate::entity::email::Entity.table_name(),
-                                crate::entity::email::Column::UserId,
-                            ))
-                            .eq(Expr::col((Entity.table_name(), Column::Id))),
-                        )
-                        .and_where(
-                            Expr::expr(Func::lower(Expr::col((
-                                crate::entity::email::Entity.table_name(),
-                                crate::entity::email::Column::Email,
-                            ))))
-                            .eq(account.to_lowercase()),
-                        )
-                        .and_where(
-                            Expr::col((
-                                crate::entity::email::Entity.table_name(),
-                                crate::entity::email::Column::Verified,
-                            ))
-                            .eq(true),
-                        )
-                        .to_owned(),
-                )),
+                .add(Expr::expr(Func::lower(Expr::col(Column::Username))).eq(&account))
+                .add(matching_verified_email(&account)),
         )
         .filter(Column::DeletedAt.is_null())
         .into_model::<T>()
@@ -244,37 +206,15 @@ where
         .await?)
 }
 
-/// Looks up by email.
-
-pub async fn find_by_email<T>(
+/// Resolves a verified address for account recovery.
+pub async fn find_by_verified_email(
     conn: &impl ConnectionTrait,
-    email: String,
-) -> Result<Option<T>, DbError>
-where
-    T: FromQueryResult, {
-    Ok(base_find()
-        .filter(Expr::exists(
-            Query::select()
-                .expr(Expr::val(1))
-                .from(crate::entity::email::Entity.table_name())
-                .and_where(
-                    Expr::col((
-                        crate::entity::email::Entity.table_name(),
-                        crate::entity::email::Column::UserId,
-                    ))
-                    .eq(Expr::col((Entity.table_name(), Column::Id))),
-                )
-                .and_where(
-                    Expr::expr(Func::lower(Expr::col((
-                        crate::entity::email::Entity.table_name(),
-                        crate::entity::email::Column::Email,
-                    ))))
-                    .eq(email.to_lowercase()),
-                )
-                .to_owned(),
-        ))
+    email: &str,
+) -> Result<Option<UserAccountView>, DbError> {
+    Ok(Entity::find()
+        .filter(matching_verified_email(&email.to_lowercase()))
         .filter(Column::DeletedAt.is_null())
-        .into_model::<T>()
+        .into_model::<UserAccountView>()
         .one(conn)
         .await?)
 }
@@ -287,6 +227,21 @@ pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
         .await?)
 }
 
+/// Serializes the first local registration so only one account is bootstrapped.
+pub async fn is_first_registration(conn: &DatabaseTransaction) -> Result<bool, DbError> {
+    if count(conn).await? != 0 {
+        return Ok(false);
+    }
+    // The two-integer namespace is separate from the single-key owner and score
+    // locks.
+    conn.execute_raw(Statement::from_string(
+        DbBackend::Postgres,
+        "SELECT pg_advisory_xact_lock(1128551251, 1)".to_owned(),
+    ))
+    .await?;
+    Ok(count(conn).await? == 0)
+}
+
 /// Returns whether is username unique.
 
 pub async fn is_username_unique(
@@ -294,7 +249,7 @@ pub async fn is_username_unique(
     user_id: i64,
     username: &str,
 ) -> Result<bool, DbError> {
-    let user = base_find()
+    let user = Entity::find()
         .filter(Expr::expr(Func::lower(Expr::col(Column::Username))).eq(username.to_lowercase()))
         .one(conn)
         .await?;
@@ -316,7 +271,15 @@ pub async fn is_email_unique(conn: &impl ConnectionTrait, email: &str) -> Result
 pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
 where
     T: FromQueryResult, {
-    let user = model.insert(conn).await?;
+    let user = model
+        .insert(conn)
+        .await
+        .map_err(|error| match error.sql_err() {
+            Some(SqlErr::UniqueConstraintViolation(_)) => {
+                DbError::Conflict("username_already_exists".to_owned())
+            }
+            _ => error.into(),
+        })?;
     tracing::info!(
         resource = "user",
         action = "create",
@@ -392,11 +355,41 @@ pub async fn update_password(
     Ok(())
 }
 
-/// Deletes rows matching the provided identifier or filter.
-pub async fn delete(conn: &impl ConnectionTrait, user_id: i64) -> Result<(), DbError> {
-    let user = find_by_id::<Model>(conn, user_id)
+/// Locks the active account before changing its emails or recovery credentials.
+pub(super) async fn lock_active(
+    conn: &DatabaseTransaction,
+    user_id: i64,
+) -> Result<Model, DbError> {
+    Entity::find_by_id(user_id)
+        .filter(Column::DeletedAt.is_null())
+        .lock_exclusive()
+        .one(conn)
         .await?
-        .ok_or_else(|| DbError::NotFound(format!("user_{user_id}")))?;
+        .ok_or_else(|| DbError::NotFound(format!("user_{user_id}")))
+}
+
+/// Resets a password while the verified address is still linked to this
+/// account.
+pub async fn reset_password_by_verified_email(
+    conn: &impl TransactionTrait<Transaction = DatabaseTransaction>,
+    user_id: i64,
+    email: &str,
+    hashed_password: String,
+) -> Result<(), DbError> {
+    let transaction = conn.begin().await?;
+    lock_active(&transaction, user_id).await?;
+    let user = find_by_verified_email(&transaction, email)
+        .await?
+        .filter(|user| user.id == user_id)
+        .ok_or_else(|| DbError::Conflict("email_not_verified".to_owned()))?;
+    update_password(&transaction, user.id, hashed_password).await?;
+    transaction.commit().await?;
+    Ok(())
+}
+
+/// Deletes the active account and its associated account data.
+pub async fn delete(conn: &DatabaseTransaction, user_id: i64) -> Result<(), DbError> {
+    let user = lock_active(conn, user_id).await?;
 
     let _ = ActiveModel {
         id: Unchanged(user.id),
@@ -419,20 +412,4 @@ pub async fn delete(conn: &impl ConnectionTrait, user_id: i64) -> Result<(), DbE
     );
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use sea_orm::{DbBackend, QueryTrait};
-
-    use super::*;
-
-    #[test]
-    fn base_find_projects_verified_inside_the_repository() {
-        let statement = base_find().build(DbBackend::Postgres);
-
-        assert!(statement.sql.contains("EXISTS(SELECT $1"));
-        assert!(statement.sql.contains("FROM \"emails\""));
-        assert!(statement.sql.contains("AS \"verified\""));
-    }
 }

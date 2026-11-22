@@ -20,10 +20,11 @@ import { MarkdownRender } from "@/components/ui/markdown-render";
 import { Typography } from "@/components/ui/typography";
 import { useTickerTime } from "@/hooks/use-ticker-time";
 import { State } from "@/models/team";
+import { BASIC_PERMISSION, hasPermission } from "@/models/user";
 import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
 import { cn } from "@/utils";
-import { getLoginUrl } from "@/utils/redirect";
+import { emailSettingsPath, getLoginUrl } from "@/utils/redirect";
 import { getGamePhase, parseTimestamp, secondsUntil } from "@/utils/time";
 import { TeamGatheringDialog } from "./_blocks/team-gathering-dialog";
 
@@ -274,6 +275,19 @@ export function GameActionButton({ status }: GameActionProps) {
         onClick={() => navigate(getLoginUrl(`/games/${game_id}/challenges`))}
       >
         {t("team:actions.participate_after_login")}
+      </Button>
+    );
+  }
+
+  if (!hasPermission(user.permissions, BASIC_PERMISSION)) {
+    return (
+      <Button
+        className="w-full"
+        variant="outline"
+        size="lg"
+        onClick={() => navigate(emailSettingsPath)}
+      >
+        {t("account:guard.basic_required")}
       </Button>
     );
   }

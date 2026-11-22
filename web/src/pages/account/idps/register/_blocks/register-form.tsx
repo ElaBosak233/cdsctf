@@ -35,6 +35,7 @@ import { notifyApiError } from "@/utils/query";
 import {
   clearIdpRedirect,
   getIdpRedirect,
+  getPostLoginTarget,
   withRedirect,
 } from "@/utils/redirect";
 
@@ -146,7 +147,7 @@ function IdpRegisterForm() {
         id: "idp-register-success",
         description: t("account:idp.register.success_desc"),
       });
-      navigate(redirect, {
+      navigate(getPostLoginTarget(res.user, redirect), {
         replace: true,
       });
     } catch (error) {

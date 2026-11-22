@@ -61,7 +61,7 @@ mailbox:
       _: 邮箱验证
       description:
         enabled: 用户通过邮件验证码验证新增邮箱，并可通过邮件找回密码。
-        disabled: 用户新增的邮箱自动标记为已验证。邮件找回密码停用。
+        disabled: 邮箱验证和邮件找回密码暂停使用。管理员可以直接授予基础权限。
     host:
       _: SMTP 主机
       placeholder: smtp.example.com

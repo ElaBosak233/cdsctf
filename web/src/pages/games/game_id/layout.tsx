@@ -6,6 +6,7 @@ import { Outlet, useParams } from "react-router";
 import { getGame } from "@/api/games/game_id";
 import { getTeamMembers } from "@/api/games/game_id/teams/team_id";
 import { getTeamProfile } from "@/api/games/game_id/teams/us";
+import { BASIC_PERMISSION, hasPermission } from "@/models/user";
 import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
 import { useSharedStore } from "@/storages/shared";
@@ -29,15 +30,18 @@ export default function GameLayout() {
   const { setCurrentGame, selfTeam, setSelfTeam, setMembers } = useGameStore();
   const sharedStore = useSharedStore();
   const { status: authStatus, user } = useAuthStore();
+  const canPlay =
+    authStatus === "authenticated" &&
+    hasPermission(user?.permissions, BASIC_PERMISSION);
 
   const [gtLoaded, setGtLoaded] = useState<boolean>(false);
 
   const { data: game } = useGameQuery(gameId);
 
   const teamProfileQuery = useQuery({
-    queryKey: ["game", "team-profile", gameId, sharedStore?.refresh],
+    queryKey: ["game", "team-profile", gameId, user?.id, sharedStore?.refresh],
     queryFn: () => getTeamProfile({ game_id: gameId! }),
-    enabled: gameId != null && authStatus === "authenticated" && !!user,
+    enabled: gameId != null && canPlay,
     retry: false,
     meta: { suppressErrorToast: true },
   });
@@ -46,12 +50,13 @@ export default function GameLayout() {
     queryKey: [
       "game",
       "team-members",
+      user?.id,
       gameId,
       selfTeam?.id,
       sharedStore?.refresh,
     ],
     queryFn: () => getTeamMembers({ game_id: gameId!, team_id: selfTeam!.id }),
-    enabled: gameId != null && selfTeam?.id != null,
+    enabled: gameId != null && canPlay && selfTeam?.id != null,
     retry: false,
   });
 
@@ -76,7 +81,10 @@ export default function GameLayout() {
   }, [game?.blacked_out, setSelfTeam]);
 
   useEffect(() => {
-    if (teamProfileQuery.data?.team) {
+    if (!canPlay) {
+      setSelfTeam(undefined);
+      setMembers([]);
+    } else if (teamProfileQuery.data?.team) {
       setSelfTeam(teamProfileQuery.data.team);
     } else if (
       teamProfileQuery.error instanceof HTTPError &&
@@ -84,22 +92,23 @@ export default function GameLayout() {
     ) {
       setSelfTeam(undefined);
     }
-  }, [teamProfileQuery.data, teamProfileQuery.error, setSelfTeam]);
+  }, [
+    canPlay,
+    teamProfileQuery.data,
+    teamProfileQuery.error,
+    setSelfTeam,
+    setMembers,
+  ]);
 
   useEffect(() => {
-    setGtLoaded(
-      gameId == null ||
-        authStatus !== "authenticated" ||
-        !user ||
-        teamProfileQuery.isFetched
-    );
-  }, [authStatus, gameId, teamProfileQuery.isFetched, user]);
+    setGtLoaded(gameId == null || !canPlay || teamProfileQuery.isFetched);
+  }, [canPlay, gameId, teamProfileQuery.isFetched]);
 
   useEffect(() => {
-    if (teamMembersQuery.data) {
+    if (canPlay && teamMembersQuery.data) {
       setMembers(teamMembersQuery.data.users);
     }
-  }, [setMembers, teamMembersQuery.data]);
+  }, [canPlay, setMembers, teamMembersQuery.data]);
 
   return (
     <Context.Provider value={{ gtLoaded }}>

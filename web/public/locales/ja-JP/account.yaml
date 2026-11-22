@@ -14,9 +14,8 @@ login:
       please_input_password: パスワードを入力してください
   warning:
     already_logged_in: すでにログインしています
-    not_verified: まだ認証されていません
-    verify_email: 先にメールアドレスを認証してください。
 guard:
+  basic_required: この機能には基本権限が必要です
   login_required: 続行するにはログインしてください
   unavailable: ログイン状態を確認できません。もう一度お試しください。
   forbidden: このページにアクセスする権限がありません
@@ -106,3 +105,5 @@ captcha:
   _: CAPTCHA
   please_refresh: CAPTCHA を更新してください
   expired: CAPTCHA の有効期限が切れています
+errors:
+  email_not_verified: 認証済みのメールアドレスでパスワードを再設定してください。

@@ -14,9 +14,8 @@ login:
       please_input_password: Please input password
   warning:
     already_logged_in: You are already logged in
-    not_verified: You are not verified yet
-    verify_email: Please verify your email first
 guard:
+  basic_required: This feature requires basic access
   login_required:
     title: Sign-in required
     description: Sign in to continue.
@@ -111,6 +110,7 @@ captcha:
   please_refresh: Please refresh your Captcha
   expired: Captcha expired
 errors:
+  email_not_verified: Use a verified email address to reset your password.
   idp_request_failed:
     title: Identity provider unavailable
     description: Try again or choose another sign-in method.

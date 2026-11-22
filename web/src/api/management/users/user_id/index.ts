@@ -29,7 +29,6 @@ export type UpdateUserRequest = {
   banned?: boolean;
   permissions?: Permission[];
   password?: string;
-  verified?: boolean;
   description?: string | null;
 };
 

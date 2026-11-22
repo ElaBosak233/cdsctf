@@ -4,7 +4,6 @@ export type UserAccountView = {
   id: number;
   name: string;
   username: string;
-  verified: boolean | null;
   banned: boolean;
   permissions: Permission[];
   description: string | null;

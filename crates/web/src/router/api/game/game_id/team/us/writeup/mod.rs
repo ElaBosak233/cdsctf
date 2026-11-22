@@ -22,6 +22,7 @@ use utoipa_axum::{
 use super::super::TeamResponse;
 use crate::{
     extract::{Extension, Path},
+    middleware::auth::basic_operator,
     traits::{AppState, AuthPrincipal, WebError},
     util,
     util::media::handle_multipart,
@@ -50,6 +51,7 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
     responses(
         (status = 200, description = "Write-up file"),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
     )
 )]
@@ -59,9 +61,7 @@ pub async fn get_team_write_up(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<impl IntoResponse, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
     let game = util::loader::prepare_game(&s.db.conn, game_id).await?;
     util::loader::ensure_writeup_required(&game)?;
     let team = util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
@@ -81,6 +81,7 @@ pub async fn get_team_write_up(
         (status = 200, description = "Write-up saved", body = TeamResponse),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -91,9 +92,7 @@ pub async fn save_team_write_up(
     Path(game_id): Path<i64>,
     multipart: Multipart,
 ) -> Result<Json<TeamResponse>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
     let game = util::loader::prepare_game(&s.db.conn, game_id).await?;
     util::loader::ensure_writeup_available(&game, time::OffsetDateTime::now_utc())?;
     let team = util::loader::prepare_self_team(&s.db.conn, game.id, operator.id).await?;

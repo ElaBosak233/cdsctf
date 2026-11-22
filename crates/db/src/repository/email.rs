@@ -1,147 +1,201 @@
-//! Database access for `email` — SeaORM queries, updates, and DTOs.
+//! Email ownership and verification changes, with account-level serialization.
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
-    QueryFilter,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, DatabaseTransaction, EntityTrait,
+    FromQueryResult, PaginatorTrait, QueryFilter, Set, SqlErr, TransactionTrait, Unchanged,
 };
 
+use super::user;
 pub(crate) use crate::entity::email::{Column, Entity};
-use crate::traits::DbError;
-pub use crate::{
-    dto::email::EmailView,
-    entity::email::{ActiveModel, Model},
-};
+use crate::{Permission, entity::email::ActiveModel, traits::DbError};
+pub use crate::{dto::email::EmailView, entity::email::Model};
 
-/// Looks up by user id.
-
+/// Lists addresses linked to an account.
 pub async fn find_by_user_id<T>(
     conn: &impl ConnectionTrait,
     user_id: i64,
 ) -> Result<Vec<T>, DbError>
 where
     T: FromQueryResult, {
-    let emails = Entity::find()
+    Ok(Entity::find()
         .filter(Column::UserId.eq(user_id))
         .into_model::<T>()
         .all(conn)
-        .await?;
-
-    Ok(emails)
+        .await?)
 }
 
-/// Looks up by email.
-
+/// Looks up an address.
 pub async fn find_by_email<T>(
     conn: &impl ConnectionTrait,
     email: String,
 ) -> Result<Option<T>, DbError>
 where
     T: FromQueryResult, {
-    let email = Entity::find_by_id(email)
+    Ok(Entity::find_by_id(email)
         .into_model::<T>()
         .one(conn)
-        .await?;
-
-    Ok(email)
+        .await?)
 }
 
-/// Inserts a new row and returns the persisted model.
-pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
-where
-    T: FromQueryResult, {
-    let email = model.insert(conn).await?;
-    tracing::info!(
-        resource = "email",
-        action = "create",
-        user_id = email.user_id,
-        email = ?email.email,
-        verified = ?email.verified,
-        "database step completed",
-    );
-
-    Ok(find_by_email::<T>(conn, email.email.clone())
-        .await?
-        .ok_or_else(|| DbError::NotFound(format!("email_{}", email.email)))?)
-}
-
-/// Applies an active model update to the database.
-pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
-where
-    T: FromQueryResult, {
-    let changed_fields = [
-        ("email", model.email.is_set()),
-        ("verified", model.verified.is_set()),
-        ("user_id", model.user_id.is_set()),
-    ]
-    .into_iter()
-    .filter_map(|(name, changed)| changed.then_some(name))
-    .collect::<Vec<_>>();
-    let email = model.update(conn).await?;
-    tracing::info!(
-        resource = "email",
-        action = "update",
-        changed_fields = ?changed_fields,
-        user_id = email.user_id,
-        email = ?email.email,
-        verified = ?email.verified,
-        "database step completed",
-    );
-
-    Ok(find_by_email::<T>(conn, email.email.clone())
-        .await?
-        .ok_or_else(|| DbError::NotFound(format!("email_{}", email.email)))?)
-}
-
-/// Deletes rows matching the provided identifier or filter.
-pub async fn delete(
-    conn: &impl ConnectionTrait,
+async fn linked_email(
+    conn: &DatabaseTransaction,
     user_id: i64,
-    email: String,
-) -> Result<(), DbError> {
-    let email = Entity::find()
-        .filter(Column::Email.eq(email.clone()))
+    email: &str,
+) -> Result<Model, DbError> {
+    Entity::find_by_id(email.to_owned())
         .filter(Column::UserId.eq(user_id))
         .one(conn)
         .await?
-        .ok_or_else(|| DbError::NotFound(format!("email_{user_id}_{email}")))?;
+        .ok_or_else(|| DbError::NotFound("email_not_found".to_owned()))
+}
 
-    if Entity::find()
-        .filter(Column::UserId.eq(email.user_id))
+async fn has_other_verified(
+    conn: &DatabaseTransaction,
+    user_id: i64,
+    email: &str,
+) -> Result<bool, DbError> {
+    Ok(Entity::find()
+        .filter(Column::UserId.eq(user_id))
+        .filter(Column::Verified.eq(true))
+        .filter(Column::Email.ne(email))
         .count(conn)
         .await?
-        <= 1
+        > 0)
+}
+
+async fn grant_basic_after_first_verification(
+    conn: &DatabaseTransaction,
+    account: user::Model,
+    email: &str,
+) -> Result<(), DbError> {
+    let mut permissions = account.permissions;
+    if permissions.contains(&Permission::Basic)
+        || has_other_verified(conn, account.id, email).await?
     {
-        return Err(DbError::BadRequest("user_has_no_other_emails".to_string()));
+        return Ok(());
     }
 
-    let _ = Entity::delete_many()
-        .filter(Column::Email.eq(email.email.clone()))
-        .exec(conn)
-        .await?;
+    permissions.push(Permission::Basic);
+    user::ActiveModel {
+        id: Unchanged(account.id),
+        permissions: Set(permissions),
+        ..Default::default()
+    }
+    .update(conn)
+    .await?;
     tracing::info!(
-        resource = "email",
-        action = "delete",
-        user_id,
-        email = ?email.email,
-        "database step completed",
+        user_id = account.id,
+        "granted Basic after first email verification"
     );
-
     Ok(())
 }
 
-/// Deletes by user id.
+async fn preserve_verified_email(conn: &DatabaseTransaction, email: &Model) -> Result<(), DbError> {
+    if email.verified && !has_other_verified(conn, email.user_id, &email.email).await? {
+        return Err(DbError::Conflict("last_verified_email".to_owned()));
+    }
+    Ok(())
+}
 
-pub async fn delete_by_user_id(conn: &impl ConnectionTrait, user_id: i64) -> Result<(), DbError> {
-    let _ = Entity::delete_many()
+/// Links an address. A verified address requires proof or explicit
+/// administrative confirmation.
+pub async fn create(
+    conn: &impl TransactionTrait<Transaction = DatabaseTransaction>,
+    user_id: i64,
+    email: String,
+    verified: bool,
+) -> Result<EmailView, DbError> {
+    let transaction = conn.begin().await?;
+    let account = user::lock_active(&transaction, user_id).await?;
+    let email = ActiveModel {
+        user_id: Set(user_id),
+        email: Set(email),
+        verified: Set(verified),
+    }
+    .insert(&transaction)
+    .await
+    .map_err(|error| match error.sql_err() {
+        Some(SqlErr::UniqueConstraintViolation(_)) => {
+            DbError::Conflict("email_already_exists".to_owned())
+        }
+        _ => error.into(),
+    })?;
+
+    if verified {
+        grant_basic_after_first_verification(&transaction, account, &email.email).await?;
+    }
+    transaction.commit().await?;
+    tracing::info!(user_id, email = %email.email, verified, "linked email");
+    Ok(EmailView {
+        email: email.email,
+        verified,
+    })
+}
+
+/// Changes verification status while preserving at least one verified address
+/// once verified.
+pub async fn set_verified(
+    conn: &impl TransactionTrait<Transaction = DatabaseTransaction>,
+    user_id: i64,
+    email: &str,
+    verified: bool,
+) -> Result<EmailView, DbError> {
+    let transaction = conn.begin().await?;
+    let account = user::lock_active(&transaction, user_id).await?;
+    let email = linked_email(&transaction, user_id, email).await?;
+
+    if email.verified != verified {
+        if verified {
+            grant_basic_after_first_verification(&transaction, account, &email.email).await?;
+        } else {
+            preserve_verified_email(&transaction, &email).await?;
+        }
+        ActiveModel {
+            email: Unchanged(email.email.clone()),
+            user_id: Unchanged(user_id),
+            verified: Set(verified),
+        }
+        .update(&transaction)
+        .await?;
+    }
+
+    transaction.commit().await?;
+    tracing::info!(user_id, email = %email.email, verified, "set email verification status");
+    Ok(EmailView {
+        email: email.email,
+        verified,
+    })
+}
+
+/// Removes an address while preserving the last verified address.
+pub async fn delete(
+    conn: &impl TransactionTrait<Transaction = DatabaseTransaction>,
+    user_id: i64,
+    email: String,
+) -> Result<(), DbError> {
+    let transaction = conn.begin().await?;
+    user::lock_active(&transaction, user_id).await?;
+    let email = linked_email(&transaction, user_id, &email).await?;
+    preserve_verified_email(&transaction, &email).await?;
+
+    Entity::delete_by_id(email.email.clone())
+        .filter(Column::UserId.eq(user_id))
+        .exec(&transaction)
+        .await?;
+    transaction.commit().await?;
+    tracing::info!(user_id, email = %email.email, "deleted email");
+    Ok(())
+}
+
+/// Cleans up addresses during account deletion, with the account already
+/// locked.
+pub(super) async fn delete_by_user_id(
+    conn: &DatabaseTransaction,
+    user_id: i64,
+) -> Result<(), DbError> {
+    Entity::delete_many()
         .filter(Column::UserId.eq(user_id))
         .exec(conn)
         .await?;
-    tracing::info!(
-        resource = "email",
-        action = "delete",
-        user_id = user_id,
-        "resource step completed"
-    );
-
     Ok(())
 }

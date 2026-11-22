@@ -17,6 +17,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Json as ReqJson, Path},
+    middleware::auth::basic_operator,
     traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
@@ -84,6 +85,7 @@ pub struct JoinTeamRequest {
         (status = 200, description = "Joined", body = EmptyJson),
         (status = 400, description = "Bad request", body = crate::traits::ErrorResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -94,7 +96,7 @@ pub async fn join_team(
     Path((game_id, team_id)): Path<(i64, i64)>,
     ReqJson(body): ReqJson<JoinTeamRequest>,
 ) -> Result<Json<EmptyJson>, WebError> {
-    let operator = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 

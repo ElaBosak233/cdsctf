@@ -25,8 +25,8 @@ export type DeleteEmailRequest = {
 
 export async function deleteEmail(request: DeleteEmailRequest) {
   return api
-    .delete(`users/me/emails/${request.email}`, { json: request })
-    .json<{ email: EmailView }>();
+    .delete(`users/me/emails/${encodeURIComponent(request.email)}`)
+    .json<Record<string, never>>();
 }
 
 export type VerifyEmailRequest = {

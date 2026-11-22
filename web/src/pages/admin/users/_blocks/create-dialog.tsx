@@ -28,7 +28,7 @@ import {
 import { TextField } from "@/components/ui/text-field";
 import { EmailDomainHint } from "@/components/widgets/email-domain-hint";
 import { useEmailValidation } from "@/hooks/use-email-validation";
-import { BASIC_PERMISSION, PERMISSIONS } from "@/models/user";
+import { PERMISSIONS } from "@/models/user";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { notifyApiError } from "@/utils/query";
@@ -63,7 +63,7 @@ function CreateUserDialog(props: CreateUserDialogProps) {
     resolver: zodResolver(formSchema),
     mode: "onChange",
     defaultValues: {
-      permissions: [BASIC_PERMISSION],
+      permissions: [],
       username: "",
       name: "",
       email: "",

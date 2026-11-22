@@ -1,4 +1,13 @@
 import type { Location } from "react-router";
+import {
+  BASIC_PERMISSION,
+  hasAnyPermission,
+  hasPermission,
+  MANAGEMENT_PERMISSIONS,
+  type UserAccountView,
+} from "@/models/user";
+
+export const emailSettingsPath = "/account/settings/emails";
 
 const IDP_REDIRECT_KEY = "idp_auth_redirect";
 
@@ -27,6 +36,14 @@ export function getSafeRedirect(value: string | null | undefined) {
 
 export function getLoginUrl(target: string) {
   return `/account/login?redirect=${encodeURIComponent(target)}`;
+}
+
+export function getPostLoginTarget(user: UserAccountView, target: string) {
+  const { permissions } = user;
+  return hasPermission(permissions, BASIC_PERMISSION) ||
+    hasAnyPermission(permissions, MANAGEMENT_PERMISSIONS)
+    ? getSafeRedirect(target)
+    : emailSettingsPath;
 }
 
 export function withRedirect(path: string, target: string) {

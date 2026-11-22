@@ -13,6 +13,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Path},
+    middleware::auth::basic_operator,
     traits::{AppState, AuthPrincipal, WebError},
 };
 
@@ -41,6 +42,7 @@ pub struct InviteTokenResponse {
     responses(
         (status = 200, description = "New invite token", body = InviteTokenResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -50,9 +52,7 @@ pub async fn create_token(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<InviteTokenResponse>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
     let token = nanoid!(16);
@@ -86,6 +86,7 @@ pub async fn create_token(
     responses(
         (status = 200, description = "Current invite token if any", body = InviteTokenResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Basic access required", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -95,9 +96,7 @@ pub async fn get_token(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<InviteTokenResponse>, WebError> {
-    let operator = ext
-        .operator
-        .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
     let token = s
         .cache

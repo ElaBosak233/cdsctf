@@ -8,6 +8,8 @@ pub enum DbError {
     NotFound(String),
     #[error("bad request: {0}")]
     BadRequest(String),
+    #[error("conflict: {0}")]
+    Conflict(String),
 
     #[error("sea_orm error: {0}")]
     SeaORM(#[from] sea_orm::DbErr),
