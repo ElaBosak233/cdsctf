@@ -83,12 +83,6 @@ function UserCell({ row }: { row: Row<UserAccountView> }) {
           ])}
         >
           <span className="shrink-0 font-mono">#{user.id}</span>
-          {user.name && (
-            <>
-              <span className="shrink-0">·</span>
-              <span className="truncate">{user.username}</span>
-            </>
-          )}
           <Tooltip>
             <TooltipTrigger
               render={
@@ -111,6 +105,12 @@ function UserCell({ row }: { row: Row<UserAccountView> }) {
             ></TooltipTrigger>
             <TooltipContent>{t("common:tooltip.copy")}</TooltipContent>
           </Tooltip>
+          {user.name && (
+            <>
+              <span className="shrink-0">·</span>
+              <span className="truncate">{user.username}</span>
+            </>
+          )}
         </div>
       </div>
     </div>

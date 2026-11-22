@@ -49,7 +49,6 @@ function FilterFields({
 }: UserFilterProps & { compact?: boolean }) {
   const { t } = useTranslation();
   const { q, status, access } = filters;
-  const queryLabel = t("user:search.query");
 
   return (
     <div
@@ -60,12 +59,12 @@ function FilterFields({
         compact ? "shrink-0 items-center gap-2" : "flex-col gap-3"
       )}
     >
-      <Field size="sm" className={compact ? "w-56" : undefined}>
+      <Field size="sm" className={compact ? "w-56 shrink-0" : undefined}>
         <FieldIcon>
           <SearchIcon />
         </FieldIcon>
         <TextField
-          aria-label={queryLabel}
+          aria-label={t("user:search.query")}
           placeholder={t("user:search.query_placeholder")}
           value={q}
           onChange={(event) => onChange({ q: event.target.value })}
