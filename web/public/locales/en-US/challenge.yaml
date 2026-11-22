@@ -95,6 +95,8 @@ attachment:
         <muted>{{filename}}</muted>?
       success: "Attachment {{filename}} deleted successfully."
 search:
+  all_categories: "All categories"
+  all_visibility: "Any visibility"
   title: Challenge Title
   tag: Tag
   public:

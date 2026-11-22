@@ -65,3 +65,38 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
         )
         .nest("/configs", config::router(state.clone()))
 }
+
+/// A positive #ID selects one record; other nonempty input searches display
+/// text.
+fn parse_list_search(query: Option<&str>) -> (Option<i64>, Option<String>) {
+    let keyword = query.map(str::trim).filter(|q| !q.is_empty());
+    let search_id = keyword
+        .and_then(|q| q.strip_prefix('#'))
+        .filter(|id| id.bytes().all(|byte| byte.is_ascii_digit()))
+        .and_then(|id| id.parse::<i64>().ok())
+        .filter(|&id| id > 0);
+    let keyword = keyword.filter(|_| search_id.is_none()).map(str::to_owned);
+    (search_id, keyword)
+}
+
+#[cfg(test)]
+mod list_search_tests {
+    use super::parse_list_search;
+
+    #[test]
+    fn parses_ids_and_keeps_other_input_literal() {
+        assert_eq!(parse_list_search(None), (None, None));
+        assert_eq!(parse_list_search(Some("  ")), (None, None));
+        assert_eq!(parse_list_search(Some(" #0012 ")), (Some(12), None));
+        for text in [
+            "12",
+            "#0",
+            "#+12",
+            "#web",
+            "#99999999999999999999",
+            "100%_foo",
+        ] {
+            assert_eq!(parse_list_search(Some(text)), (None, Some(text.to_owned())));
+        }
+    }
+}

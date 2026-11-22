@@ -77,6 +77,7 @@ status:
     _: Ended
     remaining: This game has ended
 search:
+  all_statuses: "All statuses"
   title: Game Title
   clear: Clear search
 form:

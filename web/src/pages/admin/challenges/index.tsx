@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ListOrderedIcon } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   type GetChallengesRequest,
@@ -41,75 +41,46 @@ import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
 import { ChallengeListContext } from "./context";
 
-function useChallengeQuery(params: GetChallengesRequest) {
-  const { refresh } = useSharedStore();
-
-  return useQuery({
-    queryKey: [
-      "challenges",
-      params.id,
-      params.title,
-      params.size,
-      params.page,
-      params.category,
-      params.public,
-      params.sorts,
-      refresh,
-    ],
-    queryFn: () => getChallenges(params),
-    select: (response) => ({
-      challenges: response.challenges || [],
-      total: response.total || 0,
-    }),
-    enabled: !!params,
-    placeholderData: keepPreviousData,
-  });
-}
-
 export default function Index() {
   const { t } = useTranslation();
   const configStore = useConfigStore();
-  const {
-    createDialogOpen,
-    setCreateDialogOpen,
-    columnFilters,
-    setColumnFilters,
-  } = useContext(ChallengeListContext)!;
+  const refresh = useSharedStore((state) => state.refresh);
+  const { createDialogOpen, setCreateDialogOpen, filters } =
+    useContext(ChallengeListContext)!;
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(10));
   const [sorting, setSorting] = useState<SortingState>([
     { id: "updated_at", desc: true },
   ]);
-  const debouncedColumnFilters = useDebounce(columnFilters, 100);
-
-  const categoryFilter = debouncedColumnFilters.find(
-    (filter) => filter.id === "category"
-  )?.value as string | undefined;
-  const category =
-    categoryFilter && categoryFilter !== "all"
-      ? Number(categoryFilter)
-      : undefined;
-
-  const isPublic =
-    (debouncedColumnFilters.find((c) => c.id === "public")?.value as string) !==
-    "all"
-      ? (debouncedColumnFilters.find((c) => c.id === "public")
-          ?.value as string) === "true"
-      : undefined;
-
-  const { data: challengesData, isLoading: loading } = useChallengeQuery({
-    id:
-      Number(debouncedColumnFilters.find((c) => c.id === "id")?.value) ||
-      undefined,
-    title: debouncedColumnFilters.find((c) => c.id === "title")
-      ?.value as string,
-    category,
-    public: isPublic,
-    sorts: sorting.map((s) => (s.desc ? `-${s.id}` : s.id)).join(","),
-    page,
-    size,
+  const sorts = sorting.map((s) => (s.desc ? `-${s.id}` : s.id)).join(",");
+  const request = useMemo<GetChallengesRequest>(
+    () => ({
+      q: filters.q.trim() || undefined,
+      category: filters.category ?? undefined,
+      public: filters.public ?? undefined,
+      sorts,
+      page,
+      size,
+    }),
+    [filters.category, filters.public, filters.q, sorts, page, size]
+  );
+  const params = useDebounce(request, 150);
+  const query = useQuery({
+    queryKey: ["admin", "challenges", params, refresh],
+    queryFn: () => getChallenges(params),
+    placeholderData: keepPreviousData,
   });
+  const challengesData = query.data;
+  const loading =
+    request !== params || query.isPending || query.isPlaceholderData;
+  const totalPages = Math.ceil((challengesData?.total ?? 0) / size);
+
+  useEffect(() => {
+    if (loading || !query.isSuccess) return;
+    const lastPage = Math.max(totalPages, 1);
+    if (page > lastPage) void setPage(lastPage);
+  }, [loading, query.isSuccess, page, totalPages, setPage]);
 
   const columns = useColumns();
   const table = useDataTable<ChallengeDetail>({
@@ -117,14 +88,12 @@ export default function Index() {
     columns,
     manualPagination: true,
     rowCount: challengesData?.total,
-    manualFiltering: true,
-    onColumnFiltersChange: setColumnFilters,
     manualSorting: true,
     onSortingChange: (updater) => {
       setSorting(updater);
       void setPage(1);
     },
-    state: { sorting, columnFilters },
+    state: { sorting },
   });
 
   return (
@@ -168,6 +137,7 @@ export default function Index() {
         >
           <LoadingOverlay loading={loading} />
           <Table
+            aria-busy={loading}
             className={cn([
               "w-full",
               "min-w-224",
@@ -294,7 +264,7 @@ export default function Index() {
             <Pagination
               size="sm"
               value={page}
-              total={Math.ceil((challengesData?.total || 0) / size)}
+              total={totalPages}
               onChange={setPage}
             />
             <Field size="sm" className={cn(["w-32", "sm:w-36"])}>

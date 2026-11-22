@@ -2,8 +2,7 @@ import type { GameDetail } from "@/models/game";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetGamesRequest = {
-  id?: number;
-  title?: string;
+  q?: string;
   enabled?: boolean;
   sorts?: string;
   page?: number;

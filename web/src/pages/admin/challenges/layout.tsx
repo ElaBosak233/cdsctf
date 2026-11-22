@@ -1,12 +1,17 @@
 import {
   EyeIcon,
   FilterIcon,
-  HashIcon,
   LibraryIcon,
   PlusCircleIcon,
-  TypeIcon,
+  SearchIcon,
 } from "lucide-react";
-import { parseAsInteger, useQueryState } from "nuqs";
+import {
+  parseAsBoolean,
+  parseAsInteger,
+  parseAsNumberLiteral,
+  parseAsString,
+  useQueryStates,
+} from "nuqs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation } from "react-router";
@@ -23,73 +28,40 @@ import {
 } from "@/components/ui/select";
 import { Sidebar } from "@/components/ui/sidebar";
 import { TextField } from "@/components/ui/text-field";
-import type { ColumnFiltersState } from "@/hooks/use-data-table";
 import { cn } from "@/utils";
 import { categories } from "@/utils/category";
-import { ChallengeListContext } from "./context";
+import { type ChallengeFilters, ChallengeListContext } from "./context";
 
-function setFilter(
-  prev: ColumnFiltersState,
-  id: string,
-  value: unknown
-): ColumnFiltersState {
-  const rest = prev.filter((f) => f.id !== id);
-  return value === undefined || value === "" ? rest : [...rest, { id, value }];
-}
-
-type FilterFieldsProps = {
-  columnFilters: ColumnFiltersState;
-  compact?: boolean;
-  setColumnFilters: (
-    updater:
-      | ColumnFiltersState
-      | ((prev: ColumnFiltersState) => ColumnFiltersState)
-  ) => void;
+const listSearchParams = {
+  q: parseAsString.withDefault(""),
+  category: parseAsNumberLiteral(categories.map(({ id }) => id)),
+  public: parseAsBoolean,
+  page: parseAsInteger.withDefault(1),
 };
 
 function FilterFields({
-  columnFilters,
+  filters,
   compact = false,
-  setColumnFilters,
-}: FilterFieldsProps) {
+  onChange,
+}: {
+  filters: ChallengeFilters;
+  compact?: boolean;
+  onChange: (next: Partial<ChallengeFilters>) => void;
+}) {
   const { t } = useTranslation();
-  const idValue =
-    (columnFilters.find((c) => c.id === "id")?.value as string) ?? "";
-  const titleValue =
-    (columnFilters.find((c) => c.id === "title")?.value as string) ?? "";
-  const categoryValue =
-    (columnFilters.find((c) => c.id === "category")?.value as string) ?? "all";
-  const publicValue =
-    (columnFilters.find((c) => c.id === "public")?.value as string) ?? "all";
+  const searchLabel = t("common:search_title_or_id");
 
   return (
     <>
-      <Field size="sm" className={cn(compact && ["w-28", "shrink-0"])}>
+      <Field size="sm" className={compact ? "w-56 shrink-0" : undefined}>
         <FieldIcon>
-          <HashIcon className="size-4" />
+          <SearchIcon />
         </FieldIcon>
         <TextField
-          placeholder={t("challenge:form.id._")}
-          value={idValue}
-          onChange={(event) =>
-            setColumnFilters((current) =>
-              setFilter(current, "id", event.target.value || undefined)
-            )
-          }
-        />
-      </Field>
-      <Field size="sm" className={cn(compact && ["w-56", "shrink-0"])}>
-        <FieldIcon>
-          <TypeIcon className="size-4" />
-        </FieldIcon>
-        <TextField
-          placeholder={t("challenge:title")}
-          value={titleValue}
-          onChange={(event) =>
-            setColumnFilters((current) =>
-              setFilter(current, "title", event.target.value || undefined)
-            )
-          }
+          aria-label={searchLabel}
+          placeholder={searchLabel}
+          value={filters.q}
+          onChange={(event) => onChange({ q: event.target.value })}
         />
       </Field>
       <Field size="sm" className={cn(compact && ["w-44", "shrink-0"])}>
@@ -97,16 +69,18 @@ function FilterFields({
           <LibraryIcon className="size-4" />
         </FieldIcon>
         <Select
-          value={categoryValue}
+          value={filters.category?.toString() ?? "all"}
           onValueChange={(value) =>
-            setColumnFilters((current) => setFilter(current, "category", value))
+            onChange({ category: value === "all" ? null : Number(value) })
           }
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label={t("challenge:category")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("common:all")}</SelectItem>
+            <SelectItem value="all">
+              {t("challenge:search.all_categories")}
+            </SelectItem>
             {categories.map((category) => {
               const Icon = category.icon!;
               return (
@@ -124,16 +98,18 @@ function FilterFields({
           <EyeIcon className="size-4" />
         </FieldIcon>
         <Select
-          value={publicValue}
+          value={filters.public?.toString() ?? "all"}
           onValueChange={(value) =>
-            setColumnFilters((current) => setFilter(current, "public", value))
+            onChange({ public: value === "all" ? null : value === "true" })
           }
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label={t("challenge:search.public._")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("common:all")}</SelectItem>
+            <SelectItem value="all">
+              {t("challenge:search.all_visibility")}
+            </SelectItem>
             <SelectItem value="true">
               {t("challenge:search.public.true")}
             </SelectItem>
@@ -154,22 +130,11 @@ export default function Layout() {
     pathname === "/admin/challenges" || pathname === "/admin/challenges/";
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [columnFilters, setColumnFiltersState] = useState<ColumnFiltersState>([
-    { id: "category", value: "all" },
-    { id: "public", value: "all" },
-  ]);
-  const [, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+  const [filters, setFilters] = useQueryStates(listSearchParams);
 
-  const setColumnFilters = (
-    updater:
-      | ColumnFiltersState
-      | ((prev: ColumnFiltersState) => ColumnFiltersState)
-  ) => {
-    setColumnFiltersState((current) =>
-      typeof updater === "function" ? updater(current) : updater
-    );
-    void setPage(1);
-  };
+  function updateFilters(next: Partial<ChallengeFilters>) {
+    void setFilters({ ...next, page: 1 });
+  }
 
   if (!isListPage) {
     return <Outlet />;
@@ -180,8 +145,7 @@ export default function Layout() {
       value={{
         createDialogOpen,
         setCreateDialogOpen,
-        columnFilters,
-        setColumnFilters,
+        filters,
       }}
     >
       <div
@@ -209,11 +173,7 @@ export default function Layout() {
           <div
             className={cn(["mx-1", "h-6", "w-px", "shrink-0", "bg-border"])}
           />
-          <FilterFields
-            compact
-            columnFilters={columnFilters}
-            setColumnFilters={setColumnFilters}
-          />
+          <FilterFields compact filters={filters} onChange={updateFilters} />
         </ScrollableNav>
         <Sidebar
           collapsible="none"
@@ -274,10 +234,7 @@ export default function Layout() {
               <FilterIcon className="size-3.5" />
               {t("common:filter")}
             </div>
-            <FilterFields
-              columnFilters={columnFilters}
-              setColumnFilters={setColumnFilters}
-            />
+            <FilterFields filters={filters} onChange={updateFilters} />
           </div>
         </Sidebar>
         <Card

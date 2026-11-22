@@ -6,6 +6,7 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, ConnectionTrait, EntityName, EntityTrait,
     FromQueryResult, Iden as _, JoinType, Order, PaginatorTrait, QueryFilter, QueryOrder,
     QuerySelect, QueryTrait, RelationTrait, Set, prelude::Expr,
+    sea_query::extension::postgres::PgExpr,
 };
 
 pub(crate) use crate::entity::challenge::{Column, Entity};
@@ -19,6 +20,7 @@ pub use crate::{
 pub struct FindChallengeOptions {
     pub id: Option<i64>,
     pub title: Option<String>,
+    pub keyword: Option<String>,
     pub category: Option<i32>,
     pub tag: Option<String>,
     pub public: Option<bool>,
@@ -93,6 +95,7 @@ pub async fn find<T>(
     FindChallengeOptions {
         id,
         title,
+        keyword,
         category,
         tag,
         public,
@@ -112,6 +115,10 @@ where
 
     if let Some(title) = title {
         sql = sql.filter(Column::Title.contains(title));
+    }
+
+    if let Some(keyword) = keyword {
+        sql = sql.filter(Expr::col(Column::Title).ilike(super::literal_search_pattern(&keyword)));
     }
 
     if let Some(category) = category {
@@ -157,8 +164,8 @@ where
     }
 
     if let (Some(page), Some(size)) = (page, size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
+        let offset = std::cmp::min(page.saturating_sub(1).saturating_mul(size), i64::MAX as u64);
+        sql = sql.order_by_asc(Column::Id).offset(offset).limit(size);
     }
 
     let challenges = sql.into_model::<T>().all(conn).await?;

@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ListOrderedIcon } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type GetGamesRequest, getGames } from "@/api/management/games";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -38,63 +38,45 @@ import { RowProvider, useColumns } from "./_blocks/columns";
 import { CreateDialog } from "./_blocks/create-dialog";
 import { GameListContext } from "./context";
 
-function useGameQuery(params: GetGamesRequest) {
-  const { refresh } = useSharedStore();
-
-  return useQuery({
-    queryKey: [
-      "games",
-      params.id,
-      params.title,
-      params.size,
-      params.page,
-      params.enabled,
-      params.sorts,
-      refresh,
-    ],
-    queryFn: () => getGames(params),
-    select: (response) => ({
-      games: response.games || [],
-      total: response.total || 0,
-    }),
-    enabled: !!params,
-    placeholderData: keepPreviousData,
-  });
-}
-
 export default function Index() {
   const { t } = useTranslation();
   const configStore = useConfigStore();
-  const {
-    createDialogOpen,
-    setCreateDialogOpen,
-    columnFilters,
-    setColumnFilters,
-  } = useContext(GameListContext)!;
+  const refresh = useSharedStore((state) => state.refresh);
+  const { createDialogOpen, setCreateDialogOpen, filters } =
+    useContext(GameListContext)!;
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(10));
   const [sorting, setSorting] = useState<SortingState>([
     { id: "started_at", desc: true },
   ]);
-  const debouncedColumnFilters = useDebounce(columnFilters, 100);
-
-  const enabled =
-    (debouncedColumnFilters.find((c) => c.id === "enabled")
-      ?.value as string) !== "all"
-      ? (debouncedColumnFilters.find((c) => c.id === "enabled")
-          ?.value as string) === "true"
-      : undefined;
-
-  const { data: gamesData, isLoading: loading } = useGameQuery({
-    id: debouncedColumnFilters.find((c) => c.id === "id")?.value as number,
-    title: debouncedColumnFilters.find((c) => c.id === "title")
-      ?.value as string,
-    enabled,
-    sorts: sorting.map((s) => (s.desc ? `-${s.id}` : s.id)).join(","),
-    page,
-    size,
+  const sorts = sorting.map((s) => (s.desc ? `-${s.id}` : s.id)).join(",");
+  const request = useMemo<GetGamesRequest>(
+    () => ({
+      q: filters.q.trim() || undefined,
+      enabled: filters.enabled ?? undefined,
+      sorts,
+      page,
+      size,
+    }),
+    [filters.enabled, filters.q, sorts, page, size]
+  );
+  const params = useDebounce(request, 150);
+  const query = useQuery({
+    queryKey: ["admin", "games", params, refresh],
+    queryFn: () => getGames(params),
+    placeholderData: keepPreviousData,
   });
+  const gamesData = query.data;
+  const loading =
+    request !== params || query.isPending || query.isPlaceholderData;
+  const totalPages = Math.ceil((gamesData?.total ?? 0) / size);
+
+  useEffect(() => {
+    if (loading || !query.isSuccess) return;
+    const lastPage = Math.max(totalPages, 1);
+    if (page > lastPage) void setPage(lastPage);
+  }, [loading, query.isSuccess, page, totalPages, setPage]);
 
   const columns = useColumns();
   const table = useDataTable<GameDetail>({
@@ -102,14 +84,12 @@ export default function Index() {
     columns,
     manualPagination: true,
     rowCount: gamesData?.total,
-    manualFiltering: true,
-    onColumnFiltersChange: setColumnFilters,
     manualSorting: true,
     onSortingChange: (updater) => {
       setSorting(updater);
       void setPage(1);
     },
-    state: { sorting, columnFilters },
+    state: { sorting },
   });
 
   return (
@@ -149,6 +129,7 @@ export default function Index() {
         >
           <LoadingOverlay loading={loading} />
           <Table
+            aria-busy={loading}
             className={cn([
               "w-full",
               "min-w-224",
@@ -274,7 +255,7 @@ export default function Index() {
             <Pagination
               size="sm"
               value={page}
-              total={Math.ceil((gamesData?.total || 0) / size)}
+              total={totalPages}
               onChange={setPage}
             />
             <Field size="sm" className={cn(["w-32", "sm:w-36"])}>

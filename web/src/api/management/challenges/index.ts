@@ -2,8 +2,7 @@ import type { ChallengeDetail } from "@/models/challenge";
 import { api, toSearchParams } from "@/utils/query";
 
 export type GetChallengesRequest = {
-  id?: number;
-  title?: string;
+  q?: string;
   description?: string;
   category?: number;
   public?: boolean;

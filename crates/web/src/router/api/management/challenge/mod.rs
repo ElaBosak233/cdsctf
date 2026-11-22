@@ -38,8 +38,8 @@ pub fn router(state: Arc<AppState>) -> OpenApiRouter<Arc<AppState>> {
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
 #[into_params(parameter_in = Query)]
 pub struct GetChallengeRequest {
-    pub id: Option<i64>,
-    pub title: Option<String>,
+    /// Searches the title or matches an exact positive #ID.
+    pub q: Option<String>,
     pub category: Option<i32>,
     pub tag: Option<String>,
     pub public: Option<bool>,
@@ -71,14 +71,16 @@ pub async fn get_challenges(
     State(s): State<Arc<AppState>>,
     Query(params): Query<GetChallengeRequest>,
 ) -> Result<Json<AdminChallengesListResponse>, WebError> {
-    let page = params.page.unwrap_or(1);
-    let size = params.size.unwrap_or(10).min(100);
+    let page = params.page.unwrap_or(1).max(1);
+    let size = params.size.unwrap_or(10).clamp(1, 100);
+    let (id, keyword) = super::parse_list_search(params.q.as_deref());
 
     let (challenges, total) = cds_db::challenge::find(
         &s.db.conn,
         FindChallengeOptions {
-            id: params.id,
-            title: params.title,
+            id,
+            title: None,
+            keyword,
             category: params.category,
             tag: params.tag,
             public: params.public,

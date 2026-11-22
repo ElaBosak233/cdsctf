@@ -99,18 +99,13 @@ pub async fn get_users(
         (None, Some(permission)) => Some(PermissionFilter::AnyOf(vec![permission])),
         (None, None) => None,
     };
-    let keyword = params.q.as_deref().map(str::trim).filter(|q| !q.is_empty());
-    let search_id = keyword
-        .and_then(|q| q.strip_prefix('#'))
-        .filter(|id| id.bytes().all(|byte| byte.is_ascii_digit()))
-        .and_then(|id| id.parse::<i64>().ok())
-        .filter(|&id| id > 0);
+    let (id, keyword) = super::parse_list_search(params.q.as_deref());
 
     let (users, total) = cds_db::user::find(
         &s.db.conn,
         FindUserOptions {
-            id: search_id,
-            keyword: keyword.filter(|_| search_id.is_none()).map(str::to_owned),
+            id,
+            keyword,
             banned: params.banned,
             permissions,
             sorts: params.sorts,

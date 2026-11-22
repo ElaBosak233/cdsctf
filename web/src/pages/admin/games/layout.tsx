@@ -2,11 +2,15 @@ import {
   EyeIcon,
   FilterIcon,
   FlagIcon,
-  HashIcon,
   PlusCircleIcon,
-  TypeIcon,
+  SearchIcon,
 } from "lucide-react";
-import { parseAsInteger, useQueryState } from "nuqs";
+import {
+  parseAsBoolean,
+  parseAsInteger,
+  parseAsString,
+  useQueryStates,
+} from "nuqs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation } from "react-router";
@@ -23,70 +27,38 @@ import {
 } from "@/components/ui/select";
 import { Sidebar, SidebarInset } from "@/components/ui/sidebar";
 import { TextField } from "@/components/ui/text-field";
-import type { ColumnFiltersState } from "@/hooks/use-data-table";
 import { cn } from "@/utils";
-import { GameListContext } from "./context";
+import { type GameFilters, GameListContext } from "./context";
 
-function setFilter(
-  prev: ColumnFiltersState,
-  id: string,
-  value: unknown
-): ColumnFiltersState {
-  const rest = prev.filter((f) => f.id !== id);
-  return value === undefined || value === "" ? rest : [...rest, { id, value }];
-}
-
-type FilterFieldsProps = {
-  columnFilters: ColumnFiltersState;
-  compact?: boolean;
-  setColumnFilters: (
-    updater:
-      | ColumnFiltersState
-      | ((prev: ColumnFiltersState) => ColumnFiltersState)
-  ) => void;
+const listSearchParams = {
+  q: parseAsString.withDefault(""),
+  enabled: parseAsBoolean,
+  page: parseAsInteger.withDefault(1),
 };
 
 function FilterFields({
-  columnFilters,
+  filters,
   compact = false,
-  setColumnFilters,
-}: FilterFieldsProps) {
+  onChange,
+}: {
+  filters: GameFilters;
+  compact?: boolean;
+  onChange: (next: Partial<GameFilters>) => void;
+}) {
   const { t } = useTranslation();
-  const idValue =
-    (columnFilters.find((c) => c.id === "id")?.value as string) ?? "";
-  const titleValue =
-    (columnFilters.find((c) => c.id === "title")?.value as string) ?? "";
-  const enabledValue =
-    (columnFilters.find((c) => c.id === "enabled")?.value as string) ?? "all";
+  const searchLabel = t("common:search_title_or_id");
 
   return (
     <>
-      <Field size="sm" className={cn(compact && ["w-28", "shrink-0"])}>
+      <Field size="sm" className={compact ? "w-56 shrink-0" : undefined}>
         <FieldIcon>
-          <HashIcon className="size-4" />
+          <SearchIcon />
         </FieldIcon>
         <TextField
-          placeholder={t("game:id")}
-          value={idValue}
-          onChange={(e) =>
-            setColumnFilters((prev) =>
-              setFilter(prev, "id", e.target.value || undefined)
-            )
-          }
-        />
-      </Field>
-      <Field size="sm" className={cn(compact && ["w-56", "shrink-0"])}>
-        <FieldIcon>
-          <TypeIcon className="size-4" />
-        </FieldIcon>
-        <TextField
-          placeholder={t("game:title")}
-          value={titleValue}
-          onChange={(e) =>
-            setColumnFilters((prev) =>
-              setFilter(prev, "title", e.target.value || undefined)
-            )
-          }
+          aria-label={searchLabel}
+          placeholder={searchLabel}
+          value={filters.q}
+          onChange={(event) => onChange({ q: event.target.value })}
         />
       </Field>
       <Field size="sm" className={cn(compact && ["w-36", "shrink-0"])}>
@@ -94,16 +66,16 @@ function FilterFields({
           <EyeIcon className="size-4" />
         </FieldIcon>
         <Select
-          value={enabledValue}
+          value={filters.enabled?.toString() ?? "all"}
           onValueChange={(value) =>
-            setColumnFilters((prev) => setFilter(prev, "enabled", value))
+            onChange({ enabled: value === "all" ? null : value === "true" })
           }
         >
-          <SelectTrigger>
+          <SelectTrigger aria-label={t("game:form.enabled._")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("common:all")}</SelectItem>
+            <SelectItem value="all">{t("game:search.all_statuses")}</SelectItem>
             <SelectItem value="true">{t("game:enabled.true")}</SelectItem>
             <SelectItem value="false">{t("game:enabled.false")}</SelectItem>
           </SelectContent>
@@ -120,21 +92,11 @@ export default function Layout() {
     pathname === "/admin/games" || pathname === "/admin/games/";
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [columnFilters, setColumnFiltersState] = useState<ColumnFiltersState>([
-    { id: "enabled", value: "all" },
-  ]);
-  const [, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+  const [filters, setFilters] = useQueryStates(listSearchParams);
 
-  const setColumnFilters = (
-    updater:
-      | ColumnFiltersState
-      | ((prev: ColumnFiltersState) => ColumnFiltersState)
-  ) => {
-    setColumnFiltersState((current) =>
-      typeof updater === "function" ? updater(current) : updater
-    );
-    void setPage(1);
-  };
+  function updateFilters(next: Partial<GameFilters>) {
+    void setFilters({ ...next, page: 1 });
+  }
 
   if (!isListPage) {
     return <Outlet />;
@@ -145,8 +107,7 @@ export default function Layout() {
       value={{
         createDialogOpen,
         setCreateDialogOpen,
-        columnFilters,
-        setColumnFilters,
+        filters,
       }}
     >
       <div className="flex min-h-(--app-content-height) flex-1 min-w-0">
@@ -209,10 +170,7 @@ export default function Layout() {
               <FilterIcon className="size-3.5" />
               {t("common:filter")}
             </div>
-            <FilterFields
-              columnFilters={columnFilters}
-              setColumnFilters={setColumnFilters}
-            />
+            <FilterFields filters={filters} onChange={updateFilters} />
           </div>
         </Sidebar>
         <SidebarInset className="min-h-(--app-content-height) flex flex-col flex-1 min-w-0">
@@ -229,11 +187,7 @@ export default function Layout() {
             <div
               className={cn(["mx-1", "h-6", "w-px", "shrink-0", "bg-border"])}
             />
-            <FilterFields
-              compact
-              columnFilters={columnFilters}
-              setColumnFilters={setColumnFilters}
-            />
+            <FilterFields compact filters={filters} onChange={updateFilters} />
           </ScrollableNav>
           <Card
             className={cn([

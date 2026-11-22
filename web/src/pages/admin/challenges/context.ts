@@ -1,15 +1,15 @@
 import { createContext } from "react";
-import type { ColumnFiltersState } from "@/hooks/use-data-table";
 
-export type ChallengeListContextValue = {
+export type ChallengeFilters = {
+  q: string;
+  category: number | null;
+  public: boolean | null;
+};
+
+type ChallengeListContextValue = {
   createDialogOpen: boolean;
   setCreateDialogOpen: (open: boolean) => void;
-  columnFilters: ColumnFiltersState;
-  setColumnFilters: (
-    updater:
-      | ColumnFiltersState
-      | ((prev: ColumnFiltersState) => ColumnFiltersState)
-  ) => void;
+  filters: ChallengeFilters;
 };
 
 export const ChallengeListContext =

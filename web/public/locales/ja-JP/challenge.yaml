@@ -1,7 +1,7 @@
 _: 課題
 playground: プレイグラウンド
 empty: 課題はまだありません。
-result_count: '{{count}} 件の課題'
+result_count: "{{count}} 件の課題"
 list:
   columns:
     challenge: 課題
@@ -11,7 +11,7 @@ list:
   visibility:
     public: 公開
     private: 非公開
-  created_at: '作成 {{time}}'
+  created_at: "作成 {{time}}"
 edit:
   _: 課題を編集
   info: 情報
@@ -33,19 +33,19 @@ tags: タグ
 has_attachment: 添付ファイル
 has_instance:
   _: 動的環境
-  'true': 動的
-  'false': 静的
+  "true": 動的
+  "false": 静的
 frozen:
   already: 凍結済み
-  countdown: '{{hours}}時間{{minutes}}分{{seconds}}秒後に凍結'
+  countdown: "{{hours}}時間{{minutes}}分{{seconds}}秒後に凍結"
 instance:
   renew_success: 動的環境を延長しました。
   renew_error: 動的環境の延長に失敗しました。
 public:
   _: 公開状態
   actions:
-    'true': 公開する
-    'false': 非公開にする
+    "true": 公開する
+    "false": 非公開にする
     success: 課題 {{title}} の公開状態を更新しました。
 updated_at: 更新日時
 created_at: 作成日時
@@ -58,8 +58,8 @@ checker:
     idle: コードを待っています
     checking: コードを確認しています…
     valid: 問題は見つかりませんでした。
-    invalid_one: '{{count}} 件の問題が見つかりました'
-    invalid_other: '{{count}} 件の問題が見つかりました'
+    invalid_one: "{{count}} 件の問題が見つかりました"
+    invalid_other: "{{count}} 件の問題が見つかりました"
     error: チェックサービスは一時的に利用できません
   templates:
     _: プリセットテンプレートを選択
@@ -92,12 +92,14 @@ attachment:
       message: 添付ファイル <muted>{{filename}}</muted> を削除してもよろしいですか？
       success: 添付ファイル {{filename}} を削除しました。
 search:
+  all_categories: "すべてのカテゴリ"
+  all_visibility: "すべての公開状態"
   title: 課題タイトル
   tag: タグ
   public:
     _: 公開状態
-    'true': 公開
-    'false': 非公開
+    "true": 公開
+    "false": 非公開
 form:
   id:
     _: ID
@@ -112,20 +114,20 @@ form:
     _: タグ
   has_attachment:
     _: 添付ファイルあり
-    'true': はい
-    'false': いいえ
+    "true": はい
+    "false": いいえ
   has_instance:
     _: 動的環境
-    'true': 動的
-    'false': 静的
+    "true": 動的
+    "false": 静的
   description:
     _: 説明
     message: 説明を入力してください
     placeholder: 昔々…
   has_writeup:
     _: 解答レポートあり
-    'true': はい
-    'false': いいえ
+    "true": はい
+    "false": いいえ
   writeup:
     _: 解答レポート
     message: 解答レポートを入力してください
@@ -134,12 +136,12 @@ form:
     duration:
       _: 有効期間（秒）
       message: 有効期間を秒単位で入力してください
-      placeholder: '1800'
+      placeholder: "1800"
     internet:
       _: インターネットアクセスを許可する
       message: インターネットアクセスを許可するかどうかを選択してください
-      'true': はい
-      'false': いいえ
+      "true": はい
+      "false": いいえ
     containers:
       _: コンテナ
       image:

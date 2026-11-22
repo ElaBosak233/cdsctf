@@ -5,7 +5,7 @@ use std::str::FromStr;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, JoinType, Order,
     PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
-    sea_query::{Alias, Expr, ExprTrait, Func, Query},
+    sea_query::{Alias, Expr, ExprTrait, Func, Query, extension::postgres::PgExpr},
 };
 
 pub use crate::{
@@ -23,6 +23,7 @@ const SCORE_LOCK_NAMESPACE: i64 = 0x4344_5300_0000_0000;
 pub struct FindGameOptions {
     pub id: Option<i64>,
     pub title: Option<String>,
+    pub keyword: Option<String>,
     pub enabled: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
@@ -173,6 +174,7 @@ pub async fn find<T>(
     FindGameOptions {
         id,
         title,
+        keyword,
         enabled,
         page,
         size,
@@ -189,6 +191,10 @@ where
 
     if let Some(title) = title {
         sql = sql.filter(Column::Title.contains(title));
+    }
+
+    if let Some(keyword) = keyword {
+        sql = sql.filter(Expr::col(Column::Title).ilike(super::literal_search_pattern(&keyword)));
     }
 
     if let Some(enabled) = enabled {
@@ -213,8 +219,8 @@ where
     let total = sql.clone().count(conn).await?;
 
     if let (Some(page), Some(size)) = (page, size) {
-        let offset = (page - 1) * size;
-        sql = sql.offset(offset).limit(size);
+        let offset = std::cmp::min(page.saturating_sub(1).saturating_mul(size), i64::MAX as u64);
+        sql = sql.order_by_asc(Column::Id).offset(offset).limit(size);
     }
 
     let games = sql.into_model::<T>().all(conn).await?;

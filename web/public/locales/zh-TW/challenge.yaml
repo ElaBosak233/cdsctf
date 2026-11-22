@@ -92,6 +92,8 @@ attachment:
       message: "你確定要刪除附件 <muted>{{filename}}</muted> 嗎？"
       success: "附件 {{filename}} 刪除成功。"
 search:
+  all_categories: "所有分類"
+  all_visibility: "所有可見性"
   title: 題目標題
   tag: 標籤
   public:

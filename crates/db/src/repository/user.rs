@@ -91,11 +91,7 @@ where
     }
 
     if let Some(keyword) = keyword {
-        let literal = keyword
-            .replace('\\', "\\\\")
-            .replace('%', "\\%")
-            .replace('_', "\\_");
-        let pattern = format!("%{literal}%");
+        let pattern = super::literal_search_pattern(&keyword);
         sql = sql.filter(
             Condition::any()
                 .add(Expr::col(Column::Username).ilike(&pattern))

@@ -92,6 +92,8 @@ attachment:
       message: "你确定要删除附件 <muted>{{filename}}</muted> 吗？"
       success: "附件 {{filename}} 删除成功。"
 search:
+  all_categories: "全部分类"
+  all_visibility: "全部可见性"
   title: 题目标题
   tag: 标签
   public:

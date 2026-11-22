@@ -41,8 +41,8 @@ pub struct AdminGameDetailResponse {
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
 #[into_params(parameter_in = Query)]
 pub struct GetGameRequest {
-    pub id: Option<i64>,
-    pub title: Option<String>,
+    /// Searches the title or matches an exact positive #ID.
+    pub q: Option<String>,
     pub enabled: Option<bool>,
     pub page: Option<u64>,
     pub size: Option<u64>,
@@ -71,14 +71,16 @@ pub async fn get_games(
     State(s): State<Arc<AppState>>,
     Query(params): Query<GetGameRequest>,
 ) -> Result<Json<AdminGamesListResponse>, WebError> {
-    let page = params.page.unwrap_or(1);
-    let size = params.size.unwrap_or(10).min(100);
+    let page = params.page.unwrap_or(1).max(1);
+    let size = params.size.unwrap_or(10).clamp(1, 100);
+    let (id, keyword) = super::parse_list_search(params.q.as_deref());
 
     let (games, total) = cds_db::game::find(
         &s.db.conn,
         FindGameOptions {
-            id: params.id,
-            title: params.title,
+            id,
+            keyword,
+            title: None,
             enabled: params.enabled,
             page: Some(page),
             size: Some(size),

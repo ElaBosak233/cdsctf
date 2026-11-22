@@ -47,20 +47,17 @@ function CreateDialog(props: CreateDialogProps) {
   const challengeQuery = useQuery({
     queryKey: ["admin", "game-challenge-options", debouncedQuery],
     queryFn: async () => {
-      const numericId = /^\d+$/.test(debouncedQuery)
-        ? Number(debouncedQuery)
-        : undefined;
       const [exactIdResult, titleResult] = await Promise.all([
-        numericId != null
+        /^\d+$/.test(debouncedQuery)
           ? getChallenges({
-              id: numericId,
+              q: `#${debouncedQuery}`,
               public: false,
               size: 1,
               page: 1,
             })
           : Promise.resolve({ challenges: [], total: 0 }),
         getChallenges({
-          title: debouncedQuery || undefined,
+          q: debouncedQuery || undefined,
           public: false,
           size: 10,
           page: 1,
