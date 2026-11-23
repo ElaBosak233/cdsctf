@@ -14,6 +14,7 @@
 //! whose initial message publication failed, without restarting the
 //! application.
 
+mod dispatcher;
 mod finalizer;
 mod recovery;
 
@@ -25,9 +26,8 @@ use cds_db::{
     DB, SubmissionView, UserAccountView,
     submission::{PROCESSING_LEASE_SECONDS, Status},
 };
-use cds_queue::{Queue, async_nats::jetstream::AckKind};
-use futures_util::StreamExt as _;
-use tracing::{Instrument, debug, error, info, warn};
+use cds_queue::Queue;
+use tracing::{debug, error, info, warn};
 
 use self::finalizer::{FinalizeOutcome, Verdict};
 use crate::calculator;
@@ -116,6 +116,7 @@ async fn check(
     processing_at: time::OffsetDateTime,
     claims: i64,
     initiator_id: Option<i64>,
+    reservation: Option<cds_checker::Reservation>,
 ) -> Result<CheckOutcome, anyhow::Error> {
     let user = if let Some(user) =
         cds_db::user::find_by_id::<UserAccountView>(&ctx.db.conn, submission.user_id).await?
@@ -141,8 +142,21 @@ async fn check(
         _ => return Err(anyhow!("invalid_submission_scope")),
     };
 
-    let checker_result =
-        enforce_check_timeout(ctx.checker.check(&challenge, subject, &submission.content)).await;
+    let checker_result = enforce_check_timeout(async {
+        match reservation {
+            Some(permit) => {
+                ctx.checker
+                    .check_reserved(&challenge, subject, &submission.content, permit)
+                    .await
+            }
+            None => {
+                ctx.checker
+                    .check(&challenge, subject, &submission.content)
+                    .await
+            }
+        }
+    })
+    .await;
     let verdict = match checker_result {
         Ok(result) => checker_verdict(result)?,
         Err(_) => {
@@ -205,174 +219,14 @@ async fn check(
     Ok(CheckOutcome::Committed)
 }
 
-/// Pulls messages and runs at most [`MAX_IN_FLIGHT`] checker jobs concurrently.
-#[tracing::instrument(skip_all, fields(subject = SUBJECT))]
-async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
-    let messages = ctx
-        .queue
-        .subscribe_with_ack_wait(SUBJECT, None, CHECKER_ACK_WAIT)
-        .await?;
-    messages
-        .for_each_concurrent(Some(MAX_IN_FLIGHT), |result| {
-            let ctx = Arc::clone(&ctx);
-            let job = tokio::spawn(async move {
-                let message = match result {
-                    Ok(message) => message,
-                    Err(err) => {
-                        error!(error = ?err, "checker message receive failed");
-                        return;
-                    }
-                };
-
-                let span = Queue::message_span(&message);
-                let process = async {
-                    let id = match serde_json::from_slice::<i64>(&message.payload) {
-                        Ok(id) => id,
-                        Err(err) => {
-                            warn!(outcome = "rejected", error = ?err, "invalid checker payload skipped");
-                            message.double_ack().await.ok();
-                            return;
-                        }
-                    };
-                    tracing::Span::current().record("submission_id", id);
-                    info!(submission_id = id, "checker message received");
-
-                    let submission =
-                        match cds_db::submission::claim_queued_or_stale_by_id(&ctx.db.conn, id).await {
-                            Ok(Some(submission)) => submission,
-                            Ok(None) => {
-                                match cds_db::submission::find_by_id(&ctx.db.conn, id).await {
-                                    Ok(Some(submission))
-                                        if matches!(submission.status, Status::Queued) =>
-                                    {
-                                        info!(submission_id = id, outcome = "deferred", "queued submission claim raced");
-                                        message
-                                            .ack_with(AckKind::Nak(Some(TRANSIENT_RETRY_DELAY)))
-                                            .await
-                                            .ok();
-                                    }
-                                    Ok(Some(submission))
-                                        if matches!(submission.status, Status::Processing) =>
-                                    {
-                                        let retry_after =
-                                            processing_retry_after(submission.processing_at);
-                                        info!(
-                                            submission_id = id,
-                                            outcome = "deferred",
-                                            processing_at = ?submission.processing_at,
-                                            retry_after_ms = retry_after.as_millis(),
-                                            "submission lease is active; message delayed"
-                                        );
-                                        message.ack_with(AckKind::Nak(Some(retry_after))).await.ok();
-                                    }
-                                    Ok(_) => {
-                                        info!(
-                                            submission_id = id,
-                                            outcome = "skipped",
-                                            "submission is terminal or missing; message skipped"
-                                        );
-                                        message.double_ack().await.ok();
-                                    }
-                                    Err(err) => {
-                                        error!(
-                                            submission_id = id,
-                                            error = ?err,
-                                            "submission state lookup failed"
-                                        );
-                                    }
-                                }
-                                return;
-                            }
-                            Err(err) => {
-                                error!(submission_id = id, error = ?err, "submission claim failed");
-                                return;
-                            }
-                        };
-                    let Some(processing_at) = submission.processing_at else {
-                        error!(
-                            submission_id = id,
-                            "claimed submission has no processing timestamp"
-                        );
-                        return;
-                    };
-                    debug!(
-                        submission_id = submission.id,
-                        user_id = submission.user_id,
-                        team_id = submission.team_id,
-                        game_id = submission.game_id,
-                        challenge_id = submission.challenge_id,
-                        processing_at = ?processing_at,
-                        "submission claimed"
-                    );
-
-                    let claims = submission.claims;
-                    match check(&ctx, submission, processing_at, claims, Queue::initiator_id(&message)).await {
-                        Ok(CheckOutcome::Committed) => {
-                            info!(submission_id = id, outcome = "succeeded", "submission check completed");
-                            message.double_ack().await.ok();
-                        }
-                        Ok(CheckOutcome::LeaseLost) => {
-                            info!(
-                                submission_id = id,
-                                outcome = "deferred",
-                                "submission lease lost; message left unacknowledged"
-                            );
-                        }
-                        Err(err) => {
-                            let released = match cds_db::submission::release_processing(
-                                &ctx.db.conn,
-                                id,
-                                processing_at,
-                                claims,
-                            )
-                            .await
-                            {
-                                Ok(released) => released,
-                                Err(release_err) => {
-                                    error!(
-                                        submission_id = id,
-                                        error = ?err,
-                                        release_error = ?release_err,
-                                        "submission check and lease release failed; message left unacknowledged"
-                                    );
-                                    return;
-                                }
-                            };
-                            if err.downcast_ref::<cds_checker::traits::CheckerError>().is_some_and(|error| error.is_busy()) {
-                                info!(submission_id = id, released, "checker capacity exhausted; submission deferred");
-                            } else {
-                                error!(submission_id = id, released, error = ?err, "submission check failed");
-                            }
-                            if released {
-                                message
-                                    .ack_with(AckKind::Nak(Some(TRANSIENT_RETRY_DELAY)))
-                                    .await
-                                    .ok();
-                            }
-                        }
-                    }
-                };
-                process.instrument(span).await;
-            });
-            async move {
-                if let Err(error) = job.await {
-                    error!(?error, "checker task failed; message will be redelivered");
-                }
-            }
-        })
-        .await;
-
-    Ok(())
-}
-
-/// Starts the consumer and independent publication recovery tasks.
+/// Starts the slot-first consumer and independent publication recovery tasks.
 #[tracing::instrument(skip_all, fields(handler = "spawn"))]
 pub async fn spawn(db: &DB, queue: &Queue, checker: &Checker) {
     let ctx = Arc::new(Context::new(db, queue, checker));
     let run_ctx = Arc::clone(&ctx);
     tokio::spawn(async move {
         loop {
-            match run(Arc::clone(&run_ctx)).await {
+            match dispatcher::run(Arc::clone(&run_ctx)).await {
                 Err(error) => error!(?error, "checker consumer stopped; reconnecting"),
                 Ok(()) => warn!("checker message stream ended; reconnecting"),
             }

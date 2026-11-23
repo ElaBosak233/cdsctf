@@ -119,6 +119,13 @@ fn create_lua_with_deadline(deadline: Instant) -> Result<Lua, EngineError> {
         .clone()
         .try_acquire_owned()
         .map_err(|_| EngineError::Busy)?;
+    create_lua_with_permit(deadline, permit)
+}
+
+fn create_lua_with_permit(
+    deadline: Instant,
+    permit: OwnedSemaphorePermit,
+) -> Result<Lua, EngineError> {
     let libs = StdLib::COROUTINE | StdLib::TABLE | StdLib::STRING | StdLib::UTF8 | StdLib::MATH;
     let lua = Lua::new_with(libs, LuaOptions::default())?;
     lua.set_app_data(VmPermit { _permit: permit });
@@ -311,6 +318,80 @@ pub async fn preload(
     entry.bytecode = bytecode;
     entry.created_at = OffsetDateTime::now_utc();
     Ok(())
+}
+
+/// Capacity held for one future execution of a cached script.
+///
+/// A reservation owns the same script, domain and Lua-state permits that
+/// [`execute`] would take, so callers can secure capacity before committing
+/// external state (for example a database processing lease). Dropping an
+/// unused reservation releases every permit.
+pub struct Reservation {
+    bytecode: Arc<[u8]>,
+    _execution: (OwnedSemaphorePermit, OwnedSemaphorePermit),
+    vm: OwnedSemaphorePermit,
+}
+
+/// Reserves capacity for one execution of the cached script `key`.
+///
+/// Fails fast with [`EngineError::Busy`] when any limit is exhausted.
+pub fn reserve(key: impl AsRef<str>) -> Result<Reservation, EngineError> {
+    let key = key.as_ref();
+    let context = GLOBAL_ENGINE
+        .get(key)
+        .ok_or_else(|| EngineError::MissingContext(key.to_owned()))?;
+    let bytecode = context.bytecode.clone();
+    let permits = context.permits.clone();
+    drop(context);
+
+    let execution = EXECUTION_LIMITS.try_acquire(key, permits)?;
+    let vm = VM_PERMITS
+        .clone()
+        .try_acquire_owned()
+        .map_err(|_| EngineError::Busy)?;
+    Ok(Reservation {
+        bytecode,
+        _execution: execution,
+        vm,
+    })
+}
+
+/// Executes the script captured by `reservation` under its held permits.
+pub async fn execute_reserved<A, R>(
+    reservation: Reservation,
+    function: &str,
+    args: A,
+    configure: &ConfigureLua,
+) -> Result<R, EngineError>
+where
+    A: mlua::IntoLuaMulti + Send,
+    R: DeserializeOwned, {
+    let Reservation {
+        bytecode,
+        _execution,
+        vm,
+    } = reservation;
+    let deadline = tokio::time::Instant::now() + LUA_CALL_TIMEOUT;
+    let started = Instant::now();
+    let lua = create_lua_with_permit(Instant::now() + LUA_CALL_TIMEOUT, vm)?;
+    configure(&lua)?;
+    lua.load(bytecode.as_ref())
+        .set_mode(ChunkMode::Binary)
+        .exec()?;
+    let function = lua
+        .globals()
+        .get::<Function>(function)
+        .map_err(|_| EngineError::MissingFunction(function.to_owned()))?;
+    let value: Value = tokio::time::timeout_at(deadline, function.call_async(args))
+        .await
+        .map_err(|_| EngineError::Timeout)??;
+    let output = lua.from_value(value)?;
+    debug!(
+        elapsed_ms = started.elapsed().as_millis(),
+        lua_bytes = lua.used_memory(),
+        "Reserved Lua execution completed"
+    );
+    Ok(output)
 }
 
 /// Executes a cached script with native Lua arguments.
@@ -875,5 +956,95 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(result, "function");
+    }
+
+    #[tokio::test]
+    async fn reservations_share_limits_release_on_drop_and_enforce_budgets() {
+        let _guard = ENGINE_TEST_LOCK.lock().await;
+        clear_cache();
+
+        let script = "function value() return 7 end";
+        let key = "challenge/reservation-test";
+        preload(key, script, None).await.unwrap();
+
+        // Script concurrency cap (4) shared between reserve() and execute().
+        let mut held = Vec::new();
+        for _ in 0..super::MAX_SCRIPT_EXECUTIONS {
+            held.push(super::reserve(key).unwrap());
+        }
+        assert!(matches!(super::reserve(key), Err(EngineError::Busy)));
+        assert!(matches!(
+            execute::<_, i64>(key, "value", (), configure()).await,
+            Err(EngineError::Busy)
+        ));
+
+        let one = held.pop().unwrap();
+        assert_eq!(
+            super::execute_reserved::<_, i64>(one, "value", (), configure())
+                .await
+                .unwrap(),
+            7
+        );
+        // Dropping remaining reservations frees permits immediately.
+        held.push(super::reserve(key).unwrap());
+        drop(held);
+        assert_eq!(
+            execute::<_, i64>(key, "value", (), configure())
+                .await
+                .unwrap(),
+            7
+        );
+
+        // Checker domain concurrency cap (16 across 4 challenges).
+        let mut domain = Vec::new();
+        for i in 0..4 {
+            let k = format!("challenge/domain-cap-{i}");
+            preload(&k, script, None).await.unwrap();
+            for _ in 0..super::MAX_SCRIPT_EXECUTIONS {
+                domain.push(super::reserve(&k).unwrap());
+            }
+        }
+        preload("challenge/domain-cap-extra", script, None)
+            .await
+            .unwrap();
+        assert!(matches!(
+            super::reserve("challenge/domain-cap-extra"),
+            Err(EngineError::Busy)
+        ));
+        drop(domain);
+        drop(super::reserve("challenge/domain-cap-extra").unwrap());
+
+        // VM state cap (24) shared with create_lua().
+        let mut states = Vec::new();
+        for _ in 0..super::MAX_LUA_STATES {
+            states.push(super::create_lua().unwrap());
+        }
+        assert!(matches!(super::reserve(key), Err(EngineError::Busy)));
+        drop(states);
+        drop(super::reserve(key).unwrap());
+
+        // Instruction and memory budgets apply equally to reserved execution.
+        for (label, src, expected) in [
+            (
+                "challenge/reserved-insns",
+                "function value() while true do end end",
+                "instruction limit",
+            ),
+            (
+                "challenge/reserved-mem",
+                "function value() local x = string.rep('x', 20 * 1024 * 1024); return #x end",
+                "memory",
+            ),
+        ] {
+            preload(label, src, None).await.unwrap();
+            let res = super::reserve(label).unwrap();
+            let err = super::execute_reserved::<_, i64>(res, "value", (), configure())
+                .await
+                .unwrap_err();
+            assert!(
+                err.to_string().contains(expected),
+                "unexpected error for {label}: {err}"
+            );
+        }
     }
 }

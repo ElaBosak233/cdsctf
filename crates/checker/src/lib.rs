@@ -13,6 +13,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
+pub use cds_engine::Reservation;
 use cds_engine::{ConfigureLua, mlua::Lua};
 use cds_media::Media;
 use serde::Deserialize;
@@ -108,6 +109,40 @@ impl Checker {
             self.configure_lua(challenge.id, Some(self.default_key(challenge.id).await?));
         let result: StatusOutput = cds_engine::execute(
             format!("challenge/{}", challenge.id),
+            "check",
+            (subject_id, content),
+            configure.as_ref(),
+        )
+        .await?;
+        result.into_status(subject)
+    }
+
+    /// Preloads `challenge`'s script and reserves one execution slot.
+    pub async fn reserve(
+        &self,
+        challenge: &cds_db::ChallengeDetail,
+    ) -> Result<Reservation, CheckerError> {
+        self.preload(challenge).await?;
+        Ok(cds_engine::reserve(format!("challenge/{}", challenge.id))?)
+    }
+
+    /// Runs `check` using a previously reserved execution slot.
+    pub async fn check_reserved(
+        &self,
+        challenge: &cds_db::ChallengeDetail,
+        subject: Subject,
+        content: &str,
+        reservation: Reservation,
+    ) -> Result<Status, CheckerError> {
+        let subject_id = subject.subject_id()?;
+        debug!(
+            challenge_id = challenge.id,
+            subject_id, "Checking answer with reserved Lua slot"
+        );
+        let configure =
+            self.configure_lua(challenge.id, Some(self.default_key(challenge.id).await?));
+        let result: StatusOutput = cds_engine::execute_reserved(
+            reservation,
             "check",
             (subject_id, content),
             configure.as_ref(),
