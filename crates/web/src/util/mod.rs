@@ -17,3 +17,6 @@ pub mod media;
 
 /// Defines the `network` submodule (see sibling `*.rs` files).
 pub mod network;
+
+/// Defines the `score` submodule (CQRS score hydration and ranking helpers).
+pub mod score;

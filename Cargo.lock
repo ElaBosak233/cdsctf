@@ -1166,6 +1166,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "cds-score"
+version = "1.12.0"
+dependencies = [
+ "anyhow",
+ "cds-cache",
+ "cds-db",
+ "nanoid",
+ "redis",
+ "rmp-serde",
+ "serde",
+ "time",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "cds-server"
 version = "1.12.0"
 dependencies = [
@@ -1185,6 +1201,7 @@ dependencies = [
  "cds-migrator",
  "cds-observe",
  "cds-queue",
+ "cds-score",
  "cds-web",
  "cds-worker",
  "mimalloc",
@@ -1214,6 +1231,7 @@ dependencies = [
  "cds-media",
  "cds-observe",
  "cds-queue",
+ "cds-score",
  "cds-worker",
  "futures-util",
  "garde",
@@ -1245,6 +1263,7 @@ name = "cds-worker"
 version = "1.12.0"
 dependencies = [
  "anyhow",
+ "cds-cache",
  "cds-checker",
  "cds-db",
  "cds-env",
@@ -1252,6 +1271,8 @@ dependencies = [
  "cds-media",
  "cds-migrator",
  "cds-queue",
+ "cds-score",
+ "dashmap",
  "futures-util",
  "serde",
  "serde_json",

@@ -6,10 +6,9 @@ use std::sync::Arc;
 use axum::{Json, Router, extract::State};
 use cds_db::sea_orm::{
     ActiveValue::{Set, Unchanged},
-    NotSet, TransactionTrait,
+    NotSet,
 };
 use cds_event::types::game_challenge::{GameChallengeEvent, GameChallengeEventType};
-use cds_worker::calculator;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use utoipa_axum::{
@@ -19,8 +18,8 @@ use utoipa_axum::{
 
 use super::GameChallengeResponse;
 use crate::{
-    extract::{Extension, Json as ReqJson, Path},
-    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
+    extract::{Json as ReqJson, Path},
+    traits::{AppState, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -62,7 +61,6 @@ pub struct UpdateGameChallengeRequest {
 )]
 #[tracing::instrument(skip_all, fields(handler = "update_game_challenge"))]
 pub async fn update_game_challenge(
-    Extension(principal): Extension<AuthPrincipal>,
     State(s): State<Arc<AppState>>,
     Path((game_id, challenge_id)): Path<(i64, i64)>,
     ReqJson(body): ReqJson<UpdateGameChallengeRequest>,
@@ -70,9 +68,8 @@ pub async fn update_game_challenge(
     let game_challenge =
         crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge_id).await?;
 
-    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
-    let new_game_challenge = cds_db::game_challenge::update(
-        &transaction,
+    let mut new_game_challenge = cds_db::game_challenge::update(
+        &s.db.conn,
         cds_db::game_challenge::ActiveModel {
             game_id: Unchanged(game_challenge.game_id),
             challenge_id: Unchanged(game_challenge.challenge_id),
@@ -92,18 +89,10 @@ pub async fn update_game_challenge(
         || game_challenge.min_pts != new_game_challenge.min_pts
         || game_challenge.bonus_ratios != new_game_challenge.bonus_ratios;
     if score_changed {
-        cds_db::game::request_score_recalculation(&transaction, new_game_challenge.game_id).await?;
+        s.score.invalidate(new_game_challenge.game_id).await;
     }
-    transaction.commit().await.map_err(cds_db::DbError::from)?;
-
-    if score_changed {
-        calculator::notify(
-            &s.queue,
-            new_game_challenge.game_id,
-            principal.operator.as_ref().map(|operator| operator.id),
-        )
-        .await;
-    }
+    let snap = s.score.snapshot(new_game_challenge.game_id).await?;
+    new_game_challenge.pts = snap.challenge_pts(new_game_challenge.challenge_id);
 
     if new_game_challenge.enabled != game_challenge.enabled {
         s.event
@@ -138,28 +127,19 @@ pub async fn update_game_challenge(
 )]
 #[tracing::instrument(skip_all, fields(handler = "delete_game_challenge"))]
 pub async fn delete_game_challenge(
-    Extension(principal): Extension<AuthPrincipal>,
     State(s): State<Arc<AppState>>,
     Path((game_id, challenge_id)): Path<(i64, i64)>,
 ) -> Result<Json<EmptyJson>, WebError> {
     let game_challenge =
         crate::util::loader::prepare_game_challenge(&s.db.conn, game_id, challenge_id).await?;
 
-    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
     cds_db::game_challenge::delete(
-        &transaction,
+        &s.db.conn,
         game_challenge.game_id,
         game_challenge.challenge_id,
     )
     .await?;
-    cds_db::game::request_score_recalculation(&transaction, game_challenge.game_id).await?;
-    transaction.commit().await.map_err(cds_db::DbError::from)?;
-    calculator::notify(
-        &s.queue,
-        game_challenge.game_id,
-        principal.operator.as_ref().map(|operator| operator.id),
-    )
-    .await;
+    s.score.invalidate(game_challenge.game_id).await;
 
     Ok(Json(EmptyJson::default()))
 }

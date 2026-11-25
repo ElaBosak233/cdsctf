@@ -24,6 +24,7 @@ cds-mailbox = { workspace = true }
 cds-media   = { workspace = true }
 cds-observe = { workspace = true }
 cds-queue   = { workspace = true }
+cds-score   = { workspace = true }
 cds-worker  = { workspace = true }
 
 anyhow         = { workspace = true }
@@ -55,5 +56,5 @@ utoipa-scalar  = { workspace = true }
 path = "src/lib.rs"
 
 [dev-dependencies]
-tower = { workspace = true, features = ["util"] }
+tower              = { workspace = true, features = ["util"] }
 tracing-subscriber = { workspace = true }

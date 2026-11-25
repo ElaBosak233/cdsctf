@@ -4,6 +4,8 @@ result_count: "{{count}} 件の大会"
 filter:
   all: すべて
   pts: 点
+  hide_solved: 解答済みを隠す
+  progress: 進捗
 list:
   columns:
     game: 大会
@@ -163,6 +165,7 @@ paused:
   description: 管理者が再開すると、引き続き課題に取り組めます。
 challenge:
   empty: この大会には課題がまだありません。
+  no_match: 条件に一致する課題はありません。
   pts: 現在のポイント
   title: タイトル
   category: カテゴリ
@@ -219,15 +222,33 @@ notice:
   id: ID
   board: 掲示板
   new: 新しいお知らせ
+  unread: 未読
+  unread_count: "{{count}} 件未読"
+  mark_all_read: すべて既読にする
+  select_prompt: お知らせを選択して詳細を表示
+  general: 全体
+  challenge: 関連問題
+  challenge_none: 大会全体（問題なし）
+  challenge_unread_tip: この問題に新しいお知らせがあります
+  challenge_notices_title: 問題のお知らせ
   empty: お知らせはまだありません。
   title: タイトル
   content: 内容
+  author: 作成 / 編集
   created_at: 作成日時
+  created_time: "作成 {{time}}"
+  updated_at: 更新日時
+  edited: 編集済み
+  created_by: "作成: {{name}}"
+  updated_by: "編集: {{name}}"
   form:
     title:
       _: タイトル
       message: タイトルを入力してください
-      placeholder: 私のCTF大会
+      placeholder: 例：Web問題の添付ファイルを更新しました
+    challenge:
+      _: 関連問題（任意）
+      placeholder: 問題を選択、または空欄で大会全体のお知らせ
     content:
       _: 内容
       message: 内容を入力してください
@@ -236,6 +257,9 @@ notice:
     create:
       _: お知らせを作成
       success: お知らせ {{title}} を作成しました。
+    edit:
+      _: お知らせを編集
+      success: お知らせ {{title}} を更新しました。
     delete:
       _: お知らせを削除
       message: お知らせ <muted>{{title}}</muted> を削除してもよろしいですか？

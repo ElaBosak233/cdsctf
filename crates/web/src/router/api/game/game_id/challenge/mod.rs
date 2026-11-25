@@ -84,7 +84,7 @@ pub async fn get_game_challenge(
     }
     crate::util::loader::ensure_game_ongoing(&game, now)?;
 
-    let (game_challenges, total) = cds_db::game_challenge::find::<GameChallengeSummary>(
+    let (mut game_challenges, total) = cds_db::game_challenge::find::<GameChallengeSummary>(
         &s.db.conn,
         FindGameChallengeOptions {
             game_id: Some(game.id),
@@ -94,6 +94,8 @@ pub async fn get_game_challenge(
         },
     )
     .await?;
+    crate::util::score::hydrate_game_challenge_summaries(&s.score, game.id, &mut game_challenges)
+        .await?;
 
     Ok(Json(GameChallengesListResponse {
         challenges: game_challenges,

@@ -1,0 +1,27 @@
+[package]
+name     = "cds-score"
+resolver = "3"
+
+authors      = { workspace = true }
+edition      = { workspace = true }
+homepage     = { workspace = true }
+publish      = false
+repository   = { workspace = true }
+rust-version = { workspace = true }
+version      = { workspace = true }
+
+[dependencies]
+cds-cache = { workspace = true }
+cds-db    = { workspace = true }
+
+anyhow    = { workspace = true }
+nanoid    = { workspace = true }
+redis     = { workspace = true }
+rmp-serde = { workspace = true }
+serde     = { workspace = true }
+time      = { workspace = true }
+tokio     = { workspace = true }
+tracing   = { workspace = true }
+
+[lib]
+path = "src/lib.rs"

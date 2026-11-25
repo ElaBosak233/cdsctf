@@ -74,7 +74,7 @@ impl ExecutionLimits {
         }
     }
 
-    // Fail fast: queued submissions remain in JetStream instead of consuming
+    // Fail fast: queued submissions remain in PostgreSQL instead of consuming
     // their processing lease while waiting for a VM.
     fn try_acquire(
         &self,
@@ -119,6 +119,13 @@ fn create_lua_with_deadline(deadline: Instant) -> Result<Lua, EngineError> {
         .clone()
         .try_acquire_owned()
         .map_err(|_| EngineError::Busy)?;
+    create_lua_with_permit(deadline, permit)
+}
+
+fn create_lua_with_permit(
+    deadline: Instant,
+    permit: OwnedSemaphorePermit,
+) -> Result<Lua, EngineError> {
     let libs = StdLib::COROUTINE | StdLib::TABLE | StdLib::STRING | StdLib::UTF8 | StdLib::MATH;
     let lua = Lua::new_with(libs, LuaOptions::default())?;
     lua.set_app_data(VmPermit { _permit: permit });
@@ -311,6 +318,11 @@ pub async fn preload(
     entry.bytecode = bytecode;
     entry.created_at = OffsetDateTime::now_utc();
     Ok(())
+}
+
+/// Removes one compiled script entry from the bytecode cache.
+pub fn evict(key: &str) {
+    GLOBAL_ENGINE.remove(key);
 }
 
 /// Executes a cached script with native Lua arguments.

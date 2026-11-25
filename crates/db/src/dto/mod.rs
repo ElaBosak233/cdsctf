@@ -25,7 +25,7 @@ pub use config::{PublicCaptchaConfig, PublicCaptchaSiteConfig, PublicConfig, Pub
 pub use email::EmailView;
 pub use game::{GameDetail, GameSummary, GameView};
 pub use game_challenge::{GameChallengeSummary, GameChallengeView};
-pub use game_notice::GameNoticeView;
+pub use game_notice::{AdminGameNoticeView, GameNoticeView};
 pub use idp::{IdpSummary, IdpView};
 pub use note::NoteView;
 pub use personal_access_token::PersonalAccessTokenView;

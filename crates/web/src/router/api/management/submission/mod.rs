@@ -73,7 +73,7 @@ pub async fn get_submissions(
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let (submissions, total) = cds_db::submission::find(
+    let (mut submissions, total) = cds_db::submission::find(
         &s.db.conn,
         FindSubmissionsOptions {
             id: params.id,
@@ -89,6 +89,8 @@ pub async fn get_submissions(
         },
     )
     .await?;
+
+    crate::util::score::hydrate_submissions(&s.score, &mut submissions).await?;
 
     Ok(Json(ListSubmissionsResponse { submissions, total }))
 }

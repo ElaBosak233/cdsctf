@@ -19,8 +19,6 @@ pub mod team_user;
 pub mod user;
 pub mod user_idp;
 
-pub(crate) const BULK_UPDATE_BATCH_SIZE: usize = 500;
-
 fn literal_search_pattern(keyword: &str) -> String {
     let literal = keyword
         .replace('\\', "\\\\")

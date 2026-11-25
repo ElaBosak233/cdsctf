@@ -1,37 +1,35 @@
-//! Background JetStream **consumers**: one Tokio task per logical queue
-//! subject.
+//! Background workers:
 //!
-//! | Module       | Subject               | Purpose                                      |
-//! |-------------|----------------------|----------------------------------------------|
-//! | [`calculator`] | `cds.game.recalc`    | Recompute dynamic scores/ranks after solves |
-//! | [`checker`]    | `cds.submission.check`  | Run asynchronous flag checks                |
-//! | [`mailbox`]    | `cds.mail.send`      | Deliver outbound SMTP mail                  |
+//! | Module      | Mechanism                                      | Purpose                    |
+//! |-------------|------------------------------------------------|----------------------------|
+//! | [`checker`] | PG `FOR UPDATE SKIP LOCKED` + NATS Core wakeup | Asynchronous flag judging  |
+//! | [`mailbox`] | JetStream `cds.mail.send`                      | Outbound SMTP delivery     |
+//!
+//! Dynamic scoring is no longer a background mutating worker — it is served
+//! directly as a CQRS read model by [`cds_score::Score`].
 
 use cds_checker::Checker;
 use cds_db::DB;
 use cds_mailbox::Mailbox;
 use cds_queue::Queue;
+use cds_score::Score;
 
-/// Defines the `calculator` submodule (see sibling `*.rs` files).
-pub mod calculator;
-
-/// Defines the `checker` submodule (see sibling `*.rs` files).
+/// Pull-on-capacity submission checker worker backed by PostgreSQL.
 pub mod checker;
 
-/// Defines the `mailbox` submodule (see sibling `*.rs` files).
+/// JetStream consumer for outbound SMTP mail (`cds.mail.send`).
 pub mod mailbox;
 
-/// Start every queue consumer (`cds.game.recalc`, `cds.submission.check`,
-/// `cds.mail.send`).
+/// Starts all background worker tasks (`checker`, `mailbox`).
 #[tracing::instrument(skip_all, fields(handler = "init"))]
 pub async fn init(
     db: &DB,
     queue: &Queue,
     checker: &Checker,
+    score: &Score,
     mailbox: &Mailbox,
 ) -> Result<(), anyhow::Error> {
-    crate::calculator::spawn(db, queue).await;
-    crate::checker::spawn(db, queue, checker).await;
+    crate::checker::spawn(db, queue, checker, score).await;
     crate::mailbox::spawn(queue, mailbox).await;
     Ok(())
 }

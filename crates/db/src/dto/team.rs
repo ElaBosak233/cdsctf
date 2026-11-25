@@ -1,11 +1,8 @@
-use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 
 use crate::{dto::user::UserSummary, entity::team::State};
 
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct TeamView {
     pub id: i64,
     pub game_id: i64,
@@ -15,8 +12,44 @@ pub struct TeamView {
     pub avatar_hash: Option<String>,
     pub has_writeup: bool,
     pub state: State,
+    /// Derived from the CQRS score snapshot; defaults to `0` on raw DB loads.
     pub pts: i64,
+    /// Derived from the CQRS score snapshot; defaults to `0` on raw DB loads.
     pub rank: i64,
+}
+
+impl From<crate::entity::team::Model> for TeamView {
+    fn from(team: crate::entity::team::Model) -> Self {
+        Self {
+            id: team.id,
+            game_id: team.game_id,
+            name: team.name,
+            email: team.email,
+            slogan: team.slogan,
+            avatar_hash: team.avatar_hash,
+            has_writeup: team.has_writeup,
+            state: team.state,
+            pts: 0,
+            rank: 0,
+        }
+    }
+}
+
+impl From<&crate::entity::team::ModelEx> for TeamView {
+    fn from(team: &crate::entity::team::ModelEx) -> Self {
+        Self {
+            id: team.id,
+            game_id: team.game_id,
+            name: team.name.clone(),
+            email: team.email.clone(),
+            slogan: team.slogan.clone(),
+            avatar_hash: team.avatar_hash.clone(),
+            has_writeup: team.has_writeup,
+            state: team.state.clone(),
+            pts: 0,
+            rank: 0,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]

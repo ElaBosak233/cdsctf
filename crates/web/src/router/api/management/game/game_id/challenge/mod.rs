@@ -7,9 +7,8 @@ use axum::{Json, Router, extract::State};
 use cds_db::{
     GameChallengeView,
     game_challenge::FindGameChallengeOptions,
-    sea_orm::{ActiveValue::Set, NotSet, TransactionTrait},
+    sea_orm::{ActiveValue::Set, NotSet},
 };
-use cds_worker::calculator;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -18,8 +17,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Extension, Json as ReqJson, Path, Query},
-    traits::{AppState, AuthPrincipal, WebError},
+    extract::{Json as ReqJson, Path, Query},
+    traits::{AppState, WebError},
 };
 
 /// Defines the `challenge_id` submodule (see sibling `*.rs` files).
@@ -68,7 +67,7 @@ pub async fn get_game_challenge(
     Path(game_id): Path<i64>,
     Query(params): Query<GetGameChallengeRequest>,
 ) -> Result<Json<AdminGameChallengesListResponse>, WebError> {
-    let (game_challenges, total) = cds_db::game_challenge::find(
+    let (mut game_challenges, total) = cds_db::game_challenge::find(
         &s.db.conn,
         FindGameChallengeOptions {
             game_id: Some(game_id),
@@ -78,6 +77,7 @@ pub async fn get_game_challenge(
         },
     )
     .await?;
+    crate::util::score::hydrate_game_challenges(&s.score, game_id, &mut game_challenges).await?;
 
     Ok(Json(AdminGameChallengesListResponse {
         challenges: game_challenges,
@@ -120,7 +120,6 @@ pub struct GameChallengeResponse {
 )]
 #[tracing::instrument(skip_all, fields(handler = "create_game_challenge"))]
 pub async fn create_game_challenge(
-    Extension(principal): Extension<AuthPrincipal>,
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
     ReqJson(body): ReqJson<CreateGameChallengeRequest>,
@@ -133,9 +132,8 @@ pub async fn create_game_challenge(
         return Err(WebError::Conflict(json!("challenge_already_in_game")));
     }
 
-    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
-    let game_challenge = cds_db::game_challenge::create(
-        &transaction,
+    let mut game_challenge = cds_db::game_challenge::create(
+        &s.db.conn,
         cds_db::game_challenge::ActiveModel {
             game_id: Set(game.id),
             challenge_id: Set(challenge.id),
@@ -149,14 +147,9 @@ pub async fn create_game_challenge(
         },
     )
     .await?;
-    cds_db::game::request_score_recalculation(&transaction, game.id).await?;
-    transaction.commit().await.map_err(cds_db::DbError::from)?;
-    calculator::notify(
-        &s.queue,
-        game.id,
-        principal.operator.as_ref().map(|operator| operator.id),
-    )
-    .await;
+    s.score.invalidate(game.id).await;
+    let snap = s.score.snapshot(game.id).await?;
+    game_challenge.pts = snap.challenge_pts(game_challenge.challenge_id);
 
     Ok(Json(GameChallengeResponse { game_challenge }))
 }

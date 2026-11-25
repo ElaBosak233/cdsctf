@@ -2,8 +2,10 @@ _: 比赛
 empty: 好像还没有比赛哦。
 result_count: "{{count}} 场比赛"
 filter:
-  all: ALL
+  all: 全部
   pts: 分
+  hide_solved: 隐藏已解
+  progress: 进度
 list:
   columns:
     game: 比赛
@@ -169,6 +171,7 @@ paused:
   description: 管理员恢复比赛后可以继续答题。
 challenge:
   empty: 哎呀，这个比赛好像还没有题目呢。
+  no_match: 没有符合当前筛选条件的题目。
   pts: 当前分值
   title: 标题
   category: 分类
@@ -225,15 +228,33 @@ notice:
   id: ID
   board: 公告栏
   new: 有新公告
+  unread: 未读
+  unread_count: "{{count}} 条未读"
+  mark_all_read: 全部标为已读
+  select_prompt: 选择一条公告查看详情
+  general: 比赛公告
+  challenge: 关联题目
+  challenge_none: 全场比赛（不关联题目）
+  challenge_unread_tip: 该题有新公告
+  challenge_notices_title: 题目公告
   empty: 哎呀，好像还没有通知呢。
   title: 标题
   content: 详情
+  author: 发布 / 编辑
   created_at: 发布于
+  created_time: "创建 {{time}}"
+  updated_at: 更新于
+  edited: 已编辑
+  created_by: "发布：{{name}}"
+  updated_by: "编辑：{{name}}"
   form:
     title:
       _: 标题
       message: 请输入标题
-      placeholder: 我的 CTF 比赛
+      placeholder: 例如：Web 题附件已更新
+    challenge:
+      _: 关联题目（可选）
+      placeholder: 选择关联题目，或留空作为综合公告
     content:
       _: 详情
       message: 请输入详情
@@ -242,6 +263,9 @@ notice:
     create:
       _: 创建通知
       success: "通知 {{title}} 创建成功。"
+    edit:
+      _: 编辑通知
+      success: "通知 {{title}} 更新成功。"
     delete:
       _: 删除通知
       message: "你确定要删除通知 <muted>{{title}}</muted> 吗？"
@@ -254,3 +278,5 @@ errors:
   paused: 比赛当前已暂停。
   icon_not_found: 未找到比赛图标。
   poster_not_found: 未找到比赛海报。
+  invalid_notice: 请填写通知标题和详情。
+  notice_not_found: 未找到该通知。

@@ -10,10 +10,7 @@ use std::{
 };
 
 use axum::{Json, Router, extract::State};
-use cds_db::{
-    ChallengeSummary, GameChallengeView, SubmissionSummary, challenge::FindChallengeOptions,
-    game_challenge::FindGameChallengeOptions,
-};
+use cds_db::{ChallengeSummary, SubmissionSummary, challenge::FindChallengeOptions};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -159,18 +156,11 @@ pub async fn query_challenge_status(
         crate::util::loader::ensure_game_not_paused(&game)?;
     }
 
-    let submissions = cds_db::submission::find_correct_by_challenge_ids_and_game_id(
-        &s.db.conn,
-        body.challenge_ids.clone(),
-        body.game_id,
-    )
-    .await?;
-
-    let mut result: HashMap<i64, ChallengeStatusResponse> = HashMap::new();
-
-    for challenge_id in body.challenge_ids.iter() {
+    let mut result: HashMap<i64, ChallengeStatusResponse> =
+        HashMap::with_capacity(body.challenge_ids.len());
+    for &challenge_id in &body.challenge_ids {
         result.insert(
-            *challenge_id,
+            challenge_id,
             ChallengeStatusResponse {
                 solved: false,
                 solved_times: 0,
@@ -181,28 +171,42 @@ pub async fn query_challenge_status(
         );
     }
 
-    for submission in &submissions {
-        if let Some(status_response) = result.get_mut(&submission.challenge_id) {
-            if Some(submission.user_id) == body.user_id
-                || submission
-                    .team_id
-                    .is_some_and(|team_id| Some(team_id) == body.team_id)
-            {
-                status_response.solved = true;
-            }
+    if let (Some(team_id), Some(game_id)) = (body.team_id, body.game_id) {
+        // Game scope: serve solve counts, points, solved flag, and top-3 blood
+        // IDs directly from the CQRS score snapshot (O(challenges) instead of
+        // scanning all historical solves with 4-way JOINs).
+        let snap = s.score.snapshot(game_id).await?;
+        let mut blood_ids = Vec::with_capacity(body.challenge_ids.len() * 3);
 
-            status_response.solved_times += 1;
-
-            if status_response.bloods.len() < 3 {
-                status_response
-                    .bloods
-                    .push(SubmissionSummary::from(submission));
+        for &challenge_id in &body.challenge_ids {
+            if let Some(status) = result.get_mut(&challenge_id) {
+                status.solved = snap.team_solved(team_id, challenge_id);
+                if let Some(cs) = snap.challenges.get(&challenge_id) {
+                    status.pts = cs.pts;
+                    status.solved_times = cs.solve_count;
+                    blood_ids.extend_from_slice(&cs.blood_submission_ids);
+                }
             }
         }
-    }
 
-    // Check for Cheat submissions in the requested game scope.
-    if let (Some(team_id), Some(game_id)) = (body.team_id, body.game_id) {
+        // Batch-load display metadata ONLY for the <= 3 blood submissions per
+        // challenge.
+        let mut blood_views = cds_db::submission::find_views_by_ids(&s.db.conn, &blood_ids).await?;
+        for view in &mut blood_views {
+            let (pts, rank) = snap.submission_score(view.id);
+            view.pts = pts;
+            view.rank = rank;
+        }
+        for view in &blood_views {
+            if let Some(status) = result.get_mut(&view.challenge_id)
+                && status.bloods.len() < 3
+            {
+                status.bloods.push(SubmissionSummary::from(view));
+            }
+        }
+
+        // Check for Cheat submissions in the requested game scope (uses partial
+        // index `idx_submissions_cheat`).
         let cheated_ids = cds_db::submission::find_cheat_challenge_ids(
             &s.db.conn,
             body.challenge_ids.clone(),
@@ -211,28 +215,36 @@ pub async fn query_challenge_status(
         )
         .await?;
         let cheated_set: HashSet<i64> = cheated_ids.into_iter().collect();
-        for challenge_id in body.challenge_ids.iter() {
-            if cheated_set.contains(challenge_id) {
-                if let Some(status_response) = result.get_mut(challenge_id) {
-                    status_response.cheated = true;
-                }
+        for &challenge_id in &body.challenge_ids {
+            if cheated_set.contains(&challenge_id)
+                && let Some(status) = result.get_mut(&challenge_id)
+            {
+                status.cheated = true;
             }
         }
-    }
-
-    if let Some(game_id) = body.game_id {
-        let (game_challenges, _) = cds_db::game_challenge::find::<GameChallengeView>(
+    } else if let Some(user_id) = body.user_id {
+        // Standalone practice scope: SQL-aggregated solve counts + top-3 bloods
+        // only, avoiding full submission history scans.
+        let stats = cds_db::submission::find_standalone_challenge_stats(
             &s.db.conn,
-            FindGameChallengeOptions {
-                game_id: Some(game_id),
-                ..Default::default()
-            },
+            &body.challenge_ids,
+            user_id,
         )
         .await?;
-
-        for game_challenge in game_challenges {
-            if let Some(status_response) = result.get_mut(&game_challenge.challenge_id) {
-                status_response.pts = game_challenge.pts;
+        let mut blood_ids = Vec::with_capacity(stats.len() * 3);
+        for (&challenge_id, stat) in &stats {
+            if let Some(status) = result.get_mut(&challenge_id) {
+                status.solved = stat.solved;
+                status.solved_times = stat.solved_times;
+            }
+            blood_ids.extend_from_slice(&stat.blood_ids);
+        }
+        let blood_views = cds_db::submission::find_views_by_ids(&s.db.conn, &blood_ids).await?;
+        for view in &blood_views {
+            if let Some(status) = result.get_mut(&view.challenge_id)
+                && status.bloods.len() < 3
+            {
+                status.bloods.push(SubmissionSummary::from(view));
             }
         }
     }

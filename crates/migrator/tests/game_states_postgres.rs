@@ -107,7 +107,7 @@ async fn timestamp_column_types(database: &sea_orm::DatabaseConnection) -> Vec<(
                     ('users', 'deleted_at'), ('users', 'created_at'), ('users', 'updated_at'),
                     ('games', 'started_at'), ('games', 'frozen_at'), ('games', 'ended_at'), ('games', 'created_at'),
                     ('challenges', 'deleted_at'), ('challenges', 'created_at'), ('challenges', 'updated_at'),
-                    ('game_notices', 'created_at'), ('game_challenges', 'frozen_at'),
+                    ('game_notices', 'created_at'), ('game_notices', 'updated_at'), ('game_challenges', 'frozen_at'),
                     ('submissions', 'created_at'), ('submissions', 'processing_at'), ('submissions', 'checked_at'),
                     ('notes', 'created_at'), ('notes', 'updated_at'),
                     ('idps', 'created_at'), ('idps', 'updated_at'),
@@ -151,7 +151,7 @@ async fn user_idp_check_constraint_count(database: &sea_orm::DatabaseConnection)
 async fn initial_state_columns_are_created_on_postgres() {
     let (database, schema) = isolated_database("initial_states").await;
     Migrator::up(&database, None).await.unwrap();
-    assert_eq!(timestamp_column_types(&database).await.len(), 21);
+    assert_eq!(timestamp_column_types(&database).await.len(), 22);
     let columns = game_state_columns(&database).await;
     assert_eq!(columns.len(), 2);
     assert!(columns.iter().all(|(_, default, nullable)| {
@@ -198,10 +198,192 @@ async fn submission_failure_constraint_supports_upgrade_and_rollback() {
         )).await.unwrap().unwrap().try_get::<String>("", "definition").unwrap()
     };
     assert!(definition(database.clone()).await.contains("failed"));
-    Migrator::down(&database, Some(1)).await.unwrap();
+    Migrator::down(&database, Some(4)).await.unwrap();
     assert!(!definition(database.clone()).await.contains("failed"));
     Migrator::up(&database, None).await.unwrap();
     assert!(definition(database.clone()).await.contains("failed"));
+    database
+        .execute_unprepared(&format!(
+            "SET search_path TO public; DROP SCHEMA {schema} CASCADE"
+        ))
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+#[ignore = "requires CDS_TEST_DATABASE_URL pointing to disposable PostgreSQL"]
+async fn cqrs_scoring_and_queue_migration_upgrades_and_rolls_back() {
+    let (database, schema) = isolated_database("cqrs_scoring_queue").await;
+    Migrator::up(&database, None).await.unwrap();
+
+    // Derived score columns and games.score_revision must be removed.
+    let remaining: i64 = database
+        .query_one_raw(Statement::from_string(
+            DbBackend::Postgres,
+            r#"
+                SELECT COUNT(*) AS count
+                FROM information_schema.columns
+                WHERE table_schema = current_schema()
+                  AND (
+                    (table_name = 'games' AND column_name = 'score_revision')
+                    OR (table_name = 'game_challenges' AND column_name = 'pts')
+                    OR (table_name = 'teams' AND column_name IN ('pts', 'rank'))
+                    OR (table_name = 'submissions' AND column_name IN ('pts', 'rank'))
+                  )
+            "#,
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "count")
+        .unwrap();
+    assert_eq!(remaining, 0);
+
+    // New indexes must exist.
+    let indexes: i64 = database
+        .query_one_raw(Statement::from_string(
+            DbBackend::Postgres,
+            r#"
+                SELECT COUNT(*) AS count
+                FROM pg_indexes
+                WHERE schemaname = current_schema()
+                  AND indexname IN (
+                    'idx_submissions_work_queue',
+                    'uq_submissions_correct_game',
+                    'uq_submissions_correct_standalone',
+                    'idx_submissions_scoring',
+                    'idx_teams_game_state'
+                  )
+            "#,
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "count")
+        .unwrap();
+    assert_eq!(indexes, 5);
+
+    // Rollback restores legacy columns and drops new indexes cleanly.
+    Migrator::down(&database, Some(2)).await.unwrap();
+    let restored: i64 = database
+        .query_one_raw(Statement::from_string(
+            DbBackend::Postgres,
+            r#"
+                SELECT COUNT(*) AS count
+                FROM information_schema.columns
+                WHERE table_schema = current_schema()
+                  AND (
+                    (table_name = 'games' AND column_name = 'score_revision')
+                    OR (table_name = 'game_challenges' AND column_name = 'pts')
+                    OR (table_name = 'teams' AND column_name IN ('pts', 'rank'))
+                    OR (table_name = 'submissions' AND column_name IN ('pts', 'rank'))
+                  )
+            "#,
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "count")
+        .unwrap();
+    assert_eq!(restored, 6);
+
+    Migrator::up(&database, None).await.unwrap();
+    database
+        .execute_unprepared(&format!(
+            "SET search_path TO public; DROP SCHEMA {schema} CASCADE"
+        ))
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+#[ignore = "requires CDS_TEST_DATABASE_URL pointing to disposable PostgreSQL"]
+async fn game_notice_refactor_migration_upgrades_cascades_and_rolls_back() {
+    let (database, schema) = isolated_database("game_notice_refactor").await;
+    Migrator::up(&database, None).await.unwrap();
+
+    // Seed one user, one game, one challenge, one game_challenge, and two
+    // notices (one general, one bound to the game_challenge).
+    database
+        .execute_unprepared(
+            r#"
+                INSERT INTO users (id, name, username, banned, permissions, hashed_password, created_at, updated_at)
+                VALUES (1, 'Admin', 'admin', FALSE, ARRAY[]::TEXT[], 'hash', NOW(), NOW());
+
+                INSERT INTO games (id, title, enabled, public, paused, blacked_out, writeup_required, member_limit_min, member_limit_max, timeslots, started_at, frozen_at, ended_at, created_at)
+                VALUES (1, 'Test Game', TRUE, TRUE, FALSE, FALSE, FALSE, 1, 3, '[]'::JSONB, NOW(), NOW(), NOW(), NOW());
+
+                INSERT INTO challenges (id, title, description, category, tags, has_instance, has_attachment, has_writeup, public, created_at, updated_at)
+                VALUES (10, 'Web 1', 'desc', 1, ARRAY[]::TEXT[], FALSE, FALSE, FALSE, FALSE, NOW(), NOW());
+
+                INSERT INTO game_challenges (game_id, challenge_id, difficulty, max_pts, min_pts, bonus_ratios, enabled)
+                VALUES (1, 10, 5, 1000, 100, ARRAY[10, 5]::BIGINT[], TRUE);
+
+                INSERT INTO game_notices (game_id, challenge_id, title, content, created_by, updated_by, created_at, updated_at)
+                VALUES
+                    (1, NULL, 'General', 'general body', 1, 1, NOW(), NOW()),
+                    (1, 10, 'Challenge Hint', 'hint body', 1, 1, NOW(), NOW());
+            "#,
+        )
+        .await
+        .unwrap();
+
+    // Removing the challenge from the game cascades to its bound notice only.
+    database
+        .execute_unprepared("DELETE FROM game_challenges WHERE game_id = 1 AND challenge_id = 10")
+        .await
+        .unwrap();
+
+    let remaining_notices: i64 = database
+        .query_one_raw(Statement::from_string(
+            DbBackend::Postgres,
+            "SELECT COUNT(*) AS count FROM game_notices WHERE game_id = 1",
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "count")
+        .unwrap();
+    assert_eq!(remaining_notices, 1);
+
+    // Deleting the admin user sets created_by / updated_by to NULL cleanly.
+    database
+        .execute_unprepared("DELETE FROM users WHERE id = 1")
+        .await
+        .unwrap();
+    let null_authors: i64 = database
+        .query_one_raw(Statement::from_string(
+            DbBackend::Postgres,
+            "SELECT COUNT(*) AS count FROM game_notices WHERE game_id = 1 AND created_by IS NULL AND updated_by IS NULL",
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "count")
+        .unwrap();
+    assert_eq!(null_authors, 1);
+
+    // Rollback drops the new columns and re-upgrade restores them cleanly.
+    Migrator::down(&database, Some(1)).await.unwrap();
+    let remaining_cols: i64 = database
+        .query_one_raw(Statement::from_string(
+            DbBackend::Postgres,
+            r#"
+                SELECT COUNT(*) AS count
+                FROM information_schema.columns
+                WHERE table_schema = current_schema()
+                  AND table_name = 'game_notices'
+                  AND column_name IN ('challenge_id', 'created_by', 'updated_by', 'updated_at')
+            "#,
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "count")
+        .unwrap();
+    assert_eq!(remaining_cols, 0);
+
+    Migrator::up(&database, None).await.unwrap();
     database
         .execute_unprepared(&format!(
             "SET search_path TO public; DROP SCHEMA {schema} CASCADE"

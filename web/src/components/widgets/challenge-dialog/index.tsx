@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { BellIcon } from "lucide-react";
 import type React from "react";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { getChallenge } from "@/api/challenges/challenge_id";
 import { getChallenge as getChallengeDebug } from "@/api/management/challenges/challenge_id";
 import { Card } from "@/components/ui/card";
@@ -10,10 +12,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
 import type { ChallengeSummary } from "@/models/challenge";
+import type { GameNoticeView } from "@/models/game_notice";
 import type { PlayerTeamView } from "@/models/team";
+import { isNoticeEdited } from "@/storages/notice";
 import type { Timestamp } from "@/types";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
+import { parseTimestamp } from "@/utils/time";
 import { AttachmentSection } from "./attachment-section";
 import { Context } from "./context";
 import { FrozenBadge } from "./frozen-badge";
@@ -24,6 +29,7 @@ type ChallengeDialogProps = React.ComponentProps<typeof Card> & {
   digest?: Pick<ChallengeSummary, "id" | "title" | "category">;
   gameTeam?: PlayerTeamView;
   frozenAt?: Timestamp | null;
+  notices?: GameNoticeView[];
   debug?: boolean;
   cheated?: boolean;
 };
@@ -48,11 +54,13 @@ function ChallengeDialog(props: ChallengeDialogProps) {
     digest,
     gameTeam,
     frozenAt,
+    notices,
     debug = false,
     cheated = false,
     ...rest
   } = props;
 
+  const { t } = useTranslation();
   const { data: challenge, isLoading } = useChallengeQuery(digest?.id, debug);
 
   const category = useMemo(
@@ -149,6 +157,48 @@ function ChallengeDialog(props: ChallengeDialogProps) {
           >
             <LoadingOverlay loading={isLoading} />
             <div className={cn(["pb-6"])}>
+              {notices && notices.length > 0 && (
+                <section
+                  className="mb-5 overflow-hidden rounded-lg border border-warning/30 bg-[color-mix(in_oklab,var(--warning)_7%,var(--card))]"
+                  aria-label={t("game:notice.challenge_notices_title")}
+                >
+                  <div className="flex items-center gap-2 border-b border-warning/20 px-4 py-2.5">
+                    <BellIcon
+                      className="size-3.5 shrink-0 text-warning"
+                      aria-hidden="true"
+                    />
+                    <span className="text-xs font-semibold text-foreground">
+                      {t("game:notice.challenge_notices_title")}
+                    </span>
+                    {notices.length > 1 && (
+                      <span className="rounded-full bg-warning/15 px-1.5 py-0.5 font-mono text-[11px] font-medium text-warning tabular-nums">
+                        {notices.length}
+                      </span>
+                    )}
+                  </div>
+                  <div className="divide-y divide-warning/15">
+                    {notices.map((notice) => (
+                      <article key={notice.id} className="px-4 py-3">
+                        <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-2">
+                          <h4 className="text-sm font-semibold text-foreground">
+                            {notice.title}
+                          </h4>
+                          <span className="font-mono text-[11px] text-muted-foreground tabular-nums">
+                            {parseTimestamp(
+                              notice.created_at
+                            )?.toLocaleString() ?? "-"}
+                            {isNoticeEdited(notice) &&
+                              ` · ${t("game:notice.edited")}`}
+                          </span>
+                        </div>
+                        <Typography className="prose-sm">
+                          <MarkdownRender src={notice.content} />
+                        </Typography>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              )}
               <Typography>
                 <MarkdownRender src={challenge?.description} />
               </Typography>

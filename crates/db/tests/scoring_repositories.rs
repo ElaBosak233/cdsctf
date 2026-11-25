@@ -1,32 +1,21 @@
-use cds_db::{game, game_challenge, sea_orm, submission, team};
+use cds_db::{game_challenge, sea_orm, submission, team};
 use sea_orm::{ConnectionTrait, Database, DbBackend, Statement, TransactionTrait};
 
 #[tokio::test]
 #[ignore = "requires CDS_TEST_DATABASE_URL pointing to PostgreSQL"]
-async fn scoring_repository_queries_execute_on_postgres() {
+async fn scoring_and_queue_repositories_execute_on_postgres() {
     let database_url = std::env::var("CDS_TEST_DATABASE_URL")
         .expect("CDS_TEST_DATABASE_URL must be set for this ignored test");
     let database = Database::connect(database_url).await.unwrap();
     let transaction = database.begin().await.unwrap();
+
     transaction
         .execute_unprepared(
             r#"
-                CREATE TEMP TABLE games (
+                CREATE TEMP TABLE teams (
                     id BIGINT PRIMARY KEY,
-                    score_revision BIGINT NOT NULL DEFAULT 0
-                ) ON COMMIT DROP;
-                CREATE TEMP TABLE submissions (
-                    id BIGINT PRIMARY KEY,
-                    challenge_id BIGINT NOT NULL,
-                    team_id BIGINT,
-                    game_id BIGINT,
-                    created_at TIMESTAMPTZ NOT NULL,
-                    status TEXT NOT NULL,
-                    processing_at TIMESTAMPTZ,
-                    claims BIGINT NOT NULL DEFAULT 0,
-                    checked_at TIMESTAMPTZ,
-                    pts BIGINT NOT NULL,
-                    rank BIGINT NOT NULL
+                    game_id BIGINT NOT NULL,
+                    state INTEGER NOT NULL
                 ) ON COMMIT DROP;
                 CREATE TEMP TABLE game_challenges (
                     game_id BIGINT NOT NULL,
@@ -35,274 +24,121 @@ async fn scoring_repository_queries_execute_on_postgres() {
                     max_pts BIGINT NOT NULL,
                     min_pts BIGINT NOT NULL,
                     bonus_ratios BIGINT[] NOT NULL,
-                    pts BIGINT NOT NULL,
+                    frozen_at TIMESTAMPTZ,
                     PRIMARY KEY (game_id, challenge_id)
                 ) ON COMMIT DROP;
-                CREATE TEMP TABLE teams (
-                    id BIGINT PRIMARY KEY,
-                    game_id BIGINT NOT NULL,
-                    state INTEGER NOT NULL,
-                    pts BIGINT NOT NULL,
-                    rank BIGINT NOT NULL
-                ) ON COMMIT DROP;
-
-                INSERT INTO games (id) VALUES (7), (8);
-                INSERT INTO submissions (
-                    id, challenge_id, team_id, game_id, created_at, status, pts, rank
-                ) VALUES (1, 10, 100, 7, to_timestamp(1000), 'correct', 0, 0);
-                INSERT INTO game_challenges VALUES
-                    (7, 10, 10, 1000, 100, ARRAY[10, 0]::BIGINT[], 0),
-                    (8, 10, 10, 1000, 100, ARRAY[10, 0]::BIGINT[], 0);
-                INSERT INTO teams VALUES (100, 7, 3, 0, 0);
-            "#,
-        )
-        .await
-        .unwrap();
-    let game_id = 7;
-
-    assert!(
-        game::find_dirty_score_ids(&transaction)
-            .await
-            .unwrap()
-            .is_empty()
-    );
-    game::request_score_recalculation(&transaction, game_id)
-        .await
-        .unwrap();
-    assert_eq!(
-        game::find_score_revision(&transaction, game_id)
-            .await
-            .unwrap(),
-        Some(1)
-    );
-    assert_eq!(
-        game::find_dirty_score_ids(&transaction).await.unwrap(),
-        vec![game_id]
-    );
-    assert!(
-        !game::mark_score_recalculation_applied(&transaction, game_id, 0)
-            .await
-            .unwrap()
-    );
-    assert!(
-        game::mark_score_recalculation_applied(&transaction, game_id, 1)
-            .await
-            .unwrap()
-    );
-    assert!(
-        game::find_dirty_score_ids(&transaction)
-            .await
-            .unwrap()
-            .is_empty()
-    );
-    let savepoint = transaction.begin().await.unwrap();
-    game::request_score_recalculation(&savepoint, game_id)
-        .await
-        .unwrap();
-    savepoint.rollback().await.unwrap();
-    assert_eq!(
-        game::find_score_revision(&transaction, game_id)
-            .await
-            .unwrap(),
-        Some(0)
-    );
-
-    let now =
-        time::OffsetDateTime::from_unix_timestamp(time::OffsetDateTime::now_utc().unix_timestamp())
-            .unwrap();
-    transaction
-        .execute_unprepared(&format!(
-            r#"
-                INSERT INTO submissions (
-                    id, challenge_id, created_at, status, processing_at, pts, rank
-                ) VALUES
-                    (2, 10, to_timestamp({}::double precision), 'processing', to_timestamp({}::double precision), 0, 0),
-                    (3, 10, to_timestamp({}::double precision), 'processing', to_timestamp({}::double precision), 0, 0),
-                    (4, 10, to_timestamp(1003::double precision), 'processing', NULL, 0, 0);
-            "#,
-            now.unix_timestamp() - 20,
-            now.unix_timestamp() - 20,
-            now.unix_timestamp() - 18,
-            now.unix_timestamp()
-        ))
-        .await
-        .unwrap();
-
-    assert_eq!(
-        submission::reset_stale_processing(&transaction)
-            .await
-            .unwrap(),
-        2
-    );
-    let still_processing = transaction
-        .query_one_raw(Statement::from_string(
-            DbBackend::Postgres,
-            "SELECT COUNT(*) AS count FROM submissions WHERE status = 'processing'",
-        ))
-        .await
-        .unwrap()
-        .unwrap()
-        .try_get::<i64>("", "count")
-        .unwrap();
-    assert_eq!(still_processing, 1);
-    assert!(
-        !submission::release_processing(&transaction, 3, now - time::Duration::seconds(1), 0)
-            .await
-            .unwrap()
-    );
-    assert!(
-        submission::release_processing(&transaction, 3, now, 0)
-            .await
-            .unwrap()
-    );
-
-    game::lock_score_recalculation(&transaction, game_id)
-        .await
-        .unwrap();
-    assert_eq!(game::find_ids(&transaction).await.unwrap(), vec![7, 8]);
-    assert_eq!(
-        submission::find_score_inputs(&transaction, game_id)
-            .await
-            .unwrap()
-            .len(),
-        1
-    );
-    assert_eq!(
-        game_challenge::find_score_inputs(&transaction, game_id)
-            .await
-            .unwrap()
-            .len(),
-        1
-    );
-    assert_eq!(
-        team::find_score_inputs(&transaction, game_id)
-            .await
-            .unwrap()
-            .len(),
-        1
-    );
-
-    assert_eq!(
-        submission::update_scores(
-            &transaction,
-            game_id,
-            &[submission::ScoreUpdate {
-                id: 1,
-                pts: 100,
-                rank: 1,
-            }],
-        )
-        .await
-        .unwrap(),
-        1
-    );
-    assert_eq!(
-        game_challenge::update_scores(
-            &transaction,
-            game_id,
-            &[game_challenge::ScoreUpdate {
-                challenge_id: 10,
-                pts: 100,
-            }],
-        )
-        .await
-        .unwrap(),
-        1
-    );
-    assert_eq!(
-        team::update_scores(
-            &transaction,
-            game_id,
-            &[team::ScoreUpdate {
-                id: 100,
-                pts: 100,
-                rank: 1,
-            }],
-        )
-        .await
-        .unwrap(),
-        1
-    );
-
-    let submissions = submission::find_score_inputs(&transaction, game_id)
-        .await
-        .unwrap();
-    let challenges = game_challenge::find_score_inputs(&transaction, game_id)
-        .await
-        .unwrap();
-    let teams = team::find_score_inputs(&transaction, game_id)
-        .await
-        .unwrap();
-    assert_eq!((submissions[0].pts, submissions[0].rank), (100, 1));
-    assert_eq!(challenges[0].pts, 100);
-    assert_eq!((teams[0].pts, teams[0].rank), (100, 1));
-    assert_eq!(
-        game_challenge::find_score_inputs(&transaction, 8)
-            .await
-            .unwrap()[0]
-            .pts,
-        0
-    );
-    assert_eq!(
-        submission::update_scores(
-            &transaction,
-            game_id,
-            &[submission::ScoreUpdate {
-                id: 1,
-                pts: 100,
-                rank: 1,
-            }],
-        )
-        .await
-        .unwrap(),
-        0
-    );
-
-    transaction.rollback().await.unwrap();
-}
-
-#[tokio::test]
-#[ignore = "requires CDS_TEST_DATABASE_URL pointing to PostgreSQL"]
-async fn aba_fencing_rejects_stale_generation_with_identical_timestamp() {
-    let database_url = std::env::var("CDS_TEST_DATABASE_URL")
-        .expect("CDS_TEST_DATABASE_URL must be set for this ignored test");
-    let database = Database::connect(database_url).await.unwrap();
-    let transaction = database.begin().await.unwrap();
-    transaction
-        .execute_unprepared(
-            r#"
                 CREATE TEMP TABLE submissions (
                     id BIGINT PRIMARY KEY,
+                    content TEXT NOT NULL,
                     status TEXT NOT NULL,
+                    challenge_id BIGINT NOT NULL,
+                    user_id BIGINT NOT NULL,
+                    team_id BIGINT,
+                    game_id BIGINT,
+                    created_at TIMESTAMPTZ NOT NULL,
                     processing_at TIMESTAMPTZ,
                     claims BIGINT NOT NULL DEFAULT 0,
                     checked_at TIMESTAMPTZ
                 ) ON COMMIT DROP;
-                INSERT INTO submissions (
-                    id, status, processing_at, claims, checked_at
-                ) VALUES (
-                    1, 'processing', to_timestamp(1700000000), 2, NULL
-                );
+                CREATE UNIQUE INDEX uq_temp_submissions_correct_game
+                    ON submissions (game_id, team_id, challenge_id)
+                    WHERE status = 'correct' AND game_id IS NOT NULL AND team_id IS NOT NULL;
+
+                INSERT INTO teams VALUES
+                    (100, 7, 3), -- Passed
+                    (101, 7, 0); -- Banned
+                INSERT INTO game_challenges VALUES
+                    (7, 10, 10, 1000, 100, ARRAY[10, 0]::BIGINT[], NULL);
+                INSERT INTO submissions VALUES
+                    (1, 'flag', 'correct', 10, 1, 100, 7, to_timestamp(1000), NULL, 1, to_timestamp(1001)),
+                    (2, 'flag', 'correct', 10, 2, 101, 7, to_timestamp(900), NULL, 1, to_timestamp(901)),
+                    (3, 'flag', 'queued',  10, 1, 100, 7, to_timestamp(1100), NULL, 0, NULL),
+                    (4, 'flag', 'queued',  11, 1, 100, 7, to_timestamp(1101), NULL, 0, NULL);
             "#,
         )
         .await
         .unwrap();
 
-    let marker = time::OffsetDateTime::from_unix_timestamp(1_700_000_000).unwrap();
+    // Score inputs must include only Passed team 100 and exclude Banned team
+    // 101.
+    let inputs = submission::find_score_inputs(&transaction, 7)
+        .await
+        .unwrap();
+    assert_eq!(inputs.len(), 1);
+    assert_eq!(inputs[0].id, 1);
+    assert_eq!(inputs[0].team_id, 100);
+
+    assert_eq!(
+        team::find_passed_ids(&transaction, 7).await.unwrap(),
+        vec![100]
+    );
+    assert_eq!(
+        game_challenge::find_score_inputs(&transaction, 7)
+            .await
+            .unwrap()
+            .len(),
+        1
+    );
+
+    // Claim skipping challenge 10 must claim only submission 4 (challenge 11).
+    let claimed = submission::claim_batch(&transaction, 4, &[10])
+        .await
+        .unwrap();
+    assert_eq!(claimed.len(), 1);
+    assert_eq!(claimed[0].id, 4);
+    assert_eq!(claimed[0].claims, 1);
+
+    // Claiming without exclusions picks up submission 3 (challenge 10).
+    let claimed_two = submission::claim_batch(&transaction, 4, &[]).await.unwrap();
+    assert_eq!(claimed_two.len(), 1);
+    assert_eq!(claimed_two[0].id, 3);
+    assert_eq!(claimed_two[0].claims, 1);
+
+    // Partial unique index maps duplicate `correct` to DuplicateCorrect (inside
+    // a savepoint).
+    let sp = transaction.begin().await.unwrap();
+    let res = submission::finish_processing(&sp, 3, 1, submission::Status::Correct)
+        .await
+        .unwrap();
+    assert_eq!(res, submission::FinishResult::DuplicateCorrect);
+    sp.rollback().await.unwrap();
+
+    // Stale claims generation is fenced out.
+    assert_eq!(
+        submission::finish_processing(&transaction, 3, 0, submission::Status::Duplicate)
+            .await
+            .unwrap(),
+        submission::FinishResult::LeaseLost
+    );
+    assert_eq!(
+        submission::finish_processing(&transaction, 3, 1, submission::Status::Duplicate)
+            .await
+            .unwrap(),
+        submission::FinishResult::Committed
+    );
+
+    // Releasing submission 4 returns it to queued.
     assert!(
-        !submission::release_processing(&transaction, 1, marker, 1)
+        !submission::release_processing(&transaction, 4, 0)
             .await
             .unwrap()
     );
     assert!(
-        submission::finish_processing(&transaction, 1, marker, 1, submission::Status::Incorrect,)
-            .await
-            .unwrap()
-            .is_none()
-    );
-    assert!(
-        submission::release_processing(&transaction, 1, marker, 2)
+        submission::release_processing(&transaction, 4, 1)
             .await
             .unwrap()
     );
+    let status: String = transaction
+        .query_one_raw(Statement::from_string(
+            DbBackend::Postgres,
+            "SELECT status AS value FROM submissions WHERE id = 4",
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "value")
+        .unwrap();
+    assert_eq!(status, "queued");
+
+    transaction.rollback().await.unwrap();
 }

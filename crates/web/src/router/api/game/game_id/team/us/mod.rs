@@ -19,12 +19,11 @@ use cds_db::{
     TeamUserView,
     sea_orm::{
         ActiveValue::{Set, Unchanged},
-        NotSet, TransactionTrait,
+        NotSet,
     },
     team::State as TState,
     team_user::FindTeamUserOptions,
 };
-use cds_worker::calculator;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -76,7 +75,10 @@ pub async fn get_team(
 ) -> Result<Json<TeamResponse>, WebError> {
     let operator = basic_operator(&ext)?;
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
-    let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
+    let mut team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
+    if !game.blacked_out {
+        crate::util::score::hydrate_team(&s.score, &mut team).await?;
+    }
 
     Ok(Json(TeamResponse::new(team, game.blacked_out)))
 }
@@ -117,7 +119,7 @@ pub async fn update_team(
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
     let team = crate::util::loader::prepare_self_team(&s.db.conn, game_id, operator.id).await?;
 
-    let team = cds_db::team::update(
+    let mut team = cds_db::team::update(
         &s.db.conn,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),
@@ -129,6 +131,9 @@ pub async fn update_team(
         },
     )
     .await?;
+    if !game.blacked_out {
+        crate::util::score::hydrate_team(&s.score, &mut team).await?;
+    }
 
     Ok(Json(TeamResponse::new(team, game.blacked_out)))
 }
@@ -218,9 +223,8 @@ pub async fn set_team_ready(
         })));
     }
 
-    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
-    let team: cds_db::TeamView = cds_db::team::update(
-        &transaction,
+    let mut team: cds_db::TeamView = cds_db::team::update(
+        &s.db.conn,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),
             game_id: Unchanged(team.game_id),
@@ -234,14 +238,11 @@ pub async fn set_team_ready(
     )
     .await?;
 
-    let score_changed = team.state == TState::Passed;
-    if score_changed {
-        cds_db::game::request_score_recalculation(&transaction, game.id).await?;
+    if team.state == TState::Passed {
+        s.score.invalidate(game.id).await;
     }
-    transaction.commit().await.map_err(cds_db::DbError::from)?;
-
-    if score_changed {
-        calculator::notify(&s.queue, game.id, Some(operator.id)).await;
+    if !game.blacked_out {
+        crate::util::score::hydrate_team(&s.score, &mut team).await?;
     }
 
     Ok(Json(TeamResponse::new(team, game.blacked_out)))

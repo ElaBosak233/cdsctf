@@ -2,8 +2,10 @@ _: Game
 empty: "Oops, it seems that there are no games yet."
 result_count: "{{count}} games"
 filter:
-  all: ALL
+  all: All
   pts: pts
+  hide_solved: Hide solved
+  progress: Progress
 list:
   columns:
     game: Game
@@ -169,6 +171,7 @@ paused:
   description: You can continue solving after an administrator resumes the game.
 challenge:
   empty: "Oops, it seems that there are no challenges in this game yet."
+  no_match: No challenges match the current filters.
   pts: Current Points
   title: Title
   category: Category
@@ -230,15 +233,33 @@ notice:
   id: ID
   board: Notice Board
   new: New notice
+  unread: Unread
+  unread_count: "{{count}} unread"
+  mark_all_read: Mark all read
+  select_prompt: Select a notice to read its details
+  general: General
+  challenge: Challenge
+  challenge_none: Whole game (no challenge)
+  challenge_unread_tip: New notice for this challenge
+  challenge_notices_title: Challenge Notices
   empty: "Oops, it seems that there are no notices yet."
   title: Title
   content: Content
+  author: Author / Editor
   created_at: Created At
+  created_time: "Created {{time}}"
+  updated_at: Updated At
+  edited: Edited
+  created_by: "Created by {{name}}"
+  updated_by: "Edited by {{name}}"
   form:
     title:
       _: Title
       message: Please enter a title
-      placeholder: My CTF Game
+      placeholder: "e.g. Web challenge attachment updated"
+    challenge:
+      _: Related Challenge (Optional)
+      placeholder: Select a challenge or leave empty for a general notice
     content:
       _: Content
       message: Please enter content
@@ -247,6 +268,9 @@ notice:
     create:
       _: Create Notice
       success: "Notice {{title}} created successfully."
+    edit:
+      _: Edit Notice
+      success: "Notice {{title}} updated successfully."
     delete:
       _: Delete Notice
       message: "Are you sure you want to delete the notice <muted>{{title}}</muted>?"
@@ -259,3 +283,5 @@ errors:
   paused: The game is currently paused.
   icon_not_found: The game icon could not be found.
   poster_not_found: The game poster could not be found.
+  invalid_notice: Please provide both a notice title and content.
+  notice_not_found: The notice could not be found.

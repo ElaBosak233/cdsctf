@@ -34,7 +34,9 @@ function getNoticeFingerprint(notice: GameNoticeView) {
         JSON.stringify([
           notice.game_id ?? null,
           notice.id ?? null,
+          notice.challenge_id ?? null,
           notice.created_at ?? null,
+          notice.updated_at ?? null,
           notice.title ?? "",
           notice.content ?? "",
         ])
@@ -45,6 +47,21 @@ function getNoticeFingerprint(notice: GameNoticeView) {
 
 function getNoticeFingerprints(notices: Array<GameNoticeView>) {
   return Array.from(new Set(notices.map(getNoticeFingerprint)));
+}
+
+function isNoticeUnread(
+  scope: NoticeScope | undefined,
+  notice: GameNoticeView
+) {
+  return scope?.seen[getNoticeFingerprint(notice)] == null;
+}
+
+function isNoticeEdited(
+  notice: Pick<GameNoticeView, "created_at" | "updated_at">
+) {
+  const created = toEpochMilliseconds(notice.created_at);
+  const updated = toEpochMilliseconds(notice.updated_at);
+  return created != null && updated != null && updated - created > 1000;
 }
 
 function getMaxNumber(values: Array<number | undefined>): number | undefined {
@@ -122,13 +139,20 @@ export const useNoticeReadStore = create<NoticeReadState>()(
         }),
       markAsRead: (scopeKey, fingerprints) =>
         set((state) => {
+          if (fingerprints.length === 0) return state;
           const previous = state.scopes[scopeKey];
           const seen = { ...(previous?.seen ?? {}) };
           const seenAt = Date.now();
+          let changed = false;
 
           for (const fingerprint of fingerprints) {
-            seen[fingerprint] = seenAt;
+            if (seen[fingerprint] == null) {
+              seen[fingerprint] = seenAt;
+              changed = true;
+            }
           }
+
+          if (!changed) return state;
 
           return {
             scopes: {
@@ -154,11 +178,17 @@ export const useNoticeReadStore = create<NoticeReadState>()(
     }),
     {
       name: "notice-read",
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ scopes: state.scopes }),
     }
   )
 );
 
-export { getNoticeFingerprint, getNoticeFingerprints, getNoticeScopeKey };
+export {
+  getNoticeFingerprint,
+  getNoticeFingerprints,
+  getNoticeScopeKey,
+  isNoticeEdited,
+  isNoticeUnread,
+};

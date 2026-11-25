@@ -20,10 +20,6 @@ pub struct Model {
 
     pub state: State,
 
-    #[sea_orm(default_value = 0)]
-    pub pts: i64,
-    #[sea_orm(default_value = 0)]
-    pub rank: i64,
     #[sea_orm(belongs_to, from = "game_id", to = "id", on_delete = "Cascade")]
     pub game: BelongsTo<super::game::Entity>,
     #[sea_orm(has_many)]

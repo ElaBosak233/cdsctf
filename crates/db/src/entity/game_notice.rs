@@ -12,11 +12,16 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
     pub game_id: i64,
+    pub challenge_id: Option<i64>,
     pub title: String,
     #[sea_orm(column_type = "Text")]
     pub content: String,
+    pub created_by: Option<i64>,
+    pub updated_by: Option<i64>,
     #[serde(with = "crate::time_format")]
     pub created_at: time::OffsetDateTime,
+    #[serde(with = "crate::time_format")]
+    pub updated_at: time::OffsetDateTime,
     #[sea_orm(belongs_to, from = "game_id", to = "id", on_delete = "Cascade")]
     pub game: BelongsTo<super::game::Entity>,
 }
@@ -28,6 +33,8 @@ impl ActiveModelBehavior for ActiveModel {
     where
         C: ConnectionTrait, {
         let ts = time::OffsetDateTime::now_utc();
+
+        self.updated_at = Set(ts);
 
         if insert {
             self.created_at = Set(ts);

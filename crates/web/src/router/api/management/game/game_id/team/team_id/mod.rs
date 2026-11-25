@@ -17,11 +17,10 @@ use cds_db::{
     TeamView,
     sea_orm::{
         ActiveValue::{Set, Unchanged},
-        NotSet, TransactionTrait,
+        NotSet,
     },
     team::State as TState,
 };
-use cds_worker::calculator;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa_axum::{
@@ -30,9 +29,9 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Extension, Json as ReqJson, Path},
+    extract::{Json as ReqJson, Path},
     router::api::management::game::game_id::team::AdminTeamResponse,
-    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
+    traits::{AppState, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -72,16 +71,14 @@ pub struct UpdateTeamRequest {
 )]
 #[tracing::instrument(skip_all, fields(handler = "update_team"))]
 pub async fn update_team(
-    Extension(principal): Extension<AuthPrincipal>,
     State(s): State<Arc<AppState>>,
     Path((game_id, team_id)): Path<(i64, i64)>,
     ReqJson(body): ReqJson<UpdateTeamRequest>,
 ) -> Result<Json<AdminTeamResponse>, WebError> {
     let team = crate::util::loader::prepare_team(&s.db.conn, game_id, team_id).await?;
 
-    let transaction = s.db.conn.begin().await.map_err(cds_db::DbError::from)?;
-    let new_team = cds_db::team::update::<TeamView>(
-        &transaction,
+    let mut new_team = cds_db::team::update::<TeamView>(
+        &s.db.conn,
         cds_db::team::ActiveModel {
             id: Unchanged(team.id),
             game_id: Unchanged(team.game_id),
@@ -94,20 +91,10 @@ pub async fn update_team(
     )
     .await?;
 
-    let score_changed = team.state != new_team.state;
-    if score_changed {
-        cds_db::game::request_score_recalculation(&transaction, game_id).await?;
+    if team.state != new_team.state {
+        s.score.invalidate(game_id).await;
     }
-    transaction.commit().await.map_err(cds_db::DbError::from)?;
-
-    if score_changed {
-        calculator::notify(
-            &s.queue,
-            game_id,
-            principal.operator.as_ref().map(|operator| operator.id),
-        )
-        .await;
-    }
+    crate::util::score::hydrate_team(&s.score, &mut new_team).await?;
 
     tracing::info!(
         resource = "team",

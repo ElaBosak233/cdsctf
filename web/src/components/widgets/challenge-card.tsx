@@ -21,11 +21,19 @@ import { parseTimestamp } from "@/utils/time";
 type ChallengeCardProps = CardProps & {
   digest?: Pick<ChallengeSummary, "id" | "title" | "category">;
   status?: ChallengeStatus;
+  hasUnreadNotice?: boolean;
   debug?: boolean;
 };
 
 function ChallengeCard(props: ChallengeCardProps) {
-  const { digest, status, debug = false, className, ...rest } = props;
+  const {
+    digest,
+    status,
+    hasUnreadNotice = false,
+    debug = false,
+    className,
+    ...rest
+  } = props;
 
   const { t } = useTranslation();
 
@@ -37,6 +45,9 @@ function ChallengeCard(props: ChallengeCardProps) {
     [digest?.category]
   );
   const CategoryIcon = category.icon!;
+
+  const isCheated = !debug && Boolean(status?.cheated);
+  const isSolved = !debug && !isCheated && Boolean(status?.solved);
 
   return (
     <Card
@@ -51,12 +62,16 @@ function ChallengeCard(props: ChallengeCardProps) {
           "rounded-xl",
           "hover:bg-card/40",
           "dark:hover:bg-card/70",
+          "hover:border-foreground/20",
           "shadow-sm",
           "hover:shadow-md",
           "transition-all",
           "duration-200",
           "cursor-pointer",
-          status?.cheated && "hover:cursor-not-allowed",
+          isSolved &&
+            "border-success/35 bg-[color-mix(in_oklab,var(--success)_4.5%,var(--card))] hover:border-success/55",
+          isCheated &&
+            "border-error/35 bg-[color-mix(in_oklab,var(--error)_4.5%,var(--card))] hover:cursor-not-allowed hover:border-error/50",
         ],
         className
       )}
@@ -64,6 +79,7 @@ function ChallengeCard(props: ChallengeCardProps) {
     >
       <span
         className={cn([
+          "pointer-events-none",
           "absolute",
           "right-1/10",
           "top-1/2",
@@ -72,10 +88,11 @@ function ChallengeCard(props: ChallengeCardProps) {
           "opacity-5",
           "size-36",
         ])}
+        aria-hidden="true"
       >
         <CategoryIcon className={cn(["size-36"])} />
       </span>
-      {!debug && status?.cheated ? (
+      {isCheated ? (
         <Tooltip>
           <TooltipTrigger
             render={
@@ -85,16 +102,16 @@ function ChallengeCard(props: ChallengeCardProps) {
                   "top-[10%]",
                   "right-[7%]",
                   "size-5",
+                  "text-error",
                 ])}
-                color={category?.color}
               />
             }
-          ></TooltipTrigger>
+          />
           <TooltipContent sideOffset={6} onClick={(e) => e.stopPropagation()}>
             {t("submission:cheated")}
           </TooltipContent>
         </Tooltip>
-      ) : !debug && status?.solved ? (
+      ) : isSolved ? (
         <Tooltip>
           <TooltipTrigger
             render={
@@ -104,20 +121,51 @@ function ChallengeCard(props: ChallengeCardProps) {
                   "top-[10%]",
                   "right-[7%]",
                   "size-5",
+                  "text-[color-mix(in_oklab,var(--color-badge)_88%,var(--foreground))]",
+                  "dark:text-[color-mix(in_oklab,var(--color-badge)_62%,white)]",
                 ])}
-                fill={category?.color}
-                color={category?.color}
+                style={
+                  {
+                    "--color-badge": category?.color,
+                  } as React.CSSProperties
+                }
+                fill="currentColor"
               />
             }
-          ></TooltipTrigger>
+          />
           <TooltipContent sideOffset={6} onClick={(e) => e.stopPropagation()}>
             {t("submission:solved")}
           </TooltipContent>
         </Tooltip>
+      ) : !debug && hasUnreadNotice ? (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <span
+                className="absolute top-[10%] right-[7%] flex size-3.5 items-center justify-center"
+                aria-label={t("game:notice.challenge_unread_tip")}
+              >
+                <span className="absolute inline-flex size-full rounded-full bg-warning/60 motion-safe:animate-ping" />
+                <span className="relative inline-flex size-2.5 rounded-full bg-warning ring-2 ring-card" />
+              </span>
+            }
+          />
+          <TooltipContent sideOffset={6} onClick={(e) => e.stopPropagation()}>
+            {t("game:notice.challenge_unread_tip")}
+          </TooltipContent>
+        </Tooltip>
       ) : null}
       <Badge
-        variant={"tonal"}
-        className={cn(["bg-(--color-badge)/10", "text-(--color-badge)"])}
+        variant="tonal"
+        className={cn([
+          "border",
+          "bg-[color-mix(in_oklab,var(--color-badge)_12%,var(--card))]",
+          "border-[color-mix(in_oklab,var(--color-badge)_24%,transparent)]",
+          "text-[color-mix(in_oklab,var(--color-badge)_88%,var(--foreground))]",
+          "dark:bg-[color-mix(in_oklab,var(--color-badge)_22%,var(--card))]",
+          "dark:border-[color-mix(in_oklab,var(--color-badge)_40%,transparent)]",
+          "dark:text-[color-mix(in_oklab,var(--color-badge)_62%,white)]",
+        ])}
         style={
           {
             "--color-badge": category?.color,
@@ -126,7 +174,9 @@ function ChallengeCard(props: ChallengeCardProps) {
       >
         {category?.name?.toUpperCase()}
       </Badge>
-      <h3 className={cn(["my-2", "text-xl", "truncate"])}>{digest?.title}</h3>
+      <h3 className={cn(["my-2", "text-xl", "truncate"])} title={digest?.title}>
+        {digest?.title}
+      </h3>
       <Separator className={"my-3"} />
       <div className={cn(["flex", "justify-between", "items-center", "h-5"])}>
         <Tooltip>

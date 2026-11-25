@@ -12,6 +12,10 @@ pub enum QueueError {
     SerializationError(#[from] serde_json::Error),
     #[error("publish error: {0}")]
     PublishError(#[from] async_nats::jetstream::context::PublishError),
+    #[error("core publish error: {0}")]
+    CorePublishError(#[from] async_nats::PublishError),
+    #[error("subscribe error: {0}")]
+    SubscribeError(#[from] async_nats::SubscribeError),
     #[error("consumer error: {0}")]
     ConsumerError(#[from] async_nats::jetstream::stream::ConsumerError),
     #[error("create stream error: {0}")]

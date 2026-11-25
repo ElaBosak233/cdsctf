@@ -41,7 +41,7 @@ function Navbar() {
           "border-b",
           "flex",
           "items-center",
-          "z-10",
+          "z-40",
         ])}
       >
         <div

@@ -1,60 +1,101 @@
-//! JetStream consumer for subject **`cds.submission.check`**: resolves
-//! **queued** flag submissions with the Lua [`cds_checker::Checker`], applies
-//! game rules (duplicate, freeze, cheat), and may enqueue [`crate::calculator`]
-//! work when a submission becomes correct.
+//! Pull-on-capacity flag checker worker backed by PostgreSQL as the single
+//! source of truth.
 //!
-//! # Message format
+//! # Architecture
 //!
-//! Each job is a plain string decimal: the submission **database id** (`i64`).
-//!
-//! # Recovery
-//!
-//! [`spawn`] returns expired `Processing` rows to `Queued` and
-//! re-publishes queued submissions. Periodic scans also recover persisted work
-//! whose initial message publication failed, without restarting the
-//! application.
+//! - **Single queue (PostgreSQL)**: Pending submissions live solely in
+//!   `submissions` (`idx_submissions_work_queue`). Each worker pod claims at
+//!   most `MAX_IN_FLIGHT - running` rows via `FOR UPDATE SKIP LOCKED`, passing
+//!   its locally saturated `challenge_id`s in `challenge_id <> ALL($2)` so one
+//!   slow challenge never starves other challenges or other pods.
+//! - **Instant, zero-herd wakeups (NATS Core Queue Group)**: `POST
+//!   /submissions` and admin requeues send a 0-byte NATS Core notification on
+//!   [`WAKEUP_SUBJECT`]. All workers share queue group [`WAKEUP_QUEUE_GROUP`],
+//!   so each submission wakes exactly one worker pod in sub-milliseconds.
+//! - **Automatic recovery**: Crashed workers' expired `processing` leases and
+//!   any dropped NATS wakeups are reclaimed by the exact same `SKIP LOCKED`
+//!   query on a 2-second fallback tick — no separate recovery scanner needed.
+//! - **Cache coherence**: Challenge scripts are cached in memory for 60s and
+//!   evicted immediately across all pods via [`CHALLENGE_INVALIDATE_SUBJECT`].
 
 mod finalizer;
-mod recovery;
 
-use std::{future::Future, sync::Arc, time::Duration};
-
-use anyhow::anyhow;
-use cds_checker::Checker;
-use cds_db::{
-    DB, SubmissionView, UserAccountView,
-    submission::{PROCESSING_LEASE_SECONDS, Status},
+use std::{
+    collections::HashMap,
+    future::Future,
+    sync::Arc,
+    time::{Duration, Instant},
 };
-use cds_queue::{Queue, async_nats::jetstream::AckKind};
+
+use cds_checker::Checker;
+use cds_db::{ChallengeDetail, DB, submission::ClaimedSubmission};
+use cds_queue::Queue;
+use cds_score::Score;
+use dashmap::DashMap;
 use futures_util::StreamExt as _;
+use tokio::task::JoinSet;
 use tracing::{Instrument, debug, error, info, warn};
 
 use self::finalizer::{FinalizeOutcome, Verdict};
-use crate::calculator;
 
-/// JetStream subject for asynchronous submission verification.
-pub const SUBJECT: &str = "cds.submission.check";
+/// NATS Core subject used as a lightweight doorbell when new work is queued.
+pub const WAKEUP_SUBJECT: &str = "cds.submission.wakeup";
 
-/// Maximum number of submissions checked concurrently by this process.
+/// NATS Core queue group so each wakeup signal activates only one worker pod.
+const WAKEUP_QUEUE_GROUP: &str = "checker-workers";
+
+/// NATS Core broadcast subject carrying a decimal `challenge_id` whose checker
+/// script or key changed.
+pub const CHALLENGE_INVALIDATE_SUBJECT: &str = "cds.checker.invalidated";
+
+/// Maximum concurrent submission checks executed by one worker process.
 const MAX_IN_FLIGHT: usize = 16;
 
-/// Maximum wall-clock time allowed for one checker invocation.
+/// Maximum concurrent checks for any single challenge within one worker
+/// process (matches `cds-engine`'s per-script semaphore limit).
+const MAX_PER_CHALLENGE: usize = 4;
+
+/// Maximum wall-clock duration allowed for one Lua checker invocation.
 const CHECK_TIMEOUT: Duration = Duration::from_secs(10);
 
-/// Redelivers an unacknowledged checker message shortly after its database
-/// processing lease expires.
-const CHECKER_ACK_WAIT: Duration = Duration::from_secs(PROCESSING_LEASE_SECONDS as u64 + 1);
+/// Periodic fallback poll to self-heal expired leases or missed NATS signals.
+const FALLBACK_POLL_INTERVAL: Duration = Duration::from_secs(2);
 
-const TRANSIENT_RETRY_DELAY: Duration = Duration::from_secs(1);
+/// In-process TTL for cached `ChallengeDetail` scripts before re-reading PG.
+const CHALLENGE_CACHE_TTL: Duration = Duration::from_secs(60);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum CheckOutcome {
-    Committed,
-    LeaseLost,
+/// Sends a best-effort 0-byte wakeup signal to one idle checker worker.
+///
+/// Safe to ignore failures: the submission is already committed in PostgreSQL
+/// and will be picked up by the fallback poll within
+/// [`FALLBACK_POLL_INTERVAL`].
+pub async fn notify(queue: &Queue) {
+    if let Err(error) = queue.notify(WAKEUP_SUBJECT, b"").await {
+        warn!(
+            ?error,
+            "checker wakeup notification failed; fallback poll will recover"
+        );
+    }
 }
 
-/// Only explicit Lua verdicts classify an answer. Admission errors are safe
-/// to retry because no script code ran; other failures require operator review.
+/// Broadcasts a challenge script/key invalidation so every worker pod evicts
+/// its cached checker immediately.
+pub async fn notify_challenge_updated(queue: &Queue, challenge_id: i64) {
+    if let Err(error) = queue
+        .notify(CHALLENGE_INVALIDATE_SUBJECT, challenge_id.to_string())
+        .await
+    {
+        warn!(
+            challenge_id,
+            ?error,
+            "checker invalidation broadcast failed"
+        );
+    }
+}
+
+/// Only explicit Lua verdicts classify an answer. Admission (`Busy`) errors
+/// are returned so the submission lease is released and retried; script faults
+/// become terminal `Failed` for operator review.
 fn checker_verdict(
     result: Result<cds_checker::Status, cds_checker::traits::CheckerError>,
 ) -> Result<Verdict, cds_checker::traits::CheckerError> {
@@ -76,315 +117,312 @@ async fn enforce_check_timeout<F: Future>(
     tokio::time::timeout(CHECK_TIMEOUT, future).await
 }
 
-fn processing_retry_after_at(
-    processing_at: Option<time::OffsetDateTime>,
-    now: time::OffsetDateTime,
-) -> Duration {
-    let expires_at =
-        processing_at.unwrap_or(now) + time::Duration::seconds(PROCESSING_LEASE_SECONDS);
-    Duration::from_secs((expires_at - now).whole_seconds().max(1) as u64)
-}
-
-fn processing_retry_after(processing_at: Option<time::OffsetDateTime>) -> Duration {
-    processing_retry_after_at(processing_at, time::OffsetDateTime::now_utc())
-}
-
-/// Shared handles for one consumer instance (cloned into async jobs).
-#[derive(Clone)]
-struct Context {
+struct WorkerContext {
     db: DB,
     queue: Queue,
     checker: Checker,
+    score: Score,
+    challenge_cache: DashMap<i64, (Arc<ChallengeDetail>, Instant)>,
 }
 
-impl Context {
-    /// Clones all dependencies into an owned [`Context`].
-    fn new(db: &DB, queue: &Queue, checker: &Checker) -> Self {
-        Self {
-            db: db.clone(),
-            queue: queue.clone(),
-            checker: checker.clone(),
+impl WorkerContext {
+    async fn load_challenge(
+        &self,
+        challenge_id: i64,
+    ) -> Result<Option<Arc<ChallengeDetail>>, anyhow::Error> {
+        if let Some(entry) = self.challenge_cache.get(&challenge_id)
+            && entry.1.elapsed() < CHALLENGE_CACHE_TTL
+        {
+            return Ok(Some(Arc::clone(&entry.0)));
         }
+
+        let Some(challenge) = cds_db::challenge::find_by_id(&self.db.conn, challenge_id).await?
+        else {
+            self.challenge_cache.remove(&challenge_id);
+            return Ok(None);
+        };
+        let challenge = Arc::new(challenge);
+        self.challenge_cache
+            .insert(challenge_id, (Arc::clone(&challenge), Instant::now()));
+        Ok(Some(challenge))
     }
 }
 
-/// Runs a claimed submission, applies game rules, and notifies the calculator.
-#[tracing::instrument(skip_all, fields(submission_id = submission.id))]
-async fn check(
-    ctx: &Context,
-    submission: SubmissionView,
-    processing_at: time::OffsetDateTime,
-    claims: i64,
-    initiator_id: Option<i64>,
-) -> Result<CheckOutcome, anyhow::Error> {
-    let user = if let Some(user) =
-        cds_db::user::find_by_id::<UserAccountView>(&ctx.db.conn, submission.user_id).await?
-    {
-        user
-    } else {
-        cds_db::submission::delete(&ctx.db.conn, submission.id).await?;
-        return Err(anyhow!("user_not_found"));
-    };
+/// Executes one claimed submission, commits its terminal verdict, and
+/// invalidates the game's CQRS score epoch when scores changed.
+async fn process_claimed(ctx: &WorkerContext, submission: ClaimedSubmission) {
+    let submission_id = submission.id;
+    let challenge_id = submission.challenge_id;
+    let claims = submission.claims;
 
-    let challenge = if let Some(challenge) =
-        cds_db::challenge::find_by_id(&ctx.db.conn, submission.challenge_id).await?
-    {
-        challenge
-    } else {
-        cds_db::submission::delete(&ctx.db.conn, submission.id).await?;
-        return Err(anyhow!("challenge_not_found"));
-    };
-
-    let subject = match (submission.game_id, submission.team_id) {
-        (Some(_), Some(team_id)) => cds_checker::Subject::Team(team_id),
-        (None, None) => cds_checker::Subject::User(submission.user_id),
-        _ => return Err(anyhow!("invalid_submission_scope")),
-    };
-
-    let checker_result =
-        enforce_check_timeout(ctx.checker.check(&challenge, subject, &submission.content)).await;
-    let verdict = match checker_result {
-        Ok(result) => checker_verdict(result)?,
-        Err(_) => {
+    let result: Result<(), anyhow::Error> = async {
+        let Some(challenge) = ctx.load_challenge(challenge_id).await? else {
+            cds_db::submission::delete(&ctx.db.conn, submission_id).await?;
             warn!(
-                submission_id = submission.id,
-                challenge_id = challenge.id,
-                timeout_seconds = CHECK_TIMEOUT.as_secs(),
-                "checker invocation timed out"
+                submission_id,
+                challenge_id, "challenge missing; submission deleted"
             );
-            Verdict::Failed
-        }
-    };
+            return Ok(());
+        };
 
-    let FinalizeOutcome::Committed {
-        status,
-        score_game_id,
-    } = finalizer::finalize(&ctx.db, &submission, processing_at, claims, verdict).await?
-    else {
-        warn!(
-            submission_id = submission.id,
-            "submission status changed while checker was running"
-        );
-        return Ok(CheckOutcome::LeaseLost);
-    };
+        let subject = match (submission.game_id, submission.team_id) {
+            (Some(_), Some(team_id)) => cds_checker::Subject::Team(team_id),
+            (None, None) => cds_checker::Subject::User(submission.user_id),
+            _ => {
+                warn!(submission_id, "invalid submission scope; marking failed");
+                let _ = finalizer::finalize(&ctx.db, &submission, Verdict::Failed).await?;
+                return Ok(());
+            }
+        };
 
-    info!(
-        submission_id = submission.id,
-        status = ?status,
-        user_id = user.id,
-        username = %user.username,
-        challenge_id = challenge.id,
-        game_id = submission.game_id,
-        team_id = submission.team_id,
-        "submission checked"
-    );
+        let verdict = match enforce_check_timeout(ctx.checker.check(
+            &challenge,
+            subject,
+            &submission.content,
+        ))
+        .await
+        {
+            Ok(result) => checker_verdict(result)?,
+            Err(_) => {
+                warn!(
+                    submission_id,
+                    challenge_id,
+                    timeout_seconds = CHECK_TIMEOUT.as_secs(),
+                    "checker invocation timed out"
+                );
+                Verdict::Failed
+            }
+        };
 
-    if let (Status::Cheat, Verdict::Cheat { peer_team_id }, Some(game_id)) =
-        (&status, verdict, score_game_id)
-    {
-        warn!(
-            submission_id = submission.id,
-            game_id,
-            team_id = submission.team_id,
-            peer_team_id,
-            "teams banned by cheat detection"
-        );
-    }
-
-    if let Some(game_id) = score_game_id {
-        // Fan-out score recompute for the affected competition only.
-        calculator::notify(&ctx.queue, game_id, initiator_id).await;
-        debug!(
-            submission_id = submission.id,
-            game_id,
-            subject = calculator::SUBJECT,
-            "score recalculation queued"
-        );
-    }
-
-    Ok(CheckOutcome::Committed)
-}
-
-/// Pulls messages and runs at most [`MAX_IN_FLIGHT`] checker jobs concurrently.
-#[tracing::instrument(skip_all, fields(subject = SUBJECT))]
-async fn run(ctx: Arc<Context>) -> Result<(), anyhow::Error> {
-    let messages = ctx
-        .queue
-        .subscribe_with_ack_wait(SUBJECT, None, CHECKER_ACK_WAIT)
-        .await?;
-    messages
-        .for_each_concurrent(Some(MAX_IN_FLIGHT), |result| {
-            let ctx = Arc::clone(&ctx);
-            let job = tokio::spawn(async move {
-                let message = match result {
-                    Ok(message) => message,
-                    Err(err) => {
-                        error!(error = ?err, "checker message receive failed");
-                        return;
-                    }
-                };
-
-                let span = Queue::message_span(&message);
-                let process = async {
-                    let id = match serde_json::from_slice::<i64>(&message.payload) {
-                        Ok(id) => id,
-                        Err(err) => {
-                            warn!(outcome = "rejected", error = ?err, "invalid checker payload skipped");
-                            message.double_ack().await.ok();
-                            return;
-                        }
-                    };
-                    tracing::Span::current().record("submission_id", id);
-                    info!(submission_id = id, "checker message received");
-
-                    let submission =
-                        match cds_db::submission::claim_queued_or_stale_by_id(&ctx.db.conn, id).await {
-                            Ok(Some(submission)) => submission,
-                            Ok(None) => {
-                                match cds_db::submission::find_by_id(&ctx.db.conn, id).await {
-                                    Ok(Some(submission))
-                                        if matches!(submission.status, Status::Queued) =>
-                                    {
-                                        info!(submission_id = id, outcome = "deferred", "queued submission claim raced");
-                                        message
-                                            .ack_with(AckKind::Nak(Some(TRANSIENT_RETRY_DELAY)))
-                                            .await
-                                            .ok();
-                                    }
-                                    Ok(Some(submission))
-                                        if matches!(submission.status, Status::Processing) =>
-                                    {
-                                        let retry_after =
-                                            processing_retry_after(submission.processing_at);
-                                        info!(
-                                            submission_id = id,
-                                            outcome = "deferred",
-                                            processing_at = ?submission.processing_at,
-                                            retry_after_ms = retry_after.as_millis(),
-                                            "submission lease is active; message delayed"
-                                        );
-                                        message.ack_with(AckKind::Nak(Some(retry_after))).await.ok();
-                                    }
-                                    Ok(_) => {
-                                        info!(
-                                            submission_id = id,
-                                            outcome = "skipped",
-                                            "submission is terminal or missing; message skipped"
-                                        );
-                                        message.double_ack().await.ok();
-                                    }
-                                    Err(err) => {
-                                        error!(
-                                            submission_id = id,
-                                            error = ?err,
-                                            "submission state lookup failed"
-                                        );
-                                    }
-                                }
-                                return;
-                            }
-                            Err(err) => {
-                                error!(submission_id = id, error = ?err, "submission claim failed");
-                                return;
-                            }
-                        };
-                    let Some(processing_at) = submission.processing_at else {
-                        error!(
-                            submission_id = id,
-                            "claimed submission has no processing timestamp"
-                        );
-                        return;
-                    };
-                    debug!(
-                        submission_id = submission.id,
-                        user_id = submission.user_id,
+        match finalizer::finalize(&ctx.db, &submission, verdict).await? {
+            FinalizeOutcome::Committed {
+                status,
+                score_game_id,
+            } => {
+                info!(
+                    submission_id,
+                    status = ?status,
+                    user_id = submission.user_id,
+                    challenge_id,
+                    game_id = submission.game_id,
+                    team_id = submission.team_id,
+                    "submission checked"
+                );
+                if let (
+                    cds_db::submission::Status::Cheat,
+                    Verdict::Cheat { peer_team_id },
+                    Some(game_id),
+                ) = (&status, verdict, score_game_id)
+                {
+                    warn!(
+                        submission_id,
+                        game_id,
                         team_id = submission.team_id,
-                        game_id = submission.game_id,
-                        challenge_id = submission.challenge_id,
-                        processing_at = ?processing_at,
-                        "submission claimed"
+                        peer_team_id,
+                        "teams banned by cheat detection"
                     );
-
-                    let claims = submission.claims;
-                    match check(&ctx, submission, processing_at, claims, Queue::initiator_id(&message)).await {
-                        Ok(CheckOutcome::Committed) => {
-                            info!(submission_id = id, outcome = "succeeded", "submission check completed");
-                            message.double_ack().await.ok();
-                        }
-                        Ok(CheckOutcome::LeaseLost) => {
-                            info!(
-                                submission_id = id,
-                                outcome = "deferred",
-                                "submission lease lost; message left unacknowledged"
-                            );
-                        }
-                        Err(err) => {
-                            let released = match cds_db::submission::release_processing(
-                                &ctx.db.conn,
-                                id,
-                                processing_at,
-                                claims,
-                            )
-                            .await
-                            {
-                                Ok(released) => released,
-                                Err(release_err) => {
-                                    error!(
-                                        submission_id = id,
-                                        error = ?err,
-                                        release_error = ?release_err,
-                                        "submission check and lease release failed; message left unacknowledged"
-                                    );
-                                    return;
-                                }
-                            };
-                            if err.downcast_ref::<cds_checker::traits::CheckerError>().is_some_and(|error| error.is_busy()) {
-                                info!(submission_id = id, released, "checker capacity exhausted; submission deferred");
-                            } else {
-                                error!(submission_id = id, released, error = ?err, "submission check failed");
-                            }
-                            if released {
-                                message
-                                    .ack_with(AckKind::Nak(Some(TRANSIENT_RETRY_DELAY)))
-                                    .await
-                                    .ok();
-                            }
-                        }
-                    }
-                };
-                process.instrument(span).await;
-            });
-            async move {
-                if let Err(error) = job.await {
-                    error!(?error, "checker task failed; message will be redelivered");
+                }
+                if let Some(game_id) = score_game_id {
+                    ctx.score.invalidate(game_id).await;
                 }
             }
-        })
-        .await;
+            FinalizeOutcome::LeaseLost => {
+                warn!(
+                    submission_id,
+                    "submission lease changed while checker was running"
+                );
+            }
+        }
+        Ok(())
+    }
+    .await;
 
-    Ok(())
+    if let Err(error) = result {
+        let is_busy = error
+            .downcast_ref::<cds_checker::traits::CheckerError>()
+            .is_some_and(|e| e.is_busy());
+        match cds_db::submission::release_processing(&ctx.db.conn, submission_id, claims).await {
+            Ok(released) => {
+                if is_busy {
+                    debug!(
+                        submission_id,
+                        released, "checker capacity busy; submission released back to queue"
+                    );
+                } else {
+                    error!(
+                        submission_id,
+                        released,
+                        ?error,
+                        "submission check failed transiently; released back to queue"
+                    );
+                }
+            }
+            Err(release_err) => {
+                error!(
+                    submission_id,
+                    ?error,
+                    ?release_err,
+                    "submission check and lease release failed; lease will expire automatically"
+                );
+            }
+        }
+    }
 }
 
-/// Starts the consumer and independent publication recovery tasks.
-#[tracing::instrument(skip_all, fields(handler = "spawn"))]
-pub async fn spawn(db: &DB, queue: &Queue, checker: &Checker) {
-    let ctx = Arc::new(Context::new(db, queue, checker));
-    let run_ctx = Arc::clone(&ctx);
-    tokio::spawn(async move {
-        loop {
-            match run(Arc::clone(&run_ctx)).await {
-                Err(error) => error!(?error, "checker consumer stopped; reconnecting"),
-                Ok(()) => warn!("checker message stream ended; reconnecting"),
-            }
-            tokio::time::sleep(TRANSIENT_RETRY_DELAY).await;
+/// Core pull-on-capacity loop. Only claims rows when local slots are free.
+async fn run_loop(ctx: Arc<WorkerContext>) {
+    let mut in_flight: JoinSet<(i64, i64)> = JoinSet::new();
+    let mut per_challenge: HashMap<i64, usize> = HashMap::new();
+    let mut wakeup = match ctx
+        .queue
+        .queue_subscribe(WAKEUP_SUBJECT, WAKEUP_QUEUE_GROUP)
+        .await
+    {
+        Ok(sub) => Some(sub),
+        Err(error) => {
+            warn!(
+                ?error,
+                "checker wakeup subscribe failed; running with fallback polling"
+            );
+            None
         }
+    };
+    let mut fallback_tick = tokio::time::interval(FALLBACK_POLL_INTERVAL);
+    fallback_tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+
+    loop {
+        // Fill available local capacity before waiting.
+        while in_flight.len() < MAX_IN_FLIGHT {
+            let free_slots = MAX_IN_FLIGHT - in_flight.len();
+            let busy_challenges: Vec<i64> = per_challenge
+                .iter()
+                .filter_map(|(&cid, &count)| (count >= MAX_PER_CHALLENGE).then_some(cid))
+                .collect();
+
+            match cds_db::submission::claim_batch(&ctx.db.conn, free_slots, &busy_challenges).await
+            {
+                Ok(claimed) if claimed.is_empty() => break,
+                Ok(claimed) => {
+                    let count = claimed.len();
+                    for submission in claimed {
+                        let submission_id = submission.id;
+                        let challenge_id = submission.challenge_id;
+                        *per_challenge.entry(challenge_id).or_default() += 1;
+                        let job_ctx = Arc::clone(&ctx);
+                        let span = tracing::info_span!(
+                            parent: None,
+                            "submission.check",
+                            submission_id,
+                            challenge_id,
+                            operator_kind = "system"
+                        );
+                        in_flight.spawn(
+                            async move {
+                                process_claimed(&job_ctx, submission).await;
+                                (submission_id, challenge_id)
+                            }
+                            .instrument(span),
+                        );
+                    }
+                    // If we saturated this pod on a full batch, ping a peer pod
+                    // so queued overflow drains across the cluster immediately.
+                    if count == free_slots && in_flight.len() >= MAX_IN_FLIGHT {
+                        notify(&ctx.queue).await;
+                    }
+                }
+                Err(error) => {
+                    error!(?error, "submission claim_batch failed");
+                    break;
+                }
+            }
+        }
+
+        // Wait for either a task to free a slot, a NATS wakeup doorbell, or the
+        // periodic self-healing tick.
+        tokio::select! {
+            completed = in_flight.join_next(), if !in_flight.is_empty() => {
+                if let Some(Ok((_sid, cid))) = completed {
+                    if let Some(count) = per_challenge.get_mut(&cid) {
+                        *count = count.saturating_sub(1);
+                        if *count == 0 {
+                            per_challenge.remove(&cid);
+                        }
+                    }
+                } else if let Some(Err(error)) = completed {
+                    error!(?error, "checker worker task panicked");
+                }
+            }
+            msg = async {
+                match wakeup.as_mut() {
+                    Some(sub) => sub.next().await,
+                    None => std::future::pending().await,
+                }
+            } => {
+                if msg.is_none() {
+                    warn!("checker wakeup subscription ended; reconnecting");
+                    wakeup = ctx
+                        .queue
+                        .queue_subscribe(WAKEUP_SUBJECT, WAKEUP_QUEUE_GROUP)
+                        .await
+                        .ok();
+                }
+            }
+            _ = fallback_tick.tick() => {
+                if wakeup.is_none() {
+                    wakeup = ctx
+                        .queue
+                        .queue_subscribe(WAKEUP_SUBJECT, WAKEUP_QUEUE_GROUP)
+                        .await
+                        .ok();
+                }
+            }
+        }
+    }
+}
+
+/// Listens for challenge script/key invalidation broadcasts so edited scripts
+/// take effect immediately across all worker pods.
+async fn run_invalidation_listener(ctx: Arc<WorkerContext>) {
+    loop {
+        match ctx.queue.subscribe_core(CHALLENGE_INVALIDATE_SUBJECT).await {
+            Ok(mut sub) => {
+                while let Some(msg) = sub.next().await {
+                    if let Ok(text) = std::str::from_utf8(&msg.payload)
+                        && let Ok(challenge_id) = text.trim().parse::<i64>()
+                    {
+                        ctx.challenge_cache.remove(&challenge_id);
+                        ctx.checker.invalidate(challenge_id);
+                        debug!(challenge_id, "evicted cached checker script and key");
+                    }
+                }
+            }
+            Err(error) => {
+                warn!(?error, "checker invalidation subscribe failed; retrying");
+            }
+        }
+        tokio::time::sleep(Duration::from_secs(1)).await;
+    }
+}
+
+/// Spawns the pull-on-capacity checker worker and its script invalidation
+/// listener.
+#[tracing::instrument(skip_all, fields(handler = "spawn"))]
+pub async fn spawn(db: &DB, queue: &Queue, checker: &Checker, score: &Score) {
+    let ctx = Arc::new(WorkerContext {
+        db: db.clone(),
+        queue: queue.clone(),
+        checker: checker.clone(),
+        score: score.clone(),
+        challenge_cache: DashMap::new(),
     });
-    tokio::spawn(recovery::run(ctx));
+    tokio::spawn(run_loop(Arc::clone(&ctx)));
+    tokio::spawn(run_invalidation_listener(ctx));
 
     info!(
-        subject = SUBJECT,
+        wakeup_subject = WAKEUP_SUBJECT,
         concurrency = MAX_IN_FLIGHT,
-        "queue consumer spawned"
+        per_challenge_cap = MAX_PER_CHALLENGE,
+        "checker worker spawned"
     );
 }
 
@@ -418,34 +456,5 @@ mod tests {
         );
         let busy = CheckerError::EngineError(cds_checker::traits::EngineError::Busy);
         assert!(checker_verdict(Err(busy)).unwrap_err().is_busy());
-    }
-
-    #[test]
-    fn processing_retry_waits_until_the_lease_expires() {
-        let now = time::OffsetDateTime::from_unix_timestamp(100).unwrap();
-        assert_eq!(
-            processing_retry_after_at(
-                Some(time::OffsetDateTime::from_unix_timestamp(90).unwrap()),
-                now
-            ),
-            Duration::from_secs(5)
-        );
-        assert_eq!(
-            processing_retry_after_at(
-                Some(time::OffsetDateTime::from_unix_timestamp(85).unwrap()),
-                now
-            ),
-            Duration::from_secs(1)
-        );
-        assert_eq!(
-            processing_retry_after_at(None, now),
-            Duration::from_secs(PROCESSING_LEASE_SECONDS as u64)
-        );
-    }
-
-    #[test]
-    fn checker_ack_wait_exceeds_the_processing_lease() {
-        assert_eq!(CHECKER_ACK_WAIT, Duration::from_secs(16));
-        assert!(CHECKER_ACK_WAIT.as_secs() > PROCESSING_LEASE_SECONDS as u64);
     }
 }

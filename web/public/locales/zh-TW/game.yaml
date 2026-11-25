@@ -4,6 +4,8 @@ result_count: "{{count}} 場比賽"
 filter:
   all: 全部
   pts: 分
+  hide_solved: 隱藏已解
+  progress: 進度
 list:
   columns:
     game: 比賽
@@ -163,6 +165,7 @@ paused:
   description: 管理員恢復比賽後可以繼續答題。
 challenge:
   empty: 此比賽目前尚無題目。
+  no_match: 沒有符合目前篩選條件的題目。
   pts: 目前分數
   title: 標題
   category: 分類
@@ -219,15 +222,33 @@ notice:
   id: ID
   board: 公告欄
   new: 有新公告
+  unread: 未讀
+  unread_count: "{{count}} 則未讀"
+  mark_all_read: 全部標為已讀
+  select_prompt: 選擇一則公告查看詳情
+  general: 比賽公告
+  challenge: 關聯題目
+  challenge_none: 全場比賽（不關聯題目）
+  challenge_unread_tip: 該題有新公告
+  challenge_notices_title: 題目公告
   empty: 目前尚無公告。
   title: 標題
   content: 詳情
+  author: 發布 / 編輯
   created_at: 發布於
+  created_time: "建立 {{time}}"
+  updated_at: 更新於
+  edited: 已編輯
+  created_by: "發布：{{name}}"
+  updated_by: "編輯：{{name}}"
   form:
     title:
       _: 標題
       message: 請輸入標題
-      placeholder: 我的 CTF 比賽
+      placeholder: 例如：Web 題附件已更新
+    challenge:
+      _: 關聯題目（可選）
+      placeholder: 選擇關聯題目，或留空作為綜合公告
     content:
       _: 詳情
       message: 請輸入詳情
@@ -236,6 +257,9 @@ notice:
     create:
       _: 建立通知
       success: "通知 {{title}} 建立成功。"
+    edit:
+      _: 編輯通知
+      success: "通知 {{title}} 更新成功。"
     delete:
       _: 刪除通知
       message: "你確定要刪除通知 <muted>{{title}}</muted> 嗎？"
