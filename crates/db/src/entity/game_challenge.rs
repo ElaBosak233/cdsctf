@@ -22,8 +22,6 @@ pub struct Model {
     #[serde(with = "crate::time_format::option")]
     pub frozen_at: Option<time::OffsetDateTime>,
 
-    #[sea_orm(default_value = 0)]
-    pub pts: i64,
     #[sea_orm(belongs_to, from = "game_id", to = "id", on_delete = "Cascade")]
     pub game: BelongsTo<super::game::Entity>,
     #[sea_orm(belongs_to, from = "challenge_id", to = "id", on_delete = "Cascade")]

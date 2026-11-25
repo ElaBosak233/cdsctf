@@ -25,10 +25,6 @@ pub struct Model {
     #[serde(with = "crate::time_format::option")]
     pub checked_at: Option<time::OffsetDateTime>,
 
-    #[sea_orm(default_value = 0)]
-    pub pts: i64,
-    #[sea_orm(default_value = 0)]
-    pub rank: i64,
     #[sea_orm(belongs_to, from = "challenge_id", to = "id", on_delete = "Cascade")]
     pub challenge: BelongsTo<super::challenge::Entity>,
     #[sea_orm(belongs_to, from = "user_id", to = "id", on_delete = "Cascade")]

@@ -37,8 +37,6 @@ pub struct Model {
     pub ended_at: time::OffsetDateTime,
     pub icon_hash: Option<String>,
     pub poster_hash: Option<String>,
-    #[sea_orm(default_value = 0)]
-    pub score_revision: i64,
     #[serde(with = "crate::time_format")]
     pub created_at: time::OffsetDateTime,
     #[sea_orm(has_many)]

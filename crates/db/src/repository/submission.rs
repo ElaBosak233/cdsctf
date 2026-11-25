@@ -1,15 +1,27 @@
 //! Database access for `submission` — SeaORM queries, updates, and DTOs.
+//!
+//! # Judging queue contract
+//!
+//! PostgreSQL is the **single source of truth** for pending flag checks:
+//! - Workers claim batches of `queued` or lease-expired `processing` rows
+//!   atomically via [`claim_batch`] (`FOR UPDATE SKIP LOCKED`), excluding
+//!   challenges that are already at their local per-script concurrency cap.
+//! - Each claim increments the monotonic `claims` fencing counter. Terminal
+//!   writes ([`finish_processing`]) and transient rollbacks
+//!   ([`release_processing`]) require `status = 'processing' AND claims = $c`
+//!   so a stalled worker can never overwrite a newer attempt.
+//! - At-most-one `correct` solve per `(game_id, team_id, challenge_id)` or
+//!   standalone `(user_id, challenge_id)` is enforced directly by PostgreSQL
+//!   partial unique indexes (`uq_submissions_correct_*`), eliminating
+//!   application-level advisory locks.
 
-use std::str::FromStr;
+use std::{collections::HashMap, str::FromStr};
 
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityLoaderTrait, EntityTrait,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, DbBackend, EntityLoaderTrait, EntityTrait,
     FromQueryResult, JoinType, Order, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect,
-    RelationTrait, Set,
-    sea_query::{
-        Alias, Condition, Expr, ExprTrait, Func, IntoIden, Query, TableRef, UpdateStatement,
-        ValueTuple,
-    },
+    RelationTrait, Set, SqlErr, Statement, Value,
+    sea_query::{Expr, ExprTrait},
 };
 
 pub(crate) use crate::entity::submission::{Column, Entity};
@@ -22,102 +34,54 @@ pub use crate::{
     entity::submission::{ActiveModel, Model as SubmissionRecord, Status},
 };
 
+/// Processing lease duration before another worker may take over a stalled
+/// `processing` row. Must remain strictly greater than the worker's per-check
+/// timeout (`10s`).
 pub const PROCESSING_LEASE_SECONDS: i64 = 15;
 
-const TEAM_SOLVE_LOCK_NAMESPACE: i64 = 0x4344_5310_0000_0000;
-const USER_SOLVE_LOCK_NAMESPACE: i64 = 0x4344_5320_0000_0000;
-
-/// Authenticated principal whose solved-challenge state is serialized during
-/// correct-result finalization.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum SolveOwner {
-    Team(i64),
-    User(i64),
+/// Minimal submission row returned by [`claim_batch`].
+///
+/// Carries everything the checker and finalizer need without joining `users`,
+/// `challenges`, `teams`, or `games`.
+#[derive(Clone, Debug, PartialEq, Eq, FromQueryResult)]
+pub struct ClaimedSubmission {
+    pub id: i64,
+    pub content: String,
+    pub challenge_id: i64,
+    pub user_id: i64,
+    pub team_id: Option<i64>,
+    pub game_id: Option<i64>,
+    pub created_at: time::OffsetDateTime,
+    pub claims: i64,
 }
 
-impl SolveOwner {
-    fn lock_key(self) -> i64 {
-        match self {
-            Self::Team(team_id) => TEAM_SOLVE_LOCK_NAMESPACE.wrapping_add(team_id),
-            Self::User(user_id) => USER_SOLVE_LOCK_NAMESPACE.wrapping_add(user_id),
-        }
-    }
+/// Outcome of a fenced terminal write via [`finish_processing`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum FinishResult {
+    /// Row transitioned from `processing` to the requested terminal status.
+    Committed,
+    /// Another worker or administrator superseded this `claims` generation.
+    LeaseLost,
+    /// PostgreSQL rejected `status = 'correct'` because the partial unique
+    /// index (`uq_submissions_correct_*`) already holds a solve in this scope.
+    DuplicateCorrect,
 }
 
-impl TryFrom<&SubmissionView> for SolveOwner {
-    type Error = DbError;
-
-    fn try_from(submission: &SubmissionView) -> Result<Self, Self::Error> {
-        match (submission.game_id, submission.team_id) {
-            (Some(_), Some(team_id)) => Ok(Self::Team(team_id)),
-            (None, None) => Ok(Self::User(submission.user_id)),
-            _ => Err(DbError::BadRequest(format!(
-                "submission_{}_has_invalid_solve_scope",
-                submission.id
-            ))),
-        }
-    }
+/// Narrow submission projection used to build a game's CQRS score snapshot.
+#[derive(Clone, Debug, PartialEq, Eq, FromQueryResult)]
+pub struct ScoreInput {
+    pub id: i64,
+    pub challenge_id: i64,
+    pub team_id: i64,
+    pub created_at: time::OffsetDateTime,
 }
 
-/// Serializes solved-challenge policy for one team or standalone user across
-/// every application instance. The lock is released with the transaction.
-pub async fn lock_solve_owner(
-    conn: &impl ConnectionTrait,
-    submission: &SubmissionView,
-) -> Result<(), DbError> {
-    let owner = SolveOwner::try_from(submission)?;
-    conn.query_one(&solve_owner_lock_query(owner)).await?;
-    Ok(())
-}
-
-fn solve_owner_lock_query(owner: SolveOwner) -> sea_orm::sea_query::SelectStatement {
-    Query::select()
-        .expr(Func::cust(Alias::new("pg_advisory_xact_lock")).arg(owner.lock_key()))
-        .to_owned()
-}
-
-/// Checks whether the same team/game/challenge or standalone user/challenge
-/// scope has another correct submission.
-pub async fn has_other_correct_in_scope(
-    conn: &impl ConnectionTrait,
-    submission: &SubmissionView,
-) -> Result<bool, DbError> {
-    Ok(other_correct_in_scope_query(submission)?
-        .into_tuple::<i64>()
-        .one(conn)
-        .await?
-        .is_some())
-}
-
-fn other_correct_in_scope_query(
-    submission: &SubmissionView,
-) -> Result<sea_orm::Select<Entity>, DbError> {
-    let mut query = Entity::find()
-        .select_only()
-        .column(Column::Id)
-        .filter(Column::Id.ne(submission.id))
-        .filter(Column::ChallengeId.eq(submission.challenge_id))
-        // This fixed policy must remain visible to PostgreSQL's partial-index
-        // planner, including when a prepared statement uses a generic plan.
-        .filter(Expr::col(Column::Status).eq(Expr::Constant(Status::Correct.into())));
-
-    query = match (submission.game_id, submission.team_id) {
-        (Some(game_id), Some(team_id)) => query
-            .filter(Column::GameId.eq(game_id))
-            .filter(Column::TeamId.eq(team_id)),
-        (None, None) => query
-            .filter(Column::GameId.is_null())
-            .filter(Column::TeamId.is_null())
-            .filter(Column::UserId.eq(submission.user_id)),
-        _ => {
-            return Err(DbError::BadRequest(format!(
-                "submission_{}_has_invalid_solve_scope",
-                submission.id
-            )));
-        }
-    };
-
-    Ok(query)
+/// Aggregated solve statistics for one standalone (practice) challenge.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct StandaloneChallengeStats {
+    pub solved: bool,
+    pub solved_times: i64,
+    pub blood_ids: Vec<i64>,
 }
 
 impl TryFrom<crate::entity::submission::ModelEx> for SubmissionView {
@@ -177,15 +141,15 @@ impl TryFrom<crate::entity::submission::ModelEx> for SubmissionView {
             processing_at: submission.processing_at,
             claims: submission.claims,
             checked_at: submission.checked_at,
-            pts: submission.pts,
-            rank: submission.rank,
+            pts: 0,
+            rank: 0,
         })
     }
 }
 
 /// Projects a SeaORM 2 loaded submission graph to the public scoreboard
-/// contract. The graph supplies the related user and challenge without a
-/// second hand-written join DTO.
+/// contract. Derived `pts` defaults to `0` and is hydrated by the score
+/// service.
 impl TryFrom<&crate::entity::submission::ModelEx> for ScoreboardSubmission {
     type Error = DbError;
 
@@ -210,7 +174,7 @@ impl TryFrom<&crate::entity::submission::ModelEx> for ScoreboardSubmission {
             user_avatar_hash: user.avatar_hash.clone(),
             challenge_id: submission.challenge_id,
             challenge_title: challenge.title.clone(),
-            pts: submission.pts,
+            pts: 0,
             created_at: submission.created_at,
         })
     }
@@ -244,26 +208,159 @@ pub struct FindSubmissionsOptions {
     pub sorts: Option<String>,
 }
 
-/// Narrow submission projection used by score recomputation.
-#[derive(Clone, Debug, PartialEq, Eq, FromQueryResult)]
-pub struct ScoreInput {
-    pub id: i64,
-    pub challenge_id: i64,
-    pub team_id: Option<i64>,
-    pub created_at: time::OffsetDateTime,
-    pub pts: i64,
-    pub rank: i64,
+/// Atomically claims up to `limit` queued or lease-expired submissions using
+/// `FOR UPDATE SKIP LOCKED`, skipping any challenges listed in
+/// `exclude_challenge_ids`.
+///
+/// The query hits `idx_submissions_work_queue` (`WHERE status IN ('queued',
+/// 'processing')`) and returns only the columns required for checking and
+/// finalization.
+pub async fn claim_batch(
+    conn: &impl ConnectionTrait,
+    limit: usize,
+    exclude_challenge_ids: &[i64],
+) -> Result<Vec<ClaimedSubmission>, DbError> {
+    if limit == 0 {
+        return Ok(Vec::new());
+    }
+    let now = time::OffsetDateTime::now_utc();
+    let lease_cutoff = now - time::Duration::seconds(PROCESSING_LEASE_SECONDS);
+    let statement = claim_batch_statement(now, lease_cutoff, limit as i64, exclude_challenge_ids);
+
+    Ok(ClaimedSubmission::find_by_statement(statement)
+        .all(conn)
+        .await?)
 }
 
-/// Persisted score fields for one submission.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ScoreUpdate {
-    pub id: i64,
-    pub pts: i64,
-    pub rank: i64,
+fn claim_batch_statement(
+    now: time::OffsetDateTime,
+    lease_cutoff: time::OffsetDateTime,
+    limit: i64,
+    exclude_challenge_ids: &[i64],
+) -> Statement {
+    let excluded: Value = exclude_challenge_ids.to_vec().into();
+    Statement::from_sql_and_values(
+        DbBackend::Postgres,
+        r#"
+            WITH candidate AS (
+                SELECT id
+                FROM submissions
+                WHERE (
+                    status = 'queued'
+                    OR (
+                        status = 'processing'
+                        AND (processing_at IS NULL OR processing_at <= $1)
+                    )
+                )
+                  AND (cardinality($2::bigint[]) = 0 OR NOT (challenge_id = ANY($2::bigint[])))
+                ORDER BY created_at ASC, id ASC
+                LIMIT $3
+                FOR UPDATE SKIP LOCKED
+            )
+            UPDATE submissions AS s
+            SET status = 'processing',
+                processing_at = $4,
+                claims = s.claims + 1,
+                checked_at = NULL
+            FROM candidate AS c
+            WHERE s.id = c.id
+            RETURNING
+                s.id,
+                s.content,
+                s.challenge_id,
+                s.user_id,
+                s.team_id,
+                s.game_id,
+                s.created_at,
+                s.claims
+        "#,
+        [lease_cutoff.into(), excluded, limit.into(), now.into()],
+    )
 }
 
-/// Loads correct submissions using only fields needed for score recomputation.
+/// Returns a claimed submission back to `queued` after a transient error (e.g.
+/// checker VM capacity exhaustion) if this worker still owns `claims`.
+pub async fn release_processing(
+    conn: &impl ConnectionTrait,
+    submission_id: i64,
+    claims: i64,
+) -> Result<bool, DbError> {
+    let result = Entity::update_many()
+        .set(ActiveModel {
+            status: Set(Status::Queued),
+            processing_at: Set(None),
+            checked_at: Set(None),
+            ..Default::default()
+        })
+        .filter(Column::Id.eq(submission_id))
+        .filter(Column::Status.eq(Status::Processing))
+        .filter(Column::Claims.eq(claims))
+        .exec(conn)
+        .await?;
+
+    Ok(result.rows_affected == 1)
+}
+
+/// Persists a terminal status only when `claims` still matches the active
+/// processing lease.
+///
+/// Maps PostgreSQL unique-constraint violations (`uq_submissions_correct_*`)
+/// into [`FinishResult::DuplicateCorrect`] so callers can demote concurrent
+/// duplicate solves without holding advisory locks.
+pub async fn finish_processing(
+    conn: &impl ConnectionTrait,
+    submission_id: i64,
+    claims: i64,
+    status: Status,
+) -> Result<FinishResult, DbError> {
+    let now = time::OffsetDateTime::now_utc();
+    let result = Entity::update_many()
+        .set(ActiveModel {
+            status: Set(status),
+            checked_at: Set(Some(now)),
+            ..Default::default()
+        })
+        .filter(Column::Id.eq(submission_id))
+        .filter(Column::Status.eq(Status::Processing))
+        .filter(Column::Claims.eq(claims))
+        .exec(conn)
+        .await;
+
+    match result {
+        Ok(res) if res.rows_affected == 1 => Ok(FinishResult::Committed),
+        Ok(_) => Ok(FinishResult::LeaseLost),
+        Err(err) if matches!(err.sql_err(), Some(SqlErr::UniqueConstraintViolation(_))) => {
+            Ok(FinishResult::DuplicateCorrect)
+        }
+        Err(err) => Err(err.into()),
+    }
+}
+
+/// Advances the claim generation for an administrator-initiated processing
+/// transition so any in-flight worker holding the previous generation is
+/// fenced out.
+pub async fn advance_claim_generation(
+    conn: &impl ConnectionTrait,
+    submission_id: i64,
+) -> Result<(), DbError> {
+    let result = Entity::update_many()
+        .col_expr(Column::Claims, Expr::col(Column::Claims).add(1_i64))
+        .filter(Column::Id.eq(submission_id))
+        .exec(conn)
+        .await?;
+
+    if result.rows_affected == 0 {
+        return Err(DbError::NotFound(format!("submission_{submission_id}")));
+    }
+
+    Ok(())
+}
+
+/// Loads all valid (`Passed` team) correct submissions for a game using only
+/// the fields required to build the CQRS score snapshot.
+///
+/// Joining `teams` on `state = Passed` ensures banned or unapproved teams never
+/// distort dynamic challenge decay or blood bonuses.
 pub async fn find_score_inputs(
     conn: &impl ConnectionTrait,
     game_id: i64,
@@ -282,65 +379,143 @@ fn score_input_query(game_id: i64) -> sea_orm::Select<Entity> {
             Column::ChallengeId,
             Column::TeamId,
             Column::CreatedAt,
-            Column::Pts,
-            Column::Rank,
         ])
+        .join(
+            JoinType::InnerJoin,
+            crate::entity::submission::Relation::Team.def(),
+        )
         .filter(Column::GameId.eq(game_id))
-        .filter(Expr::col(Column::Status).eq(Expr::Constant("correct".into())))
+        // Keep the partial-index predicate constant so PostgreSQL always picks
+        // `idx_submissions_scoring` even under generic prepared plans.
+        .filter(Expr::col((Entity, Column::Status)).eq(Expr::Constant("correct".into())))
+        .filter(crate::entity::team::Column::State.eq(crate::entity::team::State::Passed))
         .order_by_asc(Column::ChallengeId)
         .order_by_asc(Column::CreatedAt)
         .order_by_asc(Column::Id)
 }
 
-/// Applies changed submission scores in bounded, set-based updates.
-pub async fn update_scores(
+/// Batch-loads display views for a bounded set of submission IDs (e.g. top-3
+/// bloods per challenge), preserving the caller's ordering.
+pub async fn find_views_by_ids(
     conn: &impl ConnectionTrait,
-    game_id: i64,
-    updates: &[ScoreUpdate],
-) -> Result<u64, DbError> {
-    let mut rows_affected = 0;
-    for statement in score_update_statements(game_id, updates) {
-        rows_affected += conn.execute(&statement).await?.rows_affected();
+    ids: &[i64],
+) -> Result<Vec<SubmissionView>, DbError> {
+    if ids.is_empty() {
+        return Ok(Vec::new());
     }
-    Ok(rows_affected)
+
+    let models = Entity::load()
+        .with(crate::entity::user::Entity)
+        .with(crate::entity::challenge::Entity)
+        .with(crate::entity::team::Entity)
+        .with(crate::entity::game::Entity)
+        .filter(Column::Id.is_in(ids.iter().copied()))
+        .all(conn)
+        .await?;
+
+    let mut by_id: HashMap<i64, SubmissionView> = HashMap::with_capacity(models.len());
+    for model in models {
+        let view = SubmissionView::try_from(model)?;
+        by_id.insert(view.id, view);
+    }
+
+    Ok(ids.iter().filter_map(|id| by_id.remove(id)).collect())
 }
 
-fn score_update_statements(game_id: i64, updates: &[ScoreUpdate]) -> Vec<UpdateStatement> {
-    updates
-        .chunks(super::BULK_UPDATE_BATCH_SIZE)
-        .map(|chunk| {
-            let source = Alias::new("submission_scores");
-            let values = chunk
-                .iter()
-                .map(|update| {
-                    ValueTuple::Many(vec![
-                        game_id.into(),
-                        update.id.into(),
-                        update.pts.into(),
-                        update.rank.into(),
-                    ])
-                })
-                .collect();
-            let source_game_id = Expr::col((source.clone(), Alias::new("column1")));
-            let source_id = Expr::col((source.clone(), Alias::new("column2")));
-            let source_pts = Expr::col((source.clone(), Alias::new("column3")));
-            let source_rank = Expr::col((source.clone(), Alias::new("column4")));
+/// Computes per-challenge solve count, user solved flag, and top-3 blood
+/// submission IDs for standalone (non-game) challenges directly in SQL.
+///
+/// Avoids scanning and joining every historical solve into application memory.
+pub async fn find_standalone_challenge_stats(
+    conn: &impl ConnectionTrait,
+    challenge_ids: &[i64],
+    user_id: i64,
+) -> Result<HashMap<i64, StandaloneChallengeStats>, DbError> {
+    if challenge_ids.is_empty() {
+        return Ok(HashMap::new());
+    }
 
-            Query::update()
-                .table(Entity)
-                .value(Column::Pts, source_pts.clone())
-                .value(Column::Rank, source_rank.clone())
-                .from(TableRef::ValuesList(values, source.into_iden()))
-                .cond_where(Expr::col(Column::GameId).eq(source_game_id))
-                .cond_where(Expr::col(Column::Id).eq(source_id))
-                .cond_where(
-                    Condition::any()
-                        .add(Expr::col(Column::Pts).ne(source_pts))
-                        .add(Expr::col(Column::Rank).ne(source_rank)),
-                )
-                .to_owned()
+    let ids_val: Value = challenge_ids.to_vec().into();
+
+    #[derive(FromQueryResult)]
+    struct AggregateRow {
+        challenge_id: i64,
+        solved_times: i64,
+        solved: bool,
+    }
+
+    let aggregates = AggregateRow::find_by_statement(Statement::from_sql_and_values(
+        DbBackend::Postgres,
+        r#"
+            SELECT
+                challenge_id,
+                COUNT(*)::bigint AS solved_times,
+                COALESCE(BOOL_OR(user_id = $1), FALSE) AS solved
+            FROM submissions
+            WHERE game_id IS NULL
+              AND team_id IS NULL
+              AND status = 'correct'
+              AND challenge_id = ANY($2::bigint[])
+            GROUP BY challenge_id
+        "#,
+        [user_id.into(), ids_val.clone()],
+    ))
+    .all(conn)
+    .await?;
+
+    #[derive(FromQueryResult)]
+    struct BloodRow {
+        challenge_id: i64,
+        id: i64,
+    }
+
+    let blood_rows = BloodRow::find_by_statement(Statement::from_sql_and_values(
+        DbBackend::Postgres,
+        r#"
+            SELECT challenge_id, id
+            FROM (
+                SELECT
+                    challenge_id,
+                    id,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY challenge_id
+                        ORDER BY created_at ASC, id ASC
+                    ) AS rn
+                FROM submissions
+                WHERE game_id IS NULL
+                  AND team_id IS NULL
+                  AND status = 'correct'
+                  AND challenge_id = ANY($1::bigint[])
+            ) ranked
+            WHERE rn <= 3
+            ORDER BY challenge_id ASC, rn ASC
+        "#,
+        [ids_val],
+    ))
+    .all(conn)
+    .await?;
+
+    let mut stats: HashMap<i64, StandaloneChallengeStats> = aggregates
+        .into_iter()
+        .map(|row| {
+            (
+                row.challenge_id,
+                StandaloneChallengeStats {
+                    solved: row.solved,
+                    solved_times: row.solved_times,
+                    blood_ids: Vec::with_capacity(3),
+                },
+            )
         })
-        .collect()
+        .collect();
+
+    for row in blood_rows {
+        if let Some(entry) = stats.get_mut(&row.challenge_id) {
+            entry.blood_ids.push(row.id);
+        }
+    }
+
+    Ok(stats)
 }
 
 /// Queries rows using filter options and returns `(rows, total_count)`.
@@ -436,7 +611,6 @@ pub async fn find(
 }
 
 /// Looks up by id.
-
 pub async fn find_by_id(
     conn: &impl ConnectionTrait,
     submission_id: i64,
@@ -451,218 +625,6 @@ pub async fn find_by_id(
         .await?
         .map(SubmissionView::try_from)
         .transpose()?)
-}
-
-/// Atomically claims a queued submission or takes over an expired processing
-/// lease.
-pub async fn claim_queued_or_stale_by_id(
-    conn: &impl ConnectionTrait,
-    submission_id: i64,
-) -> Result<Option<SubmissionView>, DbError> {
-    let now = time::OffsetDateTime::now_utc();
-    let cutoff = now - time::Duration::seconds(PROCESSING_LEASE_SECONDS);
-    let mut claimed = claimable_submission_query(submission_id, now, cutoff)
-        .exec_with_returning(conn)
-        .await?;
-    let Some(claimed) = claimed.pop() else {
-        return Ok(None);
-    };
-
-    let Some(submission) = find_by_id(conn, submission_id).await? else {
-        return Ok(None);
-    };
-
-    if submission.status != Status::Processing
-        || submission.processing_at != claimed.processing_at
-        || submission.claims != claimed.claims
-    {
-        return Ok(None);
-    }
-
-    Ok(Some(submission))
-}
-
-fn claimable_submission_query(
-    submission_id: i64,
-    now: time::OffsetDateTime,
-    cutoff: time::OffsetDateTime,
-) -> sea_orm::UpdateMany<Entity> {
-    Entity::update_many()
-        .set(ActiveModel {
-            status: Set(Status::Processing),
-            processing_at: Set(Some(now)),
-            checked_at: Set(None),
-            ..Default::default()
-        })
-        .col_expr(Column::Claims, Expr::col(Column::Claims).add(1_i64))
-        .filter(Column::Id.eq(submission_id))
-        .filter(
-            Condition::any().add(Column::Status.eq(Status::Queued)).add(
-                Condition::all()
-                    .add(Column::Status.eq(Status::Processing))
-                    .add(
-                        Condition::any()
-                            .add(Column::ProcessingAt.is_null())
-                            .add(Column::ProcessingAt.lte(cutoff)),
-                    ),
-            ),
-        )
-}
-
-/// Returns a claimed submission to the queue after a transient checker failure.
-pub async fn release_processing(
-    conn: &impl ConnectionTrait,
-    submission_id: i64,
-    processing_at: time::OffsetDateTime,
-    claims: i64,
-) -> Result<bool, DbError> {
-    let result = Entity::update_many()
-        .set(ActiveModel {
-            status: Set(Status::Queued),
-            processing_at: Set(None),
-            checked_at: Set(None),
-            ..Default::default()
-        })
-        .filter(Column::Id.eq(submission_id))
-        .filter(Column::Status.eq(Status::Processing))
-        .filter(Column::ProcessingAt.eq(processing_at))
-        .filter(Column::Claims.eq(claims))
-        .exec(conn)
-        .await?;
-
-    Ok(result.rows_affected == 1)
-}
-
-/// Stores a final status only when the submission is still owned by a checker.
-pub async fn finish_processing(
-    conn: &impl ConnectionTrait,
-    submission_id: i64,
-    processing_at: time::OffsetDateTime,
-    claims: i64,
-    status: Status,
-) -> Result<Option<SubmissionView>, DbError> {
-    let now = time::OffsetDateTime::now_utc();
-    let result = Entity::update_many()
-        .set(ActiveModel {
-            status: Set(status),
-            checked_at: Set(Some(now)),
-            ..Default::default()
-        })
-        .filter(Column::Id.eq(submission_id))
-        .filter(Column::Status.eq(Status::Processing))
-        .filter(Column::ProcessingAt.eq(processing_at))
-        .filter(Column::Claims.eq(claims))
-        .exec(conn)
-        .await?;
-
-    if result.rows_affected == 0 {
-        return Ok(None);
-    }
-
-    find_by_id(conn, submission_id).await
-}
-
-/// Returns expired in-flight rows to the queue during startup recovery.
-pub async fn reset_stale_processing(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
-    let cutoff =
-        time::OffsetDateTime::now_utc() - time::Duration::seconds(PROCESSING_LEASE_SECONDS);
-
-    Ok(stale_processing_reset_query(cutoff)
-        .exec(conn)
-        .await?
-        .rows_affected)
-}
-
-/// Advances the claim generation for an administrator-initiated processing
-/// transition. The row update that changes the status and this increment are
-/// performed in the caller's transaction.
-pub async fn advance_claim_generation(
-    conn: &impl ConnectionTrait,
-    submission_id: i64,
-) -> Result<(), DbError> {
-    let result = Entity::update_many()
-        .col_expr(Column::Claims, Expr::col(Column::Claims).add(1_i64))
-        .filter(Column::Id.eq(submission_id))
-        .exec(conn)
-        .await?;
-
-    if result.rows_affected == 0 {
-        return Err(DbError::NotFound(format!("submission_{submission_id}")));
-    }
-
-    Ok(())
-}
-
-fn stale_processing_reset_query(cutoff: time::OffsetDateTime) -> sea_orm::UpdateMany<Entity> {
-    Entity::update_many()
-        .set(ActiveModel {
-            status: Set(Status::Queued),
-            processing_at: Set(None),
-            checked_at: Set(None),
-            ..Default::default()
-        })
-        .filter(Column::Status.eq(Status::Processing))
-        .filter(
-            Condition::any()
-                .add(Column::ProcessingAt.is_null())
-                .add(Column::ProcessingAt.lte(cutoff)),
-        )
-}
-
-/// Looks up correct by team ids and game id.
-
-pub async fn find_correct_by_team_ids_and_game_id(
-    conn: &impl ConnectionTrait,
-    team_ids: Vec<i64>,
-    game_id: i64,
-) -> Result<Vec<SubmissionView>, DbError> {
-    Ok(Entity::load()
-        .with(crate::entity::user::Entity)
-        .with(crate::entity::challenge::Entity)
-        .with(crate::entity::team::Entity)
-        .with(crate::entity::game::Entity)
-        .filter(Column::TeamId.is_in(team_ids))
-        .filter(Column::GameId.eq(game_id))
-        .filter(Column::Status.eq(Status::Correct))
-        .all(conn)
-        .await?
-        .into_iter()
-        .map(SubmissionView::try_from)
-        .collect::<Result<Vec<_>, _>>()?)
-}
-
-/// Looks up correct submissions for challenge status aggregation, either in
-/// one game or in the standalone scope.
-pub async fn find_correct_by_challenge_ids_and_game_id(
-    conn: &impl ConnectionTrait,
-    challenge_ids: Vec<i64>,
-    game_id: Option<i64>,
-) -> Result<Vec<SubmissionView>, DbError> {
-    let mut loader = Entity::load()
-        .with(crate::entity::user::Entity)
-        .with(crate::entity::challenge::Entity)
-        .with(crate::entity::team::Entity)
-        .with(crate::entity::game::Entity)
-        .filter(Column::ChallengeId.is_in(challenge_ids))
-        .filter(Column::Status.eq(Status::Correct));
-
-    if let Some(game_id) = game_id {
-        loader = loader.filter(Column::GameId.eq(game_id));
-    } else {
-        loader = loader
-            .filter(Column::GameId.is_null())
-            .filter(Column::TeamId.is_null());
-    }
-
-    let submissions = loader
-        .order_by_asc(Column::CreatedAt)
-        .all(conn)
-        .await?
-        .into_iter()
-        .map(SubmissionView::try_from)
-        .collect::<Result<Vec<_>, _>>()?;
-
-    Ok(submissions)
 }
 
 /// Counts distinct challenges solved by a user, grouped by challenge category.
@@ -687,7 +649,6 @@ pub async fn count_correct_by_user_and_category(
         .all(conn)
         .await?;
 
-    // COUNT is nonnegative, so conversion preserves the public count type.
     Ok(counts
         .into_iter()
         .map(|(category, solved)| (category, solved as u64))
@@ -741,6 +702,9 @@ pub async fn find_cheat_challenge_ids(
     team_id: i64,
     game_id: i64,
 ) -> Result<Vec<i64>, DbError> {
+    if challenge_ids.is_empty() {
+        return Ok(Vec::new());
+    }
     let submissions = Entity::find()
         .filter(Column::ChallengeId.is_in(challenge_ids))
         .filter(Expr::col(Column::Status).eq(Expr::Constant(Status::Cheat.into())))
@@ -755,12 +719,12 @@ pub async fn find_cheat_challenge_ids(
     Ok(submissions)
 }
 
-/// Counts rows that match optional filters.
+/// Counts all submission rows.
 pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     Ok(Entity::find().count(conn).await?)
 }
 
-/// Counts submissions in `Correct` status for the given scope.
+/// Counts submissions in `Correct` status.
 pub async fn count_correct(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     Ok(Entity::find()
         .filter(Column::Status.eq(Status::Correct))
@@ -802,37 +766,10 @@ pub async fn create(
         .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))
 }
 
-/// Lists one page of queued work eligible for publication recovery. Only IDs
-/// are needed; recovery must not load the associated display information.
-pub async fn find_queued_ids_before(
-    conn: &impl ConnectionTrait,
-    cutoff: time::OffsetDateTime,
-    after_id: Option<i64>,
-    limit: u64,
-) -> Result<Vec<i64>, DbError> {
-    Ok(queued_recovery_query(cutoff, after_id, limit)
-        .into_tuple::<i64>()
-        .all(conn)
-        .await?)
-}
-
-fn queued_recovery_query(
-    cutoff: time::OffsetDateTime,
-    after_id: Option<i64>,
-    limit: u64,
-) -> sea_orm::Select<Entity> {
-    let mut query = Entity::find()
-        .select_only()
-        .column(Column::Id)
-        .filter(Column::Status.eq(Status::Queued))
-        .filter(Column::CreatedAt.lte(cutoff));
-    if let Some(id) = after_id {
-        query = query.filter(Column::Id.gt(id));
-    }
-    query.order_by_asc(Column::Id).limit(limit)
-}
-
 /// Applies an active model update to the database.
+///
+/// Maps PostgreSQL unique-constraint violations (`uq_submissions_correct_*`)
+/// into [`DbError::Conflict`] with `"correct_submission_already_exists"`.
 pub async fn update(
     conn: &impl ConnectionTrait,
     model: ActiveModel,
@@ -847,13 +784,19 @@ pub async fn update(
         ("processing_at", model.processing_at.is_set()),
         ("claims", model.claims.is_set()),
         ("checked_at", model.checked_at.is_set()),
-        ("pts", model.pts.is_set()),
-        ("rank", model.rank.is_set()),
     ]
     .into_iter()
     .filter_map(|(name, changed)| changed.then_some(name))
     .collect::<Vec<_>>();
-    let submission = model.update(conn).await?;
+    let submission = match model.update(conn).await {
+        Ok(submission) => submission,
+        Err(err) if matches!(err.sql_err(), Some(SqlErr::UniqueConstraintViolation(_))) => {
+            return Err(DbError::Conflict(
+                "correct_submission_already_exists".to_owned(),
+            ));
+        }
+        Err(err) => return Err(err.into()),
+    };
     tracing::info!(
         resource = "submission",
         action = "update",
@@ -864,8 +807,6 @@ pub async fn update(
         game_id = submission.game_id,
         challenge_id = submission.challenge_id,
         status = ?submission.status,
-        pts = ?submission.pts,
-        rank = ?submission.rank,
         "database step completed",
     );
 
@@ -874,7 +815,7 @@ pub async fn update(
         .ok_or_else(|| DbError::NotFound(format!("submission_{}", submission.id)))?)
 }
 
-/// Deletes rows matching the provided identifier or filter.
+/// Deletes rows matching the provided identifier.
 pub async fn delete(conn: &impl ConnectionTrait, submission_id: i64) -> Result<(), DbError> {
     Entity::delete_by_id(submission_id).exec(conn).await?;
     tracing::info!(
@@ -888,187 +829,35 @@ pub async fn delete(conn: &impl ConnectionTrait, submission_id: i64) -> Result<(
 }
 
 #[cfg(test)]
-mod score_tests {
+mod tests {
     use sea_orm::{DbBackend, QueryTrait};
 
     use super::*;
 
-    fn submission(
-        id: i64,
-        user_id: i64,
-        team_id: Option<i64>,
-        game_id: Option<i64>,
-    ) -> SubmissionView {
-        SubmissionView {
-            id,
-            content: "flag".to_owned(),
-            status: Status::Processing,
-            user_id,
-            user_name: "User".to_owned(),
-            user_avatar_hash: None,
-            team_id,
-            team_name: team_id.map(|_| "Team".to_owned()),
-            team_avatar_hash: None,
-            game_id,
-            game_title: game_id.map(|_| "Game".to_owned()),
-            challenge_id: 10,
-            challenge_title: "Challenge".to_owned(),
-            challenge_category: 0,
-            created_at: time::OffsetDateTime::UNIX_EPOCH,
-            processing_at: Some(time::OffsetDateTime::from_unix_timestamp(1).unwrap()),
-            claims: 1,
-            checked_at: None,
-            pts: 0,
-            rank: 0,
-        }
-    }
-
     #[test]
-    fn solve_owner_locks_are_namespaced_and_built_by_sea_query() {
-        assert_ne!(
-            SolveOwner::Team(1).lock_key(),
-            SolveOwner::Team(2).lock_key()
-        );
-        assert_ne!(
-            SolveOwner::User(1).lock_key(),
-            SolveOwner::User(2).lock_key()
-        );
-        assert_ne!(
-            SolveOwner::Team(1).lock_key(),
-            SolveOwner::User(1).lock_key()
-        );
-
-        let statement = DbBackend::Postgres.build(&solve_owner_lock_query(SolveOwner::Team(7)));
-        assert_eq!(statement.sql, "SELECT pg_advisory_xact_lock($1)");
-        assert_eq!(statement.values.unwrap().0.len(), 1);
-    }
-
-    #[test]
-    fn solve_owner_requires_a_complete_game_scope_or_a_standalone_scope() {
-        assert_eq!(
-            SolveOwner::try_from(&submission(1, 9, Some(3), Some(7))).unwrap(),
-            SolveOwner::Team(3)
-        );
-        assert_eq!(
-            SolveOwner::try_from(&submission(2, 9, None, None)).unwrap(),
-            SolveOwner::User(9)
-        );
-        assert!(SolveOwner::try_from(&submission(3, 9, Some(3), None)).is_err());
-        assert!(SolveOwner::try_from(&submission(4, 9, None, Some(7))).is_err());
-    }
-
-    #[test]
-    fn correct_scope_query_excludes_the_current_submission() {
-        let team = other_correct_in_scope_query(&submission(5, 9, Some(3), Some(7)))
-            .unwrap()
-            .build(DbBackend::Postgres);
-        assert!(team.sql.contains("\"submissions\".\"id\" <> $1"));
-        assert!(team.sql.contains("\"submissions\".\"challenge_id\" = $2"));
-        assert!(team.sql.contains("\"status\" = 'correct'"));
-        assert!(team.sql.contains("\"submissions\".\"game_id\" = $3"));
-        assert!(team.sql.contains("\"submissions\".\"team_id\" = $4"));
-
-        let standalone = other_correct_in_scope_query(&submission(6, 9, None, None))
-            .unwrap()
-            .build(DbBackend::Postgres);
-        assert!(
-            standalone
-                .sql
-                .contains("\"submissions\".\"game_id\" IS NULL")
-        );
-        assert!(
-            standalone
-                .sql
-                .contains("\"submissions\".\"team_id\" IS NULL")
-        );
-        assert!(standalone.sql.contains("\"submissions\".\"user_id\" = $3"));
-    }
-
-    #[test]
-    fn score_updates_are_chunked_and_built_with_bound_values() {
-        let updates = (0..super::super::BULK_UPDATE_BATCH_SIZE + 1)
-            .map(|id| ScoreUpdate {
-                id: id as i64,
-                pts: 100,
-                rank: id as i64 + 1,
-            })
-            .collect::<Vec<_>>();
-
-        let statements = score_update_statements(7, &updates);
-        assert_eq!(statements.len(), 2);
-
-        let first = DbBackend::Postgres.build(&statements[0]);
-        let second = DbBackend::Postgres.build(&statements[1]);
-        assert_eq!(
-            first.values.unwrap().0.len(),
-            super::super::BULK_UPDATE_BATCH_SIZE * 4
-        );
-        assert_eq!(second.values.unwrap().0.len(), 4);
-        assert!(first.sql.starts_with("UPDATE \"submissions\""));
-        assert!(first.sql.contains("FROM (VALUES"));
-        assert!(first.sql.contains("\"submission_scores\".\"column3\""));
-    }
-
-    #[test]
-    fn empty_score_updates_build_no_statements() {
-        assert!(score_update_statements(1, &[]).is_empty());
-    }
-
-    #[test]
-    fn score_input_query_keeps_partial_index_predicate_literal() {
+    fn score_input_query_filters_passed_teams_and_keeps_partial_index_literal() {
         let statement = score_input_query(7).build(DbBackend::Postgres);
 
-        assert!(statement.sql.contains("\"status\" = 'correct'"));
-        assert_eq!(statement.values.unwrap().0.len(), 1);
+        assert!(statement.sql.contains("INNER JOIN \"teams\""));
+        assert!(
+            statement
+                .sql
+                .contains("\"submissions\".\"status\" = 'correct'")
+        );
+        assert!(statement.sql.contains("\"teams\".\"state\" = $2"));
+        assert_eq!(statement.values.unwrap().0.len(), 2);
     }
 
     #[test]
-    fn stale_processing_reset_uses_the_fifteen_second_lease_cutoff() {
+    fn claim_batch_uses_skip_locked_and_challenge_exclusions() {
+        let now = time::OffsetDateTime::from_unix_timestamp(1_000).unwrap();
         let cutoff =
             time::OffsetDateTime::from_unix_timestamp(1_000 - PROCESSING_LEASE_SECONDS).unwrap();
-        let statement = stale_processing_reset_query(cutoff).build(DbBackend::Postgres);
+        let statement = claim_batch_statement(now, cutoff, 8, &[10, 20]);
 
-        assert!(statement.sql.starts_with("UPDATE \"submissions\""));
-        assert!(statement.sql.contains("\"status\" = $4"));
-        assert!(statement.sql.contains("\"processing_at\" IS NULL"));
-        assert!(statement.sql.contains("\"processing_at\" <= $5"));
-        assert_eq!(
-            statement.values.unwrap().0,
-            vec![
-                Status::Queued.into(),
-                Option::<time::OffsetDateTime>::None.into(),
-                Option::<time::OffsetDateTime>::None.into(),
-                Status::Processing.into(),
-                cutoff.into()
-            ]
-        );
+        assert!(statement.sql.contains("FOR UPDATE SKIP LOCKED"));
+        assert!(statement.sql.contains("challenge_id = ANY($2::bigint[])"));
+        assert!(statement.sql.contains("claims = s.claims + 1"));
         assert_eq!(PROCESSING_LEASE_SECONDS, 15);
-    }
-
-    #[test]
-    fn claim_query_accepts_only_queued_or_stale_processing_rows() {
-        let now = time::OffsetDateTime::from_unix_timestamp(1_000).unwrap();
-        let cutoff = time::OffsetDateTime::from_unix_timestamp(990).unwrap();
-        let statement = claimable_submission_query(7, now, cutoff).build(DbBackend::Postgres);
-
-        assert!(statement.sql.starts_with("UPDATE \"submissions\""));
-        assert!(statement.sql.contains("\"id\" = $5"));
-        assert!(statement.sql.contains("\"status\" = $6"));
-        assert!(statement.sql.contains("\"status\" = $7"));
-        assert!(statement.sql.contains("\"processing_at\" IS NULL"));
-        assert!(statement.sql.contains("\"processing_at\" <= $8"));
-        assert_eq!(
-            statement.values.unwrap().0,
-            vec![
-                Status::Processing.into(),
-                Some(now).into(),
-                Option::<time::OffsetDateTime>::None.into(),
-                1_i64.into(),
-                7_i64.into(),
-                Status::Queued.into(),
-                Status::Processing.into(),
-                cutoff.into()
-            ]
-        );
     }
 }

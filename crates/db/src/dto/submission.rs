@@ -1,11 +1,8 @@
-use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 
 use crate::entity::submission::Status;
 
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct SubmissionView {
     pub id: i64,
     pub content: String,

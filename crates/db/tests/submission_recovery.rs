@@ -14,16 +14,16 @@ async fn submission_team_lookup_requires_member_game_id_and_passed_state() {
         CREATE TEMP TABLE teams (
             id BIGINT PRIMARY KEY, game_id BIGINT NOT NULL, name TEXT NOT NULL,
             email TEXT, slogan TEXT, avatar_hash TEXT, has_writeup BOOL NOT NULL,
-            state INT NOT NULL, pts BIGINT NOT NULL, rank BIGINT NOT NULL
+            state INT NOT NULL
         ) ON COMMIT DROP;
         CREATE TEMP TABLE team_users (
             team_id BIGINT NOT NULL, user_id BIGINT NOT NULL,
             PRIMARY KEY (team_id, user_id)
         ) ON COMMIT DROP;
         INSERT INTO teams VALUES
-            (1, 10, 'Allowed', NULL, NULL, 'team-avatar', false, 3, 0, 0),
-            (2, 20, 'Other game', NULL, NULL, NULL, false, 3, 0, 0),
-            (3, 10, 'Other team', NULL, NULL, NULL, false, 3, 0, 0);
+            (1, 10, 'Allowed', NULL, NULL, 'team-avatar', false, 3),
+            (2, 20, 'Other game', NULL, NULL, NULL, false, 3),
+            (3, 10, 'Other team', NULL, NULL, NULL, false, 3);
         INSERT INTO team_users VALUES (1, 100), (1, 101), (2, 100), (3, 101);
     "#,
         )
@@ -60,57 +60,49 @@ async fn submission_team_lookup_requires_member_game_id_and_passed_state() {
 
 #[tokio::test]
 #[ignore = "requires CDS_TEST_DATABASE_URL pointing to PostgreSQL"]
-async fn queued_recovery_pages_without_loading_relations_or_changing_claims() {
+async fn claim_batch_reclaims_expired_processing_leases_and_skips_active_ones() {
     let database = Database::connect(std::env::var("CDS_TEST_DATABASE_URL").unwrap())
         .await
         .unwrap();
     let transaction = database.begin().await.unwrap();
+    let now = time::OffsetDateTime::now_utc().unix_timestamp();
     transaction
-        .execute_unprepared(
+        .execute_unprepared(&format!(
             r#"
         CREATE TEMP TABLE submissions (
-            id BIGINT PRIMARY KEY, status TEXT NOT NULL,
-            created_at TIMESTAMPTZ NOT NULL, claims BIGINT NOT NULL
+            id BIGINT PRIMARY KEY, content TEXT NOT NULL, status TEXT NOT NULL,
+            challenge_id BIGINT NOT NULL, user_id BIGINT NOT NULL, team_id BIGINT,
+            game_id BIGINT, created_at TIMESTAMPTZ NOT NULL, processing_at TIMESTAMPTZ,
+            claims BIGINT NOT NULL DEFAULT 0, checked_at TIMESTAMPTZ
         ) ON COMMIT DROP;
         INSERT INTO submissions VALUES
-            (1, 'queued', to_timestamp(100), 0),
-            (2, 'queued', to_timestamp(100), 9),
-            (3, 'processing', to_timestamp(100), 1),
-            (4, 'correct', to_timestamp(100), 1),
-            (5, 'queued', to_timestamp(300), 0),
-            (6, 'queued', to_timestamp(100), 0),
-            (7, 'failed', to_timestamp(100), 1);
+            (1, 'f', 'queued',     10, 1, NULL, NULL, to_timestamp({}), NULL, 0, NULL),
+            (2, 'f', 'processing', 10, 1, NULL, NULL, to_timestamp({}), to_timestamp({}), 1, NULL),
+            (3, 'f', 'processing', 10, 1, NULL, NULL, to_timestamp({}), to_timestamp({}), 1, NULL),
+            (4, 'f', 'correct',    10, 1, NULL, NULL, to_timestamp({}), to_timestamp({}), 1, to_timestamp({}));
     "#,
-        )
+            now - 30,
+            now - 25,
+            now - 20, // expired (> 15s)
+            now - 10,
+            now - 2, // active lease
+            now - 40,
+            now - 40,
+            now - 39
+        ))
         .await
         .unwrap();
-    let cutoff = time::OffsetDateTime::from_unix_timestamp(200).unwrap();
-    assert_eq!(
-        submission::find_queued_ids_before(&transaction, cutoff, None, 2)
-            .await
-            .unwrap(),
-        vec![1, 2]
-    );
-    assert_eq!(
-        submission::find_queued_ids_before(&transaction, cutoff, Some(2), 2)
-            .await
-            .unwrap(),
-        vec![6]
-    );
-    assert!(
-        submission::find_queued_ids_before(&transaction, cutoff, Some(6), 2)
-            .await
-            .unwrap()
-            .is_empty()
-    );
-    // The same page remains available, including a legitimately requeued row
-    // with historical claims. Scanning itself acquires no processing ownership.
-    assert_eq!(
-        submission::find_queued_ids_before(&transaction, cutoff, None, 10)
-            .await
-            .unwrap(),
-        vec![1, 2, 6]
-    );
+
+    let claimed = submission::claim_batch(&transaction, 10, &[])
+        .await
+        .unwrap();
+    let ids: Vec<i64> = claimed.iter().map(|c| c.id).collect();
+    assert_eq!(ids.len(), 2);
+    assert!(ids.contains(&1));
+    assert!(ids.contains(&2));
+    // Reclaimed row 2 must have incremented claims from 1 -> 2.
+    assert_eq!(claimed.iter().find(|c| c.id == 2).unwrap().claims, 2);
+
     transaction.rollback().await.unwrap();
 }
 
@@ -128,8 +120,7 @@ async fn admission_insert_succeeds_without_any_associated_tables() {
             id BIGINT PRIMARY KEY, content TEXT NOT NULL, status TEXT NOT NULL,
             challenge_id BIGINT NOT NULL, user_id BIGINT NOT NULL, team_id BIGINT,
             game_id BIGINT, created_at TIMESTAMPTZ NOT NULL, processing_at TIMESTAMPTZ,
-            claims BIGINT NOT NULL DEFAULT 0, checked_at TIMESTAMPTZ,
-            pts BIGINT NOT NULL DEFAULT 0, rank BIGINT NOT NULL DEFAULT 0
+            claims BIGINT NOT NULL DEFAULT 0, checked_at TIMESTAMPTZ
         ) ON COMMIT DROP;
     "#,
         )
@@ -150,7 +141,7 @@ async fn admission_insert_succeeds_without_any_associated_tables() {
     .unwrap();
     assert_eq!(record.id, 77);
     assert_eq!(record.status, submission::Status::Queued);
-    assert_eq!((record.claims, record.pts, record.rank), (0, 0, 0));
+    assert_eq!(record.claims, 0);
     assert!(record.processing_at.is_none() && record.checked_at.is_none());
     transaction.rollback().await.unwrap();
 }

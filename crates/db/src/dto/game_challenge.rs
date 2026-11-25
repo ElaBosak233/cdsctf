@@ -1,9 +1,6 @@
-use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct GameChallengeView {
     pub game_id: i64,
     pub challenge_id: i64,
@@ -13,20 +10,20 @@ pub struct GameChallengeView {
     pub bonus_ratios: Vec<i64>,
     pub max_pts: i64,
     pub min_pts: i64,
+    /// Derived from the CQRS score snapshot; defaults to `0` on raw DB loads.
     pub pts: i64,
     pub enabled: bool,
     #[serde(with = "crate::time_format::option")]
     pub frozen_at: Option<time::OffsetDateTime>,
 }
 
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct GameChallengeSummary {
     pub game_id: i64,
     pub challenge_id: i64,
     pub challenge_title: String,
     pub challenge_category: i32,
+    /// Derived from the CQRS score snapshot; defaults to `0` on raw DB loads.
     pub pts: i64,
     #[serde(with = "crate::time_format::option")]
     pub frozen_at: Option<time::OffsetDateTime>,

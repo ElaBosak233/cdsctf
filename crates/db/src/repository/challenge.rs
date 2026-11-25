@@ -286,7 +286,7 @@ pub async fn delete(conn: &impl ConnectionTrait, challenge_id: i64) -> Result<()
 mod tests {
     use sea_orm::{DbBackend, QueryTrait};
 
-    use super::*;
+    use super::{active_game_access_query, user_access_query};
 
     #[test]
     fn active_game_access_query_covers_membership_state_and_time() {

@@ -3,7 +3,6 @@
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, FromQueryResult, PaginatorTrait,
     QueryFilter, QueryOrder, QuerySelect, QueryTrait,
-    sea_query::{Alias, Expr, ExprTrait, IntoIden, Query, TableRef, UpdateStatement, ValueTuple},
 };
 
 pub(crate) use crate::entity::game_challenge::Entity;
@@ -36,7 +35,7 @@ impl TryFrom<crate::entity::game_challenge::ModelEx> for GameChallengeView {
             bonus_ratios: game_challenge.bonus_ratios,
             max_pts: game_challenge.max_pts,
             min_pts: game_challenge.min_pts,
-            pts: game_challenge.pts,
+            pts: 0,
             enabled: game_challenge.enabled,
             frozen_at: game_challenge.frozen_at,
         })
@@ -79,7 +78,24 @@ fn membership_query(game_id: i64, challenge_id: i64) -> sea_orm::Select<Entity> 
         .filter(Column::ChallengeId.eq(challenge_id))
 }
 
-/// Narrow game-challenge projection used by score recomputation.
+/// Loads only `frozen_at` for one `(game_id, challenge_id)` binding.
+///
+/// Returns `Ok(None)` when the binding does not exist, or `Ok(Some(frozen_at))`
+/// when present.
+pub async fn find_frozen_at(
+    conn: &impl ConnectionTrait,
+    game_id: i64,
+    challenge_id: i64,
+) -> Result<Option<Option<time::OffsetDateTime>>, DbError> {
+    Ok(membership_query(game_id, challenge_id)
+        .select_only()
+        .column(Column::FrozenAt)
+        .into_tuple::<Option<time::OffsetDateTime>>()
+        .one(conn)
+        .await?)
+}
+
+/// Narrow game-challenge projection used to build a CQRS score snapshot.
 #[derive(Clone, Debug, PartialEq, Eq, FromQueryResult)]
 pub struct ScoreInput {
     pub challenge_id: i64,
@@ -87,14 +103,6 @@ pub struct ScoreInput {
     pub max_pts: i64,
     pub min_pts: i64,
     pub bonus_ratios: Vec<i64>,
-    pub pts: i64,
-}
-
-/// Persisted score fields for one game challenge.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ScoreUpdate {
-    pub challenge_id: i64,
-    pub pts: i64,
 }
 
 /// Loads challenge scoring configuration without challenge relations.
@@ -110,57 +118,12 @@ pub async fn find_score_inputs(
             Column::MaxPts,
             Column::MinPts,
             Column::BonusRatios,
-            Column::Pts,
         ])
         .filter(Column::GameId.eq(game_id))
         .order_by_asc(Column::ChallengeId)
         .into_model::<ScoreInput>()
         .all(conn)
         .await?)
-}
-
-/// Applies changed challenge scores in bounded, set-based updates.
-pub async fn update_scores(
-    conn: &impl ConnectionTrait,
-    game_id: i64,
-    updates: &[ScoreUpdate],
-) -> Result<u64, DbError> {
-    let mut rows_affected = 0;
-    for statement in score_update_statements(game_id, updates) {
-        rows_affected += conn.execute(&statement).await?.rows_affected();
-    }
-    Ok(rows_affected)
-}
-
-fn score_update_statements(game_id: i64, updates: &[ScoreUpdate]) -> Vec<UpdateStatement> {
-    updates
-        .chunks(super::BULK_UPDATE_BATCH_SIZE)
-        .map(|chunk| {
-            let source = Alias::new("challenge_scores");
-            let values = chunk
-                .iter()
-                .map(|update| {
-                    ValueTuple::Many(vec![
-                        game_id.into(),
-                        update.challenge_id.into(),
-                        update.pts.into(),
-                    ])
-                })
-                .collect();
-            let source_game_id = Expr::col((source.clone(), Alias::new("column1")));
-            let source_challenge_id = Expr::col((source.clone(), Alias::new("column2")));
-            let source_pts = Expr::col((source.clone(), Alias::new("column3")));
-
-            Query::update()
-                .table(Entity)
-                .value(Column::Pts, source_pts.clone())
-                .from(TableRef::ValuesList(values, source.into_iden()))
-                .cond_where(Expr::col(Column::GameId).eq(source_game_id))
-                .cond_where(Expr::col(Column::ChallengeId).eq(source_challenge_id))
-                .cond_where(Expr::col(Column::Pts).ne(source_pts))
-                .to_owned()
-        })
-        .collect()
 }
 
 /// Queries rows using filter options and returns `(rows, total_count)`.
@@ -212,7 +175,6 @@ where
 }
 
 /// Looks up by id.
-
 pub async fn find_by_id(
     conn: &impl ConnectionTrait,
     game_id: i64,
@@ -267,7 +229,6 @@ pub async fn create(
         game_id = game_challenge.game_id,
         challenge_id = game_challenge.challenge_id,
         enabled = ?game_challenge.enabled,
-        pts = ?game_challenge.pts,
         "database step completed",
     );
 
@@ -297,7 +258,6 @@ pub async fn update(
         ("bonus_ratios", model.bonus_ratios.is_set()),
         ("enabled", model.enabled.is_set()),
         ("frozen_at", model.frozen_at.is_set()),
-        ("pts", model.pts.is_set()),
     ]
     .into_iter()
     .filter_map(|(name, changed)| changed.then_some(name))
@@ -310,7 +270,6 @@ pub async fn update(
         game_id = game_challenge.game_id,
         challenge_id = game_challenge.challenge_id,
         enabled = ?game_challenge.enabled,
-        pts = ?game_challenge.pts,
         "database step completed",
     );
 
@@ -349,34 +308,10 @@ pub async fn delete(
 }
 
 #[cfg(test)]
-mod score_tests {
+mod tests {
     use sea_orm::{DbBackend, QueryTrait};
 
-    use super::*;
-
-    #[test]
-    fn score_updates_use_one_bound_values_statement() {
-        let statements = score_update_statements(
-            3,
-            &[
-                ScoreUpdate {
-                    challenge_id: 10,
-                    pts: 500,
-                },
-                ScoreUpdate {
-                    challenge_id: 20,
-                    pts: 400,
-                },
-            ],
-        );
-
-        let statement = DbBackend::Postgres.build(&statements[0]);
-        assert_eq!(statements.len(), 1);
-        assert_eq!(statement.values.unwrap().0.len(), 6);
-        assert!(statement.sql.starts_with("UPDATE \"game_challenges\""));
-        assert!(statement.sql.contains("FROM (VALUES"));
-        assert!(statement.sql.contains("\"challenge_scores\".\"column3\""));
-    }
+    use super::membership_query;
 
     #[test]
     fn membership_query_is_scoped_to_game_and_challenge() {
