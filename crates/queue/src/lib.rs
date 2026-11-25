@@ -1,11 +1,9 @@
-//! NATS / JetStream integration: publish messages and subscribe as pull
-//! consumers.
-//!
-//! Workers call [`Queue::subscribe`] to process subjects such as
-//! `cds.game.recalc`, `cds.mail.send`, or `cds.event.broadcast`. Each subject
-//! maps to a JetStream stream (created if absent) with a durable consumer name.
-
-use std::time::Duration;
+//! NATS & JetStream integration:
+//! - JetStream durable pull consumers ([`Queue::publish`] /
+//!   [`Queue::subscribe`]) for `cds.mail.send` and `cds.event.broadcast`.
+//! - Zero-overhead NATS Core signals ([`Queue::notify`],
+//!   [`Queue::queue_subscribe`], [`Queue::subscribe_core`]) for stateless
+//!   worker wakeups and cross-pod L1 cache invalidation.
 
 /// Defines the `traits` submodule (see sibling `*.rs` files).
 pub mod traits;
@@ -40,8 +38,42 @@ pub async fn init(env: &Env) -> Result<Queue, QueueError> {
 }
 
 impl Queue {
-    /// Publishes JSON and waits for the broker acknowledgement. The initiator
-    /// is explicit business metadata, never read back from tracing fields.
+    /// Sends a lightweight, non-persistent NATS Core signal (at-most-once).
+    ///
+    /// Used for work-queue wakeups and cache invalidation broadcasts where
+    /// PostgreSQL or Valkey remains the durable source of truth.
+    pub async fn notify(&self, subject: &str, payload: impl AsRef<[u8]>) -> Result<(), QueueError> {
+        self.client
+            .publish(subject.to_owned(), payload.as_ref().to_vec().into())
+            .await?;
+        Ok(())
+    }
+
+    /// Subscribes to a NATS Core subject in a load-balanced queue group so each
+    /// signal wakes at most one subscriber across the cluster.
+    pub async fn queue_subscribe(
+        &self,
+        subject: &str,
+        queue_group: &str,
+    ) -> Result<async_nats::Subscriber, QueueError> {
+        Ok(self
+            .client
+            .queue_subscribe(subject.to_owned(), queue_group.to_owned())
+            .await?)
+    }
+
+    /// Subscribes to a NATS Core broadcast subject so every pod receives each
+    /// notification (e.g. L1 cache invalidation).
+    pub async fn subscribe_core(
+        &self,
+        subject: &str,
+    ) -> Result<async_nats::Subscriber, QueueError> {
+        Ok(self.client.subscribe(subject.to_owned()).await?)
+    }
+
+    /// Publishes JSON to JetStream and waits for the broker acknowledgement.
+    /// The initiator is explicit business metadata, never read back from
+    /// tracing fields.
     pub async fn publish(
         &self,
         subject: &str,
@@ -67,8 +99,7 @@ impl Queue {
     }
 
     /// Each delivery has its own native span. Message ID joins producer and
-    /// consumer logs even when the OpenTelemetry exporter is disabled. Old
-    /// messages still have their stream sequence, without a fabricated actor.
+    /// consumer logs even when the OpenTelemetry exporter is disabled.
     pub fn message_span(message: &async_nats::jetstream::Message) -> tracing::Span {
         let message_id = message
             .headers
@@ -93,8 +124,8 @@ impl Queue {
             .and_then(|value| value.as_str().parse().ok())
     }
 
-    /// Creates (if needed) a stream named `subject`, ensures a durable
-    /// consumer, and returns a pull stream.
+    /// Creates (if needed) a JetStream stream named `subject`, ensures a
+    /// durable consumer, and returns a pull stream.
     ///
     /// `durable_name` identifies the consumer for replay; defaults to
     /// `"worker"` when `None`.
@@ -102,28 +133,6 @@ impl Queue {
         &self,
         subject: &str,
         durable_name: Option<&str>,
-    ) -> Result<async_nats::jetstream::consumer::pull::Stream, QueueError> {
-        self.subscribe_inner(subject, durable_name, None).await
-    }
-
-    /// Subscribes with an explicit unacknowledged-message redelivery deadline.
-    /// Existing durable consumers are updated so the requested deadline takes
-    /// effect after deployment.
-    pub async fn subscribe_with_ack_wait(
-        &self,
-        subject: &str,
-        durable_name: Option<&str>,
-        ack_wait: Duration,
-    ) -> Result<async_nats::jetstream::consumer::pull::Stream, QueueError> {
-        self.subscribe_inner(subject, durable_name, Some(ack_wait))
-            .await
-    }
-
-    async fn subscribe_inner(
-        &self,
-        subject: &str,
-        durable_name: Option<&str>,
-        ack_wait: Option<Duration>,
     ) -> Result<async_nats::jetstream::consumer::pull::Stream, QueueError> {
         let stream = self
             .jet_stream
@@ -136,14 +145,12 @@ impl Queue {
             .await?;
 
         let durable_name = durable_name.unwrap_or("worker");
-        let config = pull_consumer_config(subject, durable_name, ack_wait);
-        let subscriber = if ack_wait.is_some() {
-            // create_consumer is create-or-update, which applies a changed
-            // ack_wait to a durable consumer that already exists.
-            stream.create_consumer(config).await?
-        } else {
-            stream.get_or_create_consumer(durable_name, config).await?
+        let config = async_nats::jetstream::consumer::pull::Config {
+            filter_subject: subject.to_owned(),
+            durable_name: Some(durable_name.to_owned()),
+            ..Default::default()
         };
+        let subscriber = stream.get_or_create_consumer(durable_name, config).await?;
 
         let messages = subscriber
             .stream()
@@ -161,36 +168,5 @@ impl Queue {
 
         self.client.drain().await?;
         Ok(())
-    }
-}
-
-fn pull_consumer_config(
-    subject: &str,
-    durable_name: &str,
-    ack_wait: Option<Duration>,
-) -> async_nats::jetstream::consumer::pull::Config {
-    async_nats::jetstream::consumer::pull::Config {
-        filter_subject: subject.to_owned(),
-        durable_name: Some(durable_name.to_owned()),
-        ack_wait: ack_wait.unwrap_or_default(),
-        ..Default::default()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn builds_consumer_with_explicit_ack_wait() {
-        let config = pull_consumer_config(
-            "cds.submission.check",
-            "worker",
-            Some(Duration::from_secs(16)),
-        );
-
-        assert_eq!(config.filter_subject, "cds.submission.check");
-        assert_eq!(config.durable_name.as_deref(), Some("worker"));
-        assert_eq!(config.ack_wait, Duration::from_secs(16));
     }
 }
