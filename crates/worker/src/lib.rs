@@ -6,13 +6,13 @@
 //! | [`mailbox`] | JetStream `cds.mail.send`                      | Outbound SMTP delivery     |
 //!
 //! Dynamic scoring is no longer a background mutating worker — it is served
-//! directly as a CQRS read model by [`cds_score::ScoreService`].
+//! directly as a CQRS read model by [`cds_score::Score`].
 
 use cds_checker::Checker;
 use cds_db::DB;
 use cds_mailbox::Mailbox;
 use cds_queue::Queue;
-use cds_score::ScoreService;
+use cds_score::Score;
 
 /// Pull-on-capacity submission checker worker backed by PostgreSQL.
 pub mod checker;
@@ -26,7 +26,7 @@ pub async fn init(
     db: &DB,
     queue: &Queue,
     checker: &Checker,
-    score: &ScoreService,
+    score: &Score,
     mailbox: &Mailbox,
 ) -> Result<(), anyhow::Error> {
     crate::checker::spawn(db, queue, checker, score).await;

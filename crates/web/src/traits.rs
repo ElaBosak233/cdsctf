@@ -36,8 +36,8 @@ pub struct AppState {
     pub mailbox: cds_mailbox::Mailbox,
     /// NATS client for publishing background jobs and Core signals.
     pub queue: cds_queue::Queue,
-    /// CQRS score read-model backed by L1 memory and L2 Valkey snapshots.
-    pub score: cds_score::ScoreService,
+    /// Valkey-backed CQRS score read-model.
+    pub score: cds_score::Score,
 }
 
 /// Authenticated (or anonymous) subject extracted by auth middleware before

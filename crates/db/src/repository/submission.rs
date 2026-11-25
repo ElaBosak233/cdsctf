@@ -139,7 +139,6 @@ impl TryFrom<crate::entity::submission::ModelEx> for SubmissionView {
             challenge_category: challenge.category,
             created_at: submission.created_at,
             processing_at: submission.processing_at,
-            claims: submission.claims,
             checked_at: submission.checked_at,
             pts: 0,
             rank: 0,

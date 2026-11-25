@@ -30,7 +30,7 @@ use std::{
 use cds_checker::Checker;
 use cds_db::{ChallengeDetail, DB, submission::ClaimedSubmission};
 use cds_queue::Queue;
-use cds_score::ScoreService;
+use cds_score::Score;
 use dashmap::DashMap;
 use futures_util::StreamExt as _;
 use tokio::task::JoinSet;
@@ -121,7 +121,7 @@ struct WorkerContext {
     db: DB,
     queue: Queue,
     checker: Checker,
-    score: ScoreService,
+    score: Score,
     challenge_cache: DashMap<i64, (Arc<ChallengeDetail>, Instant)>,
 }
 
@@ -407,7 +407,7 @@ async fn run_invalidation_listener(ctx: Arc<WorkerContext>) {
 /// Spawns the pull-on-capacity checker worker and its script invalidation
 /// listener.
 #[tracing::instrument(skip_all, fields(handler = "spawn"))]
-pub async fn spawn(db: &DB, queue: &Queue, checker: &Checker, score: &ScoreService) {
+pub async fn spawn(db: &DB, queue: &Queue, checker: &Checker, score: &Score) {
     let ctx = Arc::new(WorkerContext {
         db: db.clone(),
         queue: queue.clone(),

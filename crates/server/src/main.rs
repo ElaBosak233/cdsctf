@@ -111,7 +111,7 @@ async fn bootstrap() -> Result<Arc<AppState>, anyhow::Error> {
     cds_migrator::run(&db).await?;
     cds_engine::init().await?;
     let checker = cds_checker::init(&media)?;
-    let score = cds_score::ScoreService::new(db.clone(), cache.clone(), queue.clone());
+    let score = cds_score::Score::new(db.clone(), cache.clone());
 
     let cluster = cds_cluster::init(&env, &checker).await?;
 

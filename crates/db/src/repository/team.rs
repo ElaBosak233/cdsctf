@@ -249,38 +249,6 @@ pub async fn find_passed_ids(
         .await?)
 }
 
-/// Counts non-`Passed` (unranked) teams in one game.
-pub async fn count_unranked(conn: &impl ConnectionTrait, game_id: i64) -> Result<u64, DbError> {
-    Ok(Entity::find()
-        .filter(Column::GameId.eq(game_id))
-        .filter(Column::State.ne(State::Passed))
-        .count(conn)
-        .await?)
-}
-
-/// Fetches a page of non-`Passed` (unranked) team IDs ordered by `id ASC`.
-pub async fn find_unranked_ids_page(
-    conn: &impl ConnectionTrait,
-    game_id: i64,
-    offset: u64,
-    limit: u64,
-) -> Result<Vec<i64>, DbError> {
-    if limit == 0 {
-        return Ok(Vec::new());
-    }
-    Ok(Entity::find()
-        .select_only()
-        .column(Column::Id)
-        .filter(Column::GameId.eq(game_id))
-        .filter(Column::State.ne(State::Passed))
-        .order_by_asc(Column::Id)
-        .offset(offset)
-        .limit(limit)
-        .into_tuple::<i64>()
-        .all(conn)
-        .await?)
-}
-
 /// Loads only matching team IDs for filter-then-rank sorting in the admin UI.
 pub async fn find_ids(
     conn: &impl ConnectionTrait,

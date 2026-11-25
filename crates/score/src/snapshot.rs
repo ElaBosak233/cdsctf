@@ -49,7 +49,6 @@ pub struct SubmissionScore {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GameScoreSnapshot {
     pub version: u64,
-    pub computed_at_ms: i64,
     /// All `Passed` teams ordered by `(pts DESC, last_solve_at ASC, team_id
     /// ASC)`.
     pub ranked_teams: Vec<RankedTeam>,
@@ -154,7 +153,6 @@ impl GameScoreSnapshot {
 /// bonuses.
 pub fn build(
     version: u64,
-    computed_at_ms: i64,
     mut submissions: Vec<SubmissionScoreInput>,
     mut challenges: Vec<ChallengeScoreInput>,
     passed_team_ids: Vec<i64>,
@@ -273,7 +271,6 @@ pub fn build(
 
     let mut snapshot = GameScoreSnapshot {
         version,
-        computed_at_ms,
         ranked_teams,
         challenges: challenge_scores,
         submission_scores,
@@ -315,7 +312,6 @@ mod tests {
     fn builds_exact_scores_bloods_and_team_ranks() {
         let snap = build(
             3,
-            1_700_000_000_000,
             vec![solve(2, 10, 2, 200), solve(1, 10, 1, 100)],
             vec![challenge(10)],
             vec![1, 2, 3],
@@ -339,7 +335,6 @@ mod tests {
         // Team 99 is NOT in passed_team_ids (e.g. banned for cheating).
         let snap = build(
             1,
-            0,
             vec![solve(1, 10, 99, 50), solve(2, 10, 1, 100)],
             vec![challenge(10)],
             vec![1],
@@ -358,7 +353,6 @@ mod tests {
     fn equal_timestamps_tiebreak_deterministically_by_id() {
         let snap = build(
             1,
-            0,
             vec![solve(20, 10, 2, 100), solve(10, 10, 1, 100)],
             vec![challenge(10)],
             vec![2, 1],
@@ -373,7 +367,6 @@ mod tests {
     fn round_trips_through_messagepack_and_rebuilds_index() {
         let original = build(
             42,
-            1_700_000_000_000,
             vec![solve(1, 10, 1, 100), solve(2, 10, 2, 200)],
             vec![challenge(10)],
             vec![1, 2, 3],
@@ -393,7 +386,7 @@ mod tests {
             .collect();
 
         let started = std::time::Instant::now();
-        let snap = build(1, 0, submissions, challenges, teams);
+        let snap = build(1, submissions, challenges, teams);
         let elapsed = started.elapsed();
 
         assert_eq!(snap.ranked_teams.len(), 5_000);

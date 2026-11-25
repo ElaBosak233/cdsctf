@@ -1,5 +1,5 @@
 //! Score hydration and rank-sorted team pagination helpers backed by
-//! [`cds_score::ScoreService`].
+//! [`cds_score::Score`].
 
 use std::collections::{HashMap, HashSet};
 
@@ -8,30 +8,35 @@ use cds_db::{
     submission::Status,
     team::{FindTeamOptions, State as TeamState},
 };
-use cds_score::{GameScoreSnapshot, ScoreService};
+use cds_score::{GameScoreSnapshot, Score};
+use futures_util::future::try_join_all;
 
 use crate::traits::WebError;
 
 /// Hydrates derived `(pts, rank)` on a page of submissions from per-game CQRS
 /// snapshots. Only `Correct` in-game submissions receive non-zero scores.
 pub async fn hydrate_submissions(
-    score: &ScoreService,
+    score: &Score,
     submissions: &mut [SubmissionView],
 ) -> Result<(), WebError> {
-    let game_ids: HashSet<i64> = submissions
+    let game_ids: Vec<i64> = submissions
         .iter()
         .filter(|s| s.status == Status::Correct)
         .filter_map(|s| s.game_id)
+        .collect::<HashSet<_>>()
+        .into_iter()
         .collect();
     if game_ids.is_empty() {
         return Ok(());
     }
 
-    let mut snapshots: HashMap<i64, std::sync::Arc<GameScoreSnapshot>> =
-        HashMap::with_capacity(game_ids.len());
-    for game_id in game_ids {
-        snapshots.insert(game_id, score.snapshot(game_id).await?);
-    }
+    let fetched = try_join_all(
+        game_ids
+            .into_iter()
+            .map(|game_id| async move { Ok::<_, anyhow::Error>((game_id, score.snapshot(game_id).await?)) }),
+    )
+    .await?;
+    let snapshots: HashMap<i64, GameScoreSnapshot> = fetched.into_iter().collect();
 
     for submission in submissions {
         if submission.status == Status::Correct
@@ -47,7 +52,7 @@ pub async fn hydrate_submissions(
 }
 
 /// Hydrates derived `(pts, rank)` on a single team view.
-pub async fn hydrate_team(score: &ScoreService, team: &mut TeamView) -> Result<(), WebError> {
+pub async fn hydrate_team(score: &Score, team: &mut TeamView) -> Result<(), WebError> {
     if team.state != TeamState::Passed {
         team.pts = 0;
         team.rank = 0;
@@ -62,7 +67,7 @@ pub async fn hydrate_team(score: &ScoreService, team: &mut TeamView) -> Result<(
 
 /// Hydrates derived `pts` on a list of [`GameChallengeView`] rows for one game.
 pub async fn hydrate_game_challenges(
-    score: &ScoreService,
+    score: &Score,
     game_id: i64,
     challenges: &mut [GameChallengeView],
 ) -> Result<(), WebError> {
@@ -79,7 +84,7 @@ pub async fn hydrate_game_challenges(
 /// Hydrates derived `pts` on a list of [`GameChallengeSummary`] rows for one
 /// game.
 pub async fn hydrate_game_challenge_summaries(
-    score: &ScoreService,
+    score: &Score,
     game_id: i64,
     challenges: &mut [GameChallengeSummary],
 ) -> Result<(), WebError> {
@@ -119,7 +124,7 @@ pub fn parse_derived_team_sort(sorts: Option<&str>) -> Option<DerivedTeamSort> {
 /// teams.
 pub async fn list_admin_teams(
     db: &DB,
-    score: &ScoreService,
+    score: &Score,
     game_id: i64,
     options: FindTeamOptions,
 ) -> Result<(Vec<AdminTeamView>, u64), WebError> {
@@ -127,154 +132,46 @@ pub async fn list_admin_teams(
 
     let Some(sort_mode) = parse_derived_team_sort(options.sorts.as_deref()) else {
         let (mut teams, total) = cds_db::team::find_with_users(&db.conn, options).await?;
-        for entry in &mut teams {
-            if entry.team.state == TeamState::Passed {
-                let (pts, rank) = snap.team_score(entry.team.id);
-                entry.team.pts = pts;
-                entry.team.rank = rank;
-            }
-        }
+        hydrate_admin_teams(&mut teams, &snap);
         return Ok((teams, total));
     };
 
-    let has_narrow_filter = options.id.is_some()
-        || options.name.is_some()
-        || options.has_writeup.is_some()
-        || options.user_id.is_some();
+    // Unified filter-then-rank path: fetch matching IDs via PostgreSQL indexes,
+    // order them in memory against the score snapshot (< 1ms for 5k teams),
+    // slice the requested page, then load full profiles only for that page.
+    let mut matched_ids = cds_db::team::find_ids(&db.conn, &options).await?;
+    let total = matched_ids.len() as u64;
+    sort_team_ids_by_snapshot(&mut matched_ids, &snap, sort_mode);
 
-    let (page_ids, total) = if !has_narrow_filter
-        && matches!(options.state, None | Some(TeamState::Passed))
-    {
-        // Fast O(1) path: slice pre-ranked IDs directly from the snapshot,
-        // combining with unranked teams only when `state` is unfiltered.
-        let ranked_len = snap.ranked_teams.len() as u64;
-        let unranked_len = if options.state.is_none() {
-            cds_db::team::count_unranked(&db.conn, game_id).await?
-        } else {
-            0
-        };
-        let total = ranked_len + unranked_len;
-        let (offset, limit) = match (options.page, options.size) {
-            (Some(_), Some(0)) => (0, 0),
-            (Some(page), Some(size)) => (page.saturating_sub(1).saturating_mul(size), size),
-            _ => (0, total),
-        };
+    let page_ids = slice_page(&matched_ids, options.page, options.size);
+    let mut teams = cds_db::team::find_with_users_by_ids(&db.conn, game_id, page_ids).await?;
+    hydrate_admin_teams(&mut teams, &snap);
+    Ok((teams, total))
+}
 
-        let page_ids = slice_ranked_and_unranked_ids(
-            db,
-            game_id,
-            &snap,
-            unranked_len,
-            sort_mode,
-            offset,
-            limit,
-        )
-        .await?;
-        (page_ids, total)
-    } else {
-        // Filter-then-rank path: fetch only matching team IDs from PostgreSQL,
-        // sort `(rank/pts, id)` in memory (< 1ms for 5k teams), and slice.
-        let mut matched_ids = cds_db::team::find_ids(&db.conn, &options).await?;
-        let total = matched_ids.len() as u64;
-        sort_team_ids_by_snapshot(&mut matched_ids, &snap, sort_mode);
-
-        let page_ids = match (options.page, options.size) {
-            (Some(_), Some(0)) => Vec::new(),
-            (Some(page), Some(size)) => {
-                let start = page.saturating_sub(1).saturating_mul(size) as usize;
-                if start >= matched_ids.len() {
-                    Vec::new()
-                } else {
-                    let end = start.saturating_add(size as usize).min(matched_ids.len());
-                    matched_ids[start..end].to_vec()
-                }
-            }
-            _ => matched_ids,
-        };
-        (page_ids, total)
-    };
-
-    let mut teams = cds_db::team::find_with_users_by_ids(&db.conn, game_id, &page_ids).await?;
-    for entry in &mut teams {
+fn hydrate_admin_teams(teams: &mut [AdminTeamView], snap: &GameScoreSnapshot) {
+    for entry in teams {
         if entry.team.state == TeamState::Passed {
             let (pts, rank) = snap.team_score(entry.team.id);
             entry.team.pts = pts;
             entry.team.rank = rank;
         }
     }
-    Ok((teams, total))
 }
 
-async fn slice_ranked_and_unranked_ids(
-    db: &DB,
-    game_id: i64,
-    snap: &GameScoreSnapshot,
-    unranked_len: u64,
-    sort_mode: DerivedTeamSort,
-    offset: u64,
-    limit: u64,
-) -> Result<Vec<i64>, WebError> {
-    if limit == 0 {
-        return Ok(Vec::new());
-    }
-    let ranked_len = snap.ranked_teams.len() as u64;
-
-    // Place ranked Passed teams (`rank 1..=N`) ahead of unranked teams for
-    // `rank` / `-pts` so #1 always appears first; reverse for `-rank` / `pts`.
-    let ranked_first = matches!(
-        sort_mode,
-        DerivedTeamSort::RankAsc | DerivedTeamSort::PtsDesc
-    );
-    let reverse_ranked = matches!(
-        sort_mode,
-        DerivedTeamSort::RankDesc | DerivedTeamSort::PtsAsc
-    );
-
-    let slice_ranked = |start: u64, take: u64| -> Vec<i64> {
-        if take == 0 || start >= ranked_len {
-            return Vec::new();
+fn slice_page<T>(items: &[T], page: Option<u64>, size: Option<u64>) -> &[T] {
+    match (page, size) {
+        (Some(_), Some(0)) => &[],
+        (Some(page), Some(size)) => {
+            let start = page.saturating_sub(1).saturating_mul(size) as usize;
+            if start >= items.len() {
+                &[]
+            } else {
+                let end = start.saturating_add(size as usize).min(items.len());
+                &items[start..end]
+            }
         }
-        let s = start as usize;
-        let e = (start.saturating_add(take)).min(ranked_len) as usize;
-        if reverse_ranked {
-            let total = snap.ranked_teams.len();
-            (s..e)
-                .map(|i| snap.ranked_teams[total - 1 - i].team_id)
-                .collect()
-        } else {
-            snap.ranked_teams[s..e].iter().map(|t| t.team_id).collect()
-        }
-    };
-
-    if ranked_first {
-        let mut ids = Vec::with_capacity(limit as usize);
-        if offset < ranked_len {
-            let take = limit.min(ranked_len - offset);
-            ids.extend(slice_ranked(offset, take));
-        }
-        let remaining = limit.saturating_sub(ids.len() as u64);
-        if remaining > 0 && unranked_len > 0 {
-            let unranked_offset = offset.saturating_sub(ranked_len);
-            ids.extend(
-                cds_db::team::find_unranked_ids_page(&db.conn, game_id, unranked_offset, remaining)
-                    .await?,
-            );
-        }
-        Ok(ids)
-    } else {
-        let mut ids = Vec::with_capacity(limit as usize);
-        if offset < unranked_len {
-            let take = limit.min(unranked_len - offset);
-            ids.extend(
-                cds_db::team::find_unranked_ids_page(&db.conn, game_id, offset, take).await?,
-            );
-        }
-        let remaining = limit.saturating_sub(ids.len() as u64);
-        if remaining > 0 {
-            let ranked_offset = offset.saturating_sub(unranked_len);
-            ids.extend(slice_ranked(ranked_offset, remaining));
-        }
-        Ok(ids)
+        _ => items,
     }
 }
 
