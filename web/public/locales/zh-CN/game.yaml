@@ -2,8 +2,10 @@ _: 比赛
 empty: 好像还没有比赛哦。
 result_count: "{{count}} 场比赛"
 filter:
-  all: ALL
+  all: 全部
   pts: 分
+  hide_solved: 隐藏已解
+  progress: 进度
 list:
   columns:
     game: 比赛
@@ -169,6 +171,7 @@ paused:
   description: 管理员恢复比赛后可以继续答题。
 challenge:
   empty: 哎呀，这个比赛好像还没有题目呢。
+  no_match: 没有符合当前筛选条件的题目。
   pts: 当前分值
   title: 标题
   category: 分类

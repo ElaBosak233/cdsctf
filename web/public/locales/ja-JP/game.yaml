@@ -4,6 +4,8 @@ result_count: "{{count}} 件の大会"
 filter:
   all: すべて
   pts: 点
+  hide_solved: 解答済みを隠す
+  progress: 進捗
 list:
   columns:
     game: 大会
@@ -163,6 +165,7 @@ paused:
   description: 管理者が再開すると、引き続き課題に取り組めます。
 challenge:
   empty: この大会には課題がまだありません。
+  no_match: 条件に一致する課題はありません。
   pts: 現在のポイント
   title: タイトル
   category: カテゴリ

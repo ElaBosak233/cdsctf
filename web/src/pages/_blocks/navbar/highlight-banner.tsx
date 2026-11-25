@@ -25,7 +25,7 @@ function HighlightBanner() {
         "fixed",
         "inset-x-0",
         "top-16",
-        "z-1",
+        "z-30",
         "flex",
         "min-h-12",
         "w-full",

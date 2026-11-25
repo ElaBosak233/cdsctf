@@ -26,6 +26,7 @@ function ScrollArea(props: ScrollAreaProps) {
       <BaseScrollArea.Viewport
         data-slot="scroll-area-viewport"
         className={cn([
+          "isolate",
           "ring-ring/10",
           "dark:ring-ring/20",
           "dark:outline-ring/40",

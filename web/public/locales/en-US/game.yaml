@@ -2,8 +2,10 @@ _: Game
 empty: "Oops, it seems that there are no games yet."
 result_count: "{{count}} games"
 filter:
-  all: ALL
+  all: All
   pts: pts
+  hide_solved: Hide solved
+  progress: Progress
 list:
   columns:
     game: Game
@@ -169,6 +171,7 @@ paused:
   description: You can continue solving after an administrator resumes the game.
 challenge:
   empty: "Oops, it seems that there are no challenges in this game yet."
+  no_match: No challenges match the current filters.
   pts: Current Points
   title: Title
   category: Category

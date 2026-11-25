@@ -4,6 +4,8 @@ result_count: "{{count}} 場比賽"
 filter:
   all: 全部
   pts: 分
+  hide_solved: 隱藏已解
+  progress: 進度
 list:
   columns:
     game: 比賽
@@ -163,6 +165,7 @@ paused:
   description: 管理員恢復比賽後可以繼續答題。
 challenge:
   empty: 此比賽目前尚無題目。
+  no_match: 沒有符合目前篩選條件的題目。
   pts: 目前分數
   title: 標題
   category: 分類
