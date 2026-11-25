@@ -28,7 +28,7 @@ const SCOREBOARD_REFRESH_INTERVAL = 15_000;
 export default function Index() {
   const { t } = useTranslation();
   const { currentGame, selfTeam } = useGameStore();
-  const [size, setSize] = useState(10);
+  const [size, setSize] = useState(20);
   const [page, setPage] = useState(1);
   const enabled = !!currentGame?.id && !currentGame.blacked_out;
   const chartQuery = useQuery({
@@ -123,7 +123,7 @@ export default function Index() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {[10, 20, 40, 60].map((value) => (
+                        {[20, 40, 60].map((value) => (
                           <SelectItem key={value} value={String(value)}>
                             {value}
                           </SelectItem>
