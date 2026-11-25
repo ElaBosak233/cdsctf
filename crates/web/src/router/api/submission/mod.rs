@@ -129,7 +129,8 @@ pub struct CreateSubmissionRequest {
 }
 
 /// Persists a submission and returns its admission snapshot. Judging is
-/// asynchronous; failed immediate publication is retried by queued recovery.
+/// asynchronous; if the immediate NATS wakeup is dropped, the worker's
+/// fallback poll claims the row automatically.
 #[utoipa::path(
     post,
     path = "/",

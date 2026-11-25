@@ -74,7 +74,7 @@ impl ExecutionLimits {
         }
     }
 
-    // Fail fast: queued submissions remain in JetStream instead of consuming
+    // Fail fast: queued submissions remain in PostgreSQL instead of consuming
     // their processing lease while waiting for a VM.
     fn try_acquire(
         &self,

@@ -84,8 +84,8 @@ Long synchronous native calls cannot be interrupted by a Lua instruction hook
 or an async timeout while they are running.
 
 Admission is non-blocking. Capacity exhaustion returns `Busy` before script
-execution. The submission worker releases its processing lease and negatively
-acknowledges the message with a delay, so retries wait in JetStream. There is
+execution. The submission worker releases its processing lease back to
+PostgreSQL so the next claim cycle retries it automatically. There is
 no in-process VM wait queue. Other callers receive the capacity error.
 
 Only an explicit checker verdict marks an answer incorrect. Script failures
