@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::GameNoticeView;
+use cds_db::{GameNoticeView, team::State as TState};
 use serde_json::json;
 use utoipa_axum::{
     router::{OpenApiRouter, UtoipaMethodRouterExt},
@@ -13,6 +13,7 @@ use utoipa_axum::{
 
 use crate::{
     extract::{Extension, Path},
+    middleware::auth::basic_operator,
     traits::{AppState, AuthPrincipal, WebError},
 };
 
@@ -29,7 +30,7 @@ pub struct GameNoticesListResponse {
     pub total: u64,
 }
 
-/// Lists notices for a game (collection).
+/// Lists notices for active players in a game (ordered newest first).
 #[utoipa::path(
     get,
     path = "/",
@@ -40,6 +41,8 @@ pub struct GameNoticesListResponse {
     responses(
         (status = 200, description = "Notices", body = GameNoticesListResponse),
         (status = 401, description = "Unauthorized", body = crate::traits::ErrorResponse),
+        (status = 403, description = "Forbidden", body = crate::traits::ErrorResponse),
+        (status = 404, description = "Not found", body = crate::traits::ErrorResponse),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
@@ -49,9 +52,26 @@ pub async fn list_game_notices(
     Extension(ext): Extension<AuthPrincipal>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<GameNoticesListResponse>, WebError> {
-    let _ = ext.operator.ok_or(WebError::Unauthorized(json!("unauthorized")))?;
+    let operator = basic_operator(&ext)?;
 
-    let game_notices = cds_db::game_notice::find_by_game_id(&s.db.conn, game_id).await?;
+    let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
+    if !game.enabled {
+        return Err(WebError::NotFound(json!("not_found")));
+    }
+
+    let now = time::OffsetDateTime::now_utc();
+    let in_game =
+        cds_db::team::contains_user_in_game(&s.db.conn, game.id, operator.id, Some(TState::Passed))
+            .await?;
+    if !in_game {
+        return Err(WebError::Forbidden(json!("forbidden")));
+    }
+    // Notices stay readable while paused so players can see maintenance or
+    // resume announcements, while still gated to the active competition window.
+    crate::util::loader::ensure_game_ongoing(&game, now)?;
+
+    let game_notices =
+        cds_db::game_notice::find_player_views_by_game_id(&s.db.conn, game.id).await?;
     let total = game_notices.len() as u64;
 
     Ok(Json(GameNoticesListResponse {

@@ -24,9 +24,9 @@ use std::time::Duration;
 use cds_env::Env;
 pub use config::Config;
 pub use dto::{
-    AdminTeamView, ChallengeDetail, ChallengeSummary, ChallengeView, EmailView,
-    GameChallengeSummary, GameChallengeView, GameDetail, GameNoticeView, GameSummary, GameView,
-    IdpSummary, IdpView, NoteView, Permission, PersonalAccessTokenView, PlayerTeamView,
+    AdminGameNoticeView, AdminTeamView, ChallengeDetail, ChallengeSummary, ChallengeView,
+    EmailView, GameChallengeSummary, GameChallengeView, GameDetail, GameNoticeView, GameSummary,
+    GameView, IdpSummary, IdpView, NoteView, Permission, PersonalAccessTokenView, PlayerTeamView,
     PublicCaptchaConfig, PublicCaptchaSiteConfig, PublicConfig, PublicEmailConfig, ScoreboardEntry,
     ScoreboardSubmission, ScoreboardTeam, SubmissionSummary, SubmissionView, TeamUserView,
     TeamView, UserAccountView, UserIdpSummary, UserIdpView, UserProfile, UserSummary,

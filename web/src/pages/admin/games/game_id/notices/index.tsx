@@ -3,7 +3,7 @@ import { MessageCircleIcon, PlusCircleIcon } from "lucide-react";
 import { useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
-import { getGameNotice } from "@/api/games/game_id/notices";
+import { getManagementGameNotices } from "@/api/management/games/game_id/notices";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
@@ -17,20 +17,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  type ColumnFiltersState,
   type ColumnVisibilityState,
   flexRender,
-  type SortingState,
   useDataTable,
 } from "@/hooks/use-data-table";
-import { useDebounce } from "@/hooks/use-debounce";
-import type { GameNoticeView } from "@/models/game_notice";
+import type { AdminGameNoticeView } from "@/models/game_notice";
 import { useSharedStore } from "@/storages/shared";
 import { cn } from "@/utils";
 import { parseRouteNumericId } from "@/utils/query";
 import { Context } from "../context";
 import { useColumns } from "./_blocks/columns";
-import { CreateDialog } from "./_blocks/create-dialog";
+import { NoticeFormDialog } from "./_blocks/notice-form-dialog";
 
 export default function Index() {
   const { t } = useTranslation();
@@ -41,27 +38,16 @@ export default function Index() {
   const routeGameId = parseRouteNumericId(game_id);
   const { game } = useContext(Context);
 
-  const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-  const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] =
     useState<ColumnVisibilityState>({
       id: false,
-      game_id: false,
     });
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const debouncedColumnFilters = useDebounce(columnFilters, 100);
   const gameId = routeGameId ?? game?.id;
   const noticesQuery = useQuery({
-    queryKey: [
-      "admin",
-      "game-notices",
-      gameId,
-      sorting,
-      debouncedColumnFilters,
-      sharedStore.refresh,
-    ],
-    queryFn: () => getGameNotice({ game_id: gameId! }),
+    queryKey: ["admin", "game-notices", gameId, sharedStore.refresh],
+    queryFn: () => getManagementGameNotices({ game_id: gameId! }),
     enabled: gameId != null,
     placeholderData: keepPreviousData,
   });
@@ -70,20 +56,13 @@ export default function Index() {
   const loading = noticesQuery.isFetching;
 
   const columns = useColumns();
-  const table = useDataTable<GameNoticeView>({
+  const table = useDataTable<AdminGameNoticeView>({
     data: notices,
     columns,
-    manualPagination: true,
     rowCount: total,
-    manualFiltering: true,
-    onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    manualSorting: true,
-    onSortingChange: setSorting,
     state: {
-      sorting,
       columnVisibility,
-      columnFilters,
     },
   });
 
@@ -139,14 +118,16 @@ export default function Index() {
         >
           <Button
             icon={<PlusCircleIcon />}
-            variant={"solid"}
+            variant="solid"
             onClick={() => setCreateDialogOpen(true)}
           >
             {t("common:actions.add")}
           </Button>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogContent size="wide">
-              <CreateDialog onClose={() => setCreateDialogOpen(false)} />
+              {createDialogOpen && (
+                <NoticeFormDialog onClose={() => setCreateDialogOpen(false)} />
+              )}
             </DialogContent>
           </Dialog>
         </div>
@@ -195,10 +176,10 @@ export default function Index() {
                       key={header.id}
                       className={cn([
                         "bg-muted/95",
-                        header.column.id === "title" && "w-72",
-                        header.column.id === "content" && "min-w-80",
-                        header.column.id === "created_at" && "w-48 min-w-48",
-                        header.column.id === "actions" && "w-24 min-w-24",
+                        header.column.id === "title" && "w-80",
+                        header.column.id === "content" && "min-w-72",
+                        header.column.id === "author" && "w-80 min-w-80",
+                        header.column.id === "actions" && "w-28 min-w-28",
                       ])}
                     >
                       {!header.isPlaceholder &&
@@ -231,7 +212,7 @@ export default function Index() {
                           "py-3",
                           "transition-colors",
                           "group-hover:bg-muted/50",
-                          cell.column.id === "actions" && "w-24",
+                          cell.column.id === "actions" && "w-28",
                         ])}
                       >
                         {flexRender(

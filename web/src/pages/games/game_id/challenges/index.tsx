@@ -11,12 +11,19 @@ import {
   LibraryIcon,
 } from "lucide-react";
 import { useQueryState } from "nuqs";
-import { type CSSProperties, useEffect, useMemo, useState } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { queryChallengeStatus } from "@/api/challenges";
 import { getGameChallenges } from "@/api/games/game_id/challenges";
+import { getGameNotice } from "@/api/games/game_id/notices";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
@@ -26,7 +33,15 @@ import { ChallengeCard } from "@/components/widgets/challenge-card";
 import { ChallengeDialog } from "@/components/widgets/challenge-dialog";
 import { useTickerTime } from "@/hooks/use-ticker-time";
 import type { GameChallengeSummary } from "@/models/game_challenge";
+import type { GameNoticeView } from "@/models/game_notice";
+import { useAuthStore } from "@/storages/auth";
 import { useGameStore } from "@/storages/game";
+import {
+  getNoticeFingerprints,
+  getNoticeScopeKey,
+  isNoticeUnread,
+  useNoticeReadStore,
+} from "@/storages/notice";
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { getGamePhase, isGameActive, secondsUntil } from "@/utils/time";
@@ -36,6 +51,7 @@ import { TeamCard } from "./_blocks/team-card";
 export default function Index() {
   const { t } = useTranslation();
 
+  const user = useAuthStore((state) => state.user);
   const { currentGame, selfTeam: selfGameTeam } = useGameStore();
   const [category, setCategory] = useQueryState("category", {
     defaultValue: "all",
@@ -45,6 +61,16 @@ export default function Index() {
   const now = useTickerTime();
 
   const gameId = currentGame?.id;
+  const userId = user?.id;
+  const noticeScopeKey =
+    userId != null && gameId != null
+      ? getNoticeScopeKey(userId, gameId)
+      : undefined;
+  const noticeScope = useNoticeReadStore((state) =>
+    noticeScopeKey ? state.scopes[noticeScopeKey] : undefined
+  );
+  const syncNotices = useNoticeReadStore((state) => state.syncNotices);
+  const markAsRead = useNoticeReadStore((state) => state.markAsRead);
 
   const {
     data: gameChallengesData,
@@ -116,6 +142,64 @@ export default function Index() {
   });
 
   const loading = statusLoading || challengeLoading;
+
+  const { data: gameNotices } = useQuery({
+    queryKey: ["game_notices", gameId],
+    queryFn: () =>
+      getGameNotice({
+        game_id: gameId!,
+      }),
+    select: (response) => response.notices,
+    refetchInterval: 15000,
+    enabled: gameId != null && teamId != null,
+    meta: { suppressErrorToast: true },
+  });
+
+  useEffect(() => {
+    if (!noticeScopeKey || !gameNotices) return;
+    syncNotices(noticeScopeKey, gameNotices);
+  }, [gameNotices, noticeScopeKey, syncNotices]);
+
+  const notices = gameNotices ?? [];
+
+  const { unreadNoticeIds, noticesByChallenge, unreadChallengeIds } =
+    useMemo(() => {
+      const unreadIds = new Set<number>();
+      const byChallenge = new Map<number, GameNoticeView[]>();
+      const unreadChallenges = new Set<number>();
+
+      for (const notice of notices) {
+        const unread =
+          noticeScopeKey != null && isNoticeUnread(noticeScope, notice);
+        if (unread) unreadIds.add(notice.id);
+
+        if (notice.challenge_id != null) {
+          const list = byChallenge.get(notice.challenge_id) ?? [];
+          list.push(notice);
+          byChallenge.set(notice.challenge_id, list);
+          if (unread) unreadChallenges.add(notice.challenge_id);
+        }
+      }
+
+      return {
+        unreadNoticeIds: unreadIds,
+        noticesByChallenge: byChallenge,
+        unreadChallengeIds: unreadChallenges,
+      };
+    }, [notices, noticeScope, noticeScopeKey]);
+
+  const handleMarkNoticesRead = useCallback(
+    (items: GameNoticeView[]) => {
+      if (!noticeScopeKey || items.length === 0) return;
+      markAsRead(noticeScopeKey, getNoticeFingerprints(items));
+    },
+    [markAsRead, noticeScopeKey]
+  );
+
+  const handleMarkAllNoticesRead = useCallback(() => {
+    if (!noticeScopeKey || notices.length === 0) return;
+    markAsRead(noticeScopeKey, getNoticeFingerprints(notices));
+  }, [markAsRead, noticeScopeKey, notices]);
 
   const { categoryTabs, totalSolved, totalChallenges } = useMemo(() => {
     const all = gameChallengesData ?? [];
@@ -267,6 +351,13 @@ export default function Index() {
   const renderChallengeCard = (gameChallenge: GameChallengeSummary) => {
     const status = challengeStatus?.[gameChallenge.challenge_id];
     const isCheated = status?.cheated ?? false;
+    const isSolved = !isCheated && Boolean(status?.solved);
+    const challengeNotices =
+      noticesByChallenge.get(gameChallenge.challenge_id) ?? [];
+    const hasUnreadNotice =
+      !isSolved &&
+      !isCheated &&
+      unreadChallengeIds.has(gameChallenge.challenge_id);
     const challengeKey =
       gameChallenge.challenge_id ?? gameChallenge.challenge_title;
 
@@ -285,7 +376,14 @@ export default function Index() {
     }
 
     return (
-      <Dialog key={challengeKey}>
+      <Dialog
+        key={challengeKey}
+        onOpenChange={(open) => {
+          if (open && challengeNotices.length > 0) {
+            handleMarkNoticesRead(challengeNotices);
+          }
+        }}
+      >
         <DialogTrigger
           render={
             <ChallengeCard
@@ -296,6 +394,7 @@ export default function Index() {
                 category: gameChallenge.challenge_category,
               }}
               status={status}
+              hasUnreadNotice={hasUnreadNotice}
             />
           }
         />
@@ -308,6 +407,7 @@ export default function Index() {
             }}
             gameTeam={selfGameTeam}
             frozenAt={gameChallenge?.frozen_at}
+            notices={challengeNotices}
           />
         </DialogContent>
       </Dialog>
@@ -326,6 +426,16 @@ export default function Index() {
               {t("game:paused.description")}
             </p>
           </div>
+          {notices.length > 0 && (
+            <div className="mt-2">
+              <NoticeCard
+                notices={notices}
+                unreadIds={unreadNoticeIds}
+                onMarkNoticesRead={handleMarkNoticesRead}
+                onMarkAllRead={handleMarkAllNoticesRead}
+              />
+            </div>
+          )}
         </div>
       </>
     );
@@ -396,7 +506,12 @@ export default function Index() {
                     {writeupLabel}
                   </Button>
                 )}
-                <NoticeCard />
+                <NoticeCard
+                  notices={notices}
+                  unreadIds={unreadNoticeIds}
+                  onMarkNoticesRead={handleMarkNoticesRead}
+                  onMarkAllRead={handleMarkAllNoticesRead}
+                />
               </div>
             </div>
           </div>
@@ -474,8 +589,7 @@ export default function Index() {
 
               <Button
                 size="sm"
-                variant={hideSolved ? "tonal" : "ghost"}
-                level={hideSolved ? "success" : "primary"}
+                variant={hideSolved ? "solid" : "ghost"}
                 icon={hideSolved ? <EyeOffIcon /> : <EyeIcon />}
                 className="shrink-0 gap-1.5 px-3"
                 onClick={() => setHideSolved((prev) => !prev)}

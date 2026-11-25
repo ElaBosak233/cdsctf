@@ -21,11 +21,19 @@ import { parseTimestamp } from "@/utils/time";
 type ChallengeCardProps = CardProps & {
   digest?: Pick<ChallengeSummary, "id" | "title" | "category">;
   status?: ChallengeStatus;
+  hasUnreadNotice?: boolean;
   debug?: boolean;
 };
 
 function ChallengeCard(props: ChallengeCardProps) {
-  const { digest, status, debug = false, className, ...rest } = props;
+  const {
+    digest,
+    status,
+    hasUnreadNotice = false,
+    debug = false,
+    className,
+    ...rest
+  } = props;
 
   const { t } = useTranslation();
 
@@ -127,6 +135,23 @@ function ChallengeCard(props: ChallengeCardProps) {
           />
           <TooltipContent sideOffset={6} onClick={(e) => e.stopPropagation()}>
             {t("submission:solved")}
+          </TooltipContent>
+        </Tooltip>
+      ) : !debug && hasUnreadNotice ? (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <span
+                className="absolute top-[10%] right-[7%] flex size-3.5 items-center justify-center"
+                aria-label={t("game:notice.challenge_unread_tip")}
+              >
+                <span className="absolute inline-flex size-full rounded-full bg-warning/60 motion-safe:animate-ping" />
+                <span className="relative inline-flex size-2.5 rounded-full bg-warning ring-2 ring-card" />
+              </span>
+            }
+          />
+          <TooltipContent sideOffset={6} onClick={(e) => e.stopPropagation()}>
+            {t("game:notice.challenge_unread_tip")}
           </TooltipContent>
         </Tooltip>
       ) : null}
