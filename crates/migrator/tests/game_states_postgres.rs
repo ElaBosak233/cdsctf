@@ -198,10 +198,96 @@ async fn submission_failure_constraint_supports_upgrade_and_rollback() {
         )).await.unwrap().unwrap().try_get::<String>("", "definition").unwrap()
     };
     assert!(definition(database.clone()).await.contains("failed"));
-    Migrator::down(&database, Some(1)).await.unwrap();
+    Migrator::down(&database, Some(3)).await.unwrap();
     assert!(!definition(database.clone()).await.contains("failed"));
     Migrator::up(&database, None).await.unwrap();
     assert!(definition(database.clone()).await.contains("failed"));
+    database
+        .execute_unprepared(&format!(
+            "SET search_path TO public; DROP SCHEMA {schema} CASCADE"
+        ))
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+#[ignore = "requires CDS_TEST_DATABASE_URL pointing to disposable PostgreSQL"]
+async fn cqrs_scoring_and_queue_migration_upgrades_and_rolls_back() {
+    let (database, schema) = isolated_database("cqrs_scoring_queue").await;
+    Migrator::up(&database, None).await.unwrap();
+
+    // Derived score columns and games.score_revision must be removed.
+    let remaining: i64 = database
+        .query_one_raw(Statement::from_string(
+            DbBackend::Postgres,
+            r#"
+                SELECT COUNT(*) AS count
+                FROM information_schema.columns
+                WHERE table_schema = current_schema()
+                  AND (
+                    (table_name = 'games' AND column_name = 'score_revision')
+                    OR (table_name = 'game_challenges' AND column_name = 'pts')
+                    OR (table_name = 'teams' AND column_name IN ('pts', 'rank'))
+                    OR (table_name = 'submissions' AND column_name IN ('pts', 'rank'))
+                  )
+            "#,
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "count")
+        .unwrap();
+    assert_eq!(remaining, 0);
+
+    // New indexes must exist.
+    let indexes: i64 = database
+        .query_one_raw(Statement::from_string(
+            DbBackend::Postgres,
+            r#"
+                SELECT COUNT(*) AS count
+                FROM pg_indexes
+                WHERE schemaname = current_schema()
+                  AND indexname IN (
+                    'idx_submissions_work_queue',
+                    'uq_submissions_correct_game',
+                    'uq_submissions_correct_standalone',
+                    'idx_submissions_scoring',
+                    'idx_teams_game_state'
+                  )
+            "#,
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "count")
+        .unwrap();
+    assert_eq!(indexes, 5);
+
+    // Rollback restores legacy columns and drops new indexes cleanly.
+    Migrator::down(&database, Some(1)).await.unwrap();
+    let restored: i64 = database
+        .query_one_raw(Statement::from_string(
+            DbBackend::Postgres,
+            r#"
+                SELECT COUNT(*) AS count
+                FROM information_schema.columns
+                WHERE table_schema = current_schema()
+                  AND (
+                    (table_name = 'games' AND column_name = 'score_revision')
+                    OR (table_name = 'game_challenges' AND column_name = 'pts')
+                    OR (table_name = 'teams' AND column_name IN ('pts', 'rank'))
+                    OR (table_name = 'submissions' AND column_name IN ('pts', 'rank'))
+                  )
+            "#,
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "count")
+        .unwrap();
+    assert_eq!(restored, 6);
+
+    Migrator::up(&database, None).await.unwrap();
     database
         .execute_unprepared(&format!(
             "SET search_path TO public; DROP SCHEMA {schema} CASCADE"
