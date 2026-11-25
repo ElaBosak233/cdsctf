@@ -97,7 +97,7 @@ pub struct GetGameScoreboardRequest {
     pub page: Option<u64>,
 }
 
-#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct GameScoreboardResponse {
     pub records: Vec<ScoreboardEntry>,
     pub total: u64,
@@ -105,7 +105,7 @@ pub struct GameScoreboardResponse {
     pub challenges: Vec<ScoreboardChallenge>,
 }
 
-#[derive(Clone, Debug, Serialize, utoipa::ToSchema)]
+#[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct ScoreboardChallenge {
     pub challenge_id: i64,
     pub challenge_title: String,
@@ -155,12 +155,40 @@ pub async fn get_game_scoreboard(
         return Err(WebError::Forbidden(json!("game_blacked_out")));
     }
 
-    let (records, total) =
-        cds_db::team::find_scoreboard(&s.db.conn, game.id, params.page, params.size).await?;
+    let snap = s.score.snapshot(game.id).await?;
+    let started = time::OffsetDateTime::now_utc() >= game.started_at;
+
+    // Cache rendered public scoreboard pages in Valkey keyed by the snapshot
+    // epoch so spectator polling storms absorb with zero PostgreSQL queries
+    // while invalidating instantly when any score changes.
+    let page_cache_key = format!(
+        "scoreboard:page:{}:{}:{}:{}:{}",
+        game.id,
+        snap.version,
+        u8::from(started),
+        params.page.map_or("all".to_owned(), |v| v.to_string()),
+        params.size.map_or("all".to_owned(), |v| v.to_string()),
+    );
+    if let Ok(Some(cached)) = s.cache.get::<GameScoreboardResponse>(&page_cache_key).await {
+        return Ok(Json(cached));
+    }
+
+    let (page_teams, total) = snap.page_teams(params.page, params.size);
+    let page_team_ids: Vec<i64> = page_teams.iter().map(|team| team.team_id).collect();
+    let mut records =
+        cds_db::team::find_scoreboard_entries_by_ids(&s.db.conn, game.id, &page_team_ids).await?;
+    for entry in &mut records {
+        let (pts, rank) = snap.team_score(entry.team.id);
+        entry.team.pts = pts;
+        entry.team.rank = rank;
+        for submission in &mut entry.submissions {
+            submission.pts = snap.submission_score(submission.id).0;
+        }
+    }
 
     // Spectators can read the scoreboard without joining the game. Expose only
     // column metadata, and never reveal the challenge directory before kickoff.
-    let mut challenges = if time::OffsetDateTime::now_utc() >= game.started_at {
+    let mut challenges = if started {
         cds_db::game_challenge::find::<ScoreboardChallenge>(
             &s.db.conn,
             FindGameChallengeOptions {
@@ -174,13 +202,26 @@ pub async fn get_game_scoreboard(
     } else {
         Vec::new()
     };
+    for challenge in &mut challenges {
+        challenge.pts = snap.challenge_pts(challenge.challenge_id);
+    }
     challenges.sort_by_key(|challenge| (challenge.challenge_category, challenge.challenge_id));
 
-    Ok(Json(GameScoreboardResponse {
+    let response = GameScoreboardResponse {
         records,
         total,
         challenges,
-    }))
+    };
+    let _ = s
+        .cache
+        .set_with_ttl(
+            &page_cache_key,
+            &response,
+            std::time::Duration::from_secs(10),
+        )
+        .await;
+
+    Ok(Json(response))
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]

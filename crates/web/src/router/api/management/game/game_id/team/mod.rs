@@ -82,8 +82,10 @@ pub async fn get_team(
         .operator
         .ok_or(WebError::Unauthorized(json!("unauthorized")))?;
 
-    let (teams, total) = cds_db::team::find_with_users(
-        &s.db.conn,
+    let (teams, total) = crate::util::score::list_admin_teams(
+        &s.db,
+        &s.score,
+        game_id,
         FindTeamOptions {
             id: params.id,
             name: params.name,

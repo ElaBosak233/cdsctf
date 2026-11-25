@@ -25,6 +25,7 @@ cds-media    = { workspace = true }
 cds-migrator = { workspace = true }
 cds-observe  = { workspace = true }
 cds-queue    = { workspace = true }
+cds-score    = { workspace = true }
 cds-web      = { workspace = true }
 cds-worker   = { workspace = true }
 

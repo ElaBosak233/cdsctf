@@ -34,8 +34,10 @@ pub struct AppState {
     pub media: cds_media::Media,
     /// SMTP outbound mail (also consumed from the `mailbox` queue).
     pub mailbox: cds_mailbox::Mailbox,
-    /// NATS client for publishing background jobs.
+    /// NATS client for publishing background jobs and Core signals.
     pub queue: cds_queue::Queue,
+    /// CQRS score read-model backed by L1 memory and L2 Valkey snapshots.
+    pub score: cds_score::ScoreService,
 }
 
 /// Authenticated (or anonymous) subject extracted by auth middleware before

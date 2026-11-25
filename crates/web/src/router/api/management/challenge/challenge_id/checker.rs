@@ -68,6 +68,10 @@ pub async fn update_checker(
     )
     .await?;
 
+    // Evict local bytecode cache and broadcast invalidation to worker pods.
+    s.checker.invalidate(challenge_id);
+    cds_worker::checker::notify_challenge_updated(&s.queue, challenge_id).await;
+
     Ok(Json(EmptyJson::default()))
 }
 

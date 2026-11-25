@@ -9,7 +9,7 @@ use cds_db::{
     sea_orm::{ActiveValue::NotSet, Set},
     submission::{FindSubmissionsOptions, Status},
 };
-use cds_worker::checker::SUBJECT;
+use cds_worker::checker;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::{debug, info, warn};
@@ -87,7 +87,7 @@ pub async fn list_submissions(
     let page = params.page.unwrap_or(1);
     let size = params.size.unwrap_or(10).min(100);
 
-    let (submissions, total) = cds_db::submission::find(
+    let (mut submissions, total) = cds_db::submission::find(
         &s.db.conn,
         FindSubmissionsOptions {
             id: params.id,
@@ -102,6 +102,8 @@ pub async fn list_submissions(
         },
     )
     .await?;
+
+    crate::util::score::hydrate_submissions(&s.score, &mut submissions).await?;
 
     let submissions = submissions
         .iter()
@@ -231,24 +233,16 @@ pub async fn create_submission(
     )
     .await?;
 
-    if let Err(error) = s
-        .queue
-        .publish(SUBJECT, submission.id, Some(operator.id))
-        .await
-    {
-        warn!(
-            submission_id = submission.id,
-            ?error,
-            "submission persisted; immediate publication failed, queued recovery will retry"
-        );
-    }
+    // PostgreSQL is the durable work queue; NATS Core only wakes one idle
+    // worker immediately (fallback polling handles any dropped signal).
+    checker::notify(&s.queue).await;
     info!(
         submission_id = submission.id,
         user_id = operator.id,
         team_id = body.team_id,
         game_id = body.game_id,
         challenge_id = body.challenge_id,
-        subject = SUBJECT,
+        subject = checker::WAKEUP_SUBJECT,
         "submission persisted for asynchronous checking"
     );
 
@@ -273,8 +267,8 @@ pub async fn create_submission(
             created_at: submission.created_at,
             processing_at: submission.processing_at,
             checked_at: submission.checked_at,
-            pts: submission.pts,
-            rank: submission.rank,
+            pts: 0,
+            rank: 0,
         }),
     ))
 }

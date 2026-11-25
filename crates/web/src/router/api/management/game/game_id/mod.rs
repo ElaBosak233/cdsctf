@@ -26,7 +26,6 @@ use cds_db::sea_orm::{
     ActiveValue::{Set, Unchanged},
     NotSet,
 };
-use cds_worker::calculator;
 use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa_axum::{
@@ -35,9 +34,9 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Extension, Path, VJson},
+    extract::{Path, VJson},
     router::api::management::game::AdminGameDetailResponse,
-    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
+    traits::{AppState, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -185,7 +184,7 @@ pub async fn delete_game(
     Ok(Json(EmptyJson::default()))
 }
 
-/// Publishes a score-recalculation job for administrators.
+/// Recomputes and refreshes a game's CQRS score snapshot for administrators.
 #[utoipa::path(
     post,
     path = "/calculate",
@@ -194,25 +193,17 @@ pub async fn delete_game(
         ("game_id" = i64, Path, description = "Game id"),
     ),
     responses(
-        (status = 200, description = "Calculation queued", body = EmptyJson),
+        (status = 200, description = "Calculation refreshed", body = EmptyJson),
         (status = 500, description = "Server error", body = crate::traits::ErrorResponse),
     )
 )]
 #[tracing::instrument(skip_all, fields(handler = "calculate_game"))]
 pub async fn calculate_game(
-    Extension(principal): Extension<AuthPrincipal>,
     State(s): State<Arc<AppState>>,
     Path(game_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
     let game = crate::util::loader::prepare_game(&s.db.conn, game_id).await?;
-
-    calculator::request(
-        &s.db.conn,
-        &s.queue,
-        game.id,
-        principal.operator.as_ref().map(|operator| operator.id),
-    )
-    .await?;
+    s.score.force_refresh(game.id).await?;
 
     Ok(Json(EmptyJson::default()))
 }
