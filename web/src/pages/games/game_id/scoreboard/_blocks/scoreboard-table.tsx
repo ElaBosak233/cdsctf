@@ -209,7 +209,7 @@ export function ScoreboardTable({
               scope="col"
               rowSpan={pinnedRowSpan}
               className={cn(
-                "sticky left-[calc(var(--rank-width)+var(--team-width))] z-30 border-r border-b border-r-border/60 px-3 text-right align-middle sm:px-5",
+                "sticky left-[calc(var(--rank-width)+var(--team-width))] z-30 border-r border-b border-r-border/60 px-3 text-right align-middle dark:border-r-foreground/15 sm:px-5",
                 headerSurface
               )}
             >
@@ -230,12 +230,12 @@ export function ScoreboardTable({
                   scope="colgroup"
                   colSpan={group.challenges.length}
                   className={cn(
-                    "h-9 border-b border-l border-l-border/60 px-3 py-1.5 text-center align-middle",
+                    "h-9 border-b border-l border-l-border/60 px-3 py-1.5 text-center align-middle dark:border-l-foreground/15",
                     "bg-[color-mix(in_oklab,var(--color-category)_16%,var(--card))]",
                     "border-b-[color-mix(in_oklab,var(--color-category)_32%,var(--border))]",
                     "text-[color-mix(in_oklab,var(--color-category)_86%,var(--foreground))]",
                     "dark:bg-[color-mix(in_oklab,var(--color-category)_28%,var(--card))]",
-                    "dark:border-b-[color-mix(in_oklab,var(--color-category)_45%,var(--border))]",
+                    "dark:border-b-[color-mix(in_oklab,var(--color-category)_42%,var(--foreground)_15%)]",
                     "dark:text-[color-mix(in_oklab,var(--color-category)_58%,white)]"
                   )}
                   style={
@@ -271,7 +271,7 @@ export function ScoreboardTable({
                   className={cn(
                     "h-15 border-b px-3 py-2 text-center align-middle whitespace-normal",
                     groupStartIds.has(challenge.challenge_id) &&
-                      "border-l border-l-border/60"
+                      "border-l border-l-border/60 dark:border-l-foreground/15"
                   )}
                 >
                   <span

@@ -82,7 +82,7 @@ function TableHead(props: TableHeadProps) {
     <th
       ref={ref}
       className={cn(
-        "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 truncate",
+        "h-12 border-b border-border px-4 text-left align-middle font-medium text-muted-foreground dark:border-b-foreground/15 [&:has([role=checkbox])]:pr-0 truncate",
         className
       )}
       {...rest}
