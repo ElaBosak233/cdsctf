@@ -1,5 +1,5 @@
 import { TrophyIcon } from "lucide-react";
-import { useMemo } from "react";
+import { type CSSProperties, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -127,7 +127,39 @@ export function ScoreboardTable({
       }),
     [records]
   );
+  const { categoryGroups, groupStartIds } = useMemo(() => {
+    const groups: Array<{
+      key: string;
+      category: ReturnType<typeof getCategory>;
+      challenges: ScoreboardChallenge[];
+    }> = [];
+    const startIds = new Set<number>();
+
+    for (const challenge of challenges) {
+      const last = groups[groups.length - 1];
+      if (
+        last &&
+        last.challenges[0].challenge_category === challenge.challenge_category
+      ) {
+        last.challenges.push(challenge);
+      } else {
+        startIds.add(challenge.challenge_id);
+        groups.push({
+          key: `${challenge.challenge_category}-${challenge.challenge_id}`,
+          category: getCategory(challenge.challenge_category),
+          challenges: [challenge],
+        });
+      }
+    }
+
+    return { categoryGroups: groups, groupStartIds: startIds };
+  }, [challenges]);
+
   const stickyCell = "sticky z-10 bg-inherit";
+  const headerSurface = "bg-[color-mix(in_oklab,var(--muted)_60%,var(--card))]";
+  const hasChallenges = challenges.length > 0;
+  const pinnedRowSpan = hasChallenges ? 2 : 1;
+
   return (
     <ScrollArea
       vertical={false}
@@ -151,61 +183,110 @@ export function ScoreboardTable({
           {/* Let unused space expand here instead of stretching the data columns. */}
           <col />
         </colgroup>
-        <TableHeader className="sticky top-0 z-20 bg-muted [&_th]:border-b">
+        <TableHeader className={cn("sticky top-0 z-20", headerSurface)}>
           <TableRow className="hover:bg-transparent">
             <TableHead
               scope="col"
-              className="sticky left-0 z-30 bg-muted px-2 text-center"
+              rowSpan={pinnedRowSpan}
+              className={cn(
+                "sticky left-0 z-30 border-b px-2 text-center align-middle",
+                headerSurface
+              )}
             >
               #
             </TableHead>
             <TableHead
               scope="col"
-              className="sticky left-(--rank-width) z-30 bg-muted px-2"
+              rowSpan={pinnedRowSpan}
+              className={cn(
+                "sticky left-(--rank-width) z-30 border-b px-2 align-middle",
+                headerSurface
+              )}
             >
               {t("game:scoreboard.columns.team")}
             </TableHead>
             <TableHead
               scope="col"
-              className="sticky left-[calc(var(--rank-width)+var(--team-width))] z-30 border-r border-r-border/60 bg-muted px-3 text-right sm:px-5"
+              rowSpan={pinnedRowSpan}
+              className={cn(
+                "sticky left-[calc(var(--rank-width)+var(--team-width))] z-30 border-r border-b border-r-border/60 px-3 text-right align-middle sm:px-5",
+                headerSurface
+              )}
             >
               {t("game:scoreboard.columns.score")}
             </TableHead>
             <TableHead
               scope="col"
-              className="hidden px-2 text-center sm:table-cell"
+              rowSpan={pinnedRowSpan}
+              className="hidden border-b px-2 text-center align-middle sm:table-cell"
             >
               {t("game:scoreboard.columns.solves")}
             </TableHead>
-            {challenges.map((challenge) => {
-              const category = getCategory(challenge.challenge_category);
-              const CategoryIcon = category.icon;
+            {categoryGroups.map((group) => {
+              const CategoryIcon = group.category.icon;
               return (
                 <TableHead
-                  scope="col"
-                  key={challenge.challenge_id}
-                  className="h-20 px-4 text-center whitespace-normal"
+                  key={group.key}
+                  scope="colgroup"
+                  colSpan={group.challenges.length}
+                  className={cn(
+                    "h-9 border-b border-l border-l-border/60 px-3 py-1.5 text-center align-middle",
+                    "bg-[color-mix(in_oklab,var(--color-category)_16%,var(--card))]",
+                    "border-b-[color-mix(in_oklab,var(--color-category)_32%,var(--border))]",
+                    "text-[color-mix(in_oklab,var(--color-category)_86%,var(--foreground))]",
+                    "dark:bg-[color-mix(in_oklab,var(--color-category)_28%,var(--card))]",
+                    "dark:border-b-[color-mix(in_oklab,var(--color-category)_45%,var(--border))]",
+                    "dark:text-[color-mix(in_oklab,var(--color-category)_58%,white)]"
+                  )}
+                  style={
+                    {
+                      "--color-category": group.category.color,
+                    } as CSSProperties
+                  }
                 >
-                  <span
-                    className="mb-1 flex items-center justify-center gap-1.5 text-[10px]"
-                    style={{ color: category.color }}
-                  >
+                  <span className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold">
                     {CategoryIcon && (
                       <CategoryIcon
-                        className="size-3 shrink-0"
+                        className="size-3.5 shrink-0"
                         aria-hidden="true"
                       />
                     )}
-                    {category.name?.toUpperCase()}
-                  </span>
-                  <span className="line-clamp-2 text-xs font-medium leading-4 text-foreground">
-                    {challenge.challenge_title}
+                    {group.category.name?.toUpperCase()}
                   </span>
                 </TableHead>
               );
             })}
-            <TableHead aria-hidden="true" className="p-0" />
+            <TableHead
+              rowSpan={pinnedRowSpan}
+              aria-hidden="true"
+              className="border-b p-0"
+            />
           </TableRow>
+          {hasChallenges && (
+            <TableRow className="hover:bg-transparent">
+              {challenges.map((challenge) => (
+                <TableHead
+                  scope="col"
+                  key={challenge.challenge_id}
+                  className={cn(
+                    "h-15 border-b px-3 py-2 text-center align-middle whitespace-normal",
+                    groupStartIds.has(challenge.challenge_id) &&
+                      "border-l border-l-border/60"
+                  )}
+                >
+                  <span
+                    className="line-clamp-2 text-xs font-medium leading-4 text-foreground"
+                    title={challenge.challenge_title}
+                  >
+                    {challenge.challenge_title}
+                  </span>
+                  <span className="mt-1 block font-mono text-[11px] leading-none font-normal text-muted-foreground tabular-nums">
+                    {challenge.pts.toLocaleString()} {t("game:filter.pts")}
+                  </span>
+                </TableHead>
+              ))}
+            </TableRow>
+          )}
         </TableHeader>
         <TableBody>
           {rows.map(({ team, solves }) => (
@@ -280,7 +361,11 @@ export function ScoreboardTable({
               {challenges.map((challenge) => (
                 <TableCell
                   key={challenge.challenge_id}
-                  className="border-b border-b-border/60 px-4 py-2 text-center"
+                  className={cn(
+                    "border-b border-b-border/60 px-4 py-2 text-center",
+                    groupStartIds.has(challenge.challenge_id) &&
+                      "border-l border-l-border/40"
+                  )}
                 >
                   <SolveCell
                     title={challenge.challenge_title}
