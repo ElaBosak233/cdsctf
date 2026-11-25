@@ -3,12 +3,13 @@
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
+    time::Instant,
 };
 
 use cds_engine::{mlua::Lua, traits::EngineError};
 use cds_media::Media;
 
-pub(crate) type KeyCache = Arc<RwLock<HashMap<i64, String>>>;
+pub(crate) type KeyCache = Arc<RwLock<HashMap<i64, (String, Instant)>>>;
 
 pub(crate) fn decode_key(data: Vec<u8>) -> Result<String, &'static str> {
     let key = String::from_utf8(data).map_err(|_| "invalid_key_encoding")?;
