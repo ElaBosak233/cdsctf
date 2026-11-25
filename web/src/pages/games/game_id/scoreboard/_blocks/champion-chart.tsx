@@ -101,15 +101,22 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
           pts: submission.pts,
         }))
       )
-      .filter((event) => Number.isFinite(event.ts))
+      .filter((event) => Number.isFinite(event.ts) && event.pts !== 0)
       .sort((a, b) => a.ts - b.ts);
     const firstEvent = events[0]?.ts;
     const lastEvent = events[events.length - 1]?.ts;
     const started =
       toEpochMilliseconds(currentGame?.started_at) ?? firstEvent ?? nowMs;
-    const ended = toEpochMilliseconds(currentGame?.ended_at) ?? nowMs;
+    const frozen = toEpochMilliseconds(currentGame?.frozen_at);
+    const ended = toEpochMilliseconds(currentGame?.ended_at);
+    const fallbackEnd =
+      ended != null && nowMs >= ended
+        ? ended
+        : frozen != null && nowMs >= frozen
+          ? frozen
+          : nowMs;
     const start = Math.min(started, firstEvent ?? started);
-    const end = Math.max(start + 1, lastEvent ?? start, Math.min(nowMs, ended));
+    const end = Math.max(start + 1, lastEvent ?? fallbackEnd);
     const totals = new Map<number, number>();
     const points: ChartPoint[] = [];
     const pointAt = (ts: number): ChartPoint =>
@@ -150,7 +157,13 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
         ])
       ) satisfies ChartConfig,
     };
-  }, [scoreboard, currentGame?.started_at, currentGame?.ended_at, nowMs]);
+  }, [
+    scoreboard,
+    currentGame?.started_at,
+    currentGame?.frozen_at,
+    currentGame?.ended_at,
+    nowMs,
+  ]);
   if (!lines.length) return null;
   const spansDays =
     new Date(data[0].ts).toDateString() !==
@@ -245,6 +258,7 @@ function ChampionChart({ scoreboard }: { scoreboard?: ScoreboardEntry[] }) {
           dataKey="ts"
           type="number"
           domain={["dataMin", "dataMax"]}
+          padding={{ right: 12 }}
           tickFormatter={formatTime}
           tickLine={false}
           axisLine={false}
