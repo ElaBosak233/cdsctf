@@ -250,21 +250,6 @@ pub async fn init(env: &Env, checker: &Checker) -> Result<Cluster, ClusterError>
 }
 
 impl Cluster {
-    /// Builds an offline client stub for integration tests that exercise
-    /// non-K8s routes through [`cds_web::traits::AppState`]. Never dials
-    /// the cluster.
-    #[doc(hidden)]
-    pub fn disconnected(checker: &Checker) -> Result<Self, ClusterError> {
-        let config = K8sConfig::new("http://127.0.0.1:1".parse().expect("valid test URI"));
-        let client = K8sClient::try_from(config)?;
-        Ok(Self {
-            client,
-            namespace: "cdsctf-test".to_owned(),
-            traffic: cds_env::cluster::Config::default().traffic,
-            checker: checker.clone(),
-        })
-    }
-
     /// Returns service.
     pub async fn get_service(&self, id: &str) -> Result<Service, ClusterError> {
         metadata::validate_id(id)?;

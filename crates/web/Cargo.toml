@@ -56,7 +56,5 @@ utoipa-scalar  = { workspace = true }
 path = "src/lib.rs"
 
 [dev-dependencies]
-cds-migrator       = { workspace = true }
-rustls             = { workspace = true }
 tower              = { workspace = true, features = ["util"] }
 tracing-subscriber = { workspace = true }
