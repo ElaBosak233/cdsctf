@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import type { ChallengeStatus } from "@/api/challenges";
+import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { CardProps } from "@/components/ui/card";
 import { Card } from "@/components/ui/card";
@@ -17,6 +18,12 @@ import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { getOrdinal } from "@/utils/math";
 import { parseTimestamp } from "@/utils/time";
+
+const BLOOD_RANK_STYLES = [
+  "border-amber-500/30 bg-amber-500/12 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-300",
+  "border-slate-400/35 bg-slate-500/10 text-slate-600 dark:border-slate-400/30 dark:bg-slate-400/15 dark:text-slate-300",
+  "border-orange-500/30 bg-orange-500/12 text-orange-700 dark:border-orange-400/30 dark:bg-orange-400/15 dark:text-orange-300",
+] as const;
 
 type ChallengeCardProps = CardProps & {
   digest?: Pick<ChallengeSummary, "id" | "title" | "category">;
@@ -48,6 +55,9 @@ function ChallengeCard(props: ChallengeCardProps) {
 
   const isCheated = !debug && Boolean(status?.cheated);
   const isSolved = !debug && !isCheated && Boolean(status?.solved);
+  const isGameContext = pathname.startsWith("/games");
+  const bloods = !debug ? (status?.bloods ?? []) : [];
+  const hasBloods = bloods.length > 0;
 
   return (
     <Card
@@ -180,54 +190,82 @@ function ChallengeCard(props: ChallengeCardProps) {
       <Separator className={"my-3"} />
       <div className={cn(["flex", "justify-between", "items-center", "h-5"])}>
         <Tooltip>
-          <TooltipTrigger render={<span className={cn(["text-sm"])} />}>
+          <TooltipTrigger
+            render={
+              <span
+                className={cn(
+                  "text-sm",
+                  hasBloods &&
+                    "underline decoration-dotted decoration-muted-foreground/45 underline-offset-4 transition-colors hover:decoration-foreground/60"
+                )}
+              />
+            }
+          >
             {t("submission:solves", {
               count: debug ? NaN : status?.solved_times || 0,
             })}
           </TooltipTrigger>
-          {!!status?.solved_times && (
+          {hasBloods && (
             <TooltipContent
-              side={"bottom"}
-              className={cn([
-                "flex",
-                "flex-col",
-                "gap-2",
-                "px-4",
-                "py-2.5",
-                "rounded-lg",
-              ])}
+              side="bottom"
+              align="start"
+              showArrow={false}
+              className="flex min-w-48 max-w-60 flex-col items-stretch gap-0 rounded-lg bg-popover px-2.5 py-1 text-popover-foreground shadow-md ring-1 ring-foreground/10"
               onClick={(e) => e.stopPropagation()}
             >
-              {status?.bloods?.map((blood, index) => (
-                <div
-                  key={blood.id}
-                  className={cn(["flex", "items-center", "gap-3"])}
-                >
-                  <div className={cn(["flex", "flex-col"])}>
-                    <div className={cn(["flex", "gap-2"])}>
-                      <span className={cn(["font-semibold", "font-mono"])}>
+              <div className="flex flex-col divide-y divide-border/60">
+                {bloods.map((blood, index) => {
+                  const name =
+                    (isGameContext ? blood.team_name : blood.user_name) || "-";
+                  const avatarHash = isGameContext
+                    ? blood.team_avatar_hash
+                    : blood.user_avatar_hash;
+                  const rankTone =
+                    BLOOD_RANK_STYLES[index] ??
+                    "border-border bg-muted text-muted-foreground";
+
+                  return (
+                    <div
+                      key={blood.id}
+                      className="flex items-center gap-2 py-1.5"
+                    >
+                      <span
+                        className={cn(
+                          "inline-flex h-4.5 w-7 shrink-0 items-center justify-center rounded-sm border font-mono text-[10px] font-semibold tabular-nums",
+                          rankTone
+                        )}
+                      >
                         {getOrdinal(index + 1)}
                       </span>
-                      <span className={cn(["text-xs"])}>
-                        {pathname.startsWith("/games")
-                          ? blood?.team_name
-                          : blood?.user_name}
-                      </span>
+                      <Avatar
+                        className="size-6 shrink-0 text-[10px] font-semibold"
+                        src={
+                          avatarHash
+                            ? `/api/media?hash=${avatarHash}`
+                            : undefined
+                        }
+                        fallback={name.charAt(0)}
+                      />
+                      <div className="flex min-w-0 flex-1 flex-col">
+                        <span className="truncate text-xs leading-tight font-medium text-popover-foreground">
+                          {name}
+                        </span>
+                        <span className="truncate font-mono text-[10px] leading-tight text-muted-foreground tabular-nums">
+                          {parseTimestamp(blood.created_at)?.toLocaleString() ??
+                            "-"}
+                        </span>
+                      </div>
                     </div>
-                    <span className={cn(["text-secondary", "text-xs"])}>
-                      {parseTimestamp(blood?.created_at)?.toLocaleString() ??
-                        "-"}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
+              </div>
             </TooltipContent>
           )}
         </Tooltip>
 
         {!!status?.pts && (
           <span className={cn(["font-mono"])}>
-            {pathname.startsWith("/games") && status?.pts} pts
+            {isGameContext && status?.pts} pts
           </span>
         )}
       </div>
