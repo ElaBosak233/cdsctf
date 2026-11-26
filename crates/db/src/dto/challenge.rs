@@ -3,9 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::entity::challenge::Instance;
 
-#[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, FromQueryResult, utoipa::ToSchema,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct ChallengeDetail {
     pub id: i64,
     pub title: String,
@@ -19,6 +17,12 @@ pub struct ChallengeDetail {
     pub instance: Option<Instance>,
     pub checker: Option<String>,
     pub writeup: Option<String>,
+    pub created_by: Option<i64>,
+    pub created_by_name: Option<String>,
+    pub created_by_avatar_hash: Option<String>,
+    pub updated_by: Option<i64>,
+    pub updated_by_name: Option<String>,
+    pub updated_by_avatar_hash: Option<String>,
     #[serde(with = "crate::time_format::option")]
     pub deleted_at: Option<time::OffsetDateTime>,
     #[serde(with = "crate::time_format")]
@@ -90,6 +94,12 @@ mod tests {
             instance: Some(Instance::default()),
             checker: Some("checker".to_owned()),
             writeup: Some("writeup".to_owned()),
+            created_by: Some(1),
+            created_by_name: Some("Admin".to_owned()),
+            created_by_avatar_hash: Some("hash1".to_owned()),
+            updated_by: Some(2),
+            updated_by_name: Some("Editor".to_owned()),
+            updated_by_avatar_hash: Some("hash2".to_owned()),
             deleted_at: None,
             created_at: time::OffsetDateTime::from_unix_timestamp(1).unwrap(),
             updated_at: time::OffsetDateTime::from_unix_timestamp(2).unwrap(),
@@ -100,6 +110,12 @@ mod tests {
         assert!(value.get("checker").is_none());
         assert!(value.get("public").is_none());
         assert!(value.get("deleted_at").is_none());
+        assert!(value.get("created_by").is_none());
+        assert!(value.get("created_by_name").is_none());
+        assert!(value.get("created_by_avatar_hash").is_none());
+        assert!(value.get("updated_by").is_none());
+        assert!(value.get("updated_by_name").is_none());
+        assert!(value.get("updated_by_avatar_hash").is_none());
         assert_eq!(value["writeup"], serde_json::Value::Null);
     }
 }

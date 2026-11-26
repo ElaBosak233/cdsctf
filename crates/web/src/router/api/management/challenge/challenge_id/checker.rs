@@ -4,10 +4,7 @@ use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
 use cds_checker::traits::CheckerError;
-use cds_db::{
-    ChallengeDetail,
-    sea_orm::{NotSet, Set, Unchanged},
-};
+use cds_db::sea_orm::{NotSet, Set, Unchanged};
 use cds_engine::traits::{DiagnosticMarker, EngineError};
 use garde::Validate;
 use serde::{Deserialize, Serialize};
@@ -18,8 +15,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Path, VJson},
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Path, VJson},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -53,16 +50,19 @@ pub struct UpdateCheckerRequest {
 #[tracing::instrument(skip_all, fields(handler = "update_checker"))]
 pub async fn update_checker(
     State(s): State<Arc<AppState>>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateCheckerRequest>,
 ) -> Result<Json<EmptyJson>, WebError> {
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
+    let operator_id = ext.operator.as_ref().map(|u| u.id);
 
-    let _ = cds_db::challenge::update::<ChallengeDetail>(
+    let _ = cds_db::challenge::update(
         &s.db.conn,
         cds_db::challenge::ActiveModel {
             id: Unchanged(challenge_id),
             checker: body.checker.map_or(NotSet, |v| Set(Some(v))),
+            updated_by: Set(operator_id),
             ..Default::default()
         },
     )

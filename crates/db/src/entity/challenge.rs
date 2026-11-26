@@ -28,6 +28,8 @@ pub struct Model {
     pub checker: Option<String>,
     #[sea_orm(column_type = "Text")]
     pub writeup: Option<String>,
+    pub created_by: Option<i64>,
+    pub updated_by: Option<i64>,
     #[serde(with = "crate::time_format::option")]
     pub deleted_at: Option<time::OffsetDateTime>,
     #[serde(with = "crate::time_format")]

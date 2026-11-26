@@ -13,6 +13,12 @@ export type ChallengeDetail = {
   instance: Instance | null;
   checker: string | null;
   writeup: string | null;
+  created_by: number | null;
+  created_by_name: string | null;
+  created_by_avatar_hash: string | null;
+  updated_by: number | null;
+  updated_by_name: string | null;
+  updated_by_avatar_hash: string | null;
   deleted_at: Timestamp | null;
   updated_at: Timestamp;
   created_at: Timestamp;

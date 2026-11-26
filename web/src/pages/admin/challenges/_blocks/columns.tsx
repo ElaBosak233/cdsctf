@@ -35,6 +35,7 @@ import {
   deleteChallenge,
   updateChallenge,
 } from "@/api/management/challenges/challenge_id";
+import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -288,10 +289,26 @@ function TimeCell({
   };
 
   return (
-    <div className={cn(["flex", "flex-col", "gap-1", "whitespace-nowrap"])}>
+    <div className={cn(["flex", "flex-col", "gap-1.5", "whitespace-nowrap"])}>
       <div className={cn(["flex", "items-center", "gap-1.5", "text-sm"])}>
-        <Clock3Icon className="size-3.5 text-muted-foreground" />
-        <span>{format(row.original.updated_at)}</span>
+        <Clock3Icon className="size-3.5 shrink-0 text-muted-foreground" />
+        <span className="tabular-nums">{format(row.original.updated_at)}</span>
+        {row.original.updated_by_name && (
+          <span className="ml-1 inline-flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+            <Avatar
+              className="size-5 shrink-0"
+              src={
+                row.original.updated_by_avatar_hash
+                  ? `/api/media?hash=${row.original.updated_by_avatar_hash}`
+                  : undefined
+              }
+              fallback={row.original.updated_by_name.charAt(0)}
+            />
+            <span className="max-w-28 truncate font-medium text-foreground">
+              {row.original.updated_by_name}
+            </span>
+          </span>
+        )}
       </div>
       <div
         className={cn([
@@ -302,10 +319,28 @@ function TimeCell({
           "text-muted-foreground",
         ])}
       >
-        <CalendarPlusIcon className="size-3.5" />
-        {t("challenge:list.created_at", {
-          time: format(row.original.created_at),
-        })}
+        <CalendarPlusIcon className="size-3.5 shrink-0" />
+        <span className="tabular-nums">
+          {t("challenge:list.created_at", {
+            time: format(row.original.created_at),
+          })}
+        </span>
+        {row.original.created_by_name && (
+          <span className="ml-1 inline-flex min-w-0 items-center gap-1.5">
+            <Avatar
+              className="size-4 shrink-0"
+              src={
+                row.original.created_by_avatar_hash
+                  ? `/api/media?hash=${row.original.created_by_avatar_hash}`
+                  : undefined
+              }
+              fallback={row.original.created_by_name.charAt(0)}
+            />
+            <span className="max-w-28 truncate">
+              {row.original.created_by_name}
+            </span>
+          </span>
+        )}
       </div>
     </div>
   );

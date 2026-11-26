@@ -62,3 +62,5 @@ pub mod m20261119_000001_submission_cheat_index;
 pub mod m20261125_000001_cqrs_scoring_and_queue;
 
 pub mod m20261125_000002_game_notice_refactor;
+
+pub mod m20261125_000003_challenge_authors;

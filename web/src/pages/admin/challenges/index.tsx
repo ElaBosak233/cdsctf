@@ -49,7 +49,7 @@ export default function Index() {
     useContext(ChallengeListContext)!;
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
-  const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(10));
+  const [size, setSize] = useQueryState("size", parseAsInteger.withDefault(20));
   const [sorting, setSorting] = useState<SortingState>([
     { id: "updated_at", desc: true },
   ]);
@@ -140,7 +140,7 @@ export default function Index() {
             aria-busy={loading}
             className={cn([
               "w-full",
-              "min-w-224",
+              "min-w-256",
               "table-fixed",
               "text-foreground",
             ])}
@@ -164,7 +164,7 @@ export default function Index() {
                         "bg-muted/95",
                         header.column.id === "classification" && ["w-44"],
                         header.column.id === "status" && ["w-52"],
-                        header.column.id === "updated_at" && ["w-44"],
+                        header.column.id === "updated_at" && ["w-80"],
                         header.column.id === "actions" && [
                           "sticky",
                           "right-0",
@@ -282,7 +282,7 @@ export default function Index() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {[10, 20, 40, 60].map((value) => (
+                  {[20, 40, 60].map((value) => (
                     <SelectItem key={value} value={String(value)}>
                       {value}
                     </SelectItem>

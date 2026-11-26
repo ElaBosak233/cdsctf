@@ -136,7 +136,7 @@ impl WorkerContext {
             return Ok(Some(Arc::clone(&entry.0)));
         }
 
-        let Some(challenge) = cds_db::challenge::find_by_id(&self.db.conn, challenge_id).await?
+        let Some(challenge) = cds_db::challenge::find_detail_by_id(&self.db.conn, challenge_id).await?
         else {
             self.challenge_cache.remove(&challenge_id);
             return Ok(None);

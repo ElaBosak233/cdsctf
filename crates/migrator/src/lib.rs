@@ -38,6 +38,7 @@ impl MigratorTrait for Migrator {
             Box::new(migrations::m20261119_000001_submission_cheat_index::Migration),
             Box::new(migrations::m20261125_000001_cqrs_scoring_and_queue::Migration),
             Box::new(migrations::m20261125_000002_game_notice_refactor::Migration),
+            Box::new(migrations::m20261125_000003_challenge_authors::Migration),
         ]
     }
 }

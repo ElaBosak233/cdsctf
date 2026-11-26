@@ -198,7 +198,7 @@ async fn submission_failure_constraint_supports_upgrade_and_rollback() {
         )).await.unwrap().unwrap().try_get::<String>("", "definition").unwrap()
     };
     assert!(definition(database.clone()).await.contains("failed"));
-    Migrator::down(&database, Some(4)).await.unwrap();
+    Migrator::down(&database, Some(5)).await.unwrap();
     assert!(!definition(database.clone()).await.contains("failed"));
     Migrator::up(&database, None).await.unwrap();
     assert!(definition(database.clone()).await.contains("failed"));
@@ -264,7 +264,7 @@ async fn cqrs_scoring_and_queue_migration_upgrades_and_rolls_back() {
     assert_eq!(indexes, 5);
 
     // Rollback restores legacy columns and drops new indexes cleanly.
-    Migrator::down(&database, Some(2)).await.unwrap();
+    Migrator::down(&database, Some(3)).await.unwrap();
     let restored: i64 = database
         .query_one_raw(Statement::from_string(
             DbBackend::Postgres,
@@ -364,7 +364,7 @@ async fn game_notice_refactor_migration_upgrades_cascades_and_rolls_back() {
     assert_eq!(null_authors, 1);
 
     // Rollback drops the new columns and re-upgrade restores them cleanly.
-    Migrator::down(&database, Some(1)).await.unwrap();
+    Migrator::down(&database, Some(2)).await.unwrap();
     let remaining_cols: i64 = database
         .query_one_raw(Statement::from_string(
             DbBackend::Postgres,
@@ -374,6 +374,96 @@ async fn game_notice_refactor_migration_upgrades_cascades_and_rolls_back() {
                 WHERE table_schema = current_schema()
                   AND table_name = 'game_notices'
                   AND column_name IN ('challenge_id', 'created_by', 'updated_by', 'updated_at')
+            "#,
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "count")
+        .unwrap();
+    assert_eq!(remaining_cols, 0);
+
+    Migrator::up(&database, None).await.unwrap();
+    database
+        .execute_unprepared(&format!(
+            "SET search_path TO public; DROP SCHEMA {schema} CASCADE"
+        ))
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+#[ignore = "requires CDS_TEST_DATABASE_URL pointing to disposable PostgreSQL"]
+async fn challenge_authors_migration_backfills_first_manager_and_rolls_back() {
+    let (database, schema) = isolated_database("challenge_authors").await;
+    // Apply everything BEFORE m20261125_000003_challenge_authors so we can seed
+    // legacy challenges and verify the backfill picks the lowest-ID non-deleted
+    // user with `management:challenge`.
+    Migrator::up(&database, None).await.unwrap();
+    Migrator::down(&database, Some(1)).await.unwrap();
+
+    database
+        .execute_unprepared(
+            r#"
+                INSERT INTO users (id, name, username, banned, permissions, hashed_password, deleted_at, created_at, updated_at)
+                VALUES
+                    (1, 'Regular', 'regular', FALSE, ARRAY['basic']::TEXT[], 'hash', NULL, NOW(), NOW()),
+                    (2, 'DeletedAdmin', 'deladmin', FALSE, ARRAY['management:challenge']::TEXT[], 'hash', NOW(), NOW(), NOW()),
+                    (3, 'FirstManager', 'manager1', FALSE, ARRAY['basic', 'management:challenge']::TEXT[], 'hash', NULL, NOW(), NOW()),
+                    (4, 'SecondManager', 'manager2', FALSE, ARRAY['management:challenge']::TEXT[], 'hash', NULL, NOW(), NOW());
+
+                INSERT INTO challenges (id, title, description, category, tags, has_instance, has_attachment, has_writeup, public, created_at, updated_at)
+                VALUES
+                    (10, 'Legacy 1', 'desc', 1, ARRAY[]::TEXT[], FALSE, FALSE, FALSE, FALSE, NOW(), NOW()),
+                    (11, 'Legacy 2', 'desc', 2, ARRAY[]::TEXT[], FALSE, FALSE, FALSE, FALSE, NOW(), NOW());
+            "#,
+        )
+        .await
+        .unwrap();
+
+    // Run m20261125_000003_challenge_authors.
+    Migrator::up(&database, None).await.unwrap();
+
+    let backfilled: i64 = database
+        .query_one_raw(Statement::from_string(
+            DbBackend::Postgres,
+            "SELECT COUNT(*) AS count FROM challenges WHERE created_by = 3 AND updated_by = 3",
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "count")
+        .unwrap();
+    assert_eq!(backfilled, 2);
+
+    // Deleting user 3 sets created_by / updated_by to NULL via ON DELETE SET NULL.
+    database
+        .execute_unprepared("DELETE FROM users WHERE id = 3")
+        .await
+        .unwrap();
+    let nulled: i64 = database
+        .query_one_raw(Statement::from_string(
+            DbBackend::Postgres,
+            "SELECT COUNT(*) AS count FROM challenges WHERE created_by IS NULL AND updated_by IS NULL",
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "count")
+        .unwrap();
+    assert_eq!(nulled, 2);
+
+    // Rollback drops columns cleanly.
+    Migrator::down(&database, Some(1)).await.unwrap();
+    let remaining_cols: i64 = database
+        .query_one_raw(Statement::from_string(
+            DbBackend::Postgres,
+            r#"
+                SELECT COUNT(*) AS count
+                FROM information_schema.columns
+                WHERE table_schema = current_schema()
+                  AND table_name = 'challenges'
+                  AND column_name IN ('created_by', 'updated_by')
             "#,
         ))
         .await

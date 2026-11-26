@@ -13,12 +13,9 @@ mod writeup;
 use std::sync::Arc;
 
 use axum::{Json, Router, extract::State};
-use cds_db::{
-    ChallengeDetail,
-    sea_orm::{
-        ActiveValue::{Set, Unchanged},
-        NotSet,
-    },
+use cds_db::sea_orm::{
+    ActiveValue::{Set, Unchanged},
+    NotSet,
 };
 use garde::Validate;
 use serde::{Deserialize, Serialize};
@@ -29,8 +26,8 @@ use utoipa_axum::{
 
 use super::AdminChallengeResponse;
 use crate::{
-    extract::{Path, VJson},
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Path, VJson},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -98,10 +95,12 @@ pub struct UpdateChallengeRequest {
 #[tracing::instrument(skip_all, fields(handler = "update_challenge"))]
 pub async fn update_challenge(
     State(s): State<Arc<AppState>>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateChallengeRequest>,
 ) -> Result<Json<AdminChallengeResponse>, WebError> {
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
+    let operator_id = ext.operator.as_ref().map(|u| u.id);
 
     let challenge = cds_db::challenge::update(
         &s.db.conn,
@@ -115,6 +114,7 @@ pub async fn update_challenge(
             has_instance: body.has_instance.map_or(NotSet, Set),
             has_attachment: body.has_attachment.map_or(NotSet, Set),
             has_writeup: body.has_writeup.map_or(NotSet, Set),
+            updated_by: Set(operator_id),
             ..Default::default()
         },
     )
@@ -139,10 +139,12 @@ pub async fn update_challenge(
 #[tracing::instrument(skip_all, fields(handler = "delete_challenge"))]
 pub async fn delete_challenge(
     State(s): State<Arc<AppState>>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
 ) -> Result<Json<EmptyJson>, WebError> {
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
-    cds_db::challenge::delete(&s.db.conn, challenge.id).await?;
+    let operator_id = ext.operator.as_ref().map(|u| u.id);
+    cds_db::challenge::delete(&s.db.conn, challenge.id, operator_id).await?;
     Ok(Json(EmptyJson::default()))
 }
 
@@ -169,16 +171,19 @@ pub struct UpdateChallengeInstanceRequest {
 #[tracing::instrument(skip_all, fields(handler = "update_challenge_instance"))]
 pub async fn update_challenge_instance(
     State(s): State<Arc<AppState>>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateChallengeInstanceRequest>,
 ) -> Result<Json<EmptyJson>, WebError> {
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
+    let operator_id = ext.operator.as_ref().map(|u| u.id);
 
-    let _ = cds_db::challenge::update::<ChallengeDetail>(
+    let _ = cds_db::challenge::update(
         &s.db.conn,
         cds_db::challenge::ActiveModel {
             id: Unchanged(challenge_id),
             instance: body.instance.map_or(NotSet, |v| Set(Some(v))),
+            updated_by: Set(operator_id),
             ..Default::default()
         },
     )

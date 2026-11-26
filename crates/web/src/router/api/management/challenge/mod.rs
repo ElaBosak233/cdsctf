@@ -22,8 +22,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::{Json as ReqJson, Query},
-    traits::{AppState, WebError},
+    extract::{Extension, Json as ReqJson, Query},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -75,7 +75,7 @@ pub async fn get_challenges(
     let size = params.size.unwrap_or(10).clamp(1, 100);
     let (id, keyword) = super::parse_list_search(params.q.as_deref());
 
-    let (challenges, total) = cds_db::challenge::find(
+    let (challenges, total) = cds_db::challenge::find_details(
         &s.db.conn,
         FindChallengeOptions {
             id,
@@ -127,8 +127,11 @@ pub struct AdminChallengeResponse {
 #[tracing::instrument(skip_all, fields(handler = "create_challenge"))]
 pub async fn create_challenge(
     State(s): State<Arc<AppState>>,
+    Extension(ext): Extension<AuthPrincipal>,
     ReqJson(body): ReqJson<CreateChallengeRequest>,
 ) -> Result<(StatusCode, Json<AdminChallengeResponse>), WebError> {
+    let operator_id = ext.operator.as_ref().map(|u| u.id);
+
     let challenge = create_challenge_with_key(
         &s.db.conn,
         &s.media,
@@ -143,6 +146,8 @@ pub async fn create_challenge(
             has_writeup: Set(false),
             instance: Set(body.instance),
             checker: Set(body.checker),
+            created_by: Set(operator_id),
+            updated_by: Set(operator_id),
             ..Default::default()
         },
     )
@@ -169,7 +174,7 @@ async fn create_challenge_with_key(
     model: cds_db::challenge::ActiveModel,
 ) -> Result<ChallengeDetail, WebError> {
     let transaction = conn.begin().await.map_err(cds_db::DbError::from)?;
-    let challenge = cds_db::challenge::create::<ChallengeDetail>(&transaction, model).await?;
+    let challenge = cds_db::challenge::create(&transaction, model).await?;
 
     let mut key = [0_u8; 64];
     SystemRandom::new().fill(&mut key).map_err(|_| {

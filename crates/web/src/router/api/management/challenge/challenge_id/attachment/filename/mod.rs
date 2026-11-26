@@ -17,8 +17,8 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::Path,
-    traits::{AppState, EmptyJson, WebError},
+    extract::{Extension, Path},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -100,6 +100,7 @@ pub async fn get_attachment(
 #[tracing::instrument(skip_all, fields(handler = "delete_attachment"))]
 pub async fn delete_attachment(
     State(s): State<Arc<AppState>>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path((challenge_id, filename)): Path<(i64, String)>,
 ) -> Result<Json<EmptyJson>, WebError> {
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id)
@@ -107,9 +108,12 @@ pub async fn delete_attachment(
         .has_attachment
         .then_some(())
         .ok_or_else(|| WebError::NotFound(json!("challenge_has_not_attachment")))?;
+    let operator_id = ext.operator.as_ref().map(|u| u.id);
 
     let path = crate::util::media::build_challenge_attachment_path(challenge_id);
     s.media.delete(path, filename).await?;
+
+    cds_db::challenge::touch_editor(&s.db.conn, challenge_id, operator_id).await?;
 
     Ok(Json(EmptyJson::default()))
 }

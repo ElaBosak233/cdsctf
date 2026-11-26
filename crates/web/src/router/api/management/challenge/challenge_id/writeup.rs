@@ -13,8 +13,8 @@ use utoipa_axum::{
 
 use super::AdminChallengeResponse;
 use crate::{
-    extract::{Path, VJson},
-    traits::{AppState, WebError},
+    extract::{Extension, Path, VJson},
+    traits::{AppState, AuthPrincipal, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -47,16 +47,19 @@ pub struct UpdateWriteupRequest {
 #[tracing::instrument(skip_all, fields(handler = "update_writeup"))]
 pub async fn update_writeup(
     State(s): State<Arc<AppState>>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
     VJson(body): VJson<UpdateWriteupRequest>,
 ) -> Result<Json<AdminChallengeResponse>, WebError> {
     let challenge = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
+    let operator_id = ext.operator.as_ref().map(|u| u.id);
 
     let challenge = cds_db::challenge::update(
         &s.db.conn,
         cds_db::challenge::ActiveModel {
             id: Unchanged(challenge.id),
             writeup: Set(Some(body.writeup)),
+            updated_by: Set(operator_id),
             ..Default::default()
         },
     )

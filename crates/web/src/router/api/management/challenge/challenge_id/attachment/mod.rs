@@ -17,9 +17,9 @@ use utoipa_axum::{
 };
 
 use crate::{
-    extract::Path,
+    extract::{Extension, Path},
     model::Metadata,
-    traits::{AppState, EmptyJson, WebError},
+    traits::{AppState, AuthPrincipal, EmptyJson, WebError},
 };
 
 /// Builds the Axum router fragment for this module.
@@ -99,10 +99,12 @@ pub async fn get_challenge_attachment(
 #[tracing::instrument(skip_all, fields(handler = "save_challenge_attachment"))]
 pub async fn save_challenge_attachment(
     State(s): State<Arc<AppState>>,
+    Extension(ext): Extension<AuthPrincipal>,
     Path(challenge_id): Path<i64>,
     mut multipart: Multipart,
 ) -> Result<Json<EmptyJson>, WebError> {
     let _ = crate::util::loader::prepare_challenge(&s.db.conn, challenge_id).await?;
+    let operator_id = ext.operator.as_ref().map(|u| u.id);
 
     let path = crate::util::media::build_challenge_attachment_path(challenge_id);
     let mut filename = String::new();
@@ -122,6 +124,8 @@ pub async fn save_challenge_attachment(
         .save(path, filename, data)
         .await
         .map_err(|_| WebError::InternalServerError(json!("internal_server_error")))?;
+
+    cds_db::challenge::touch_editor(&s.db.conn, challenge_id, operator_id).await?;
 
     Ok(Json(EmptyJson::default()))
 }

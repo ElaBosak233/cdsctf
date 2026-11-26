@@ -1,11 +1,14 @@
 //! Database access for `challenge` — SeaORM queries, updates, and DTOs.
 
-use std::str::FromStr;
+use std::{
+    collections::{BTreeSet, HashMap},
+    str::FromStr,
+};
 
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, Condition, ConnectionTrait, EntityName, EntityTrait,
     FromQueryResult, Iden as _, JoinType, Order, PaginatorTrait, QueryFilter, QueryOrder,
-    QuerySelect, QueryTrait, RelationTrait, Set, prelude::Expr,
+    QuerySelect, QueryTrait, RelationTrait, Set, Statement, prelude::Expr,
     sea_query::extension::postgres::PgExpr,
 };
 
@@ -28,6 +31,80 @@ pub struct FindChallengeOptions {
     pub page: Option<u64>,
     pub size: Option<u64>,
     pub sorts: Option<String>,
+}
+
+#[derive(Clone, Debug, FromQueryResult)]
+struct AuthorInfo {
+    id: i64,
+    display_name: String,
+    avatar_hash: Option<String>,
+}
+
+async fn hydrate_details(
+    conn: &impl ConnectionTrait,
+    models: Vec<Model>,
+) -> Result<Vec<ChallengeDetail>, DbError> {
+    let author_ids: Vec<i64> = models
+        .iter()
+        .flat_map(|m| [m.created_by, m.updated_by])
+        .flatten()
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect();
+
+    let authors: HashMap<i64, AuthorInfo> = if author_ids.is_empty() {
+        HashMap::new()
+    } else {
+        let stmt = Statement::from_sql_and_values(
+            conn.get_database_backend(),
+            r#"
+                SELECT
+                    id,
+                    COALESCE(NULLIF(name, ''), username) AS display_name,
+                    avatar_hash
+                FROM users
+                WHERE id = ANY($1)
+            "#,
+            [author_ids.into()],
+        );
+        AuthorInfo::find_by_statement(stmt)
+            .all(conn)
+            .await?
+            .into_iter()
+            .map(|author| (author.id, author))
+            .collect()
+    };
+
+    Ok(models
+        .into_iter()
+        .map(|model| {
+            let creator = model.created_by.and_then(|id| authors.get(&id));
+            let editor = model.updated_by.and_then(|id| authors.get(&id));
+            ChallengeDetail {
+                id: model.id,
+                title: model.title,
+                description: model.description,
+                category: model.category,
+                tags: model.tags,
+                has_instance: model.has_instance,
+                has_attachment: model.has_attachment,
+                public: model.public,
+                has_writeup: model.has_writeup,
+                instance: model.instance,
+                checker: model.checker,
+                writeup: model.writeup,
+                created_by: model.created_by,
+                created_by_name: creator.map(|u| u.display_name.clone()),
+                created_by_avatar_hash: creator.and_then(|u| u.avatar_hash.clone()),
+                updated_by: model.updated_by,
+                updated_by_name: editor.map(|u| u.display_name.clone()),
+                updated_by_avatar_hash: editor.and_then(|u| u.avatar_hash.clone()),
+                deleted_at: model.deleted_at,
+                created_at: model.created_at,
+                updated_at: model.updated_at,
+            }
+        })
+        .collect())
 }
 
 /// Checks whether a challenge is public or available through an active game
@@ -89,7 +166,8 @@ fn active_game_access_query(
         .filter(crate::entity::game::Column::EndedAt.gte(now))
 }
 
-/// Queries rows using filter options and returns `(rows, total_count)`.
+/// Queries single-table projections using filter options and returns
+/// `(rows, total_count)`.
 pub async fn find<T>(
     conn: &impl ConnectionTrait,
     FindChallengeOptions {
@@ -173,8 +251,18 @@ where
     Ok((challenges, total))
 }
 
-/// Looks up by id.
+/// Queries full admin [`ChallengeDetail`] rows with hydrated creator and last
+/// editor profiles.
+pub async fn find_details(
+    conn: &impl ConnectionTrait,
+    options: FindChallengeOptions,
+) -> Result<(Vec<ChallengeDetail>, u64), DbError> {
+    let (models, total) = find::<Model>(conn, options).await?;
+    let details = hydrate_details(conn, models).await?;
+    Ok((details, total))
+}
 
+/// Looks up a single-table projection by id.
 pub async fn find_by_id<T>(
     conn: &impl ConnectionTrait,
     challenge_id: i64,
@@ -188,6 +276,18 @@ where
         .await?)
 }
 
+/// Looks up one hydrated [`ChallengeDetail`] (with creator and last editor
+/// metadata) by id.
+pub async fn find_detail_by_id(
+    conn: &impl ConnectionTrait,
+    challenge_id: i64,
+) -> Result<Option<ChallengeDetail>, DbError> {
+    let Some(model) = find_by_id::<Model>(conn, challenge_id).await? else {
+        return Ok(None);
+    };
+    Ok(hydrate_details(conn, vec![model]).await?.into_iter().next())
+}
+
 /// Counts rows that match optional filters.
 pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
     Ok(Entity::find()
@@ -196,15 +296,17 @@ pub async fn count(conn: &impl ConnectionTrait) -> Result<u64, DbError> {
         .await?)
 }
 
-/// Inserts a new row and returns the persisted model.
-pub async fn create<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
-where
-    T: FromQueryResult, {
+/// Inserts a new challenge and returns the hydrated [`ChallengeDetail`].
+pub async fn create(
+    conn: &impl ConnectionTrait,
+    model: ActiveModel,
+) -> Result<ChallengeDetail, DbError> {
     let challenge = model.insert(conn).await?;
     tracing::info!(
         resource = "challenge",
         action = "create",
         challenge_id = challenge.id,
+        created_by = ?challenge.created_by,
         title = ?challenge.title,
         category = ?challenge.category,
         public = ?challenge.public,
@@ -213,15 +315,16 @@ where
         "database step completed",
     );
 
-    Ok(find_by_id::<T>(conn, challenge.id)
+    find_detail_by_id(conn, challenge.id)
         .await?
-        .ok_or_else(|| DbError::NotFound(format!("challenge_{}", challenge.id)))?)
+        .ok_or_else(|| DbError::NotFound(format!("challenge_{}", challenge.id)))
 }
 
-/// Applies an active model update to the database.
-pub async fn update<T>(conn: &impl ConnectionTrait, model: ActiveModel) -> Result<T, DbError>
-where
-    T: FromQueryResult, {
+/// Applies an active model update and returns the hydrated [`ChallengeDetail`].
+pub async fn update(
+    conn: &impl ConnectionTrait,
+    model: ActiveModel,
+) -> Result<ChallengeDetail, DbError> {
     let changed_fields = [
         ("title", model.title.is_set()),
         ("description", model.description.is_set()),
@@ -234,6 +337,7 @@ where
         ("instance", model.instance.is_set()),
         ("checker", model.checker.is_set()),
         ("writeup", model.writeup.is_set()),
+        ("updated_by", model.updated_by.is_set()),
         ("deleted_at", model.deleted_at.is_set()),
     ]
     .into_iter()
@@ -245,6 +349,7 @@ where
         action = "update",
         changed_fields = ?changed_fields,
         challenge_id = challenge.id,
+        updated_by = ?challenge.updated_by,
         title = ?challenge.title,
         category = ?challenge.category,
         public = ?challenge.public,
@@ -253,19 +358,42 @@ where
         "database step completed",
     );
 
-    Ok(find_by_id::<T>(conn, challenge.id)
+    find_detail_by_id(conn, challenge.id)
         .await?
-        .ok_or_else(|| DbError::NotFound(format!("challenge_{}", challenge.id)))?)
+        .ok_or_else(|| DbError::NotFound(format!("challenge_{}", challenge.id)))
 }
 
-/// Deletes rows matching the provided identifier or filter.
-pub async fn delete(conn: &impl ConnectionTrait, challenge_id: i64) -> Result<(), DbError> {
+/// Bumps `updated_by` and `updated_at` when an out-of-row challenge asset
+/// (such as an attachment file) is modified.
+pub async fn touch_editor(
+    conn: &impl ConnectionTrait,
+    challenge_id: i64,
+    operator_id: Option<i64>,
+) -> Result<(), DbError> {
+    let _ = ActiveModel {
+        id: Set(challenge_id),
+        updated_by: Set(operator_id),
+        ..Default::default()
+    }
+    .update(conn)
+    .await?;
+
+    Ok(())
+}
+
+/// Soft-deletes a challenge and records the operator who deleted it.
+pub async fn delete(
+    conn: &impl ConnectionTrait,
+    challenge_id: i64,
+    operator_id: Option<i64>,
+) -> Result<(), DbError> {
     let challenge = find_by_id::<Model>(conn, challenge_id)
         .await?
         .ok_or_else(|| DbError::NotFound(format!("challenge_{challenge_id}")))?;
 
     let _ = ActiveModel {
         id: Set(challenge.id),
+        updated_by: Set(operator_id),
         deleted_at: Set(Some(time::OffsetDateTime::now_utc())),
         ..Default::default()
     }
@@ -275,6 +403,7 @@ pub async fn delete(conn: &impl ConnectionTrait, challenge_id: i64) -> Result<()
         resource = "challenge",
         action = "delete",
         challenge_id,
+        updated_by = ?operator_id,
         title = ?challenge.title,
         "database step completed",
     );

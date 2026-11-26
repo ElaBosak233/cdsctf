@@ -51,7 +51,7 @@ pub async fn prepare_challenge(
     db: &DatabaseConnection,
     challenge_id: i64,
 ) -> Result<ChallengeDetail, WebError> {
-    let challenge = cds_db::challenge::find_by_id(db, challenge_id)
+    let challenge = cds_db::challenge::find_detail_by_id(db, challenge_id)
         .await?
         .ok_or(WebError::NotFound(json!("challenge_not_found")))?;
 
