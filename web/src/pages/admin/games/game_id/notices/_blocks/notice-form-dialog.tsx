@@ -1,6 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FlagIcon, MessageCircleIcon, SaveIcon, TypeIcon } from "lucide-react";
+import {
+  LibraryIcon,
+  MessageCircleIcon,
+  SaveIcon,
+  TypeIcon,
+} from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -55,8 +60,15 @@ type ChallengeOption = {
 
 function ChallengeCategoryIcon({ categoryId }: { categoryId?: number | null }) {
   const category = getCategory(categoryId ?? 1);
-  const Icon = category.icon!;
-  return <Icon className="size-4 shrink-0 text-muted-foreground" />;
+  const CategoryIcon = category.icon!;
+  return (
+    <span
+      className="flex size-4 shrink-0 items-center justify-center"
+      style={{ color: category.color }}
+    >
+      <CategoryIcon className="size-4" />
+    </span>
+  );
 }
 
 function NoticeFormDialog({ notice, onClose }: NoticeFormDialogProps) {
@@ -260,11 +272,14 @@ function NoticeFormDialog({ notice, onClose }: NoticeFormDialogProps) {
                     <FormLabel>{t("game:notice.form.challenge._")}</FormLabel>
                     <Field size="sm">
                       <FieldIcon>
-                        <FlagIcon />
+                        <LibraryIcon />
                       </FieldIcon>
                       <Combobox<ChallengeOption>
                         value={selectedChallenge}
-                        items={filteredChallenges}
+                        options={filteredChallenges.map((challenge) => ({
+                          value: challenge,
+                          content: `#${challenge.challenge_id} ${challenge.challenge_title}`,
+                        }))}
                         itemToStringLabel={(item) =>
                           `#${item.challenge_id} ${item.challenge_title}`
                         }
@@ -301,30 +316,19 @@ function NoticeFormDialog({ notice, onClose }: NoticeFormDialogProps) {
                         <ComboboxContent>
                           <ComboboxEmpty>{t("challenge:empty")}</ComboboxEmpty>
                           <ComboboxList>
-                            {filteredChallenges.map((gc) => {
-                              const cat = getCategory(gc.challenge_category);
-                              return (
-                                <ComboboxItem key={gc.challenge_id} value={gc}>
-                                  <ChallengeCategoryIcon
-                                    categoryId={gc.challenge_category}
-                                  />
-                                  <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                                    #{gc.challenge_id}
-                                  </span>
-                                  <span className="shrink-0 font-mono text-xs text-muted-foreground uppercase">
-                                    {cat.name}
-                                  </span>
-                                  <span className="min-w-0 flex-1 truncate">
-                                    {gc.challenge_title}
-                                  </span>
-                                  {!gc.enabled && (
-                                    <span className="shrink-0 text-xs text-muted-foreground">
-                                      ({t("game:enabled.false")})
-                                    </span>
-                                  )}
-                                </ComboboxItem>
-                              );
-                            })}
+                            {filteredChallenges.map((gc) => (
+                              <ComboboxItem key={gc.challenge_id} value={gc}>
+                                <ChallengeCategoryIcon
+                                  categoryId={gc.challenge_category}
+                                />
+                                <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                                  #{gc.challenge_id}
+                                </span>
+                                <span className="min-w-0 truncate">
+                                  {gc.challenge_title}
+                                </span>
+                              </ComboboxItem>
+                            ))}
                           </ComboboxList>
                         </ComboboxContent>
                       </Combobox>
