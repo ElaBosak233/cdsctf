@@ -1,4 +1,4 @@
-import { TrophyIcon } from "lucide-react";
+import { MedalIcon, TrophyIcon } from "lucide-react";
 import { type CSSProperties, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar } from "@/components/ui/avatar";
@@ -25,6 +25,57 @@ import type {
 import { cn } from "@/utils";
 import { getCategory } from "@/utils/category";
 import { parseTimestamp } from "@/utils/time";
+
+const PODIUM_STYLES = {
+  1: {
+    icon: TrophyIcon,
+    iconClassName: "text-amber-500 dark:text-amber-400",
+    cellClassName:
+      "shadow-[inset_3px_0_0_0_var(--color-amber-500)] dark:shadow-[inset_3px_0_0_0_var(--color-amber-400)]",
+  },
+  2: {
+    icon: MedalIcon,
+    iconClassName: "text-slate-400 dark:text-slate-300",
+    cellClassName:
+      "shadow-[inset_3px_0_0_0_var(--color-slate-400)] dark:shadow-[inset_3px_0_0_0_var(--color-slate-300)]",
+  },
+  3: {
+    icon: MedalIcon,
+    iconClassName: "text-orange-500 dark:text-orange-400",
+    cellClassName:
+      "shadow-[inset_3px_0_0_0_var(--color-orange-500)] dark:shadow-[inset_3px_0_0_0_var(--color-orange-400)]",
+  },
+} as const;
+
+type PodiumRank = keyof typeof PODIUM_STYLES;
+
+function getPodiumRank(rank: number, scored: boolean): PodiumRank | undefined {
+  if (!scored) return undefined;
+  if (rank === 1 || rank === 2 || rank === 3) return rank;
+  return undefined;
+}
+
+function RankBadge({ rank, scored }: { rank: number; scored: boolean }) {
+  const podiumRank = getPodiumRank(rank, scored);
+  if (podiumRank) {
+    const { icon: Icon, iconClassName } = PODIUM_STYLES[podiumRank];
+    return (
+      <span
+        className={cn("inline-flex items-center justify-center", iconClassName)}
+        title={`#${rank}`}
+        aria-label={`#${rank}`}
+      >
+        <Icon className="size-4.5" aria-hidden="true" />
+      </span>
+    );
+  }
+
+  return (
+    <span className="font-mono text-sm text-muted-foreground tabular-nums">
+      {rank > 0 ? rank : "—"}
+    </span>
+  );
+}
 
 function SolveCell({
   submissions,
@@ -289,96 +340,92 @@ export function ScoreboardTable({
           )}
         </TableHeader>
         <TableBody>
-          {rows.map(({ team, solves }) => (
-            <TableRow
-              key={team.id}
-              className="h-16 bg-card hover:bg-[color-mix(in_oklab,var(--muted)_35%,var(--card))] data-[state=selected]:bg-[color-mix(in_oklab,var(--info)_6%,var(--card))]"
-              data-state={team.id === selfTeamId ? "selected" : undefined}
-            >
-              <TableCell
-                className={cn(
-                  stickyCell,
-                  "left-0 border-b border-b-border/60 px-2 py-3 text-center"
-                )}
+          {rows.map(({ team, solves }) => {
+            const scored = team.pts > 0 || solves.size > 0;
+            const podiumRank = getPodiumRank(team.rank, scored);
+
+            return (
+              <TableRow
+                key={team.id}
+                className="h-16 bg-card hover:bg-[color-mix(in_oklab,var(--muted)_35%,var(--card))] data-[state=selected]:bg-[color-mix(in_oklab,var(--info)_6%,var(--card))]"
+                data-state={team.id === selfTeamId ? "selected" : undefined}
               >
-                <span
-                  className={cn(
-                    "inline-flex flex-col items-center gap-0.5 font-mono text-sm tabular-nums",
-                    team.rank === 1 && "text-warning"
-                  )}
-                >
-                  {team.rank === 1 && (
-                    <TrophyIcon className="size-3" aria-hidden="true" />
-                  )}
-                  {team.rank > 0 ? team.rank : "—"}
-                </span>
-              </TableCell>
-              <TableCell
-                className={cn(
-                  stickyCell,
-                  "left-(--rank-width) border-b border-b-border/60 py-3 pr-4 pl-2"
-                )}
-              >
-                <div className="flex w-full min-w-0 items-center gap-2.5 text-left">
-                  <Avatar
-                    className="hidden size-8 shrink-0 sm:flex"
-                    src={
-                      team.avatar_hash
-                        ? `/api/media?hash=${team.avatar_hash}`
-                        : undefined
-                    }
-                    fallback={team.name.charAt(0)}
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span
-                      className="block truncate text-sm font-semibold"
-                      title={team.name}
-                    >
-                      {team.name}
-                    </span>
-                    {team.slogan && (
-                      <span
-                        className="mt-0.5 block truncate text-[11px] text-muted-foreground"
-                        title={team.slogan}
-                      >
-                        {team.slogan}
-                      </span>
-                    )}
-                  </span>
-                </div>
-              </TableCell>
-              <TableCell
-                className={cn(
-                  stickyCell,
-                  "left-[calc(var(--rank-width)+var(--team-width))] border-r border-b border-r-border/60 border-b-border/60 px-3 py-3 text-right sm:px-5 font-mono font-semibold tabular-nums"
-                )}
-              >
-                {team.pts.toLocaleString()}
-              </TableCell>
-              <TableCell className="hidden border-b border-b-border/60 px-3 py-3 text-center font-mono text-muted-foreground tabular-nums sm:table-cell">
-                {solves.size}
-              </TableCell>
-              {challenges.map((challenge) => (
                 <TableCell
-                  key={challenge.challenge_id}
                   className={cn(
-                    "border-b border-b-border/60 px-4 py-2 text-center",
-                    groupStartIds.has(challenge.challenge_id) &&
-                      "border-l border-l-border/40"
+                    stickyCell,
+                    "left-0 border-b border-b-border/60 px-2 py-3 text-center",
+                    podiumRank && PODIUM_STYLES[podiumRank].cellClassName
                   )}
                 >
-                  <SolveCell
-                    title={challenge.challenge_title}
-                    submissions={solves.get(challenge.challenge_id) ?? []}
-                  />
+                  <RankBadge rank={team.rank} scored={scored} />
                 </TableCell>
-              ))}
-              <TableCell
-                aria-hidden="true"
-                className="border-b border-b-border/60 p-0"
-              />
-            </TableRow>
-          ))}
+                <TableCell
+                  className={cn(
+                    stickyCell,
+                    "left-(--rank-width) border-b border-b-border/60 py-3 pr-4 pl-2"
+                  )}
+                >
+                  <div className="flex w-full min-w-0 items-center gap-2.5 text-left">
+                    <Avatar
+                      className="hidden size-8 shrink-0 sm:flex"
+                      src={
+                        team.avatar_hash
+                          ? `/api/media?hash=${team.avatar_hash}`
+                          : undefined
+                      }
+                      fallback={team.name.charAt(0)}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span
+                        className="block truncate text-sm font-semibold"
+                        title={team.name}
+                      >
+                        {team.name}
+                      </span>
+                      {team.slogan && (
+                        <span
+                          className="mt-0.5 block truncate text-[11px] text-muted-foreground"
+                          title={team.slogan}
+                        >
+                          {team.slogan}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    stickyCell,
+                    "left-[calc(var(--rank-width)+var(--team-width))] border-r border-b border-r-border/60 border-b-border/60 px-3 py-3 text-right sm:px-5 font-mono font-semibold tabular-nums"
+                  )}
+                >
+                  {team.pts.toLocaleString()}
+                </TableCell>
+                <TableCell className="hidden border-b border-b-border/60 px-3 py-3 text-center font-mono text-muted-foreground tabular-nums sm:table-cell">
+                  {solves.size}
+                </TableCell>
+                {challenges.map((challenge) => (
+                  <TableCell
+                    key={challenge.challenge_id}
+                    className={cn(
+                      "border-b border-b-border/60 px-4 py-2 text-center",
+                      groupStartIds.has(challenge.challenge_id) &&
+                        "border-l border-l-border/40"
+                    )}
+                  >
+                    <SolveCell
+                      title={challenge.challenge_title}
+                      submissions={solves.get(challenge.challenge_id) ?? []}
+                    />
+                  </TableCell>
+                ))}
+                <TableCell
+                  aria-hidden="true"
+                  className="border-b border-b-border/60 p-0"
+                />
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </ScrollArea>
